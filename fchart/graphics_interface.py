@@ -54,6 +54,7 @@ class GraphicsInterface:
         self.gi_width     = width*1.0
         self.gi_height    = height*1.0
         self.gi_pen_gray  = 0.0
+        self.gi_pen_rgb  = (0.0, 0.0, 0.0)
         self.gi_fill_gray = 0.0
         self.gi_linewidth = 0.1
         self.gi_dash_style = ([], 0.0)
@@ -63,9 +64,8 @@ class GraphicsInterface:
         self.gi_origin_y  = self.gi_height/2.0
 
         self.gi_filename = ''
-        
+
         self.gi_stack = []
-        pass
 
 
     def save(self):
@@ -79,7 +79,6 @@ class GraphicsInterface:
                               self.gi_dash_style,
                               self.gi_font,
                               self.gi_fontsize))
-        pass
 
     def restore(self):
         """
@@ -93,30 +92,25 @@ class GraphicsInterface:
          self.gi_dash_style,
          self.gi_font,
          self.gi_fontsize) = self.gi_stack.pop()
-        
-        pass
 
     def new(self):
         """
         Erase all graphics, but keep graphics state (font, fontsize,
         linewidth&style , width, height, origin as they are.
         """
-        pass
 
 
     def set_filename(self, filename):
         self.gi_filename = filename
-        pass
 
-    
+
     def set_dimensions(self, width, height):
         """
         Sets gi_width and gi_height
         """
         self.gi_width  = width
         self.gi_height = height
-        pass
-
+        self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
 
     def set_origin(self, origin_x, origin_y):
         """
@@ -125,13 +119,10 @@ class GraphicsInterface:
         self.gi_origin_x = origin_x
         if abs(self.gi_origin_x) < 1e-5:
             self.gi_origin_x = 0.0
-            pass
         self.gi_origin_y = origin_y
         if abs(self.gi_origin_y) < 1e-5:
             self.gi_origin_y = 0.0
-            pass
-        pass
-    
+
 
 
 
@@ -140,7 +131,6 @@ class GraphicsInterface:
         Sets gi_linewidth. Derived classes should extend, not override this method.
         """
         self.gi_linewidth = linewidth
-        pass
 
 
     def set_pen_gray(self, pen_gray):
@@ -148,7 +138,14 @@ class GraphicsInterface:
         Sets gi_pen_gray. Derived classes should extend, not override this method.
         """
         self.gi_pen_gray = pen_gray
-        pass
+        self.gi_pen_rgb = (pen_gray, pen_gray, pen_gray)
+
+    def set_pen_rgb(self, pen_rgb):
+        """
+        Sets gi_pen_gray. Derived classes should extend, not override this method.
+        """
+        self.gi_pen_gray = max(pen_rgb)
+        self.gi_pen_rgb = pen_rgb
 
 
     def set_fill_gray(self, fill_gray):
@@ -156,7 +153,6 @@ class GraphicsInterface:
         Sets gi_fill_gray. Derived classes should extend, not override this method.
         """
         self.gi_fill_gray = fill_gray
-        pass
 
 
     def set_solid_line(self):
@@ -164,7 +160,6 @@ class GraphicsInterface:
         From now on, all lines should be drawn solid. Extend this method.
         """
         self.gi_dash_style = ([],0.0)
-        pass
 
 
     def set_dashed_line(self, on, off, start=0.0):
@@ -174,9 +169,6 @@ class GraphicsInterface:
         the \"on\" pattern. Extend this method
         """
         self.gi_dash_style = ([on, off], start)
-        pass
-
-
 
 
     def set_font(self, font='Times-Roman', fontsize=12*POINT):
@@ -191,7 +183,6 @@ class GraphicsInterface:
 
         self.gi_font     = font
         self.gi_fontsize = fontsize
-        pass
 
 
     def moveto(self,x,y):
@@ -199,8 +190,7 @@ class GraphicsInterface:
         Move to position x,y. Derived classes should override this
         method.
         """
-        print 'GraphicsInterface.moveto()'
-        pass
+        print('GraphicsInterface.moveto()')
 
 
     def translate(self, dx, dy):
@@ -208,17 +198,14 @@ class GraphicsInterface:
         Shift origin of coordinate system (dx,dy) mm with respect to
         self.gi_origin_{x,y}
         """
-        print 'GraphicsInterface.translate())'
-        pass
+        print('GraphicsInterface.translate())')
 
 
     def rotate(self, angle):
         """
         Rotate coordinates angle radians around current origin.
         """
-        print 'GraphicsInterface.rotate()'
-        pass
-
+        print('GraphicsInterface.rotate()')
 
 
     def line(self, x1, y1, x2, y2):
@@ -226,9 +213,8 @@ class GraphicsInterface:
         Draw a line from (x1,y1) to (x2,y2) using the current pen gray value, linestyle
         and linewidth.
         """
-        print 'GraphicsInterface.line()'
-        pass
-    
+        print('GraphicsInterface.line()')
+
 
     def circle(self, x, y, r, mode='P'):
         """
@@ -237,77 +223,85 @@ class GraphicsInterface:
         'F': only fill interior
         'PF': fill interior with fill gray value and draw border with pen gray value
         """
-        print 'GraphicsInterface.circle()'
-        pass
+        print('GraphicsInterface.circle()')
+
 
     def ellipse(self, x, y, rlong, rshort, position_angle, mode='P'):
         """
         Draw an ellipse with centre at (x,y) and long radius rlong and
         short radius rshort. position_angle is the angle between the
         long axis and the positive x-axis in radians. 'mode'
-        determines how it is drawn: 
+        determines how it is drawn:
         'P': only draw border with pen
         'F': only fill interior
         'PF': fill interior with fill gray value and draw border with
-        pen gray value 
+        pen gray value
         """
-        print 'GraphicsInterface.ellipse()'
-        pass
+        print('GraphicsInterface.ellipse()')
 
 
-
-    def text(self, text, begin=False, end=False):
+    def text(self, text):
         """
         Draw 'text' at the current position. The current position is
         the bottom left corner of the text to be drawn.
-
-        if begin: open text context, if end: close text context
         """
-        print 'GraphicsInterface.text()'
-        pass
+        print('GraphicsInterface.text()')
 
-    def text_superscript(self, text, begin=False, end=False):
+
+    def text_superscript(self, text):
         """
         Draw 'text' at the current position in superscript.
-        if begin: open text context, if end: close text context
         """
-        print 'GraphicsInterface.text_superscript()'
-        pass
+        print('GraphicsInterface.text_superscript()')
 
 
-    def text_right(self, x, y, text, begin=False, end=False):
+    def text_right(self, x, y, text):
         """
         x, y is the bottom left corner of text
-        if begin: open text context, if end: close text context
         """
-        print 'GraphicsInterface.text_right()'
-        pass
+        print('GraphicsInterface.text_right()')
 
 
-    def text_left(self, x, y, text, begin=False, end=False):
+    def text_left(self, x, y, text):
         """
         x, y is the bottom right corner of text
-        if begin: open text context, if end: close text context
         """
-        print 'GraphicsInterface.text_left()'
-        pass
+        print('GraphicsInterface.text_left()')
 
-    def text_centred(self, x, y, text, begin=False, end=False):
+
+    def text_centred(self, x, y, text):
         """
         Draw text centred at (x,y)
-        if begin: open text context, if end: close text context
         """
-        print 'GraphicsInterface.text_centred()'
-        pass
+        print('GraphicsInterface.text_centred()')
 
-    
+
     def finish(self):
         """
         Finalize the drawing (Store to disk, memory, whatever).
         """
-        print 'GraphicsInterface.finish()'
-        pass
-    pass
+        print('GraphicsInterface.finish()')
+
+
+    def clip_path(self, path):
+        """
+        Clip path
+        """
+        print('GraphicsInterface.clip_rectangle()')
+
+
+    def clip_circle(self, x, y, r):
+        """
+        Clip circle
+        """
+        print('GraphicsInterface.clip_circle()')
+
+
+    def reset_clip(self):
+        """
+        Clip rectangle
+        """
+        print('GraphicsInterface.reset_clip()')
 
 
 

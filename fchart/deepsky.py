@@ -18,8 +18,9 @@ import fchart
 from fchart.deepsky_catalog import *
 from fchart.deepsky_object import *
 from fchart.saguaro import *
+from fchart.vic import *
 from fchart.revngc import *
-from astrocalc import *
+from .astrocalc import *
 import os
 
 
@@ -45,7 +46,7 @@ def get_deepsky_list(data_dir=os.path.join(fchart.get_data('catalogs'))):
     m40.messier=40
     m40.type=STARS
     m40.ra = hms2rad(12,22,16)
-    m40.dec= dms2rad(58,05, 4)
+    m40.dec= dms2rad(58,0o5, 4)
     m40.mag=9.0
     m40.rlong=1.0*pi/(180*60.0)
     m40.constellation='UMA'
@@ -63,54 +64,51 @@ def get_deepsky_list(data_dir=os.path.join(fchart.get_data('catalogs'))):
     m45.constellation='TAU'
     deeplist.append(m45)
 
-    print 'Reading NGC...'
+    print('Reading NGC...')
     ngclist, ngclist_multiple = import_revised_ngcic(os.path.join(data_dir,'revngc.txt'), 'NGC')
-    print 'Reading IC...'
+    print('Reading IC...')
     iclist, iclist_multiple  = import_revised_ngcic(os.path.join(data_dir,'revic.txt'), 'IC')
-    print 'Reading SAC...'
+    print('Reading SAC...')
     saclist = import_saguaro(os.path.join(data_dir, 'sac.txt'))
+    print('Reading VIC...')
+    viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
 
-    print 'Sorting Sac...'
-    saclist.sort(cmp_name)
+    print('Sorting Sac...')
+    saclist.sort(key=cmp_to_key(cmp_name))
 
     ngcstart = 0
     ngcend   = 0
     icstart = 0
     icend   = 0
     index = 0
-    print "searching index_start"
+    print("searching index_start")
     while index < len(saclist):
         if saclist[index].cat == 'IC':
             icstart = index
             index += 1
             while saclist[index].cat == 'IC':
                 index += 1
-                pass
             icend = index
-            pass
         if saclist[index].cat == 'NGC':
             ngcstart = index
             index += 1
             while saclist[index].cat == 'NGC':
                 index += 1
-                pass
             ngcend = index
-            pass
         if ngcstart*ngcend*icstart*icend != 0:
             break
         index += 1
-        pass
-    print "done"
+    print("done")
     deeplist += saclist[0:icstart]
 
-    deeplist += saclist[ngcend:]+ngclist +ngclist_multiple +iclist+iclist_multiple
-    deeplist.sort(cmp_name)
+    deeplist += saclist[ngcend:]+ngclist +ngclist_multiple +iclist+iclist_multiple+viclist
+    deeplist.sort(key=cmp_to_key(cmp_name))
     return deeplist
 
 
 def get_deepsky_catalog(data_dir=os.path.join(fchart.get_data('catalogs'))):
     l = get_deepsky_list(data_dir)
-    print len(l)
+    print(len(l))
     dc = DeepskyCatalog(l)
     return dc
 

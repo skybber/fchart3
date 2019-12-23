@@ -14,11 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-from deepsky_object import *
+from .deepsky_object import *
 from numpy import *
 from fchart.astrocalc import *
 
-from cStringIO import StringIO
+from io import StringIO
 
 class DeepskyCatalog:
     def __init__(self, deepsky_list=[], reject_doubles=False):
@@ -27,7 +27,6 @@ class DeepskyCatalog:
         self.pos_mag_array = zeros((0,3),dtype=float64)
 
         self.add_objects(deepsky_list, reject_doubles)
-        pass
 
     def add_objects(self, objects, reject_doubles=False):
         # Sort
@@ -36,7 +35,6 @@ class DeepskyCatalog:
             deepsky_list = list([objects])
         else:
             deepsky_list = list(objects)
-            pass
 
         if reject_doubles:
             # Reject doubles
@@ -62,14 +60,9 @@ class DeepskyCatalog:
                             include = False
                             break
 
-                        pass
-
                     if include:
                         self.deepsky_list.append(object)
                         self.names.append(name)
-                        pass
-                    pass # if len(self.names)
-                pass # for object in deepsky_list
 
             for object in self.deepsky_list:
                 name = object.name
@@ -80,16 +73,11 @@ class DeepskyCatalog:
                     if c > count:
                         count = c
                         name = n
-                        pass
-                    pass
                 object.name = name
-                pass
         else: # Do not reject doubles
             for object in deepsky_list:
                 self.deepsky_list.append(object)
                 self.names.append(object.cat.upper()+' '+object.name.upper())
-                pass
-            pass # reject_doubles
 
 
         # Recompute help array
@@ -98,15 +86,11 @@ class DeepskyCatalog:
             self.pos_mag_array[i,0] = self.deepsky_list[i].ra
             self.pos_mag_array[i,1] = self.deepsky_list[i].dec
             self.pos_mag_array[i,2] = self.deepsky_list[i].mag
-            pass
-        pass
 
     def compute_names(self):
         self.names = []
         for object in self.deepsky_list:
             self.names.append(object.cat.upper()+' '+object.name.upper())
-            pass
-        pass
 
 
     def select_deepsky(self, fieldcentre, radius, lm_deepsky=100.0, force_messier=False):
@@ -119,26 +103,20 @@ class DeepskyCatalog:
         ra = self.pos_mag_array[:,0]
         dec = self.pos_mag_array[:,1]
 
-        angular_distances = angular_distance( (ra,dec),fieldcentre)
-        # select on position
-        object_in_field     = angular_distances < radius
+        object_in_field = logical_and(abs((ra-fieldcentre[0])*cos(dec)) < radius, abs(dec-fieldcentre[1]) < radius)
         indices = where(object_in_field == 1)[0]
 
         selected_list_pos = []
         for index in indices:
             selected_list_pos.append(self.deepsky_list[index])
-            pass
 
         # select on magnitude
         selection = []
         for object in selected_list_pos:
-            if object.mag <= lm_deepsky or \
-                   (object.messier > 0 and force_messier):
+            if object.mag <= lm_deepsky or (object.messier > 0 and force_messier):
                 selection.append(object)
-                pass
-            pass
 
-        return DeepskyCatalog(selection,reject_doubles=False)
+        return DeepskyCatalog(selection, reject_doubles=False)
 
 
     def select_type(self, typelist=[]):
@@ -149,9 +127,6 @@ class DeepskyCatalog:
             for object in self.deepsky_list:
                 if object.type in typelist:
                     selection.append(object)
-                    pass
-                pass
-            pass
         return DeepskyCatalog(selection, reject_doubles=False)
 
 
@@ -164,11 +139,7 @@ class DeepskyCatalog:
         s = StringIO()
         for object in self.deepsky_list:
             s.write(str(object)+'\n')
-            pass
         return s.getvalue()[:-1]
-
-    pass
-
 
 
 __all__ = ['DeepskyCatalog']

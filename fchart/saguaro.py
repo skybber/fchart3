@@ -37,11 +37,9 @@ def parse_saguaro_line(line):
         if name not in ['LMC', 'SMC']:
             cat = cnsplit[0]
             name = cnsplit[1]+cnsplit[2]
-            pass
     else:
-        print 'ERROR: '+str(cnsplit)
+        print('ERROR: '+str(cnsplit))
         sys.exit(1)
-        pass
 
     typestr = strs[2].strip()
     typenum = UNKNOWN
@@ -67,7 +65,6 @@ def parse_saguaro_line(line):
         typenum = GALCL
     else:
         typenum = NOTFOUND
-        pass
 
     object.cat = cat.strip()
     object.name = name.strip().upper()
@@ -86,7 +83,6 @@ def parse_saguaro_line(line):
     if rlongstr != '':
         if not rlongstr[0].isalnum():
             rlongstr = rlongstr[1:]
-            pass
         unit = rlongstr[-1]
         try:
             rlong = float(rlongstr[:-1])*pi/180.0
@@ -97,37 +93,27 @@ def parse_saguaro_line(line):
                     txt += ch
                 else:
                     break
-                pass
             rlong = float(txt)*pi/180.0
-            pass
         if unit.lower() == 'm':
             rlong /= 60.0
-            pass
         if unit.lower() == 's':
             rlong /= 3600.0
-            pass
-        pass
 
     rshortstr = strs[11].strip()
     rshort = -1
     if rshortstr != '':
         if not rshortstr[0].isalnum():
             rshortstr = rlongstr[1:]
-            pass
         unit = rshortstr[-1]
         rshort = float(rshortstr[:-1])*pi/180.0
         if unit.lower() == 'm':
             rshort /= 60.0
-            pass
         if unit.lower() == 's':
             rshort /= 3600.0
-            pass
-        pass
     pastr     = strs[12].strip()
     pa = 90*pi/180.0
     if pastr != '':
         pa = float(pastr)*pi/180.0
-        pass
     object.rlong  = rlong
     object.rshort = rshort
     object.pa     = pa
@@ -138,7 +124,7 @@ def import_saguaro(filename):
     # Import all saguaro objects that are not NGC or IC objects, or M40
     deeplist = []
 
-    sf = file(filename, 'r')
+    sf = open(filename, 'r')
     lines = sf.readlines()
     sf.close()
 
@@ -146,12 +132,9 @@ def import_saguaro(filename):
         object = parse_saguaro_line(line)
         if object.cat != 'NGC' and object.cat != 'IC' and not(object.cat == 'Winnecke' and object.name == '4'):
             deeplist.append(object)
-            pass
-        pass
     return deeplist
 
 
 if __name__ == '__main__':
     fname = '../data/catalogs/sac.txt'
-    print str(len(import_saguaro(fname)))+' objects in SAC list'
-    pass
+    print(str(len(import_saguaro(fname)))+' objects in SAC list')

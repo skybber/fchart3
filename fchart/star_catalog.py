@@ -32,9 +32,6 @@ class IndexRecord:
         d    = angular_distance(self.centre, (ra_min, dec_max))
         if d > self.max_angular_distance:
             self.max_angular_distance = d
-            pass
-        pass
-    pass
 
 
 class TychoIndex:
@@ -43,7 +40,7 @@ class TychoIndex:
         self.records_in_supl1= 17588
         self.records_in_supl2= 1146
         self.index_list = []
-        f = file(filename, 'r')
+        f = open(filename, 'r')
         lines = f.readlines()
         f.close()
 
@@ -62,8 +59,6 @@ class TychoIndex:
                 num_records = end - start
                 start -= 1
                 self.index_list.append(IndexRecord(start, num_records, ra_min, dec_min, ra_max, dec_max))
-                pass
-            pass # end for ...
         N = len(self.index_list)
         self.ra           = zeros(N)*0.0
         self.dec          = zeros(N)*0.0
@@ -74,11 +69,6 @@ class TychoIndex:
             self.ra[i], self.dec[i] = self.index_list[i].centre
             self.max_radius[i]      = self.index_list[i].max_angular_distance
             self.first_record[i]    = self.index_list[i].first_record
-            pass
-        pass # end __init__
-
-    pass
-
 
 
 #====================>>>  StarCatalog  <<<====================
@@ -89,11 +79,9 @@ class StarCatalog:
         self.catalog = zeros((0,3),dtype=float32)
 
         if filename != '':
-            print str(self.read_catalog(filename))+' stars loaded.'
-            pass
+            print(str(self.read_catalog(filename))+' stars loaded.')
 
         self.index = TychoIndex(indexfilename)
-        pass
 
 
     def read_catalog(self, filename):
@@ -109,12 +97,11 @@ class StarCatalog:
 
         """
         num_bytes    = os.path.getsize(filename)
-        num_records  = num_bytes/12 # 4 bytes times 3 floats
+        num_records  = num_bytes//12 # 4 bytes times 3 floats
         # read from file using numarray function
         self.catalog = fromfile(filename, float32).reshape((num_records, 3))
         if sys.byteorder == 'little':
             self.catalog.byteswap()
-            pass
         return num_records
 
 
@@ -130,8 +117,13 @@ class StarCatalog:
         stars_in_catalog = self.catalog.shape[0]
 
         region_selection = zeros(stars_in_catalog,dtype=bool_)
+        fieldsize = angular_distance(fieldcentre, (fieldcentre[0] - radius, fieldcentre[1] - radius))
+        d = angular_distance(fieldcentre, (fieldcentre[0] - radius, fieldcentre[1] + radius))
+        if d > fieldsize:
+            fieldsize = d
+
         ang_dist = angular_distance(fieldcentre, (self.index.ra, self.index.dec))
-        select_regions = (ang_dist -radius -self.index.max_radius) <= 0.0
+        select_regions = (ang_dist - fieldsize - self.index.max_radius) <= 0.0
         first_records = self.index.first_record[select_regions]
 
         # end records are start of next region...
@@ -141,8 +133,7 @@ class StarCatalog:
         end_records   = self.index.first_record[select_regions]
 
         for i in range(len(first_records)):
-            region_selection[first_records[i]:end_records[i]] = True
-            pass
+            region_selection[int(first_records[i]):int(end_records[i])] = True
         region_selection[self.index.records_in_main:] = True
 
         selection_array = transpose(array([region_selection,
@@ -150,20 +141,22 @@ class StarCatalog:
                                            region_selection],dtype=bool_))
 
         selected_regions = self.catalog[selection_array]
-        stars_in_field = len(selected_regions)/3
+        stars_in_field = len(selected_regions)//3
         selected_regions = reshape(selected_regions, (stars_in_field, 3))
 
         ra = selected_regions[:,0]
         dec = selected_regions[:,1]
 
-        angular_distances = angular_distance( (ra,dec),fieldcentre)
-        # select on position
-        star_in_field     = angular_distances < radius
+        ra_sep = abs(ra-fieldcentre[0])
+        toosmall = ra_sep < pi
+        norm_ra_sep = toosmall * ra_sep + logical_not(toosmall) * (2*pi-ra_sep)
+        star_in_field = logical_and(norm_ra_sep*cos(dec) < radius, abs(dec-fieldcentre[1]) < radius)
+
         selection_array = transpose(array([star_in_field,
                                            star_in_field,
                                            star_in_field],dtype=bool_))
         position_selection = selected_regions[selection_array]
-        stars_in_field = len(position_selection)/3
+        stars_in_field = len(position_selection)//3
         position_selection = reshape(position_selection, (stars_in_field, 3))
 
         # select on magnitude
@@ -174,11 +167,10 @@ class StarCatalog:
                                            bright_enough,
                                            bright_enough], dtype=bool_))
         selection = position_selection[selection_array]
-        stars_in_field = len(selection)/3
+        stars_in_field = len(selection)//3
         selection =  reshape(selection, (stars_in_field, 3))
 
         return selection
 
-    pass
 
 __all__ =['StarCatalog']

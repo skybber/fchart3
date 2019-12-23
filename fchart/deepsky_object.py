@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from numpy import *
-from astrocalc import *
+from .astrocalc import *
 
 #   0: unknown
 #   1: galaxy
@@ -102,7 +102,6 @@ class DeepskyObject:
         self.rshort=-1.0
         self.position_angle=90.0*pi/180.0
         self.messier=-1
-        pass
 
 
     def __str__(self):
@@ -115,7 +114,6 @@ class DeepskyObject:
         if self.messier > 0:
             cat = 'M'
             name = str(self.messier)
-            pass
 
         s += cat.ljust(8)+' '+name.rjust(8)+' '+self.constellation
         s +='  '
@@ -125,29 +123,23 @@ class DeepskyObject:
             s += '+'
         else:
             s += '-'
-            pass
         s += str(decd).rjust(2)+str(decm).rjust(3)+str(int(decs+0.5)).rjust(3)
         if self.mag > -90:
             s += ' '+str(self.mag).rjust(6)+' '
         else:
             s += '        '
-            pass
         if self.rlong > 0.0:
             s += str(int(self.rlong*180*60/pi*10+0.5)/10.0).rjust(6)
         else:
             s += '      '
-            pass
         if self.rshort > 0.0:
             s += str(int(self.rshort*180*60/pi*10+0.5)/10.0).rjust(6)
         else:
             s += '      '
-            pass
 
         s += ' '+TYPENAME[self.type].ljust(8)
 
         return s
-
-    pass
 
 
 def cmp_ra(x,y):
@@ -167,16 +159,6 @@ def cmp_dec(x,y):
         r = -1
     return r
 
-
-def cmp_mag(x,y):
-    r = 0
-    if x.mag > y.mag:
-        r = 1
-    if x.mag < y.mag:
-        r = -1
-    return r
-
-
 def cmp_name(x,y):
     xn = (x.cat+x.name).upper()
     yn = (y.cat+y.name).upper()
@@ -188,18 +170,26 @@ def cmp_name(x,y):
     return r
 
 
-def cmp_messier(x,y):
-    r = 0
-    if x.messier > y.messier:
-        r = 1
-    if x.messier < y.messier:
-        r = -1
-    return r
+def cmp_to_key(mycmp):
+    'Convert a cmp= function into a key= function'
+    class K(object):
+        def __init__(self, obj, *args):
+            self.obj = obj
+        def __lt__(self, other):
+            return mycmp(self.obj, other.obj) < 0
+        def __gt__(self, other):
+            return mycmp(self.obj, other.obj) > 0
+        def __eq__(self, other):
+            return mycmp(self.obj, other.obj) == 0
+        def __le__(self, other):
+            return mycmp(self.obj, other.obj) <= 0
+        def __ge__(self, other):
+            return mycmp(self.obj, other.obj) >= 0
+        def __ne__(self, other):
+            return mycmp(self.obj, other.obj) != 0
+    return K
 
 __all__ = ['DeepskyObject','UNKNOWN',
            'G', 'N', 'PN', 'OC','GC', 'PG',
            'ALREADY_LISTED_1', 'ALREADY_LISTED_2', 'STARS',
-           'NOTFOUND', 'SNR', 'QSO','GALCL','cmp_ra', 'cmp_dec', 'cmp_mag', 'cmp_name', 'cmp_messier']
-
-
-
+           'NOTFOUND', 'SNR', 'QSO','GALCL','cmp_ra', 'cmp_dec', 'cmp_name', 'cmp_to_key']

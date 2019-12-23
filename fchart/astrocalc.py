@@ -25,17 +25,9 @@ def angular_distance(position1, position2):
 
     (start_ra, start_dec) = position1
     (end_ra, end_dec)     = position2
-    a = abs(start_ra-end_ra)
-    B = abs(0.5*pi - start_dec)
-    C = abs(0.5*pi - end_dec)
-    arg = cos(B)*cos(C) +sin(B)*sin(C)*cos(a)
-
-    toobig = arg >= 1.0
-    argclip1 = arg*(1- toobig)+ toobig
-
-    toosmall = argclip1 <= -1.0
-    argclip2 = argclip1*(1-toosmall) - toosmall
-    return arccos(argclip2)
+    a = start_ra-end_ra
+    arg = sin(start_dec)*sin(end_dec) + cos(start_dec)*cos(end_dec)*cos(a)
+    return arccos(arg)
 
 
 
@@ -64,7 +56,6 @@ def rad2hms_t(angle):
     sign = 1
     if angle < 0:
         sign = -1
-        pass
     p2 = 2.0*pi
     h  = (sign*angle/p2)*24.0
     h_int = int(h + 1e-8)
@@ -75,7 +66,7 @@ def rad2hms_t(angle):
     if s <= 1e-6:
         s = 0
         #if fabs(s*100 - int(s*100)) < 1e-4:
-    s = int(100*s+0.5)/100.0
+    s = int(100*s + 0.5)/100.0
     return(h_int, m_int, s, sign)
 
 
@@ -83,7 +74,6 @@ def rad2dms_t(angle):
     sign = 1
     if angle < 0:
         sign = -1
-        pass
     p2 = 2.0*pi
     d  = (sign*angle/p2)*360.0
     d_int = int(d + 1e-8)
@@ -93,8 +83,8 @@ def rad2dms_t(angle):
 
     if s <= 1e-6:
         s = 0
-    s = int(100*s+0.5)/100.0
-    return (d_int,m_int,s,sign)
+    s = int(100*s + 0.5)/100.0
+    return (d_int, m_int, s, sign)
 
 
 def rad2hms(angle):
@@ -107,7 +97,7 @@ def rad2hms(angle):
     """
     h_int,m_int,s,sign = rad2hms_t(angle)
 
-    return str(sign*h_int)+'h'+str(m_int)+'m'+str(s)
+    return str(sign*h_int) + 'h' + str(m_int) + 'm' + str(s)
 
 
 def rad2dms(angle):
@@ -122,14 +112,13 @@ def rad2dms(angle):
     return str(sign*d_int)+'d'+str(m_int)+'m'+str(s)
 
 
-
 def dms2rad(d,m=0,s=0, sign=1):
     """
     Converts an angle in degrees(d), minutes(m) and seconds(s) into
     radians. The parameters d, m and s MUST be positive. If a negative
     angle needs to be converted, then sign must be set to -1.
     """
-    return sign*(d+m/60.0 + s/3600.0)*pi/180.0
+    return sign*(d + m/60.0 + s/3600.0)*pi/180.0
 
 
 def hms2rad(h,m=0,s=0, sign=1):
@@ -139,12 +128,10 @@ def hms2rad(h,m=0,s=0, sign=1):
     be set to -1.
 
     """
-    return (sign*(h+m/60.0 + s/3600.0)*pi/12.0)
-
+    return (sign*(h + m/60.0 + s/3600.0)*pi/12.0)
 
 
 def lm_to_radec(lm, fieldcentre):
-
     """
     Inverse of SIN projection. Converts lm (l, m) with respect to
     a fieldcentre (alpha0, delta0) to equatorial coordinates (alpha,
@@ -153,7 +140,6 @@ def lm_to_radec(lm, fieldcentre):
     returns a tuple (alpha, delta). The formulae are taken from
     Greisen 1983: AIPS Memo 27, 'Non-linear Coordinate Systems in
     AIPS'
-
     """
     (l,m) = lm
     (alpha0, delta0) = fieldcentre
@@ -162,9 +148,7 @@ def lm_to_radec(lm, fieldcentre):
     return (alpha, delta)
 
 
-
 def radec_to_lm(radec, fieldcentre):
-
     """
     SIN projection. Converts radec (alpha, delta) with respect to
     a fieldcentre (alpha0, delta0) to direction cosines (l, m). All
@@ -172,7 +156,6 @@ def radec_to_lm(radec, fieldcentre):
     is a tuple (alpha0, delta0). The routine returns a tuple (l,m).
     The formulae are taken from Greisen 1983: AIPS Memo 27,
     'Non-linear Coordinate Systems in AIPS'
-
     """
     (alpha, delta) = radec
     (alpha0, delta0) = fieldcentre
@@ -182,9 +165,7 @@ def radec_to_lm(radec, fieldcentre):
     return (l,m)
 
 
-
 def direction_ddec(radec, fieldcentre):
-
     """
     Gives the angle between true north and map north on any
     location in a SIN projection. Positive means that the true north
@@ -198,7 +179,6 @@ def direction_ddec(radec, fieldcentre):
 
     angle = arctan2(-sin(dec)*sin(ra -ra0), cos(dec)*cos(dec0) + sin(dec)*sin(dec0)*cos(ra-ra0))
     return angle
-
 
 
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',

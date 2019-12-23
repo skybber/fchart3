@@ -33,27 +33,22 @@ class FontMetrics:
         for ff in fontfiles:
             name, ext = ff.split('.')
             self.metrics[name] = self.read_metrics(ff)
-            pass
-        pass
 
 
     def read_metrics(self, afm_name):
         widths = zeros(256)
 
-        f = file(self.dir+os.sep+afm_name, 'r')
+        f = open(self.dir+os.sep+afm_name, 'r')
         lines = f.readlines()
         f.close()
 
         for line in lines:
             split_up  = line.split()
             if 'WX' in split_up and ';' in split_up and 'C' in split_up:
-                index = atoi(split_up[1])
-                w = atoi(split_up[4])
+                index = int(split_up[1])
+                w = int(split_up[4])
                 if index >= 0:
                     widths[index] = w
-                    pass
-                pass
-            pass # for...
 
         return widths
 
@@ -64,20 +59,14 @@ class FontMetrics:
             N = len(text)
             if N > 0:
                 fmt = 'B'*N
-                chars = struct.unpack(fmt, text)
+                chars = struct.unpack(fmt, bytes(text, 'ISO-8859-1'))
                 for c in chars:
                     size += self.metrics[fontname][c]
-                    pass
                 size *= fontsize/1000.0
-                pass
-            pass
         except KeyError:
-            print 'Unknown font: '+fontname
+            print('Unknown font: '+fontname)
             size = -1
-            pass
         return size
-
-    pass
 
 
 __all__ = ['FontMetrics']

@@ -37,9 +37,9 @@ from fchart import deepsky_object as deepsky
 from fchart.deepsky import *
 from fchart.star_catalog import *
 from fchart.skymap_engine import *
+from fchart.constellation import *
 
-from fchart.eps import *
-from fchart.pdf import *
+from fchart.cairo import *
 from fchart.fonts import FontMetrics
 
 
@@ -47,14 +47,14 @@ from fchart.fonts import FontMetrics
 
 
 def print_version():
-    print 'fchart version 0.3 (c) 2005 Michiel Brentjens'
-    print """
+    print('fchart version 0.3 (c) 2005 Michiel Brentjens')
+    print("""
 fchart comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
 LICENSE file.
-"""
+""")
     pass
 
 
@@ -87,17 +87,6 @@ Options:
 
    -o, --output-dir      specify the output directory             (default: .)
 
-   -O, --output-type     specify output fileformat. Either EPS or
-                         PDF. On posix systems this defaults to
-                         EPS. On other systems the default is PDF. EPS
-                         output is generally a lot compacter in
-                         filesize than (even compressed) pdf output
-                         because PDF does not have a native 'circle'
-                         command (and circles we draw...). For rich
-                         fields, it takes considerably more time to
-                         generate PDF output than to generate EPS
-                         output, due to compression of the PDF streams.
-
    -l, --language        specify language on the maps, either 'en' or 'nl'
                          (default: en)
 
@@ -123,6 +112,8 @@ Options:
                          'r' for right. The label and label position may be
                          omitted.
 
+   -n, --no-dso-legend   hide dso legend
+
    -v, --version         display version information and exit.
 
    -c, --caption         force a specific caption for the maps. All maps will
@@ -140,11 +131,7 @@ Sourcenames:
    directory.
 
     """
-    print helptext
-
-    pass
-
-
+    print(helptext)
 
 
 class RuntimeSettings:
@@ -160,72 +147,54 @@ class RuntimeSettings:
         self.extra_positions_list       = []
         self.language                   = EN
         self.sourcelist                 = []
-        self.output_type                ='EPS'
         self.caption                    = False
         self.fieldcentre                = (-1,-1)
+        self.no_dso_legend              = False
 
-        if os.name != 'posix':
-            self.output_type = 'PDF'
-            pass
         self.parse_commandline()
-        pass
 
     def parse_commandline(self):
         optlist, self.sourcelist = getopt.gnu_getopt( sys.argv[1:],
-                                                      'hd:s:p:f:mo:x:l:auO:vc:',
+                                                      'hd:s:p:f:mo:x:l:auvrnc:',
                ['help', 'deep-sky', 'stars', 'paper-width', 'field-size',
                 'force-messier', 'output-dir', 'add-cross', 'language',
-                'force-asterisms', 'force-pg', 'output-type', 'version', 'caption'])
+                'force-asterisms', 'force-pg', 'version', 'caption', 'no-dso-legend'])
 
         for option, argument in optlist:
             if option in ['-h', '--help']:
                 print_help()
                 sys.exit(1)
-                pass
             if option in ['-v', '--version']:
                 print_version()
                 sys.exit(1)
-                pass
+            if option in ['-n', '--no-dso-legend']:
+                self.no_dso_legend = True
             if option in ['-d', '--deep-sky']:
                 self.limiting_magnitude_deepsky = float(argument)
-                pass
             if option in ['-s', '--stars']:
                 self.limiting_magnitude_stars = float(argument)
-                pass
             if option in ['-p', '--paper-width']:
                 self.paperwidth = float(argument)
-                pass
             if option in ['-f', '--field-size']:
                 self.fieldsize = float(argument)
-                pass
             if option in ['-m', '--force-messier']:
                 self.force_messier = True
-                pass
             if option in ['-a', '--force-asterisms']:
                 self.force_asterisms = True
-                pass
             if option in ['-u', '--force-pg']:
                 self.force_unknown = True
-                pass
             if option in ['-o', '--output-dir']:
                 self.output_dir = argument
-                pass
-            if option in ['-O', '--output-type']:
-                self.output_type = argument
-                pass
             if option in ['-c', '--caption']:
                 self.caption = argument
-                pass
             if option in ['-l', '--language']:
                 if argument.upper() == 'NL':
                     self.language = NL
                 elif argument.upper() == 'EN':
                     self.language = EN
                 else:
-                    print 'Unsupported language '+argument
+                    print('Unsupported language '+argument)
                     sys.exit(-1)
-                    pass
-                pass
             if option in ['-x', '--add-cross']:
                 data= argument.split(',')
                 if len(data) >= 2:
@@ -236,11 +205,9 @@ class RuntimeSettings:
                     dec_str = dec_str.lstrip().rstrip()
                     if len(data) >= 3:
                         label_str = data[2].lstrip().rstrip()
-                        pass
 
                     if len(data) >= 4:
                         label_pos = data[3].rstrip().lstrip()
-                        pass
 
                     rasplit = ra_str.split(':')
                     decsplit = dec_str.split(':')
@@ -249,37 +216,25 @@ class RuntimeSettings:
                     rah= float(rasplit[0])
                     if len(rasplit) >= 2:
                         ram = float(rasplit[1])
-                        pass
                     if len(rasplit) >= 3:
                         ras = float(rasplit[2])
-                        pass
 
                     decd, decm, decs, sign = 0.0, 0.0, 0.0, 1
                     decd= abs(float(decsplit[0]))
                     if decsplit[0][0] == '-':
                         sign = -1
-                        pass
                     if len(decsplit) >= 2:
                         decm = float(decsplit[1])
-                        pass
                     if len(decsplit) >= 3:
                         decs = float(decsplit[2])
-                        pass
                     rax, decx = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
                     self.extra_positions_list.append([rax,decx,label_str,label_pos])
                 else:
-                    print 'option -x needs three part argument, separated by comma\'s: -x "ra,dec,label"'
+                    print('option -x needs three part argument, separated by comma\'s: -x "ra,dec,label"')
                     sys.exit(-1)
-                    pass
-                pass
-            pass
         if len(self.sourcelist) == 0:
             print_help()
             sys.exit(1)
-            pass
-
-        pass
-    pass
 
 
 
@@ -302,14 +257,13 @@ if __name__ == '__main__':
 
     # Create output space if necessary
     if not os.path.exists(settings.output_dir):
-        print 'Creating directory '+settings.output_dir
+        print('Creating directory '+settings.output_dir)
         os.mkdir(settings.output_dir)
-        pass
 
     # Read basic catalogs
     starcatalog    = StarCatalog(data_dir+os.sep+'tyc2.bin', data_dir+os.sep+'index.dat')
     deeplist       = get_deepsky_list(data_dir)
-
+    constellcatalog = ConstellationCatalog(data_dir+os.sep+'bsc5.dat', data_dir+os.sep+'ConstellationLines.dat')
 
     # Apply magnitude selection to deepsky list, build Messier list
     reduced_deeplist = []
@@ -317,12 +271,10 @@ if __name__ == '__main__':
     for object in deeplist:
         if object.messier > 0:
             messierlist.append(object)
-            pass
         if settings.force_messier:
             if (object.mag <=settings.limiting_magnitude_deepsky and object.mag > -1) or\
                    (object.messier > 0):
                 reduced_deeplist.append(object)
-                pass
         else:
             if object.mag <= settings.limiting_magnitude_deepsky and \
                    object.type != deepsky.GALCL and \
@@ -331,76 +283,55 @@ if __name__ == '__main__':
                    and (object.type != deepsky.PG or settings.force_unknown or\
                         object.type == deepsky.PG and object.mag > -5.0):
                 reduced_deeplist.append(object)
-                pass
-            pass
-        pass
 
-    def msort(x,y):
-        r = 0
-        if x.messier > y.messier:
-            r = 1
-        if x.messier < y.messier:
-            r = -1
-        return r
-    messierlist.sort(msort)
+    messierlist.sort(key = lambda x: x.messier)
 
     deepskycatalog = DeepskyCatalog(reduced_deeplist)
 
     # Final report before mapmaking
-    print str(len(reduced_deeplist))+'/'+str(len(deeplist))+' deepsky objects after magnitude/messier selection.'
+    print(str(len(reduced_deeplist))+'/'+str(len(deeplist))+' deepsky objects after magnitude/messier selection.')
 
-    print 'Making maps with: '
-    print '   Deep sky lm    : '+ str(settings.limiting_magnitude_deepsky)
-    print '   Stellar lm     : '+ str(settings.limiting_magnitude_stars)
-    print '   Fieldsize      : '+ str(settings.fieldsize)+' degrees'
-    print '   Paperwidth     : '+ str(settings.paperwidth)+ ' mm'
-    print '   Output dir     : '+ settings.output_dir
-    print '   Output type    : '+ settings.output_type.upper()
-    print '   Force Messier  : '+ str(settings.force_messier)
-    print '   Force asterisms: '+ str(settings.force_asterisms)
-    print '   Force pg       : '+ str(settings.force_unknown)
-    print '   Extra points   : '+str(len(settings.extra_positions_list))
+    print('Making maps with: ')
+    print('   Deep sky lm    : '+ str(settings.limiting_magnitude_deepsky))
+    print('   Stellar lm     : '+ str(settings.limiting_magnitude_stars))
+    print('   Fieldsize      : '+ str(settings.fieldsize)+' degrees')
+    print('   Paperwidth     : '+ str(settings.paperwidth)+ ' mm')
+    print('   Output dir     : '+ settings.output_dir)
+    print('   Force Messier  : '+ str(settings.force_messier))
+    print('   Force asterisms: '+ str(settings.force_asterisms))
+    print('   Force pg       : '+ str(settings.force_unknown))
+    print('   Extra points   : '+ str(len(settings.extra_positions_list)))
+    print('   Hide dso legend: '+ str(settings.no_dso_legend))
 
     for object in settings.extra_positions_list:
         rax,decx,label,labelpos = object
-        print label,':', rad2hms(rax), rad2dms(decx)
-        pass
+        print(label,':', rad2hms(rax), rad2dms(decx))
 
     # For all sources...
     for source in settings.sourcelist:
         filename = ''
         # Parse sourcename
         if source.upper().rstrip().lstrip() == 'ALLMESSIER':
-            print 'alles'
+            print('alles')
             for object in messierlist:
-                print ''
-                print 'M '+str(object.messier)
+                print('')
+                print('M '+str(object.messier))
                 ra  = object.ra
                 dec = object.dec
                 artist = None
                 filename = settings.output_dir+os.sep+'m'+str(object.messier).rjust(3).replace(' ','0')
-                if settings.output_type.upper() == 'EPS':
-                    filename += '.eps'
-                    artist = EPSDrawing(filename,
-                                        settings.paperwidth,
-                                        settings.paperwidth)
-                elif settings.output_type.upper() == 'PDF':
-                    filename += '.pdf'
-                    artist = PDFDrawing(filename,
-                                        settings.paperwidth,
-                                        settings.paperwidth,
-                                        font_metrics)
-                else:
-                    print 'Unknown output type: '+ settings.output_type.upper()
-                    sys.exit(1)
-                    pass
+                filename += '.pdf'
+                artist = CairoDrawing(filename,
+                                      settings.paperwidth,
+                                      settings.paperwidth,
+                                      font_metrics)
                 sm = SkymapEngine(artist, font_metrics, settings.language,
                                   lm_stars = settings.limiting_magnitude_stars)
                 sm.set_field(ra, dec, settings.fieldsize*pi/180.0/2.0)
                 sm.set_caption('M '+str(object.messier))
-                sm.make_map(starcatalog, deepskycatalog,
+                sm.set_no_dso_legend(settings.no_dso_legend)
+                sm.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
-                pass
         else:
             if ':' in source:
                 data= source.split(',')
@@ -412,11 +343,9 @@ if __name__ == '__main__':
                     dec_str = dec_str.lstrip().rstrip()
                     if len(data) >= 3:
                         label_str = data[2].lstrip().rstrip()
-                        pass
 
                     if len(data) >= 4:
                         label_pos = data[3].rstrip().lstrip()
-                        pass
 
                     rasplit = ra_str.split(':')
                     decsplit = dec_str.split(':')
@@ -425,31 +354,24 @@ if __name__ == '__main__':
                     rah= float(rasplit[0])
                     if len(rasplit) >= 2:
                         ram = float(rasplit[1])
-                        pass
                     if len(rasplit) >= 3:
                         ras = float(rasplit[2])
-                        pass
 
                     decd, decm, decs, sign = 0.0, 0.0, 0.0, 1
                     decd= abs(float(decsplit[0]))
                     if decsplit[0][0] == '-':
                         sign = -1
-                        pass
                     if len(decsplit) >= 2:
                         decm = float(decsplit[1])
-                        pass
                     if len(decsplit) >= 3:
                         decs = float(decsplit[2])
-                        pass
                     ra, dec = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
                     cat = ''
                     name = string.join(data[2:], ',')
                     filename = settings.output_dir+os.sep+name.replace(' ','-').replace('/', '-').replace(',', '')
                 else:
-                    print 'Position specification needs three part argument, separated by comma\'s: "ra,dec,caption"'
+                    print('Position specification needs three part argument, separated by comma\'s: "ra,dec,caption"')
                     sys.exit(-1)
-                    pass
-                pass
 
             else:# : in source
                 index = 0
@@ -465,21 +387,16 @@ if __name__ == '__main__':
                         else:
                             index = i
                             break
-                        pass # for i...
-                    pass
 
                 if cat.upper() == 'N' or cat == '' or cat.upper=='NGC':
                     cat = 'NGC'
-                    pass
 
                 if cat.upper() == 'I' or cat.upper() == 'IC':
                     cat = 'IC'
-                    pass
 
                 name = source[index:].upper().rstrip().lstrip()
                 if cat == 'NGC' and name == '3690':
                     name = '3690A'
-                    pass
 
                 # determine ra, dec of fieldcentre
                 ra = -1.0
@@ -492,8 +409,6 @@ if __name__ == '__main__':
                                 dec = niobj.dec
                                 cat = niobj.cat
                                 break
-                            pass # if niobj.cat
-                        pass # for niobj
                 else:
                     cat = 'M'
                     for mobj in messierlist:
@@ -502,50 +417,29 @@ if __name__ == '__main__':
                             dec = mobj.dec
                             name = str(mobj.messier)
                             break
-                        pass # for mobj
-                    pass # if cat == 'M'...
 
-                pass
-
-            print ''
-            print cat, name
+            print('')
+            print(cat, name)
 
             if ra >= 0.0:
                 artist = None
                 if filename == '':
                     filename = settings.output_dir+os.sep+source
-                if settings.output_type.upper() == 'EPS':
-                    filename += '.eps'
-                    artist = EPSDrawing(filename,
-                                        settings.paperwidth,
-                                        settings.paperwidth)
-                elif settings.output_type.upper() == 'PDF':
-                    filename += '.pdf'
-                    artist = PDFDrawing(filename,
-                                        settings.paperwidth,
-                                        settings.paperwidth,
-                                        font_metrics)
-                else:
-                    print 'Unknown output type: '+ settings.output_type.upper()
-                    sys.exit(1)
-                    pass
+                filename += '.pdf'
+                artist = CairoDrawing(filename,
+                                      settings.paperwidth,
+                                      settings.paperwidth,
+                                      font_metrics)
                 sm = SkymapEngine(artist,font_metrics, settings.language,
                                   lm_stars = settings.limiting_magnitude_stars)
                 sm.set_field(ra, dec, settings.fieldsize*pi/180.0/2.0)
-                caption = cat+' '+name
+                caption = cat + ' ' + name
 
                 if settings.caption != False:
                     caption = settings.caption
-                    pass
                 if caption != '':
                     sm.set_caption(caption)
-                    pass
-                sm.make_map(starcatalog, deepskycatalog,
-                            settings.extra_positions_list)
+                sm.set_no_dso_legend(settings.no_dso_legend)
+                sm.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
-                print 'object not found, try appending an A or a B'
-                pass
-            pass # if source == 'allmessier'
-        pass # for source in sourcelist
-
-    pass
+                print('object not found, try appending an A or a B')

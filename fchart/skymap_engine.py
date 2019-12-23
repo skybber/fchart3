@@ -16,8 +16,11 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from numpy import *
 import string
-from fchart.label_potential import *
-from fchart.astrocalc import *
+from .label_potential import *
+from .astrocalc import *
+from .constellation import *
+from .widget_mag_scale import *
+from .widget_map_scale import *
 import fchart.deepsky_object as deepsky
 
 
@@ -50,7 +53,10 @@ EN = {
     'PG':'Part of external galaxy'
     }
 
-
+STARS_IN_SCALE = 7
+LEGEND_MARGIN = 0.47
+BASE_SCALE=0.98
+DEFAULT_FONT_SIZE=2.6
 
 #====================>>>  SkymapEngine  <<<====================
 
@@ -74,28 +80,29 @@ class SkymapEngine:
 
         self.set_caption(caption)
         self.set_field(ra,dec,fieldradius)
-        pass
+        self.no_dso_legend = False
 
-    def set_field(self, ra, dec,fieldradius):
+
+    def set_field(self, ra, dec, fieldradius):
         """
         Provide the RA, DEC, and radius of the map in radians. This method
         sets a new drawingscale and legend_fontscale
         """
         self.fieldcentre         = (ra,dec)
         self.fieldradius         = fieldradius
-        self.drawingscale        = self.drawingwidth/2.0*0.98/sin(fieldradius)
+        self.drawingscale        = BASE_SCALE * self.drawingwidth/2.0/sin(fieldradius)
         self.legend_fontscale    = self.drawingwidth/100.0
 
         self.set_caption(self.caption)
-        pass
 
+    def get_field_radius_mm(self):
+        return self.drawingscale * sin(self.fieldradius)
 
     def set_language(language):
         """
         Set the language of the legend.
         """
         self.language = language
-        pass
 
 
     def set_caption(self, caption):
@@ -104,52 +111,19 @@ class SkymapEngine:
             self.graphics.set_dimensions(self.drawingwidth, self.drawingwidth)
         else:
             self.graphics.set_dimensions(self.drawingwidth,self.drawingwidth + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
-            pass
-
-        pass
 
 
-    def magnitude_to_radius(self, magnitude):
-        #radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
-        radius = 0.15*1.33**(int(self.lm_stars)-magnitude)
-        return radius
-
-
-
-    def draw_magnitude_scale(self,
-                             xcentre_stars,
-                             ybottom,
-                             stars_in_scale=11):
-        """
-        Draws a vertical magnitude scale with at most \"stars_in_scale\" stars down
-        to magnitude -1
-        """
-        mags_in_scale = int(self.lm_stars) - arange(stars_in_scale)
-        legendx = xcentre_stars
-        legendy = arange(stars_in_scale)*self.graphics.gi_fontsize + ybottom
-
-        legendr = self.magnitude_to_radius(mags_in_scale)
-        self.graphics.set_linewidth(self.star_border_linewidth)
-
-        for i in range(len(legendy)):
-            if mags_in_scale[i] >= -1:
-                self.star(legendx, legendy[i], legendr[i])
-                self.graphics.text_right(legendx+self.graphics.gi_fontsize, legendy[i]-self.graphics.gi_fontsize/3.0, str(mags_in_scale[i]),begin=True, end=True)
-                pass
-            pass
-
-        pass
-
+    def set_no_dso_legend(self, no_dso_legend):
+        self.no_dso_legend =no_dso_legend
 
 
     def draw_caption(self):
         if self.caption != '':
-            fh = self.graphics.gi_fontsize
-            self.graphics.set_font(self.graphics.gi_font, 2.0*fh)
-            self.graphics.text_centred(0,self.drawingwidth/2.0+fh, self.caption, begin=True, end=True)
-            self.graphics.set_font(self.graphics.gi_font, fh)
-            pass
-        pass
+            old_size = self.graphics.gi_fontsize
+            font_size = self.get_legend_font_size()
+            self.graphics.set_font(self.graphics.gi_font, 2.0*font_size)
+            self.graphics.text_centred(0,self.drawingwidth/2.0*BASE_SCALE + font_size, self.caption)
+            self.graphics.set_font(self.graphics.gi_font, old_size)
 
 
     def draw_field_border(self):
@@ -157,52 +131,11 @@ class SkymapEngine:
         Draw a circle representing bthe edge of the field of view.
         """
         self.graphics.set_linewidth(0.15)
-        self.graphics.circle(0,0,sin(self.fieldradius)*self.drawingscale)
-        pass
-
-
-    def draw_mapscale(self,x, y, maxlength):
-        """
-        x,y are the coordinates of the leftmost point of the horizontal line.
-        This is excluding the vertical end bars. maxlength is the maximum
-        length of the ruler line excluding the endbars.
-        """
-        # Determine a suitable scale ruler in the topleft corner
-        allowed_ruler = array([1,5,10,30,60,120,300.0]) # arcminutes
-        allowed_labels = ['1\251', '5\251', '10\251', '30\251', '1\312', '2\312', '5\312']
-
-        maxruler = maxlength
-        ruler_mm = allowed_ruler*pi/180/60.0*self.drawingscale
-        ruler_label = ''
-        ruler_length= 0.0
-        for i in range(len(allowed_ruler)):
-            if ruler_mm[-(i+1)] <= maxruler:
-                ruler_label = allowed_labels[-(i+1)]
-                ruler_length= ruler_mm[-(i+1)]
-                break
-                pass
-            pass
-
-        # Draw ruler
-        length = ruler_length
-        left   = x
-        yline  = y
-
-        lw = self.graphics.gi_linewidth
-
-        self.graphics.line(x, y, x+length, y)
-        self.graphics.line(x-lw/2.0, y - 0.01*self.drawingwidth,
-                           x-lw/2.0, y + 0.01*self.drawingwidth)
-        self.graphics.line(x+length+lw/2.0,
-                           y -0.01*self.drawingwidth,
-                           x+length+lw/2.0,
-                           y+0.01*self.drawingwidth)
-        self.graphics.text_centred(x+length/2.0,
-                                   y-self.graphics.gi_fontsize*2/3.0,
-                                   ruler_label,
-                                   begin=True, end=True)
-        pass
-
+        r = self.get_field_radius_mm()
+        self.graphics.line(-r, -r, -r, r)
+        self.graphics.line(-r, r, r, r)
+        self.graphics.line(r, r, r, -r)
+        self.graphics.line(r, -r, -r, -r)
 
 
     def draw_coordinates(self, x, y, ra, dec):
@@ -215,83 +148,66 @@ class SkymapEngine:
         if ras == 60:
             ram +=1
             ras = 0
-            pass
         if ram == 60:
             rah += 1
             ram = 0
-            pass
         if rah == 24:
             rah = 0
-            pass
 
         decsign = '+'
         if dec < 0.0:
             decsign = '-'
-            pass
         decd= int(abs(dec)*180/pi)
         decm = int((abs(dec)*180/pi-decd)*60)
-        decs = int( ((abs(dec)*180/pi-decd)*60 -decm)*60+0.5)
+        decs = int( ((abs(dec)*180/pi-decd)*60 -decm)*60 + 0.5)
 
         if decs == 60:
             decm += 1
             decs = 0
-            pass
         if decm == 60:
-            decd+=1
             decm = 0
-            pass
 
-        self.graphics.text_right(x, y, str(rah).rjust(2),begin=True, end=False)
-        self.graphics.text_superscript(self.language['h'])
-        self.graphics.text(str(ram))
-        self.graphics.text_superscript(self.language['m'])
-        self.graphics.text(str(ras))
-        self.graphics.text_superscript(self.language['s'])
-        dectext = ' '+decsign+str(decd)+'\312'+str(decm)+'\251'+str(decs)+'\042'
-        self.graphics.text(dectext,begin=False, end=True)
-        pass
+        text = str(rah).rjust(2) + self.language['h'] + str(ram) + self.language['m'] + str(ras) + self.language['s'] + \
+             ' ' + decsign + str(decd) + '°' + str(decm) + '\'' + str(decs) + '"'
+
+        self.graphics.text_left(x, y, text)
 
 
+    def get_legend_font_size(self):
+        return DEFAULT_FONT_SIZE*self.legend_fontscale
 
-    def draw_legend(self):
+
+    def draw_legend(self, w_mag_scale, w_map_scale):
         # Set the fontsize for the entire legend
-        self.graphics.set_font(self.graphics.gi_font,
-                               fontsize=2.6*self.legend_fontscale)
+        fontsize = self.get_legend_font_size()
+        self.graphics.set_font(self.graphics.gi_font, fontsize=fontsize)
 
-        self.draw_caption()
+        r = self.get_field_radius_mm()
 
-        # Draw vertical magnitude scale
-        self.draw_magnitude_scale(xcentre_stars= -0.4775*self.drawingwidth,
-                                  ybottom=-0.485*self.drawingwidth)
+        w_mag_scale.draw(self.graphics, -r, -r)
+        w_map_scale.draw(self.graphics, r,-r)
 
         # Draw border of field-of-view
         self.draw_field_border()
 
-        # Draw scale of map
-        self.draw_mapscale(x=-0.49*self.drawingwidth,
-                           y=0.48*self.drawingwidth,
-                           maxlength=self.drawingwidth/3.0)
-
-
         # Draw orientation indication
-        x = -0.46*self.drawingwidth
-        y =  0.32*self.drawingwidth
-        dl = 0.03*self.drawingwidth
+        x = -0.465*self.drawingwidth
+        y =  0.465*self.drawingwidth - fontsize*1.1
+        dl = 0.02*self.drawingwidth
+        self.graphics.text_centred(x, y+dl+fontsize/2.0, 'N')
+        self.graphics.text_right(x+dl+fontsize/6.0, y-fontsize/3.0, 'W')
 
-        fh = self.graphics.gi_fontsize
-        self.graphics.line(x-dl,y, x+dl,y)
+        self.graphics.line(x-dl, y, x+dl,y)
         self.graphics.line(x,y-dl, x,y+dl)
-        self.graphics.text_centred(x, y+dl+fh/2.0, 'N',begin=True, end=True)
-        self.graphics.text_right(x+dl+fh/6.0, y-fh/3.0, 'W',begin=True, end=True)
 
         # Draw coordinates of fieldcentre
-        self.draw_coordinates(x=-0.49*self.drawingwidth,
-                              y=0.49*self.drawingwidth -
-                              3*fh,
+        self.draw_coordinates(x=r-fontsize/2,
+                              y=r-fontsize,
                               ra=self.fieldcentre[0],
                               dec=self.fieldcentre[1])
 
-
+    def draw_dso_legend(self):
+        fh = self.graphics.gi_fontsize
         # Draw list of symbols
         legendx  = 0.48*self.drawingwidth
         legendy  = 0.49*self.drawingwidth
@@ -299,7 +215,6 @@ class SkymapEngine:
 
         r = fh/3.0
         text_offset = -2.5*r
-
 
         toplabels=[('OCL', len(self.language['OCL'])),
                    ('AST', len(self.language['AST'])),
@@ -309,6 +224,7 @@ class SkymapEngine:
                       ('N',len(self.language['N'])),
                       ('PN', len(self.language['PN'])),
                       ('PG',len(self.language['PG']))]
+
         def labsort(x,y):
             r = 0
             if x[1] < y[1]:
@@ -317,84 +233,73 @@ class SkymapEngine:
                 r = 1
             return r
 
-        toplabels.sort(labsort)
+        toplabels.sort(key = deepsky.cmp_to_key(labsort))
         toplabels.reverse()
         tl = []
         for lab in toplabels:
             tl.append(lab[0])
-            pass
 
-        bottomlabels.sort(labsort)
+        bottomlabels.sort(key = deepsky.cmp_to_key(labsort))
         bottomlabels.reverse()
         bl = []
         for lab in bottomlabels:
             bl.append(lab[0])
-            pass
 
-        self.open_cluster(legendx, legendy-(tl.index('OCL')+1)*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, legendy-(tl.index('OCL')+1)*legendinc-fh/3.0, self.language['OCL'], begin=True, end=True)
+        self.open_cluster(legendx, legendy - (tl.index('OCL') + 1)*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('OCL') + 1)*legendinc - fh/3.0, self.language['OCL'])
 
-        self.asterism(legendx, legendy-(tl.index('AST')+1)*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, legendy-(tl.index('AST')+1)*legendinc-fh/3.0, self.language['AST'],begin=True, end=True)
+        self.asterism(legendx, legendy - (tl.index('AST') + 1)*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('AST') + 1)*legendinc - fh/3.0, self.language['AST'])
 
-        self.galaxy(legendx, legendy-(tl.index('G')+1)*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, legendy-(tl.index('G')+1)*legendinc- fh/3.0, self.language['G'], begin=True, end=True)
+        self.galaxy(legendx, legendy - (tl.index('G') + 1)*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('G') + 1)*legendinc - fh/3.0, self.language['G'])
 
-        self.globular_cluster(legendx, legendy-(tl.index('GCL')+1)*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, legendy-(tl.index('GCL')+1)*legendinc-fh/3.0, self.language['GCL'], begin=True, end=True)
+        self.globular_cluster(legendx, legendy  - (tl.index('GCL') +1 )*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
 
+        legendy = LEGEND_MARGIN*self.drawingwidth
 
-        legendy = 0.485*self.drawingwidth
+        self.supernova_remnant(legendx, -legendy + bl.index('SNR')*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])
 
-        self.supernova_remnant(legendx, -legendy+bl.index('SNR')*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, -legendy+bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'],begin=True, end=True)
+        self.planetary_nebula(legendx, -legendy + bl.index('PN')*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc -  fh/3.0, self.language['PN'])
 
-        self.planetary_nebula(legendx, -legendy+bl.index('PN')*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, -legendy+bl.index('PN')*legendinc -  fh/3.0, self.language['PN'],begin=True, end=True)
+        self.diffuse_nebula(legendx, -legendy + bl.index('N')*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, -legendy + bl.index('N')*legendinc - fh/3.0, self.language['N'])
 
-        self.diffuse_nebula(legendx, -legendy +bl.index('N')*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, -legendy+bl.index('N')*legendinc-fh/3.0, self.language['N'], begin=True, end=True)
-
-        self.unknown_object(legendx, -legendy+bl.index('PG')*legendinc,r)
-        self.graphics.text_left(legendx+text_offset, -legendy+bl.index('PG')*legendinc-fh/3.0, self.language['PG'], begin=True, end=True)
-
-        pass # end of draw_legend
-
-
+        self.unknown_object(legendx, -legendy + bl.index('PG')*legendinc, r)
+        self.graphics.text_left(legendx + text_offset, -legendy + bl.index('PG')*legendinc - fh/3.0, self.language['PG'])
 
 
     def draw_deepsky_objects(self, deepsky_catalog):
         # Draw deep sky
-        print 'Drawing deepsky...'
-        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre,
-                                                      self.fieldradius).deepsky_list
+        print('Drawing deepsky...')
+        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldradius).deepsky_list
         if len(deepsky_list) == 1:
-            print '1 deepsky object in map.'
+            print('1 deepsky object in map.')
         else:
-            print str(len(deepsky_list))+' deepsky objects in map.'
-            pass
+            print(str(len(deepsky_list))+' deepsky objects in map.')
 
-        deepsky_list.sort(deepsky.cmp_mag)
+        deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
         for object in deepsky_list:
             l, m  =  radec_to_lm((object.ra, object.dec), self.fieldcentre)
-            x,y   = -l*self.drawingscale, m*self.drawingscale
+            x, y   = -l*self.drawingscale, m*self.drawingscale
             rlong  = object.rlong*self.drawingscale
             if object.type == deepsky.GALCL:
                 rlong = self.min_radius
-                pass
             if rlong < self.min_radius:
                 rlong = self.min_radius
-            deepsky_list_mm.append((x,y,rlong))
-            pass
+            deepsky_list_mm.append((x, y, rlong))
 
-        label_potential = LabelPotential(sin(self.fieldradius)*self.drawingscale ,deepsky_list_mm)
+        label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_mm)
 
-        print 'Drawing objects...'
+        print('Drawing objects...')
         for i in range(len(deepsky_list)):
             object = deepsky_list[i]
 
-            x,y,rlong  = deepsky_list_mm[i]
+            x, y, rlong  = deepsky_list_mm[i]
             rlong  = object.rlong*self.drawingscale
             rshort = object.rshort*self.drawingscale
             posangle=object.position_angle+direction_ddec(\
@@ -403,43 +308,37 @@ class SkymapEngine:
             if rlong <= self.min_radius:
                 rshort *= self.min_radius/rlong
                 rlong = self.min_radius
-                pass
 
             if object.type == deepsky.GALCL:
                 rlong /= 3.0
-                pass
 
             label=''
             if object.messier > 0:
                 label = 'M '+str(object.messier)
             elif object.cat == 'NGC':
                 object.all_names.sort()
-                label = string.join(object.all_names,'-')
+                label = '-'.join(object.all_names)
                 if object.mag > self.deepsky_label_limit:
                     label = ''
-                    pass
             else :
-                label = object.cat+' '+string.join(object.all_names, '-')
+                label = object.cat+' '+'-'.join(object.all_names)
                 if object.mag > self.deepsky_label_limit:
                     label = ''
-                    pass
-                pass
 
             label_length = self.font_metrics.string_width(self.graphics.gi_font, self.graphics.gi_fontsize, label)
             labelpos = -1
 
             labelpos_list =[]
             if object.type == deepsky.G:
-                labelpos_list = self.galaxy_labelpos(x,y,rlong,rshort,posangle,label_length)
+                labelpos_list = self.galaxy_labelpos(x, y, rlong, rshort, posangle, label_length)
             elif object.type == deepsky.N:
-                labelpos_list = self.diffuse_nebula_labelpos(x,y,2.0*rlong,2.0*rshort,posangle,label_length)
+                labelpos_list = self.diffuse_nebula_labelpos(x, y, 2.0*rlong, 2.0*rshort, posangle, label_length)
             elif object.type in [deepsky.PN,deepsky.OC,deepsky.GC,deepsky.SNR]:
-                labelpos_list = self.circular_object_labelpos(x,y, rlong, label_length)
+                labelpos_list = self.circular_object_labelpos(x, y, rlong, label_length)
             elif object.type == deepsky.STARS:
-                labelpos_list = self.asterism_labelpos(x,y,rlong,label_length)
+                labelpos_list = self.asterism_labelpos(x, y, rlong, label_length)
             else:
-                labelpos_list = self.unknown_object_labelpos(x,y,rlong,label_length)
-                pass
+                labelpos_list = self.unknown_object_labelpos(x, y, rlong, label_length)
 
             pot = 1e+30
             for labelpos_index in range(len(labelpos_list)):
@@ -450,57 +349,50 @@ class SkymapEngine:
                 if pot1 < pot:
                     pot = pot1
                     labelpos = labelpos_index
-                    pass
-                pass
 
-            [xx,yy] = labelpos_list[labelpos][1]
-            label_potential.add_position(xx,yy,label_length)
+            [xx, yy] = labelpos_list[labelpos][1]
+            label_potential.add_position(xx, yy, label_length)
 
             if object.type == deepsky.G:
-                self.galaxy(x,y,rlong,rshort,posangle,label,labelpos)
+                self.galaxy(x, y, rlong, rshort, posangle, label, labelpos)
             elif object.type == deepsky.N:
-                self.diffuse_nebula(x,y,2.0*rlong,2.0*rshort,posangle,label,labelpos)
+                self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
             elif object.type == deepsky.PN:
-                self.planetary_nebula(x,y, rlong, label,labelpos)
+                self.planetary_nebula(x, y, rlong, label, labelpos)
             elif object.type == deepsky.OC:
-                self.open_cluster(x,y,rlong,label,labelpos)
+                self.open_cluster(x, y, rlong, label, labelpos)
             elif object.type == deepsky.GC:
-                self.globular_cluster(x,y,rlong, label,labelpos)
+                self.globular_cluster(x, y, rlong, label, labelpos)
             elif object.type == deepsky.STARS:
-                self.asterism(x,y,rlong,label,labelpos)
+                self.asterism(x, y, rlong, label, labelpos)
             elif object.type == deepsky.SNR:
-                self.supernova_remnant(x,y,rlong,label,labelpos)
+                self.supernova_remnant(x, y, rlong, label, labelpos)
             else:
-                self.unknown_object(x,y,rlong,label,labelpos)
-                pass
-
-            pass # object in deeplist
-        pass
+                self.unknown_object(x, y, rlong, label, labelpos)
 
 
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
-        print 'Drawing extra objects...'
+        print('Drawing extra objects...')
         for object in extra_positions:
             rax,decx,label,labelpos = object
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldradius:
                 l,m =  radec_to_lm((rax,decx), self.fieldcentre)
-                x,y = -l*self.drawingscale,m*self.drawingscale
+                x,y = -l*self.drawingscale, m*self.drawingscale
                 self.unknown_object(x,y,self.min_radius,label,labelpos)
-                pass
-            pass # for...
-        pass
 
 
+    def magnitude_to_radius(self, magnitude):
+        #radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
+        radius = 0.15*1.33 ** (int(self.lm_stars) - magnitude)
+        return radius
 
     def draw_stars(self, star_catalog):
         # Select and draw stars
-        print 'Drawing stars...'
-        selection = star_catalog.select_stars(self.fieldcentre,
-                                              self.fieldradius,
-                                              self.lm_stars)
-        print str(selection.shape[0])+' stars in map.'
-        print 'Faintest star: '+str(int(max(selection[:,2])*100.0+0.5)/100.0)
+        print('Drawing stars...')
+        selection = star_catalog.select_stars(self.fieldcentre, self.fieldradius, self.lm_stars)
+        print(str(selection.shape[0]) + ' stars in map.')
+        print('Faintest star: ' + str(int(max(selection[:,2])*100.0 + 0.5)/100.0))
 
         l, m = radec_to_lm((selection[:,0], selection[:,1]), self.fieldcentre)
         x, y = -l, m
@@ -517,35 +409,89 @@ class SkymapEngine:
         self.graphics.set_fill_gray(0.0)
         for i in range(len(xsorted)):
             if magsorted[i] <= 13.8:
-                self.star(xsorted[i], ysorted[i], rsorted[i])
-                pass
-            pass
+                x = xsorted[i]
+                y = ysorted[i]
+                excluded = False
+                if not excluded:
+                    self.star(x, y, rsorted[i])
         self.graphics.set_pen_gray(0.0)
-        pass
 
 
-    def make_map(self, star_catalog=None, deepsky_catalog=None,
-                 extra_positions=[]):
+    def draw_constellations(self, constell_catalog):
+        print('Drawing constellations...' + str(self.fieldcentre[0]))
+        pen_rgb = self.graphics.gi_pen_rgb
+        self.graphics.set_pen_rgb((0.2, 0.7, 1.0))
+        self.graphics.set_linewidth(0.5)
+        for constell in constell_catalog.constellations:
+            for line in constell.lines:
+                star1 = constell_catalog.bright_stars[line[0]-1]
+                star2 = constell_catalog.bright_stars[line[1]-1]
+
+                # just use hack for sin projection
+                if abs(star1.ra-self.fieldcentre[0]) > pi/2.0 or abs(star2.ra-self.fieldcentre[0]) > pi/2.0:
+                    continue
+                l1, m1 = radec_to_lm((star1.ra, star1.dec), self.fieldcentre)
+                l2, m2 = radec_to_lm((star2.ra, star2.dec), self.fieldcentre)
+                x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
+                x2, y2 = -l2 * self.drawingscale, m2 * self.drawingscale
+                self.graphics.line(x1, y1, x2, y2)
+        self.graphics.set_pen_rgb((0.0, 0.0, 0.0))
+
+
+    def make_map(self, star_catalog=None, deepsky_catalog=None, constell_catalog=None, extra_positions=[]):
         self.graphics.new()
         self.graphics.set_pen_gray(0.0)
         self.graphics.set_fill_gray(0.0)
-        self.graphics.set_font(fontsize=2.6)
+        self.graphics.set_font(fontsize=DEFAULT_FONT_SIZE)
         self.graphics.set_linewidth(0.15)
 
+        r = self.get_field_radius_mm()
+
+        w_mag_scale = WidgetMagnitudeScale(self,
+                                          field_radius_mm=r,
+                                          legend_fontsize=self.get_legend_font_size(),
+                                          stars_in_scale=STARS_IN_SCALE,
+                                          lm_stars=self.lm_stars,
+                                          star_border_linewidth=self.star_border_linewidth)
+
+        w_map_scale = WidgetMapScale(drawingwidth=self.drawingwidth,
+                                    drawingscale=self.drawingscale,
+                                    maxlength=self.drawingwidth/3.0,
+                                    legend_fontsize=self.get_legend_font_size())
+
+        w_mags_width, w_mags_heigth = w_mag_scale.get_size()
+        w_maps_width, w_maps_height = w_map_scale.get_size()
+
+        self.graphics.clip_path([(r,r),
+                                 (r,-r+w_maps_height),
+                                 (r-w_maps_width, -r+w_maps_height),
+                                 (r-w_maps_width, -r),
+                                 (-r + w_mags_width, -r),
+                                 (-r + w_mags_width, -r + w_mags_heigth),
+                                 (-r, -r + w_mags_heigth),
+                                 (-r,r),
+                                 ])
+
+        if constell_catalog != None:
+            self.draw_constellations(constell_catalog)
         if deepsky_catalog != None:
             self.draw_deepsky_objects(deepsky_catalog)
-            pass
         if extra_positions != []:
             self.draw_extra_objects(extra_positions)
-            pass
         if star_catalog != None:
             self.draw_stars(star_catalog)
-            pass
-        print 'Drawing legend'
-        self.draw_legend()
-        self.graphics.finish()
-        pass
 
+        self.graphics.reset_clip()
+
+        print('Drawing legend')
+        self.draw_caption()
+
+        self.draw_legend(w_mag_scale, w_map_scale)
+        print('Drawing dso legend')
+        if not self.no_dso_legend:
+            self.draw_dso_legend()
+
+        self.graphics.finish()
 
 
     def star(self, x, y, radius):
@@ -553,19 +499,16 @@ class SkymapEngine:
         Filled circle with boundary. Set fill colour and boundary
         colour in advance using set_pen_gray and set_fill_gray
         """
-        xx = int(x*100.0+0.5)/100.0
-        yy = int(y*100.0+0.5)/100.0
-        r = int((radius+self.graphics.gi_linewidth/2.0)*100.0+0.5)/100.0
-        self.graphics.circle(xx,yy,r,'PF')
-        pass
-
+        xx = int(x*100.0 + 0.5)/100.0
+        yy = int(y*100.0 + 0.5)/100.0
+        r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
+        self.graphics.circle(xx, yy, r,'PF')
 
 
     def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
         self.graphics.save()
 
         self.graphics.set_linewidth(0.3)
@@ -575,15 +518,12 @@ class SkymapEngine:
         self.draw_circular_object_label(x,y,r,label,labelpos)
 
         self.graphics.restore()
-        pass
-
 
 
     def asterism(self,x,y,radius=-1, label='', labelpos=-1):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
         w2=2**0.5
         d = r/2.0*w2
 
@@ -601,16 +541,14 @@ class SkymapEngine:
         fh =  self.graphics.gi_fontsize
         if label != '':
             if labelpos == 0 or labelpos == -1:
-                self.graphics.text_centred(x, y-d-2*fh/3.0, label,begin=True, end=True)
+                self.graphics.text_centred(x, y-d-2*fh/3.0, label)
             elif labelpos == 1:
-                self.graphics.text_centred(x, y+d+fh/3.0, label,begin=True, end=True)
+                self.graphics.text_centred(x, y+d+fh/3.0, label)
             elif labelpos == 2:
-                self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label,begin=True, end=True)
+                self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
             elif labelpos == 3:
-                self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label, begin=True, end=True)
-            pass
+                self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
-        pass
 
 
     def asterism_labelpos(self,x,y,radius=-1,label_length=0.0):
@@ -621,7 +559,6 @@ class SkymapEngine:
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
         w2=2**0.5
         d = r/2.0*w2
         fh =  self.graphics.gi_fontsize
@@ -639,11 +576,6 @@ class SkymapEngine:
         return label_pos_list
 
 
-
-
-
-
-
     def galaxy(self, x, y, rlong=-1, rshort=-1, posangle=0.0, label='', labelpos=-1):
         """
         If rlong != -1 and rshort == -1 =>   rshort <- rlong
@@ -655,11 +587,9 @@ class SkymapEngine:
         if rlong <= 0.0:
             rl = self.drawingwidth/40.0
             rs = rl/2.0
-            pass
         if rlong > 0.0 and rshort < 0.0:
             rl = rlong
             rs = rlong/2.0
-            pass
 
         self.graphics.save()
 
@@ -667,10 +597,8 @@ class SkymapEngine:
         p = posangle
         if posangle >= 0.5*pi:
             p += pi
-            pass
         if posangle < -0.5*pi:
             p -= pi
-            pass
 
         fh = self.graphics.gi_fontsize
         self.graphics.ellipse(x,y,rl, rs, p)
@@ -679,41 +607,32 @@ class SkymapEngine:
             self.graphics.translate(x,y)
             self.graphics.rotate(p)
             if labelpos == 0 or labelpos == -1:
-                self.graphics.text_centred(0, -rshort-0.5*fh, label,begin=True, end=True)
+                self.graphics.text_centred(0, -rshort-0.5*fh, label)
             elif labelpos == 1:
-                self.graphics.text_centred(0, +rshort+0.5*fh, label,begin=True, end=True)
+                self.graphics.text_centred(0, +rshort+0.5*fh, label)
             elif labelpos == 2:
-                self.graphics.text_right(rlong+fh/6.0, -fh/3.0, label,begin=True, end=True)
+                self.graphics.text_right(rlong+fh/6.0, -fh/3.0, label)
             elif labelpos == 3:
-                self.graphics.text_left(-rlong-fh/6.0, -fh/3.0, label,begin=True, end=True)
-                pass
+                self.graphics.text_left(-rlong-fh/6.0, -fh/3.0, label)
             self.graphics.restore()
-            pass
         self.graphics.restore()
-        pass
-
 
 
     def galaxy_labelpos(self,x,y,rlong=-1,rshort=-1,posangle=0.0,label_length=0.0):
-
         rl = rlong
         rs = rshort
         if rlong <= 0.0:
             rl = self.drawingwidth/40.0
             rs = rl/2.0
-            pass
         if rlong > 0.0 and rshort < 0.0:
             rl = rlong
             rs = rlong/2.0
-            pass
 
         p = posangle
         if posangle >= 0.5*pi:
             p += pi
-            pass
         if posangle < -0.5*pi:
             p -= pi
-            pass
 
         fh = self.graphics.gi_fontsize
         label_pos_list = []
@@ -757,10 +676,7 @@ class SkymapEngine:
         ys = yc - hl*sp
         label_pos_list.append([[xs,ys],[xc,yc],[xe,ye]])
 
-
-
         return label_pos_list
-
 
 
     def draw_circular_object_label(self,x,y,r,label='',labelpos=-1):
@@ -771,18 +687,14 @@ class SkymapEngine:
                 a = arccos(arg)
             else:
                 a = 0.5*pi
-                pass
             if labelpos == 0 or labelpos == -1:
-                self.graphics.text_right(x+sin(a)*r+fh/6.0, y-r, label,begin=True, end=True)
+                self.graphics.text_right(x+sin(a)*r+fh/6.0, y-r, label)
             elif labelpos == 1:
-                self.graphics.text_left(x-sin(a)*r-fh/6.0, y-r, label,begin=True, end=True)
+                self.graphics.text_left(x-sin(a)*r-fh/6.0, y-r, label)
             elif labelpos == 2:
-                self.graphics.text_right(x+sin(a)*r+fh/6.0, y+r-2*fh/3.0, label,begin=True, end=True)
+                self.graphics.text_right(x+sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
             elif labelpos == 3:
-                self.graphics.text_left(x-sin(a)*r-fh/6.0, y+r-2*fh/3.0, label,begin=True, end=True)
-                pass
-            pass
-        pass
+                self.graphics.text_left(x-sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
 
 
     def circular_object_labelpos(self,x,y,radius=-1.0,label_length=0.0):
@@ -790,14 +702,11 @@ class SkymapEngine:
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
         arg = 1.0-2*fh/(3.0*r)
         if arg < 1.0 and arg > -1.0:
             a = arccos(arg)
         else:
             a = 0.5*pi
-            pass
-
 
         label_pos_list = []
         xs = x+sin(a)*r+fh/6.0
@@ -821,7 +730,6 @@ class SkymapEngine:
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
         self.graphics.save()
 
         self.graphics.set_linewidth(0.2)
@@ -832,8 +740,6 @@ class SkymapEngine:
         self.draw_circular_object_label(x,y,r,label,labelpos)
 
         self.graphics.restore()
-        pass
-
 
 
     def diffuse_nebula(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label='',labelpos=''):
@@ -843,7 +749,6 @@ class SkymapEngine:
         d = 0.5*width
         if width < 0.0:
             d = self.drawingwidth/40.0
-            pass
         d1 = d+self.graphics.gi_linewidth/2.0
         self.graphics.line(x-d1, y+d, x+d1, y+d)
         self.graphics.line(x+d, y+d, x+d, y-d)
@@ -852,21 +757,14 @@ class SkymapEngine:
         fh = self.graphics.gi_fontsize
         if label != '':
             if labelpos == 0 or labelpos == -1:
-                self.graphics.text_centred(x, y-d-fh/2.0, label,
-                                           begin=True, end=True)
+                self.graphics.text_centred(x, y-d-fh/2.0, label)
             elif labelpos == 1:
-                self.graphics.text_centred(x, y+d+fh/2.0, label,
-                                           begin=True, end=True)
+                self.graphics.text_centred(x, y+d+fh/2.0, label)
             elif labelpos == 2:
-                self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label,
-                                        begin=True, end=True)
+                self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
             elif labelpos == 3:
-                self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label,
-                                         begin=True, end=True)
-            pass
+                self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
-        pass
-
 
 
     def diffuse_nebula_labelpos(self,x,y,width=-1.0,height=-1.0, posangle=0.0,label_length=0.0):
@@ -874,7 +772,6 @@ class SkymapEngine:
         d = 0.5*width
         if width < 0.0:
             d = self.drawingwidth/40.0
-            pass
         fh = self.graphics.gi_fontsize
 
         label_pos_list = []
@@ -895,13 +792,10 @@ class SkymapEngine:
         return label_pos_list
 
 
-
-
     def planetary_nebula(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/60.0
-            pass
         self.graphics.save()
 
         self.graphics.set_linewidth(0.2)
@@ -914,15 +808,12 @@ class SkymapEngine:
         self.draw_circular_object_label(x,y,r,label,labelpos)
 
         self.graphics.restore()
-        pass
-
 
 
     def supernova_remnant(self,x,y,radius=-1.0,label='', labelpos=''):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
         self.graphics.save()
 
         self.graphics.set_linewidth(0.5)
@@ -932,13 +823,11 @@ class SkymapEngine:
         self.draw_circular_object_label(x,y,r,label,labelpos)
 
         self.graphics.restore()
-        pass
 
     def unknown_object(self,x,y,radius=-1.0,label='',labelpos=''):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
 
         r/=2**0.5
         self.graphics.save()
@@ -949,25 +838,20 @@ class SkymapEngine:
         fh = self.graphics.gi_fontsize
         if label != '':
             if labelpos == 0:
-                self.graphics.text_right(x+r+fh/6.0, y-fh/3.0, label,begin=True, end=True)
+                self.graphics.text_right(x+r+fh/6.0, y-fh/3.0, label)
             elif labelpos ==1:
-                self.graphics.text_left(x-r-fh/6.0, y-fh/3.0, label,begin=True, end=True)
+                self.graphics.text_left(x-r-fh/6.0, y-fh/3.0, label)
             elif labelpos == 2:
-                self.graphics.text_centred(x, y+ r + fh/2.0, label,begin=True, end=True)
+                self.graphics.text_centred(x, y+ r + fh/2.0, label)
             else:
-                self.graphics.text_centred(x, y - r - fh/2.0, label,begin=True, end=True)
-                pass
-            pass
+                self.graphics.text_centred(x, y - r - fh/2.0, label)
         self.graphics.restore()
-        pass
-
 
 
     def unknown_object_labelpos(self,x,y,radius=-1,label_length=0.0):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
-            pass
         fh = self.graphics.gi_fontsize
         r/=2**0.5
         label_pos_list = []
@@ -989,15 +873,11 @@ class SkymapEngine:
         return label_pos_list
 
 
-    pass # class SkymapEngine
-
-
-
 if __name__ == '__main__':
-    import eps
-    import pdf
-    import star_catalog as sc
-    from  fonts import FontMetrics
+    from . import eps
+    from . import pdf
+    from . import star_catalog as sc
+    from  .fonts import FontMetrics
 
     stars = sc.StarCatalog('data/tyc2.bin')
     fm = FontMetrics('font-metrics')
@@ -1010,7 +890,5 @@ if __name__ == '__main__':
     sm.set_field(1.5,1, 0.05)
     sm.make_map(stars)
     EPS.close()
-
-    pass
 
 __all__ = ['EN', 'NL', 'SkymapEngine']

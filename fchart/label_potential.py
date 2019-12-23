@@ -18,8 +18,6 @@ class LabelPotential:
             self.sizes[i] = s**0.5
             self.positions[i,0] = x
             self.positions[i,1] = y
-            pass
-        pass
 
 
     def add_position(self,x,y,size):
@@ -34,7 +32,6 @@ class LabelPotential:
 
         self.positions = newpos
         self.sizes = newsize
-        pass
 
     def compute_potential(self,x,y):
         """
@@ -49,8 +46,6 @@ class LabelPotential:
         p = self.sizes*sr
         value = sum(p) + ss*rf
         return value
-    pass
-
 
 
 __all__ = ['LabelPotential']

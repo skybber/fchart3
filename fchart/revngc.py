@@ -34,19 +34,16 @@ def parse_rev_ngcic_line(line, catalog='NGC'):
         compchar = line[5]
         if compchar != ' ':
             object.component = int(compchar)
-            pass
 
         object.type = int(typechar)
         if object.type == deepsky.N and line[78:81] == 'SNR':
             object.type = deepsky.SNR
-            pass
         object.constellation = line[15:18].upper()
 
         ra = pi*(float(line[20:22])+float(line[23:25])/60.0 + float(line[26:28])/3600.0)/12.0
         dec = pi*(float(line[32:34]) + float(line[35:37])/60.0 + float(line[38:40])/3600.0)/180.0
         if line[31] == '-':
             dec *= -1.0
-            pass
         object.ra = ra
         object.dec = dec
 
@@ -57,28 +54,22 @@ def parse_rev_ngcic_line(line, catalog='NGC'):
             magtext = line[43:47].rstrip()
             if magtext != '':
                 object.mag = float(magtext)
-                pass
-            pass
 
 
         rlongtext = line[61:67].rstrip()
         if rlongtext != '':
             object.rlong = float(rlongtext)/60.0*pi/180.0/2.0
-            pass
 
         rshorttext = line[68:73].rstrip()
         if rshorttext != '':
             object.rshort = float(rshorttext)/60.0*pi/180.0/2.0
-            pass
 
         if object.rshort < 0.0:
             object.rshort = object.rlong
-            pass
 
         posangletext = line[74:77].rstrip()
         if posangletext != '':
             object.position_angle = float(posangletext)*pi/180.0
-            pass
 
         ID1text = line[96:111].strip()
         if ID1text != '':
@@ -86,18 +77,12 @@ def parse_rev_ngcic_line(line, catalog='NGC'):
                 object.messier = int(ID1text[1:])
             elif ID1text.split()[0].strip() == catalog:
                 object.all_names.append(ID1text.split()[1].split('-')[0].strip())
-                pass
-            pass
 
 
         ID2text = line[112:127].strip()
         if ID2text != '':
             if ID2text.split()[0].strip() == catalog:
                 object.all_names.append(ID2text.split()[1].split('-')[0].strip())
-                pass
-            pass
-
-        pass
 
     return object
 
@@ -108,7 +93,7 @@ def import_revised_ngcic(filename, ngcic='NGC'):# or 'IC'
     Reads data from the revised NGC/IC project. Returns a list
     of DeepskyObjects()
     """
-    ngcfile = file(filename, 'r')
+    ngcfile = open(filename, 'r', encoding='ISO-8859-1')
     lines   = ngcfile.readlines()[2:]
     ngcfile.close()
 
@@ -128,9 +113,6 @@ def import_revised_ngcic(filename, ngcic='NGC'):# or 'IC'
                     ngclist_single.append(ngcobject)
                 else:
                     ngclist_multiple.append(ngcobject)
-                pass #if object...
-            pass # if linelength...
-        pass
 
     return ngclist_single, ngclist_multiple
 
@@ -140,11 +122,11 @@ def import_revised_ngcic(filename, ngcic='NGC'):# or 'IC'
 if __name__=='__main__':
 
 
-    print __file__
+    print(__file__)
     ngclist = import_revised_ngcic('data/revngc.txt', 'NGC')
     iclist  = import_revised_ngcic('data/revic.txt', 'IC')
 
-    print len(ngclist), len(iclist)
+    print(len(ngclist), len(iclist))
 
     deeplist = ngclist+iclist
 
@@ -152,8 +134,6 @@ if __name__=='__main__':
     for object in deeplist:
         if object.ra >= pi/12.0 and object.ra < 9*pi/12.0 and object.dec > -35*pi/180 and object.mag < 12.5 and object.mag > -5.0:
             winterlist.append(object)
-            pass
-        pass
 
     def magsort(x,y):
         r = 0
@@ -166,10 +146,9 @@ if __name__=='__main__':
     winterlist.sort(magsort)
     for i in winterlist:
         if i.messier > 0:
-            print ('M '+str(i.messier)).ljust(10)+' '+str(i.mag).rjust(4)+' '+deepsky.TYPENAME[i.type]
+            print(('M '+str(i.messier)).ljust(10)+' '+str(i.mag).rjust(4)+' '+deepsky.TYPENAME[i.type])
         else:
-            print (i.cat+' '+i.name).ljust(10)+' '+str(i.mag).rjust(4)+' '+deepsky.TYPENAME[i.type]
-        pass
+            print((i.cat+' '+i.name).ljust(10)+' '+str(i.mag).rjust(4)+' '+deepsky.TYPENAME[i.type])
 
 
     mlist = []
@@ -178,11 +157,8 @@ if __name__=='__main__':
         if object.messier > 0:
             mlist.append(object)
             mnumbers.append(object.messier)
-            pass
-        pass
-    print len(mlist)
-    print sort(mnumbers)
-    pass
+    print(len(mlist))
+    print(sort(mnumbers))
 
 
 __all__ = ['import_revised_ngcic']
