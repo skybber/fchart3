@@ -44,7 +44,7 @@ Installation
 * fchart --help dumps a short manual to your screen.
 
 That's all.  You can view the output using ghostview, gv, or whatever
-postscript viewer you prefer. There is also PDF output (-O pdf)
+postscript viewer you prefer. 
 
 
 Michiel
@@ -72,17 +72,6 @@ Options:
                          limiting magnitude for deepsky objects
 
    -o, --output-dir      specify the output directory             (default: .)
-
-   -O, --output-type     specify output fileformat. Either EPS or
-                         PDF. On posix systems this defaults to
-                         EPS. On other systems the default is PDF. EPS
-                         output is generally a lot compacter in
-                         filesize than (even compressed) pdf output
-                         because PDF does not have a native 'circle'
-                         command (and circles we draw...). For rich
-                         fields, it takes considerably more time to
-                         generate PDF output than to generate EPS
-                         output, due to compression of the PDF streams.
 
    -l, --language        specify language on the maps, either 'en' or 'nl'
                          (default: en)

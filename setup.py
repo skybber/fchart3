@@ -1,13 +1,13 @@
 from setuptools import setup
 
 setup(
-    name='fchart',
-    version='0.3',
+    name='fchart3',
+    :wa   version='0.4',
     description='Collection of Python scripts to make beautiful deepsky finder charts in various formats',
     keywords='fchart starchart star charts finder chart astronomy map',
-    url='https://github.com/Fingel/fchart',
-    author='Michiel Brentjens <brentjens@astron.nl>, Austin Riba <root@austinriba.com>',
-    author_email='root@austinriba.com',
+    url='https://github.com/skybber/fchart3',
+    author='Michiel Brentjens <brentjens@astron.nl>, Austin Riba <root@austinriba.com>, Vladimir Dvorak<lada.dvorak7@gmail.com',
+    author_email='root@austinriba.com, lada.dvorak7@gmail.com',
     license='GPLv2',
     packages=['fchart'],
     include_package_data=True,
