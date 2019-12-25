@@ -44,9 +44,9 @@ class Constellation:
         """
         self.name = ''
         self.lines = []
+        self.stars = []
 
 class ConstellationCatalog:
-
     def __init__(self, bsc5_filename='', constell_filename=''):
         self.bright_stars = import_bsc5(bsc5_filename)
         self.constellations = import_constellation(constell_filename, self)

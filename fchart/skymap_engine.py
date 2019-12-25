@@ -53,6 +53,33 @@ EN = {
     'PG':'Part of external galaxy'
     }
 
+STAR_LABELS = {
+    "alp":"α",
+    "bet":"β",
+    "gam":"γ",
+    "del":"δ",
+    "eps":"ε",
+    "zet":"ζ",
+    "eta":"η",
+    "the":"θ",
+    "iot":"ι",
+    "kap":"κ",
+    "lam":"λ",
+    "mu":"μ",
+    "nu":"ν",
+    "xi":"ξ",
+    "omi":"ο",
+    "pi":"π",
+    "rho":"ρ",
+    "sig":"σ/ς",
+    "tau":"τ",
+    "ups":"υ",
+    "phi":"φ",
+    "chi":"χ",
+    "psi":"ψ",
+    "ome":"ω"
+    };
+
 STARS_IN_SCALE = 7
 LEGEND_MARGIN = 0.47
 BASE_SCALE=0.98
@@ -422,6 +449,32 @@ class SkymapEngine:
         pen_rgb = self.graphics.gi_pen_rgb
         self.graphics.set_pen_rgb((0.2, 0.7, 1.0))
         self.graphics.set_linewidth(0.5)
+        old_size = self.graphics.gi_fontsize
+        self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
+        printed = {}
+        for star in constell_catalog.bright_stars:
+            if (star.greek == '') or abs(star.ra-self.fieldcentre[0]) > pi/2.0:
+                continue
+            constell_printed = printed.get(star.constellation)
+            if not constell_printed:
+                constell_printed = set()
+                printed[star.constellation] = constell_printed
+            elif star.greek in constell_printed:
+                continue
+
+            constell_printed.add(star.greek)
+
+            letter = STAR_LABELS.get(star.greek)
+            if letter:
+                l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
+                x, y = -l * self.drawingscale, m * self.drawingscale
+                r = self.magnitude_to_radius(star.mag)
+                self.draw_circular_object_label(x, y , r, letter)
+            else:
+                print("Unknown greek letter:" + star.greek)
+
+        self.graphics.set_font(self.graphics.gi_font, old_size)
+
         for constell in constell_catalog.constellations:
             for line in constell.lines:
                 star1 = constell_catalog.bright_stars[line[0]-1]
@@ -679,7 +732,7 @@ class SkymapEngine:
         return label_pos_list
 
 
-    def draw_circular_object_label(self,x,y,r,label='',labelpos=-1):
+    def draw_circular_object_label(self, x, y, r, label='', labelpos=-1):
         fh = self.graphics.gi_fontsize
         if label != '':
             arg = 1.0-2*fh/(3.0*r)
@@ -697,7 +750,7 @@ class SkymapEngine:
                 self.graphics.text_left(x-sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
 
 
-    def circular_object_labelpos(self,x,y,radius=-1.0,label_length=0.0):
+    def circular_object_labelpos(self, x, y, radius=-1.0, label_length=0.0):
         fh = self.graphics.gi_fontsize
         r = radius
         if radius <= 0.0:

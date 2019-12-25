@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='fchart3',
-    :wa   version='0.4',
+    version='0.4',
     description='Collection of Python scripts to make beautiful deepsky finder charts in various formats',
     keywords='fchart starchart star charts finder chart astronomy map',
     url='https://github.com/skybber/fchart3',
