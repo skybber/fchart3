@@ -266,6 +266,11 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.text_centred()')
 
+    def text_width(self, text):
+        """
+        Text width in current font
+        """
+        print('GraphicsInterface.text_width()')
 
     def finish(self):
         """

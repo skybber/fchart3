@@ -89,12 +89,11 @@ DEFAULT_FONT_SIZE=2.6
 
 class SkymapEngine:
 
-    def __init__(self, graphics, font_metrics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, caption=''):
+    def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, caption=''):
         """
         Width is width of the map including the legend in mm.
         """
         self.graphics = graphics
-        self.font_metrics = font_metrics
 
         self.caption = ''
         self.language = language
@@ -352,7 +351,7 @@ class SkymapEngine:
                 if object.mag > self.deepsky_label_limit:
                     label = ''
 
-            label_length = self.font_metrics.string_width(self.graphics.gi_font, self.graphics.gi_fontsize, label)
+            label_length = self.graphics.text_width(label)
             labelpos = -1
 
             labelpos_list =[]
@@ -927,21 +926,18 @@ class SkymapEngine:
 
 
 if __name__ == '__main__':
-    from . import eps
-    from . import pdf
+    from . import cairo
     from . import star_catalog as sc
-    from  .fonts import FontMetrics
 
     stars = sc.StarCatalog('data/tyc2.bin')
-    fm = FontMetrics('font-metrics')
 
     width = 200
-    EPS = pdf.PDFDrawing('radec00.pdf',width, width, fm)
+    cairo = cairo.PDFDrawing('radec00.pdf',width, width)
 
-    sm = SkymapEngine(EPS)
+    sm = SkymapEngine(cairo)
     sm.set_caption('Probeersel')
     sm.set_field(1.5,1, 0.05)
     sm.make_map(stars)
-    EPS.close()
+    cairo.close()
 
 __all__ = ['EN', 'NL', 'SkymapEngine']

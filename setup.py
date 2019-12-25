@@ -21,6 +21,5 @@ setup(
                 'data/catalogs/bsc5.dat',
                 'data/catalogs/ConstellationLines.dat',
                 'data/catalogs/tyc2.bin',
-                'data/font-metrics/*.afm',
                 'data/label_positions.txt']},
 )

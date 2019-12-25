@@ -40,7 +40,6 @@ from fchart.skymap_engine import *
 from fchart.constellation import *
 
 from fchart.cairo import *
-from fchart.fonts import FontMetrics
 
 
 #################################################################
@@ -247,7 +246,6 @@ class RuntimeSettings:
 if __name__ == '__main__':
 
     data_dir    = os.path.join(fchart.get_data('catalogs'))
-    font_metrics = FontMetrics(os.path.join(fchart.get_data('font-metrics')))
 
     # Create default settings and parse commandline
     settings = RuntimeSettings()
@@ -323,10 +321,8 @@ if __name__ == '__main__':
                 filename += '.pdf'
                 artist = CairoDrawing(filename,
                                       settings.paperwidth,
-                                      settings.paperwidth,
-                                      font_metrics)
-                sm = SkymapEngine(artist, font_metrics, settings.language,
-                                  lm_stars = settings.limiting_magnitude_stars)
+                                      settings.paperwidth)
+                sm = SkymapEngine(artist, settings.language, lm_stars = settings.limiting_magnitude_stars)
                 sm.set_field(ra, dec, settings.fieldsize*pi/180.0/2.0)
                 sm.set_caption('M '+str(object.messier))
                 sm.set_no_dso_legend(settings.no_dso_legend)
@@ -428,9 +424,8 @@ if __name__ == '__main__':
                 filename += '.pdf'
                 artist = CairoDrawing(filename,
                                       settings.paperwidth,
-                                      settings.paperwidth,
-                                      font_metrics)
-                sm = SkymapEngine(artist,font_metrics, settings.language,
+                                      settings.paperwidth)
+                sm = SkymapEngine(artist, settings.language,
                                   lm_stars = settings.limiting_magnitude_stars)
                 sm.set_field(ra, dec, settings.fieldsize*pi/180.0/2.0)
                 caption = cat + ' ' + name

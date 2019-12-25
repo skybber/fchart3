@@ -20,20 +20,17 @@ import string
 import cairo
 
 from fchart.graphics_interface import INCH, DPI, DPMM, POINT, GraphicsInterface, paper_A
-from fchart.fonts import *
 
 class CairoDrawing(GraphicsInterface):
 
-    def __init__(self, filename, width, height, font_metrics):
+    def __init__(self, filename, width, height):
         """
         width (horizontal) and height (vertical) in mm
-        font_metrics is an object of type fonts.FontMetrics
         """
         GraphicsInterface.__init__(self, width, height)
 
         self.surface = None
         self.context = None
-        self.font_metrics = font_metrics
         self.set_filename(filename)
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
 
@@ -167,6 +164,11 @@ class CairoDrawing(GraphicsInterface):
         self.moveto(x-width/2, y - height/2)
         self.context.set_source_rgb(0, 0, 0)
         self.context.show_text(text)
+
+
+    def text_width(self, text):
+        xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
+        return width
 
 
     def moveto(self, x, y):

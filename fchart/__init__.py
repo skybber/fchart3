@@ -22,8 +22,6 @@ given a StarCatalog and DeepskyCatalog. eps and pdf provide classes to
 create eps and pdf files respectively. These classes are subclassed
 from GraphicsInterface.
 
-The fonts module is used to compute fontmetrics.
-
 astrocalc provides coordinate conversions etc.
 """
 
@@ -33,7 +31,6 @@ astrocalc provides coordinate conversions etc.
 # import deepsky_object
 # import deepsky_catalog
 # import eps
-# import fonts
 # import graphics_interface
 # import pdf
 # import revngc
