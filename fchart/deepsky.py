@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005  Michiel Brentjens
+#    Copyright (C) 2005-202 fchart authors0
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -111,8 +111,6 @@ def get_deepsky_catalog(data_dir=os.path.join(fchart.get_data('catalogs'))):
     print(len(l))
     dc = DeepskyCatalog(l)
     return dc
-
-
 
 
 import fchart.deepsky_object

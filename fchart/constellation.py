@@ -1,18 +1,33 @@
+#    fchart draws beautiful deepsky charts in vector formats
+#    Copyright (C) 2005-2020 fchart authors
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from math import pi
 
 class BscStar:
     def __init__(self):
         """
         This class has the following fields:
-
         - name           name of star
+        - greek          assigned letter of greek alphabet
         - constellation  three letter constellation abbreviation, e.g. AND
         - ra             right ascension in radians (J2000)
         - dec            declination in radians (J2000)
         - mag            magnitude
         """
         self.number = None
-        self.const_number = ''
         self.greek = ''
         self.constellation=''
         self.ra=-1.0
@@ -24,9 +39,8 @@ class Constellation:
     def __init__(self):
         """
         This class has the following fields:
-
         - name           name of star
-        - shape lines    constellation lines
+        - lines          constellation lines as list of tuples of bsc5 star numbers
         """
         self.name = ''
         self.lines = []

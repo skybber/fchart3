@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005  Michiel Brentjens
+#    Copyright (C) 2005-202 fchart authors0
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -124,8 +124,6 @@ class GraphicsInterface:
             self.gi_origin_y = 0.0
 
 
-
-
     def set_linewidth(self, linewidth):
         """
         Sets gi_linewidth. Derived classes should extend, not override this method.
@@ -246,13 +244,6 @@ class GraphicsInterface:
         the bottom left corner of the text to be drawn.
         """
         print('GraphicsInterface.text()')
-
-
-    def text_superscript(self, text):
-        """
-        Draw 'text' at the current position in superscript.
-        """
-        print('GraphicsInterface.text_superscript()')
 
 
     def text_right(self, x, y, text):
