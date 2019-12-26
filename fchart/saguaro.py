@@ -25,7 +25,12 @@ def parse_saguaro_line(line):
     strs[0] = strs[0].split('"')[1]
     strs[-1] = strs[-1].split('"')[0]
 
-    cnsplit = strs[0].strip().split()
+    cnstr = strs[0].strip()
+    if cnstr.startswith('Sh2-'):
+        cnsplit = cnstr.split('-')
+    else:
+        cnsplit = cnstr.split()
+
     if len(cnsplit) == 1:
         cat = cnsplit[0][0]
         name = cnsplit[0][1:]
@@ -67,6 +72,10 @@ def parse_saguaro_line(line):
         typenum = NOTFOUND
 
     object.cat = cat.strip()
+    if object.cat == 'Sh2-':
+        object.cat ='Sh2'
+        print("##### Adding:" + name.strip().upper())
+
     object.name = name.strip().upper()
     object.all_names = [object.name]
     object.type = typenum

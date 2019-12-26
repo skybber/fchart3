@@ -377,7 +377,10 @@ if __name__ == '__main__':
             else:# : in source
                 index = 0
                 cat = ''
-                if source[0:2].upper() == '3C':
+                if source[0:3].upper() == 'SH2':
+                    cat = 'SH2'
+                    index = 4
+                elif source[0:2].upper() == '3C':
                     cat = '3C'
                     index = 2
                 else:
@@ -388,12 +391,11 @@ if __name__ == '__main__':
                         else:
                             index = i
                             break
+                    if cat.upper() == 'N' or cat == '' or cat.upper=='NGC':
+                        cat = 'NGC'
 
-                if cat.upper() == 'N' or cat == '' or cat.upper=='NGC':
-                    cat = 'NGC'
-
-                if cat.upper() == 'I' or cat.upper() == 'IC':
-                    cat = 'IC'
+                    if cat.upper() == 'I' or cat.upper() == 'IC':
+                        cat = 'IC'
 
                 name = source[index:].upper().rstrip().lstrip()
                 if cat == 'NGC' and name == '3690':
