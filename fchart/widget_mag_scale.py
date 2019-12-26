@@ -28,7 +28,7 @@ class WidgetMagnitudeScale:
         self.stars_in_scale = stars_in_scale
         self.lm_stars = lm_stars
         self.star_border_linewidth = star_border_linewidth
-        self.width = (self.field_radius_mm - self.margin) + 2.2 * self.legend_fontsize
+        self.width = (self.field_radius_mm - self.margin) + 2.3 * self.legend_fontsize
         self.height = (self.field_radius_mm - self.margin) + (self.stars_in_scale - 0.2) * self.legend_fontsize
 
     def get_size(self):

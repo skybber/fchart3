@@ -86,6 +86,8 @@ Options:
 
    -o, --output-dir      specify the output directory             (default: .)
 
+   -O, --output-file     specify output file name
+
    -l, --language        specify language on the maps, either 'en' or 'nl'
                          (default: en)
 
@@ -143,6 +145,7 @@ class RuntimeSettings:
         self.force_asterisms            = False
         self.force_unknown              = False
         self.output_dir                 = '.'
+        self.output_file                = ''
         self.extra_positions_list       = []
         self.language                   = EN
         self.sourcelist                 = []
@@ -154,9 +157,9 @@ class RuntimeSettings:
 
     def parse_commandline(self):
         optlist, self.sourcelist = getopt.gnu_getopt( sys.argv[1:],
-                                                      'hd:s:p:f:mo:x:l:auvrnc:',
+                                                      'hd:s:p:f:mo:O:x:l:auvrnc:',
                ['help', 'deep-sky', 'stars', 'paper-width', 'field-size',
-                'force-messier', 'output-dir', 'add-cross', 'language',
+                'force-messier', 'output-dir', 'output-file', 'add-cross', 'language',
                 'force-asterisms', 'force-pg', 'version', 'caption', 'no-dso-legend'])
 
         for option, argument in optlist:
@@ -184,6 +187,8 @@ class RuntimeSettings:
                 self.force_unknown = True
             if option in ['-o', '--output-dir']:
                 self.output_dir = argument
+            if option in ['-O', '--output-file']:
+                self.output_file = argument
             if option in ['-c', '--caption']:
                 self.caption = argument
             if option in ['-l', '--language']:
@@ -317,7 +322,7 @@ if __name__ == '__main__':
                 ra  = object.ra
                 dec = object.dec
                 artist = None
-                filename = settings.output_dir+os.sep+'m'+str(object.messier).rjust(3).replace(' ','0')
+                filename = settings.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
                 artist = CairoDrawing(filename,
                                       settings.paperwidth,
@@ -364,7 +369,7 @@ if __name__ == '__main__':
                     ra, dec = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
                     cat = ''
                     name = string.join(data[2:], ',')
-                    filename = settings.output_dir+os.sep+name.replace(' ','-').replace('/', '-').replace(',', '')
+                    filename = settings.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
                 else:
                     print('Position specification needs three part argument, separated by comma\'s: "ra,dec,caption"')
                     sys.exit(-1)
@@ -419,9 +424,12 @@ if __name__ == '__main__':
 
             if ra >= 0.0:
                 artist = None
-                if filename == '':
-                    filename = settings.output_dir+os.sep+source
-                filename += '.pdf'
+                if settings.output_file == '':
+                    if filename == '':
+                        filename = settings.output_dir+os.sep+filename
+                    filename += '.pdf'
+                else:
+                    filename = settings.output_file
                 artist = CairoDrawing(filename,
                                       settings.paperwidth,
                                       settings.paperwidth)

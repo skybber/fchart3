@@ -217,10 +217,10 @@ class SkymapEngine:
         self.draw_field_border()
 
         # Draw orientation indication
-        x = -0.465*self.drawingwidth
-        y =  0.465*self.drawingwidth - fontsize*1.1
         dl = 0.02*self.drawingwidth
-        self.graphics.text_centred(x, y+dl+fontsize/2.0, 'N')
+        x = -self.get_field_radius_mm() + dl + 0.2*fontsize
+        y =  self.get_field_radius_mm() - dl - fontsize*1.3
+        self.graphics.text_centred(x, y + dl + 0.65*fontsize, 'N')
         self.graphics.text_right(x+dl+fontsize/6.0, y-fontsize/3.0, 'W')
 
         self.graphics.line(x-dl, y, x+dl,y)
