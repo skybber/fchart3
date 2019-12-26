@@ -103,6 +103,8 @@ class GraphicsInterface:
     def set_filename(self, filename):
         self.gi_filename = filename
 
+    def set_invert_colors(self, invert_colors):
+        self.gi_invert_colors = invert_colors
 
     def set_dimensions(self, width, height):
         """
@@ -135,8 +137,12 @@ class GraphicsInterface:
         """
         Sets gi_pen_gray. Derived classes should extend, not override this method.
         """
-        self.gi_pen_gray = pen_gray
-        self.gi_pen_rgb = (pen_gray, pen_gray, pen_gray)
+        if self.gi_invert_colors:
+            self.gi_pen_gray = 1.0 - pen_gray
+            self.gi_pen_rgb = (1.0 - pen_gray, 1.0 - pen_gray, 1.0 - pen_gray)
+        else:
+            self.gi_pen_gray = pen_gray
+            self.gi_pen_rgb = (pen_gray, pen_gray, pen_gray)
 
     def set_pen_rgb(self, pen_rgb):
         """
@@ -150,8 +156,10 @@ class GraphicsInterface:
         """
         Sets gi_fill_gray. Derived classes should extend, not override this method.
         """
-        self.gi_fill_gray = fill_gray
-
+        if self.gi_invert_colors:
+            self.gi_fill_gray = 1.0 -fill_gray
+        else:
+            self.gi_fill_gray =fill_gray
 
     def set_solid_line(self):
         """

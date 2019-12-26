@@ -107,6 +107,7 @@ class SkymapEngine:
         self.set_caption(caption)
         self.set_field(ra,dec,fieldradius)
         self.no_dso_legend = False
+        self.invert_colors = False
 
 
     def set_field(self, ra, dec, fieldradius):
@@ -141,6 +142,10 @@ class SkymapEngine:
 
     def set_no_dso_legend(self, no_dso_legend):
         self.no_dso_legend =no_dso_legend
+
+
+    def set_invert_colors(self, invert_colors):
+        self.invert_colors = invert_colors
 
 
     def draw_caption(self):
@@ -446,7 +451,6 @@ class SkymapEngine:
     def draw_constellations(self, constell_catalog):
         print('Drawing constellations...' + str(self.fieldcentre[0]))
         pen_rgb = self.graphics.gi_pen_rgb
-        self.graphics.set_pen_rgb((0.2, 0.7, 1.0))
         self.graphics.set_linewidth(0.5)
         old_size = self.graphics.gi_fontsize
         self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
@@ -474,6 +478,7 @@ class SkymapEngine:
 
         self.graphics.set_font(self.graphics.gi_font, old_size)
 
+        self.graphics.set_pen_rgb((0.2, 0.7, 1.0))
         for constell in constell_catalog.constellations:
             for line in constell.lines:
                 star1 = constell_catalog.bright_stars[line[0]-1]
@@ -487,11 +492,12 @@ class SkymapEngine:
                 x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
                 x2, y2 = -l2 * self.drawingscale, m2 * self.drawingscale
                 self.graphics.line(x1, y1, x2, y2)
-        self.graphics.set_pen_rgb((0.0, 0.0, 0.0))
+        self.graphics.set_pen_gray(0.0)
 
 
     def make_map(self, star_catalog=None, deepsky_catalog=None, constell_catalog=None, extra_positions=[]):
         self.graphics.new()
+        self.graphics.set_invert_colors(self.invert_colors)
         self.graphics.set_pen_gray(0.0)
         self.graphics.set_fill_gray(0.0)
         self.graphics.set_font(fontsize=DEFAULT_FONT_SIZE)

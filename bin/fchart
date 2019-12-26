@@ -96,6 +96,8 @@ Options:
                          ignored. The default setting helps cleaning up
                          especially Virgo cluster maps.
 
+   -i, --invert-colors   invert colors
+
    -u, --force-pg        by default, objects in external galaxies are only
                          plotted if their magnitude is known and lower than
                          the limiting magnitude of deepsky objects. If this
@@ -152,15 +154,16 @@ class RuntimeSettings:
         self.caption                    = False
         self.fieldcentre                = (-1,-1)
         self.no_dso_legend              = False
+        self.invert_colors              = False
 
         self.parse_commandline()
 
     def parse_commandline(self):
         optlist, self.sourcelist = getopt.gnu_getopt( sys.argv[1:],
-                                                      'hd:s:p:f:mo:O:x:l:auvrnc:',
+                                                      'hd:s:p:f:mo:O:x:l:auvrnic:',
                ['help', 'deep-sky', 'stars', 'paper-width', 'field-size',
                 'force-messier', 'output-dir', 'output-file', 'add-cross', 'language',
-                'force-asterisms', 'force-pg', 'version', 'caption', 'no-dso-legend'])
+                'force-asterisms', 'force-pg', 'version', 'caption', 'no-dso-legend', 'invert-colors'])
 
         for option, argument in optlist:
             if option in ['-h', '--help']:
@@ -191,6 +194,8 @@ class RuntimeSettings:
                 self.output_file = argument
             if option in ['-c', '--caption']:
                 self.caption = argument
+            if option in ['-i', '--invert-colors']:
+                self.invert_colors = True
             if option in ['-l', '--language']:
                 if argument.upper() == 'NL':
                     self.language = NL
@@ -331,6 +336,7 @@ if __name__ == '__main__':
                 sm.set_field(ra, dec, settings.fieldsize*pi/180.0/2.0)
                 sm.set_caption('M '+str(object.messier))
                 sm.set_no_dso_legend(settings.no_dso_legend)
+                sm.set_invert_colors(settings.invert_colors)
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
         else:
@@ -445,6 +451,7 @@ if __name__ == '__main__':
                 if caption != '':
                     sm.set_caption(caption)
                 sm.set_no_dso_legend(settings.no_dso_legend)
+                sm.set_invert_colors(settings.invert_colors)
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')

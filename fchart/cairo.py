@@ -42,19 +42,26 @@ class CairoDrawing(GraphicsInterface):
         self.context = cairo.Context(self.surface)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
+        self.context.set_source_rgb(0.0, 0.0, 0.0)
+        self.context.rectangle(-595/2, -842/2, 595, 842)
+        self.context.fill()
+
 
     def save(self):
         GraphicsInterface.save(self)
         self.context.save()
 
+
     def restore(self):
         GraphicsInterface.restore(self)
         self.context.restore()
+
 
     def set_font(self, font='Times-Roman', fontsize=12*POINT):
         GraphicsInterface.set_font(self, font, fontsize)
         self.context.set_font_size(self.gi_fontsize)
         self.context.select_font_face('Arial', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+
 
     def set_linewidth(self, linewidth):
         GraphicsInterface.set_linewidth(self,linewidth)
@@ -142,27 +149,28 @@ class CairoDrawing(GraphicsInterface):
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.stroke()
 
+
     def text(self, text):
         self.context.show_text(text)
 
 
     def text_right(self, x, y, text):
         self.moveto(x, y)
-        self.context.set_source_rgb(0, 0, 0)
+        self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
 
     def text_left(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
         self.moveto(x-width, y)
-        self.context.set_source_rgb(0, 0, 0)
+        self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
 
     def text_centred(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
         self.moveto(x-width/2, y - height/2)
-        self.context.set_source_rgb(0, 0, 0)
+        self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
 
@@ -193,9 +201,11 @@ class CairoDrawing(GraphicsInterface):
         self.context.close_path()
         self.context.clip()
 
+
     def clip_circle(self, x, y, r):
         self.context.arc(-x, -y, r, 0, 2.0*pi)
         self.context.clip()
+
 
     def reset_clip(self):
         self.context.reset_clip()
