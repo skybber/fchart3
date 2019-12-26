@@ -42,9 +42,10 @@ class CairoDrawing(GraphicsInterface):
         self.context = cairo.Context(self.surface)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
-        self.context.set_source_rgb(0.0, 0.0, 0.0)
-        self.context.rectangle(-595/2, -842/2, 595, 842)
-        self.context.fill()
+        if self.gi_invert_colors:
+            self.context.set_source_rgb(0.0, 0.0, 0.0)
+            self.context.rectangle(-595/2, -842/2, 595, 842)
+            self.context.fill()
 
 
     def save(self):
