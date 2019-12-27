@@ -62,6 +62,7 @@ class GraphicsInterface:
         self.gi_fontsize  = 12*POINT
         self.gi_origin_x  = self.gi_width/2.0
         self.gi_origin_y  = self.gi_height/2.0
+        self.gi_invert_colors = False
 
         self.gi_filename = ''
 

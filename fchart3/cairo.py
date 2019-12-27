@@ -19,7 +19,7 @@ import string
 
 import cairo
 
-from fchart.graphics_interface import INCH, DPI, DPMM, POINT, GraphicsInterface, paper_A
+from fchart3.graphics_interface import INCH, DPI, DPMM, POINT, GraphicsInterface, paper_A
 
 class CairoDrawing(GraphicsInterface):
 

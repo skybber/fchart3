@@ -17,7 +17,7 @@
 from numpy import *
 import os
 import sys
-from fchart.astrocalc import *
+from fchart3.astrocalc import *
 
 class IndexRecord:
     def __init__(self, first_record, num_records, ra_min, dec_min, ra_max, dec_max):

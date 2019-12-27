@@ -21,7 +21,7 @@ from .astrocalc import *
 from .constellation import *
 from .widget_mag_scale import *
 from .widget_map_scale import *
-import fchart.deepsky_object as deepsky
+import fchart3.deepsky_object as deepsky
 
 
 NL = {
@@ -106,7 +106,7 @@ class SkymapEngine:
 
         self.set_caption(caption)
         self.set_field(ra,dec,fieldradius)
-        self.no_dso_legend = False
+        self.hide_dso_legend = False
         self.invert_colors = False
 
 
@@ -140,8 +140,8 @@ class SkymapEngine:
             self.graphics.set_dimensions(self.drawingwidth,self.drawingwidth + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
 
 
-    def set_no_dso_legend(self, no_dso_legend):
-        self.no_dso_legend =no_dso_legend
+    def set_hide_dso_legend(self, hide_dso_legend):
+        self.hide_dso_legend =hide_dso_legend
 
 
     def set_invert_colors(self, invert_colors):
@@ -496,8 +496,8 @@ class SkymapEngine:
 
 
     def make_map(self, star_catalog=None, deepsky_catalog=None, constell_catalog=None, extra_positions=[]):
-        self.graphics.new()
         self.graphics.set_invert_colors(self.invert_colors)
+        self.graphics.new()
         self.graphics.set_pen_gray(0.0)
         self.graphics.set_fill_gray(0.0)
         self.graphics.set_font(fontsize=DEFAULT_FONT_SIZE)
@@ -546,7 +546,7 @@ class SkymapEngine:
 
         self.draw_legend(w_mag_scale, w_map_scale)
         print('Drawing dso legend')
-        if not self.no_dso_legend:
+        if not self.hide_dso_legend:
             self.draw_dso_legend()
 
         self.graphics.finish()

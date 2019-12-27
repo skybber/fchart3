@@ -16,7 +16,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from numpy import *
 
-from fchart import deepsky_object as deepsky
+from fchart3 import deepsky_object as deepsky
 
 def parse_rev_ngcic_line(line, catalog='NGC'):
     object = deepsky.DeepskyObject()

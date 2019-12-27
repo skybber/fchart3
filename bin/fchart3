@@ -18,194 +18,128 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 # numarray library: http://www.stsci.edu/resources/software_hardware/numarray
+
+import argparse
+import textwrap
+
 from numpy import *
 # Standard python modules
-from math import acos
 import string
 import os
 import sys
 import stat
-import getopt
-
 
 # Local modules:
-import fchart
-from fchart.astrocalc import *
-from fchart import revngc
-from fchart import saguaro
-from fchart import deepsky_object as deepsky
-from fchart.deepsky import *
-from fchart.star_catalog import *
-from fchart.skymap_engine import *
-from fchart.constellation import *
+import fchart3
+from fchart3.astrocalc import *
+from fchart3 import revngc
+from fchart3 import saguaro
+from fchart3 import deepsky_object as deepsky
+from fchart3.deepsky import *
+from fchart3.star_catalog import *
+from fchart3.skymap_engine import *
+from fchart3.constellation import *
 
-from fchart.cairo import *
+from fchart3.cairo import *
 
 
 #################################################################
 
 
 def print_version():
-    print('fchart version 0.3 (c) 2005 Michiel Brentjens')
+    print('fchart3 version 0.1 (c) fchart3 authors 2005-2020')
     print("""
-fchart comes with ABSOLUTELY NO WARRANTY. It is distributed under the
+fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
 LICENSE file.
 """)
-    pass
-
-
-
-
-
-
-def print_help():
-    print_version()
-    helptext ="""
-
-Usage: fchart [options] sourcename1 sourcename2 ...
-
-   Output filenames are \"sourcename1.eps\", \"sourcename2.eps\", etcetera.
-
-Options:
-   -h, --help            print help
-
-   -d, --deep-sky        deepsky limiting magnitude (default: 12.5)
-
-   -s, --stars           stellar limiting magnitude (default: 13.8)
-
-   -p, --paper-width     width of the map in mm (default: 180.0)
-
-   -f, --field-size      diameter of the field of view in degrees
-                         (default: 7.0)
-
-   -m, --force-messier   select all Messier objects, regardless of the
-                         limiting magnitude for deepsky objects
-
-   -o, --output-dir      specify the output directory             (default: .)
-
-   -O, --output-file     specify output file name
-
-   -l, --language        specify language on the maps, either 'en' or 'nl'
-                         (default: en)
-
-   -a, --force-asterisms force plotting of  asterisms in map. By default, only
-                         \"Messier\" asterisms are plotted. All others are
-                         ignored. The default setting helps cleaning up
-                         especially Virgo cluster maps.
-
-   -i, --invert-colors   invert colors
-
-   -u, --force-pg        by default, objects in external galaxies are only
-                         plotted if their magnitude is known and lower than
-                         the limiting magnitude of deepsky objects. If this
-                         option is given, also objects in external galaxies
-                         of which the magnitude is not known are plotted. This
-                         option will clutter some galaxies like M 101 and
-                         NGC 4559.
-
-   -x, --add-cross       add a cross in the map at a specified position. The
-                         format of the argument of this option is:
-                         \"rah:ram:ras,+/-decd:decm:decs,label,labelposition\"
-                         For example: -x\"20:35:25.4,+60:07:17.7,SN,t\" for
-                         the supernova sn2004et in NGC 6946. The label position
-                         can be 't' for top, 'b' for bottom, 'l' for left, or
-                         'r' for right. The label and label position may be
-                         omitted.
-
-   -n, --no-dso-legend   hide dso legend
-
-   -v, --version         display version information and exit.
-
-   -c, --caption         force a specific caption for the maps. All maps will
-                         get the same caption.
-
-Sourcenames:
-   Valid sourcenames are for example:
-   - NGC891, NgC891, n891 or 891 for NGC objects
-   - IC1396, i1396, iC1396, I1396 for IC objects
-   - m110, M3 for Messier objects
-   - \"9:35:00.8,-34:15:33,SomeCaption\" for other positions
-
-   There is one special sourcename, which is \"allmessier\". When this name
-   is encountered, fchart dumps maps of all messier objects to the output
-   directory.
-
-    """
-    print(helptext)
-
 
 class RuntimeSettings:
     def __init__(self):
-        self.limiting_magnitude_stars   = 13.8
-        self.limiting_magnitude_deepsky = 12.5
-        self.paperwidth                 = 180.0 # mm
-        self.fieldsize                  = 7.0   # degrees
-        self.force_messier              = False
-        self.force_asterisms            = False
-        self.force_unknown              = False
-        self.output_dir                 = '.'
-        self.output_file                = ''
         self.extra_positions_list       = []
-        self.language                   = EN
-        self.sourcelist                 = []
-        self.caption                    = False
         self.fieldcentre                = (-1,-1)
-        self.no_dso_legend              = False
-        self.invert_colors              = False
-
         self.parse_commandline()
 
     def parse_commandline(self):
-        optlist, self.sourcelist = getopt.gnu_getopt( sys.argv[1:],
-                                                      'hd:s:p:f:mo:O:x:l:auvrnic:',
-               ['help', 'deep-sky', 'stars', 'paper-width', 'field-size',
-                'force-messier', 'output-dir', 'output-file', 'add-cross', 'language',
-                'force-asterisms', 'force-pg', 'version', 'caption', 'no-dso-legend', 'invert-colors'])
 
-        for option, argument in optlist:
-            if option in ['-h', '--help']:
-                print_help()
-                sys.exit(1)
-            if option in ['-v', '--version']:
-                print_version()
-                sys.exit(1)
-            if option in ['-n', '--no-dso-legend']:
-                self.no_dso_legend = True
-            if option in ['-d', '--deep-sky']:
-                self.limiting_magnitude_deepsky = float(argument)
-            if option in ['-s', '--stars']:
-                self.limiting_magnitude_stars = float(argument)
-            if option in ['-p', '--paper-width']:
-                self.paperwidth = float(argument)
-            if option in ['-f', '--field-size']:
-                self.fieldsize = float(argument)
-            if option in ['-m', '--force-messier']:
-                self.force_messier = True
-            if option in ['-a', '--force-asterisms']:
-                self.force_asterisms = True
-            if option in ['-u', '--force-pg']:
-                self.force_unknown = True
-            if option in ['-o', '--output-dir']:
-                self.output_dir = argument
-            if option in ['-O', '--output-file']:
-                self.output_file = argument
-            if option in ['-c', '--caption']:
-                self.caption = argument
-            if option in ['-i', '--invert-colors']:
-                self.invert_colors = True
-            if option in ['-l', '--language']:
-                if argument.upper() == 'NL':
-                    self.language = NL
-                elif argument.upper() == 'EN':
-                    self.language = EN
-                else:
-                    print('Unsupported language '+argument)
-                    sys.exit(-1)
-            if option in ['-x', '--add-cross']:
-                data= argument.split(',')
+        argumentparser = argparse.ArgumentParser(description='fchart',
+              formatter_class=argparse.RawTextHelpFormatter,
+              epilog=textwrap.dedent('''\
+                    Sourcenames:
+                       Valid sourcenames are for example:
+                       - NGC891, NgC891, n891 or 891 for NGC objects
+                       - IC1396, i1396, iC1396, I1396 for IC objects
+                       - m110, M3 for Messier objects
+                       - \"9:35:00.8,-34:15:33,SomeCaption\" for other positions
+
+                       There is one special sourcename, which is \"allmessier\". When this name
+                       is encountered, fchart dumps maps of all messier objects to the output
+                       directory.
+                    ''')
+              )
+
+        argumentparser.add_argument('-d', '--deep-sky', dest='limiting_magnitude_deepsky', nargs='?', action='store', default=12.5, type=float,
+                                    help=
+                                    'deepsky limiting magnitude (default: 12.5)')
+        argumentparser.add_argument('-s', '--star', dest='limiting_magnitude_stars', nargs='?', action='store', default=13.8, type=float,
+                                    help='stellar limiting magnitude (default: 13.8)')
+        argumentparser.add_argument('-p', '--paper-width', dest='paperwidth', nargs='?', action='store', default=180.0, type=float,
+                                    help='width of the map in mm (default: 180.0)')
+        argumentparser.add_argument('-f', '--field-size', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
+                                    help='diameter of the field of view in degrees (default: 7.0)')
+        argumentparser.add_argument('-m', '--force-messier', dest='force_messier', action='store_true',
+                                    help='select all Messier objects, regardless of the limiting magnitude for deepsky objects')
+        argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', default='./',
+                                    help='specify the output directory (default: .)')
+        argumentparser.add_argument('-O', '--output-file', dest='output_file', nargs='?', action='store',
+                                    help='specify output file name. (default: name of dso object)')
+        argumentparser.add_argument('-l', '--language', dest='language', nargs='?', action='store', default='en',
+                                    help='specify language on the maps, either \'en\' or \'nl\' (default: en)')
+        argumentparser.add_argument('-a', '--force-asterisms', dest='force_asterisms', action='store_true',
+                                    help='force plotting of  asterisms in map. By default, only \"Messier\" asterisms are plotted.' + \
+                                          'All others are ignored. The default setting helps cleaning up especially Virgo cluster maps.')
+        argumentparser.add_argument('-i', '--invert-colors', dest='invert_colors', action='store_true',
+                                    help='invert colors in generated maps.')
+        argumentparser.add_argument('-u', '--force-pg', dest='force_unknown', action='store_true',
+                                    help='by default, objects in external galaxies are only plotted if their magnitude is known and lower than ' +\
+                                         'the limiting magnitude of deepsky objects. If this option is given, also objects in external galaxies ' +\
+                                         'of which the magnitude is not known are plotted. Thisoption will clutter some galaxies like M 101 and ' +\
+                                         'NGC 4559.')
+        argumentparser.add_argument('-x', '--add-cross', dest='cross_marks', nargs='?', action='append',
+                                    help='add a cross in the map at a specified position. The format of the argument of this option is: ' +\
+                                         '\"rah:ram:ras,+/-decd:decm:decs,label,labelposition\" For example: -x\"20:35:25.4,+60:07:17.7,SN,t\" for ' +\
+                                         'the supernova sn2004et in NGC 6946. The label position can be \'t\' for top, \'b\' for bottom, \'l\' for ' +\
+                                         'left, or \'r\' for right. The label and label position may be omitted.')
+        argumentparser.add_argument('-n', '--hide-dso-legend', dest='hide_dso_legend', action='store_true',
+                                    help='hide deepsky object legend.')
+        argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
+        argumentparser.add_argument('-c', '--caption', dest='caption', nargs='?', action='store', default='',
+                                    help='force a specific caption for the maps. All maps will get the same caption.')
+        argumentparser.add_argument('sourcelist', nargs='*')
+
+        self.parser = argumentparser.parse_args()
+
+        if len(self.parser.sourcelist) == 0:
+            argumentparser.print_help()
+            sys.exit(1)
+
+        if self.parser.language.upper() == 'NL':
+            self.language = NL
+        elif self.parser.language.upper() == 'EN':
+            self.language = EN
+        else:
+            print('Unsupported language '+ self.parser.language)
+            sys.exit(-1)
+
+        if self.parser.version:
+            print_version()
+            sys.exit(1)
+
+        if self.parser.cross_marks:
+            for mark in self.parser.cross_marks:
+                data = mark.split(',')
                 if len(data) >= 2:
                     ra_str, dec_str = data[0:2]
                     label_str = ''
@@ -241,10 +175,6 @@ class RuntimeSettings:
                 else:
                     print('option -x needs three part argument, separated by comma\'s: -x "ra,dec,label"')
                     sys.exit(-1)
-        if len(self.sourcelist) == 0:
-            print_help()
-            sys.exit(1)
-
 
 
 #############################################################
@@ -255,18 +185,17 @@ class RuntimeSettings:
 
 if __name__ == '__main__':
 
-    data_dir    = os.path.join(fchart.get_data('catalogs'))
+    data_dir    = os.path.join(fchart3.get_data('catalogs'))
 
     # Create default settings and parse commandline
     settings = RuntimeSettings()
 
     print_version()
 
-
     # Create output space if necessary
-    if not os.path.exists(settings.output_dir):
-        print('Creating directory '+settings.output_dir)
-        os.mkdir(settings.output_dir)
+    if not os.path.exists(settings.parser.output_dir):
+        print('Creating directory '+settings.parser.output_dir)
+        os.mkdir(settings.parser.output_dir)
 
     # Read basic catalogs
     starcatalog    = StarCatalog(data_dir+os.sep+'tyc2.bin', data_dir+os.sep+'index.dat')
@@ -279,16 +208,16 @@ if __name__ == '__main__':
     for object in deeplist:
         if object.messier > 0:
             messierlist.append(object)
-        if settings.force_messier:
-            if (object.mag <=settings.limiting_magnitude_deepsky and object.mag > -1) or\
+        if settings.parser.force_messier:
+            if (object.mag <=settings.parser.limiting_magnitude_deepsky and object.mag > -1) or\
                    (object.messier > 0):
                 reduced_deeplist.append(object)
         else:
-            if object.mag <= settings.limiting_magnitude_deepsky and \
+            if object.mag <= settings.parser.limiting_magnitude_deepsky and \
                    object.type != deepsky.GALCL and \
-                   (object.type != deepsky.STARS or settings.force_asterisms\
+                   (object.type != deepsky.STARS or settings.parser.force_asterisms\
                     or (object.messier > 0 and object.type == deepsky.STARS))\
-                   and (object.type != deepsky.PG or settings.force_unknown or\
+                   and (object.type != deepsky.PG or settings.parser.force_unknown or\
                         object.type == deepsky.PG and object.mag > -5.0):
                 reduced_deeplist.append(object)
 
@@ -300,23 +229,23 @@ if __name__ == '__main__':
     print(str(len(reduced_deeplist))+'/'+str(len(deeplist))+' deepsky objects after magnitude/messier selection.')
 
     print('Making maps with: ')
-    print('   Deep sky lm    : '+ str(settings.limiting_magnitude_deepsky))
-    print('   Stellar lm     : '+ str(settings.limiting_magnitude_stars))
-    print('   Fieldsize      : '+ str(settings.fieldsize)+' degrees')
-    print('   Paperwidth     : '+ str(settings.paperwidth)+ ' mm')
-    print('   Output dir     : '+ settings.output_dir)
-    print('   Force Messier  : '+ str(settings.force_messier))
-    print('   Force asterisms: '+ str(settings.force_asterisms))
-    print('   Force pg       : '+ str(settings.force_unknown))
+    print('   Deep sky lm    : '+ str(settings.parser.limiting_magnitude_deepsky))
+    print('   Stellar lm     : '+ str(settings.parser.limiting_magnitude_stars))
+    print('   Fieldsize      : '+ str(settings.parser.fieldsize)+' degrees')
+    print('   Paperwidth     : '+ str(settings.parser.paperwidth)+ ' mm')
+    print('   Output dir     : '+ settings.parser.output_dir)
+    print('   Force Messier  : '+ str(settings.parser.force_messier))
+    print('   Force asterisms: '+ str(settings.parser.force_asterisms))
+    print('   Force pg       : '+ str(settings.parser.force_unknown))
     print('   Extra points   : '+ str(len(settings.extra_positions_list)))
-    print('   Hide dso legend: '+ str(settings.no_dso_legend))
+    print('   Hide dso legend: '+ str(settings.parser.hide_dso_legend))
 
     for object in settings.extra_positions_list:
         rax,decx,label,labelpos = object
         print(label,':', rad2hms(rax), rad2dms(decx))
 
     # For all sources...
-    for source in settings.sourcelist:
+    for source in settings.parser.sourcelist:
         filename = ''
         # Parse sourcename
         if source.upper().rstrip().lstrip() == 'ALLMESSIER':
@@ -327,16 +256,16 @@ if __name__ == '__main__':
                 ra  = object.ra
                 dec = object.dec
                 artist = None
-                filename = settings.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
+                filename = settings.parser.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
                 artist = CairoDrawing(filename,
-                                      settings.paperwidth,
-                                      settings.paperwidth)
-                sm = SkymapEngine(artist, settings.language, lm_stars = settings.limiting_magnitude_stars)
-                sm.set_field(ra, dec, settings.fieldsize*pi/180.0/2.0)
+                                      settings.parser.paperwidth,
+                                      settings.parser.paperwidth)
+                sm = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
+                sm.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
                 sm.set_caption('M '+str(object.messier))
-                sm.set_no_dso_legend(settings.no_dso_legend)
-                sm.set_invert_colors(settings.invert_colors)
+                sm.set_hide_dso_legend(settings.parser.hide_dso_legend)
+                sm.set_invert_colors(settings.parser.invert_colors)
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
         else:
@@ -375,7 +304,7 @@ if __name__ == '__main__':
                     ra, dec = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
                     cat = ''
                     name = string.join(data[2:], ',')
-                    filename = settings.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
+                    filename = settings.parser.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
                 else:
                     print('Position specification needs three part argument, separated by comma\'s: "ra,dec,caption"')
                     sys.exit(-1)
@@ -432,26 +361,26 @@ if __name__ == '__main__':
 
             if ra >= 0.0:
                 artist = None
-                if settings.output_file == '':
+                if settings.parser.output_file == '':
                     if filename == '':
-                        filename = settings.output_dir+os.sep+filename
+                        filename = settings.parser.output_dir+os.sep+filename
                     filename += '.pdf'
                 else:
-                    filename = settings.output_file
+                    filename = settings.parser.output_file
                 artist = CairoDrawing(filename,
-                                      settings.paperwidth,
-                                      settings.paperwidth)
+                                      settings.parser.paperwidth,
+                                      settings.parser.paperwidth)
                 sm = SkymapEngine(artist, settings.language,
-                                  lm_stars = settings.limiting_magnitude_stars)
-                sm.set_field(ra, dec, settings.fieldsize*pi/180.0/2.0)
+                                  lm_stars = settings.parser.limiting_magnitude_stars)
+                sm.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
                 caption = cat + ' ' + name
 
-                if settings.caption != False:
-                    caption = settings.caption
+                if settings.parser.caption != False:
+                    caption = settings.parser.caption
                 if caption != '':
                     sm.set_caption(caption)
-                sm.set_no_dso_legend(settings.no_dso_legend)
-                sm.set_invert_colors(settings.invert_colors)
+                sm.set_hide_dso_legend(settings.parser.hide_dso_legend)
+                sm.set_invert_colors(settings.parser.invert_colors)
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')

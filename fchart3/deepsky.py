@@ -14,17 +14,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-import fchart
-from fchart.deepsky_catalog import *
-from fchart.deepsky_object import *
-from fchart.saguaro import *
-from fchart.vic import *
-from fchart.revngc import *
+import fchart3
+from fchart3.deepsky_catalog import *
+from fchart3.deepsky_object import *
+from fchart3.saguaro import *
+from fchart3.vic import *
+from fchart3.revngc import *
 from .astrocalc import *
 import os
 
 
-def get_deepsky_list(data_dir=os.path.join(fchart.get_data('catalogs'))):
+def get_deepsky_list(data_dir=os.path.join(fchart3.get_data('catalogs'))):
     deeplist = []
 
     m24 = DeepskyObject()
@@ -106,14 +106,14 @@ def get_deepsky_list(data_dir=os.path.join(fchart.get_data('catalogs'))):
     return deeplist
 
 
-def get_deepsky_catalog(data_dir=os.path.join(fchart.get_data('catalogs'))):
+def get_deepsky_catalog(data_dir=os.path.join(fchart3.get_data('catalogs'))):
     l = get_deepsky_list(data_dir)
     print(len(l))
     dc = DeepskyCatalog(l)
     return dc
 
 
-import fchart.deepsky_object
+import fchart3.deepsky_object
 
 __all__=['get_deepsky_list', 'get_deepsky_catalog',
-         'DeepskyCatalog']+fchart.deepsky_object.__all__
+         'DeepskyCatalog']+fchart3.deepsky_object.__all__

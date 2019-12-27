@@ -16,7 +16,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 from .deepsky_object import *
 from numpy import *
-from fchart.astrocalc import *
+from fchart3.astrocalc import *
 
 from io import StringIO
 
