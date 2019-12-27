@@ -106,7 +106,7 @@ class SkymapEngine:
 
         self.set_caption(caption)
         self.set_field(ra,dec,fieldradius)
-        self.hide_dso_legend = False
+        self.show_dso_legend = False
         self.invert_colors = False
 
 
@@ -140,8 +140,8 @@ class SkymapEngine:
             self.graphics.set_dimensions(self.drawingwidth,self.drawingwidth + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
 
 
-    def set_hide_dso_legend(self, hide_dso_legend):
-        self.hide_dso_legend =hide_dso_legend
+    def set_show_dso_legend(self, show_dso_legend):
+        self.show_dso_legend =show_dso_legend
 
 
     def set_invert_colors(self, invert_colors):
@@ -546,7 +546,7 @@ class SkymapEngine:
 
         self.draw_legend(w_mag_scale, w_map_scale)
         print('Drawing dso legend')
-        if not self.hide_dso_legend:
+        if self.show_dso_legend:
             self.draw_dso_legend()
 
         self.graphics.finish()

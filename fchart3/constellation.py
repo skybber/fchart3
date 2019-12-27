@@ -60,6 +60,8 @@ def parse_bsc5_line(line):
     star.constell_number = line[4:7].strip().upper()
 
     star.greek = line[7:10].strip().lower()
+    if star.name.startswith('NOVA'):
+        star.greek = ''
     if line[75:77].strip() != '':
         star.ra = float(line[75:77])*pi/12.0 + float(line[77:79])*pi/(12.0*60.0) + float(line[79:83])*pi/(12*60.0*60)
         star.dec = float(line[83]+'1')*(float(line[84:86])*pi/180.0 + float(line[86:88])*pi/(180.0*60) + float(line[88:90])*pi/(180.0*60*60))
@@ -96,7 +98,8 @@ def import_bsc5(filename):
 
     for line in lines:
         bsc_star = parse_bsc5_line(line)
-        bsc_star_list.append(bsc_star)
+        if bsc_star:
+            bsc_star_list.append(bsc_star)
     return bsc_star_list
 
 
