@@ -85,8 +85,8 @@ class RuntimeSettings:
                                     'deepsky limiting magnitude (default: 12.5)')
         argumentparser.add_argument('-limstar', dest='limiting_magnitude_stars', nargs='?', action='store', default=13.8, type=float,
                                     help='stellar limiting magnitude (default: 13.8)')
-        argumentparser.add_argument('-width', dest='paperwidth', nargs='?', action='store', default=180.0, type=float,
-                                    help='width of the map in mm (default: 180.0)')
+        argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
+                                    help='width of the map. Unit is mm, in case of pdf, otherwise pixels.')
         argumentparser.add_argument('-size', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
                                     help='diameter of the field of view in degrees (default: 7.0)')
         argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
@@ -94,7 +94,8 @@ class RuntimeSettings:
         argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', default='./',
                                     help='specify the output directory (default: .)')
         argumentparser.add_argument('-f', '--output-file', dest='output_file', nargs='?', action='store',
-                                    help='specify output file name. (default: name of dso object)')
+                                    help='specify output file name. (default: name of dso object). Image format is defined by extension.' +\
+                                         'Supported format/extensions are pdf and png.')
         argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
                                     help='specify language on the maps, either \'en\' or \'nl\' (default: en)')
         argumentparser.add_argument('-fasterism', '--force-asterisms', dest='force_asterisms', action='store_true',
@@ -232,7 +233,7 @@ if __name__ == '__main__':
     print('   Deep sky lm    : '+ str(settings.parser.limiting_magnitude_deepsky))
     print('   Stellar lm     : '+ str(settings.parser.limiting_magnitude_stars))
     print('   Fieldsize      : '+ str(settings.parser.fieldsize)+' degrees')
-    print('   Paperwidth     : '+ str(settings.parser.paperwidth)+ ' mm')
+    print('   Paperwidth     : '+ str(settings.parser.width)+ ' mm')
     print('   Output dir     : '+ settings.parser.output_dir)
     print('   Force Messier  : '+ str(settings.parser.force_messier))
     print('   Force asterisms: '+ str(settings.parser.force_asterisms))
@@ -259,8 +260,8 @@ if __name__ == '__main__':
                 filename = settings.parser.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
                 artist = CairoDrawing(filename,
-                                      settings.parser.paperwidth,
-                                      settings.parser.paperwidth)
+                                      settings.parser.width,
+                                      settings.parser.width)
                 sm = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
                 sm.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
                 sm.set_caption('M '+str(object.messier))
@@ -361,15 +362,15 @@ if __name__ == '__main__':
 
             if ra >= 0.0:
                 artist = None
-                if settings.parser.output_file == '':
-                    if filename == '':
-                        filename = settings.parser.output_dir+os.sep+filename
-                    filename += '.pdf'
-                else:
+                if settings.parser.output_file:
                     filename = settings.parser.output_file
+                else:
+                    if filename == '':
+                        filename = settings.parser.output_dir + os.sep + source
+                    filename += '.pdf'
                 artist = CairoDrawing(filename,
-                                      settings.parser.paperwidth,
-                                      settings.parser.paperwidth)
+                                      settings.parser.width,
+                                      settings.parser.width)
                 sm = SkymapEngine(artist, settings.language,
                                   lm_stars = settings.parser.limiting_magnitude_stars)
                 sm.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)

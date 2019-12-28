@@ -19,7 +19,7 @@ import string
 
 import cairo
 
-from fchart3.graphics_interface import INCH, DPI, DPMM, POINT, GraphicsInterface, paper_A
+from fchart3.graphics_interface import DPMM, DPMM_DISP, POINT, GraphicsInterface
 
 class CairoDrawing(GraphicsInterface):
 
@@ -36,15 +36,24 @@ class CairoDrawing(GraphicsInterface):
 
 
     def new(self):
-        self.surface = cairo.PDFSurface(self.gi_filename, 595, 842) # A4, in points
-        self.surface.set_device_scale(DPMM, DPMM)
-        self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 20)
+        if self.gi_filename.endswith('.png'):
+            sfc_width = int(self.gi_width * DPMM_DISP)
+            sfc_height = int(self.gi_height * DPMM_DISP)
+            self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, sfc_width, sfc_height)
+            self.surface.set_device_scale(DPMM_DISP, DPMM_DISP)
+            self.surface.set_device_offset(self.gi_origin_x*DPMM_DISP, self.gi_origin_y*DPMM_DISP)
+        else:
+            sfc_width = 595
+            sfc_height = 842
+            self.surface = cairo.PDFSurface(self.gi_filename, sfc_width, sfc_height) # A4, in points
+            self.surface.set_device_scale(DPMM, DPMM)
+            self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 20)
         self.context = cairo.Context(self.surface)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
         if self.gi_invert_colors:
             self.context.set_source_rgb(0.0, 0.0, 0.0)
-            self.context.rectangle(-595/2, -842/2, 595, 842)
+            self.context.rectangle(-sfc_width/2, -sfc_height/2, sfc_width, sfc_height)
             self.context.fill()
 
 
@@ -213,5 +222,7 @@ class CairoDrawing(GraphicsInterface):
 
 
     def finish(self):
-        self.surface.show_page()
-
+        if self.gi_filename.endswith('.png'):
+            self.surface.write_to_png(self.gi_filename)
+        else:
+            self.surface.show_page()

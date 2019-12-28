@@ -19,6 +19,9 @@ INCH   = 25.4
 DPI    = 72.0
 DPMM   = DPI/INCH
 POINT  = 1.0/DPMM
+DPI_DISP    = 100.0
+DPMM_DISP   = DPI_DISP/INCH
+
 
 def paper_A(n):
     """
