@@ -118,6 +118,10 @@ class RuntimeSettings:
         argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
         argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default='',
                                     help='force a specific caption for the maps. All maps will get the same caption.')
+        argumentparser.add_argument('-mx', '--mirror-x', dest='mirror_x', action='store_true',
+                                    help='mirror in x axis.')
+        argumentparser.add_argument('-my', '--mirror-y', dest='mirror_y', action='store_true',
+                                    help='mirror in y axis.')
         argumentparser.add_argument('sourcelist', nargs='*')
 
         self.parser = argumentparser.parse_args()
@@ -267,6 +271,8 @@ if __name__ == '__main__':
                 sm.set_caption('M '+str(object.messier))
                 sm.set_show_dso_legend(settings.parser.show_dso_legend)
                 sm.set_invert_colors(settings.parser.invert_colors)
+                sm.set_mirror_x(settings.parser.mirror_x)
+                sm.set_mirror_y(settings.parser.mirror_y)
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
         else:
@@ -382,6 +388,8 @@ if __name__ == '__main__':
                     sm.set_caption(caption)
                 sm.set_show_dso_legend(settings.parser.show_dso_legend)
                 sm.set_invert_colors(settings.parser.invert_colors)
+                sm.set_mirror_x(settings.parser.mirror_x)
+                sm.set_mirror_y(settings.parser.mirror_y)
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')
