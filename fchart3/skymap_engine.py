@@ -506,28 +506,32 @@ class SkymapEngine:
         print('Drawing constellations...' + str(self.fieldcentre[0]))
         self.graphics.set_linewidth(self.constellation_linewidth)
         old_size = self.graphics.gi_fontsize
-        self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
         printed = {}
         for star in constell_catalog.bright_stars:
-            if (star.greek == '') or abs(star.ra-self.fieldcentre[0]) > pi/2.0:
+            slabel = star.greek
+            if slabel == '' and star.constellation != '' and star.constell_number != '':
+                slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
+            if slabel == '' or abs(star.ra-self.fieldcentre[0]) > pi/2.0:
                 continue
             constell_printed = printed.get(star.constellation)
             if not constell_printed:
                 constell_printed = set()
                 printed[star.constellation] = constell_printed
-            elif star.greek in constell_printed:
+            elif slabel in constell_printed:
                 continue
 
-            constell_printed.add(star.greek)
+            constell_printed.add(slabel)
 
-            letter = STAR_LABELS.get(star.greek)
-            if letter:
-                l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
-                x, y = -l * self.drawingscale, m * self.drawingscale
-                r = self.magnitude_to_radius(star.mag)
-                self.draw_circular_object_label(x, y , r, letter)
+            if slabel in STAR_LABELS:
+                slabel = STAR_LABELS.get(slabel)
+                self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
             else:
-                print("Unknown greek letter:" + star.greek)
+                self.graphics.set_font(self.graphics.gi_font, 0.9*old_size)
+
+            l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
+            x, y = -l * self.drawingscale, m * self.drawingscale
+            r = self.magnitude_to_radius(star.mag)
+            self.draw_circular_object_label(x, y , r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, old_size)
 
