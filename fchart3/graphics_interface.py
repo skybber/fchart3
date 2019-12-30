@@ -19,9 +19,6 @@ INCH   = 25.4
 DPI    = 72.0
 DPMM   = DPI/INCH
 POINT  = 1.0/DPMM
-DPI_DISP    = 100.0
-DPMM_DISP   = DPI_DISP/INCH
-
 
 def paper_A(n):
     """
@@ -54,6 +51,7 @@ class GraphicsInterface:
         """
         width and height in mm
         """
+        # length of point in mm
         self.gi_width     = width*1.0
         self.gi_height    = height*1.0
         self.gi_pen_gray  = 0.0
@@ -61,15 +59,23 @@ class GraphicsInterface:
         self.gi_fill_gray = 0.0
         self.gi_linewidth = 0.1
         self.gi_dash_style = ([], 0.0)
-        self.gi_font      = 'Times-Roman'
-        self.gi_fontsize  = 12*POINT
         self.gi_origin_x  = self.gi_width/2.0
         self.gi_origin_y  = self.gi_height/2.0
         self.gi_invert_colors = False
+        self.gi_font      = 'Times-Roman'
+        self.set_point_size(POINT)
 
         self.gi_filename = ''
-
         self.gi_stack = []
+
+
+    def set_point_size(self, pointsize):
+        self.pointsize = pointsize
+        self.gi_fontsize  = 12*self.pointsize
+
+
+    def get_default_fontsize(self):
+        return 12*self.pointsize
 
 
     def save(self):
@@ -181,7 +187,7 @@ class GraphicsInterface:
         self.gi_dash_style = ([on, off], start)
 
 
-    def set_font(self, font='Times-Roman', fontsize=12*POINT):
+    def set_font(self, font='Times-Roman', fontsize=None):
         """
         \"font\" is the fontname (a string)
         \"fontsize\" the fontsize in mm.
@@ -190,7 +196,8 @@ class GraphicsInterface:
         gi_font and gi_fontsize. In order to set a 12 point Helvetica font, use:
         GI.set_font('Helvetica', 12*POINT)
         """
-
+        if fontsize is None:
+            fontsize = self.get_default_fontsize()
         self.gi_font     = font
         self.gi_fontsize = fontsize
 

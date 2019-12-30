@@ -14,12 +14,18 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-from math import pi, sin, cos
-import string
+from math import pi
 
 import cairo
 
-from fchart3.graphics_interface import DPMM, DPMM_DISP, POINT, GraphicsInterface
+from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface
+
+DPI_IMG    = 100.0
+DPMM_IMG   = DPI_IMG/INCH
+PONT_IMG  = 1.0/DPMM_IMG
+
+A4_WIDTH_POINTS = 594
+A4_HEIGHT_POINTS = 842
 
 class CairoDrawing(GraphicsInterface):
 
@@ -37,15 +43,22 @@ class CairoDrawing(GraphicsInterface):
 
     def new(self):
         if self.gi_filename.endswith('.png'):
-            sfc_width = int(self.gi_width * DPMM_DISP)
-            sfc_height = int(self.gi_height * DPMM_DISP)
+            self.set_point_size(PONT_IMG)
+            sfc_width = int(self.gi_width * DPMM_IMG)
+            sfc_height = int(self.gi_height * DPMM_IMG)
             self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, sfc_width, sfc_height)
-            self.surface.set_device_scale(DPMM_DISP, DPMM_DISP)
-            self.surface.set_device_offset(self.gi_origin_x*DPMM_DISP, self.gi_origin_y*DPMM_DISP)
+            self.surface.set_device_scale(DPMM_IMG, DPMM_IMG)
+            self.surface.set_device_offset(self.gi_origin_x*DPMM_IMG, self.gi_origin_y*DPMM_IMG)
+        if self.gi_filename.endswith('.svg'):
+            sfc_width = A4_WIDTH_POINTS
+            sfc_height = A4_WIDTH_POINTS
+            self.surface = cairo.SVGSurface(self.gi_filename, sfc_width, sfc_height)
+            self.surface.set_device_scale(DPMM, DPMM)
+            self.surface.set_device_offset(self.gi_origin_x*DPMM, self.gi_origin_y*DPMM)
         else:
-            sfc_width = 595
-            sfc_height = 842
-            self.surface = cairo.PDFSurface(self.gi_filename, sfc_width, sfc_height) # A4, in points
+            sfc_width = A4_WIDTH_POINTS
+            sfc_height = A4_HEIGHT_POINTS
+            self.surface = cairo.PDFSurface(self.gi_filename, sfc_width, sfc_height)
             self.surface.set_device_scale(DPMM, DPMM)
             self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 20)
         self.context = cairo.Context(self.surface)

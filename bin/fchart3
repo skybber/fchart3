@@ -95,7 +95,7 @@ class RuntimeSettings:
                                     help='specify the output directory (default: .)')
         argumentparser.add_argument('-f', '--output-file', dest='output_file', nargs='?', action='store',
                                     help='specify output file name. (default: name of dso object). Image format is defined by extension.' +\
-                                         'Supported format/extensions are pdf and png.')
+                                         'Supported format/extensions are pdf, png and svg.')
         argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
                                     help='specify language on the maps, either \'en\' or \'nl\' (default: en)')
         argumentparser.add_argument('-fasterism', '--force-asterisms', dest='force_asterisms', action='store_true',
