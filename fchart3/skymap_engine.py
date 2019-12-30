@@ -531,7 +531,11 @@ class SkymapEngine:
 
         self.graphics.set_font(self.graphics.gi_font, old_size)
 
-        self.graphics.set_pen_rgb((0.2, 0.7, 1.0))
+        if self.night_mode:
+            self.graphics.set_pen_rgb((0.2, 0.0, 0.0))
+        else:
+            self.graphics.set_pen_rgb((0.2, 0.7, 1.0))
+
         for constell in constell_catalog.constellations:
             for line in constell.lines:
                 star1 = constell_catalog.bright_stars[line[0]-1]
