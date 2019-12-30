@@ -20,7 +20,7 @@ LEGEND_MARGIN = 0.96
 
 class WidgetMagnitudeScale:
 
-    def __init__(self, sky_map_engine, field_radius_mm, legend_fontsize, stars_in_scale, lm_stars, star_border_linewidth):
+    def __init__(self, sky_map_engine, field_radius_mm, legend_fontsize, stars_in_scale, lm_stars, star_border_linewidth, legend_linewidth):
         self.engine = sky_map_engine
         self.field_radius_mm = field_radius_mm
         self.margin = field_radius_mm*LEGEND_MARGIN
@@ -28,6 +28,7 @@ class WidgetMagnitudeScale:
         self.stars_in_scale = stars_in_scale
         self.lm_stars = lm_stars
         self.star_border_linewidth = star_border_linewidth
+        self.legend_linewidth = legend_linewidth
         self.width = (self.field_radius_mm - self.margin) + 2.3 * self.legend_fontsize
         self.height = (self.field_radius_mm - self.margin) + (self.stars_in_scale - 0.2) * self.legend_fontsize
 
@@ -51,8 +52,9 @@ class WidgetMagnitudeScale:
 
         for i in range(len(legendy)):
             if mags_in_scale[i] >= -1:
-                self.engine.star(legendx, legendy[i], legendr[i])
+                self.engine.star(legendx, legendy[i], legendr[i], False)
                 graphics.text_right(legendx + fh*0.75, legendy[i] - fh/3.0, str(mags_in_scale[i]))
+        graphics.set_linewidth(self.legend_linewidth)
         graphics.line(left, bottom+self.height, left+self.width, bottom+self.height)
         graphics.line(left+self.width, bottom+self.height, left+self.width, bottom)
 

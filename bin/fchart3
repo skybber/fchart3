@@ -80,48 +80,65 @@ class RuntimeSettings:
                     ''')
               )
 
-        argumentparser.add_argument('-limdso', dest='limiting_magnitude_deepsky', nargs='?', action='store', default=12.5, type=float,
-                                    help=
-                                    'deepsky limiting magnitude (default: 12.5)')
-        argumentparser.add_argument('-limstar', dest='limiting_magnitude_stars', nargs='?', action='store', default=13.8, type=float,
-                                    help='stellar limiting magnitude (default: 13.8)')
-        argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
-                                    help='width of the map. Unit is mm, in case of pdf, otherwise pixels.')
-        argumentparser.add_argument('-size', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
-                                    help='diameter of the field of view in degrees (default: 7.0)')
-        argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
-                                    help='select all Messier objects, regardless of the limiting magnitude for deepsky objects')
         argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', default='./',
                                     help='specify the output directory (default: .)')
         argumentparser.add_argument('-f', '--output-file', dest='output_file', nargs='?', action='store',
                                     help='specify output file name. (default: name of dso object). Image format is defined by extension.' +\
                                          'Supported format/extensions are pdf, png and svg.')
-        argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
-                                    help='specify language on the maps, either \'en\' or \'nl\' (default: en)')
+
+        argumentparser.add_argument('-limdso', dest='limiting_magnitude_deepsky', nargs='?', action='store', default=12.5, type=float,
+                                    help='deepsky limiting magnitude (default: 12.5)')
+        argumentparser.add_argument('-limstar', dest='limiting_magnitude_stars', nargs='?', action='store', default=13.8, type=float,
+                                    help='stellar limiting magnitude (default: 13.8)')
+
+        argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
+                                    help='width of the drawing area in mm.')
+        argumentparser.add_argument('-size', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
+                                    help='diameter of the field of view in degrees (default: 7.0)')
+
+        argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
+                                    help='select all Messier objects, regardless of the limiting magnitude for deepsky objects')
         argumentparser.add_argument('-fasterism', '--force-asterisms', dest='force_asterisms', action='store_true',
                                     help='force plotting of  asterisms in map. By default, only \"Messier\" asterisms are plotted.' + \
                                           'All others are ignored. The default setting helps cleaning up especially Virgo cluster maps.')
-        argumentparser.add_argument('-inv', '--invert-colors', dest='invert_colors', action='store_true',
-                                    help='invert colors in generated maps.')
         argumentparser.add_argument('-funknown', '--force-unknown', dest='force_unknown', action='store_true',
                                     help='by default, objects in external galaxies are only plotted if their magnitude is known and lower than ' +\
                                          'the limiting magnitude of deepsky objects. If this option is given, also objects in external galaxies ' +\
                                          'of which the magnitude is not known are plotted. Thisoption will clutter some galaxies like M 101 and ' +\
                                          'NGC 4559.')
+
+        argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
+                                    help='specify language on the maps, either \'en\' or \'nl\' (default: en)')
+        argumentparser.add_argument('-inv', '--invert-colors', dest='invert_colors', action='store_true',
+                                    help='invert colors in generated maps.')
         argumentparser.add_argument('-x', '--add-cross', dest='cross_marks', nargs='?', action='append',
                                     help='add a cross in the map at a specified position. The format of the argument of this option is: ' +\
                                          '\"rah:ram:ras,+/-decd:decm:decs,label,labelposition\" For example: -x\"20:35:25.4,+60:07:17.7,SN,t\" for ' +\
                                          'the supernova sn2004et in NGC 6946. The label position can be \'t\' for top, \'b\' for bottom, \'l\' for ' +\
                                          'left, or \'r\' for right. The label and label position may be omitted.')
-        argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
-                                    help='show deepsky object legend.')
-        argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
-        argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default='',
-                                    help='force a specific caption for the maps. All maps will get the same caption.')
+
         argumentparser.add_argument('-mx', '--mirror-x', dest='mirror_x', action='store_true',
                                     help='mirror in x axis.')
         argumentparser.add_argument('-my', '--mirror-y', dest='mirror_y', action='store_true',
                                     help='mirror in y axis.')
+
+        argumentparser.add_argument('-lconst', '--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
+                                    help='Constellation line width (default: 0.5)')
+        argumentparser.add_argument('-lstar', '--linewidth-star-border', dest='star_border_linewidth', nargs='?', action='store', default=0.06, type=float,
+                                    help='Star border line width (default: 0.06)')
+        argumentparser.add_argument('-locl', '--linewidth-open-cluster', dest='open_cluster_linewidth', nargs='?', action='store', default=0.3, type=float,
+                                    help='Line width of open cluster (default: 0.3)')
+        argumentparser.add_argument('-ldso', '--linewidth-deepsky', dest='dso_linewidth', nargs='?', action='store', default=0.2, type=float,
+                                    help='Line width of open cluster (default: 0.2)')
+        argumentparser.add_argument('-llegend', '--linewidth-legend', dest='legend_linewidth', nargs='?', action='store', default=0.2, type=float,
+                                    help='Line width of open cluster (default: 0.3)')
+
+        argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default='',
+                                    help='force a specific caption for the maps. All maps will get the same caption.')
+        argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
+                                    help='show deepsky object legend.')
+
+        argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
         argumentparser.add_argument('sourcelist', nargs='*')
 
         self.parser = argumentparser.parse_args()
@@ -187,6 +204,17 @@ class RuntimeSettings:
 #                      MAIN  PROGRAM                        #
 #                                                           #
 #############################################################
+
+def _setup_engine(sm):
+    sm.set_show_dso_legend(settings.parser.show_dso_legend)
+    sm.set_invert_colors(settings.parser.invert_colors)
+    sm.set_mirror_x(settings.parser.mirror_x)
+    sm.set_mirror_y(settings.parser.mirror_y)
+    sm.set_constellation_linewidth(settings.parser.constellation_linewidth)
+    sm.set_star_border_linewidth(settings.parser.star_border_linewidth)
+    sm.set_open_cluster_linewidth(settings.parser.open_cluster_linewidth)
+    sm.set_dso_linewidth(settings.parser.dso_linewidth)
+    sm.set_legend_linewidth(settings.parser.legend_linewidth)
 
 if __name__ == '__main__':
 
@@ -269,10 +297,7 @@ if __name__ == '__main__':
                 sm = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
                 sm.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
                 sm.set_caption('M '+str(object.messier))
-                sm.set_show_dso_legend(settings.parser.show_dso_legend)
-                sm.set_invert_colors(settings.parser.invert_colors)
-                sm.set_mirror_x(settings.parser.mirror_x)
-                sm.set_mirror_y(settings.parser.mirror_y)
+                _setup_engine(sm)
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
         else:
@@ -386,10 +411,9 @@ if __name__ == '__main__':
                     caption = settings.parser.caption
                 if caption != '':
                     sm.set_caption(caption)
-                sm.set_show_dso_legend(settings.parser.show_dso_legend)
-                sm.set_invert_colors(settings.parser.invert_colors)
-                sm.set_mirror_x(settings.parser.mirror_x)
-                sm.set_mirror_y(settings.parser.mirror_y)
+
+                _setup_engine(sm)
+
                 sm.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')

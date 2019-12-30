@@ -18,11 +18,12 @@ from numpy import *
 
 class WidgetMapScale:
 
-    def __init__(self, drawingwidth, drawingscale, maxlength, legend_fontsize):
+    def __init__(self, drawingwidth, drawingscale, maxlength, legend_fontsize, legend_linewidth):
         self.drawingwidth = drawingwidth
         self.drawingscale = drawingscale
         self.maxlength = maxlength
         self.legend_fontsize = legend_fontsize
+        self.legend_linewidth = legend_linewidth
         self._initialize()
 
     def _initialize(self):
@@ -57,6 +58,8 @@ class WidgetMapScale:
 
         x = right - fh
         y = bottom + fh + fh/2
+
+        graphics.set_linewidth(self.legend_linewidth)
 
         lw = graphics.gi_linewidth
 

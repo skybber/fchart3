@@ -88,6 +88,12 @@ LEGEND_MARGIN = 0.47
 BASE_SCALE=0.98
 DEFAULT_FONT_SIZE=2.6
 
+DEFAULT_STAR_BORDER_LINEWIDTH = 0.06
+DEFAULT_OPEN_CLUSTER_LINEWIDTH = 0.3
+DEFAULT_DSO_LINEWIDTH = 0.2
+DEFAULT_LEGEND_LINEWIDTH = 0.2
+DEFAULT_CONSTELLATION_LINEWIDTH = 0.5
+
 #====================>>>  SkymapEngine  <<<====================
 
 class SkymapEngine:
@@ -102,7 +108,6 @@ class SkymapEngine:
         self.language = language
         self.drawingwidth = self.graphics.gi_width
         self.min_radius   = 1.0 # of deepsky symbols (mm)
-        self.star_border_linewidth = 0.06
 
         self.lm_stars     = lm_stars
         self.deepsky_label_limit = 15 # deepsky lm for labels
@@ -110,7 +115,15 @@ class SkymapEngine:
         self.set_caption(caption)
         self.set_field(ra,dec,fieldradius)
         self.show_dso_legend = False
+
+        self.star_border_linewidth = DEFAULT_STAR_BORDER_LINEWIDTH
+        self.open_cluster_linewidth = DEFAULT_OPEN_CLUSTER_LINEWIDTH
+        self.dso_linewidth = DEFAULT_DSO_LINEWIDTH
+        self.legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
+        self.constellation_linewidth = DEFAULT_CONSTELLATION_LINEWIDTH
+
         self.invert_colors = False
+
         self.mirror_x = False
         self.mirror_y = False
 
@@ -161,6 +174,24 @@ class SkymapEngine:
         self.mirror_y = mirror_y
 
 
+    def set_star_border_linewidth(self, star_border_linewidth):
+        self.star_border_linewidth = star_border_linewidth
+
+
+    def set_open_cluster_linewidth(self, open_cluster_linewidth):
+        self.open_cluster_linewidth = open_cluster_linewidth
+
+    def set_constellation_linewidth(self, constellation_linewidth):
+        self.constellation_linewidth = constellation_linewidth
+
+    def set_dso_linewidth(self, dso_linewidth):
+        self.dso_linewidth = dso_linewidth
+
+
+    def set_legend_linewidth(self, legend_linewidth):
+        self.legend_linewidth = legend_linewidth
+
+
     def draw_caption(self):
         if self.caption != '':
             old_size = self.graphics.gi_fontsize
@@ -174,7 +205,7 @@ class SkymapEngine:
         """
         Draw a circle representing bthe edge of the field of view.
         """
-        self.graphics.set_linewidth(0.15)
+        self.graphics.set_linewidth(self.legend_linewidth)
         r = self.get_field_radius_mm()
         self.graphics.line(-r, -r, -r, r)
         self.graphics.line(-r, r, r, r)
@@ -465,7 +496,7 @@ class SkymapEngine:
 
     def draw_constellations(self, constell_catalog):
         print('Drawing constellations...' + str(self.fieldcentre[0]))
-        self.graphics.set_linewidth(0.5)
+        self.graphics.set_linewidth(self.constellation_linewidth)
         old_size = self.graphics.gi_fontsize
         self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
         printed = {}
@@ -510,13 +541,16 @@ class SkymapEngine:
 
 
     def make_map(self, star_catalog=None, deepsky_catalog=None, constell_catalog=None, extra_positions=[]):
-        self.mirroring_graphics = MirroringGraphics(self.graphics, self.mirror_x, self.mirror_y)
+        if self.mirror_x or self.mirror_y:
+            self.mirroring_graphics = MirroringGraphics(self.graphics, self.mirror_x, self.mirror_y)
+        else:
+            self.mirroring_graphics = self.graphics
         self.graphics.set_invert_colors(self.invert_colors)
         self.graphics.new()
         self.graphics.set_pen_gray(0.0)
         self.graphics.set_fill_gray(0.0)
         self.graphics.set_font(fontsize=DEFAULT_FONT_SIZE)
-        self.graphics.set_linewidth(0.15)
+        self.graphics.set_linewidth(self.legend_linewidth)
 
         r = self.get_field_radius_mm()
 
@@ -525,12 +559,14 @@ class SkymapEngine:
                                           legend_fontsize=self.get_legend_font_size(),
                                           stars_in_scale=STARS_IN_SCALE,
                                           lm_stars=self.lm_stars,
-                                          star_border_linewidth=self.star_border_linewidth)
+                                          star_border_linewidth=self.star_border_linewidth,
+                                          legend_linewidth=self.legend_linewidth)
 
         w_map_scale = WidgetMapScale(drawingwidth=self.drawingwidth,
                                     drawingscale=self.drawingscale,
                                     maxlength=self.drawingwidth/3.0,
-                                    legend_fontsize=self.get_legend_font_size())
+                                    legend_fontsize=self.get_legend_font_size(),
+                                    legend_linewidth=self.legend_linewidth)
 
         w_mags_width, w_mags_heigth = w_mag_scale.get_size()
         w_maps_width, w_maps_height = w_map_scale.get_size()
@@ -567,7 +603,7 @@ class SkymapEngine:
         self.graphics.finish()
 
 
-    def star(self, x, y, radius):
+    def star(self, x, y, radius, mirroring=True):
         """
         Filled circle with boundary. Set fill colour and boundary
         colour in advance using set_pen_gray and set_fill_gray
@@ -575,7 +611,10 @@ class SkymapEngine:
         xx = int(x*100.0 + 0.5)/100.0
         yy = int(y*100.0 + 0.5)/100.0
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
-        self.mirroring_graphics.circle(xx, yy, r,'PF')
+        if mirroring:
+            self.mirroring_graphics.circle(xx, yy, r,'PF')
+        else:
+            self.graphics.circle(xx, yy, r,'PF')
 
 
     def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):
@@ -584,7 +623,7 @@ class SkymapEngine:
             r = self.drawingwidth/40.0
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.3)
+        self.graphics.set_linewidth(self.open_cluster_linewidth)
         self.graphics.set_dashed_line(0.6,0.4)
         self.mirroring_graphics.circle(x,y,r)
 
@@ -602,7 +641,7 @@ class SkymapEngine:
 
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.3)
+        self.graphics.set_linewidth(self.open_cluster_linewidth)
         self.graphics.set_dashed_line(0.6,0.4)
         diff = self.graphics.gi_linewidth/2.0/w2
 
@@ -666,7 +705,7 @@ class SkymapEngine:
 
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.2)
+        self.graphics.set_linewidth(self.dso_linewidth)
         p = posangle
         if posangle >= 0.5*pi:
             p += pi
@@ -805,7 +844,7 @@ class SkymapEngine:
             r = self.drawingwidth/40.0
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.2)
+        self.graphics.set_linewidth(self.dso_linewidth)
         self.mirroring_graphics.circle(x,y,r)
         self.mirroring_graphics.line(x-r, y, x+r, y)
         self.mirroring_graphics.line(x, y-r, x, y+r)
@@ -818,7 +857,7 @@ class SkymapEngine:
     def diffuse_nebula(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label='',labelpos=''):
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.2)
+        self.graphics.set_linewidth(self.dso_linewidth)
         d = 0.5*width
         if width < 0.0:
             d = self.drawingwidth/40.0
@@ -871,7 +910,7 @@ class SkymapEngine:
             r = self.drawingwidth/60.0
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.2)
+        self.graphics.set_linewidth(self.dso_linewidth)
         self.mirroring_graphics.circle(x,y,0.75*r)
         self.mirroring_graphics.line(x-0.75*r, y, x-1.5*r, y)
         self.mirroring_graphics.line(x+0.75*r, y, x+1.5*r, y)
@@ -889,7 +928,7 @@ class SkymapEngine:
             r = self.drawingwidth/40.0
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.5)
+        self.graphics.set_linewidth(self.dso_linewidth)
         self.mirroring_graphics.circle(x,y,r-self.graphics.gi_linewidth/2.0)
         #self.graphics.circle(x,y,r*0.85)
         #self.graphics.circle(x,y,r*0.7)
@@ -905,7 +944,7 @@ class SkymapEngine:
         r/=2**0.5
         self.graphics.save()
 
-        self.graphics.set_linewidth(0.2)
+        self.graphics.set_linewidth(self.dso_linewidth)
         self.mirroring_graphics.line(x-r, y+r, x+r, y-r)
         self.mirroring_graphics.line(x+r, y+r, x-r, y-r)
         fh = self.graphics.gi_fontsize

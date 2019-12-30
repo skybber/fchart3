@@ -33,6 +33,10 @@ class MirroringGraphics:
 
 
     def ellipse(self, x, y, rlong, rshort, position_angle, mode='P'):
+        if self.mirror_x:
+            position_angle += pi
+        if self.mirror_y:
+            position_angle = -position_angle
         self.graphics.ellipse(self.mul_x*x, self.mul_y*y, rlong, rshort, position_angle, mode)
 
 
