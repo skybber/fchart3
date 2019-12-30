@@ -127,6 +127,8 @@ class SkymapEngine:
         self.mirror_x = False
         self.mirror_y = False
 
+        self.night_mode = False
+
 
     def set_field(self, ra, dec, fieldradius):
         """
@@ -181,8 +183,10 @@ class SkymapEngine:
     def set_open_cluster_linewidth(self, open_cluster_linewidth):
         self.open_cluster_linewidth = open_cluster_linewidth
 
+
     def set_constellation_linewidth(self, constellation_linewidth):
         self.constellation_linewidth = constellation_linewidth
+
 
     def set_dso_linewidth(self, dso_linewidth):
         self.dso_linewidth = dso_linewidth
@@ -190,6 +194,10 @@ class SkymapEngine:
 
     def set_legend_linewidth(self, legend_linewidth):
         self.legend_linewidth = legend_linewidth
+
+
+    def set_night_mode(self, night_mode):
+        self.night_mode = night_mode
 
 
     def draw_caption(self):
@@ -545,7 +553,12 @@ class SkymapEngine:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.mirror_x, self.mirror_y)
         else:
             self.mirroring_graphics = self.graphics
+
         self.graphics.set_invert_colors(self.invert_colors)
+
+        if not self.invert_colors and self.night_mode:
+            self.graphics.set_night_mode()
+
         self.graphics.new()
         self.graphics.set_pen_gray(0.0)
         self.graphics.set_fill_gray(0.0)

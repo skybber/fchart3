@@ -35,8 +35,6 @@ class GraphicsInterface:
 
     gi_width       width of drawing in mm
     gi_height      height of drawing in mm
-    gi_pen_gray    gray value of pen (0.0 = black, 1.0 = white)
-    gi_fill_gray   gray value of filler
     gi_linewidth   width of the pen line in mm
     gi_font        name of the default font
     gi_fontsize    height of the font in mm
@@ -54,16 +52,17 @@ class GraphicsInterface:
         # length of point in mm
         self.gi_width     = width*1.0
         self.gi_height    = height*1.0
-        self.gi_pen_gray  = 0.0
         self.gi_pen_rgb  = (0.0, 0.0, 0.0)
-        self.gi_fill_gray = 0.0
+        self.gi_fill_rgb = (0.0, 0.0, 0.0)
         self.gi_linewidth = 0.1
         self.gi_dash_style = ([], 0.0)
         self.gi_origin_x  = self.gi_width/2.0
         self.gi_origin_y  = self.gi_height/2.0
-        self.gi_invert_colors = False
         self.gi_font      = 'Times-Roman'
         self.set_point_size(POINT)
+
+        self.gi_invert_colors = False
+        self.gi_night_mode = False
 
         self.gi_filename = ''
         self.gi_stack = []
@@ -83,9 +82,7 @@ class GraphicsInterface:
         Save graphics state to stack. This method should be extended,
         not overriden.
         """
-        self.gi_stack.append((self.gi_pen_gray,
-                              self.gi_fill_gray,
-                              self.gi_linewidth,
+        self.gi_stack.append((self.gi_linewidth,
                               self.gi_dash_style,
                               self.gi_font,
                               self.gi_fontsize))
@@ -96,9 +93,7 @@ class GraphicsInterface:
         not overriden.
         """
 
-        (self.gi_pen_gray,
-         self.gi_fill_gray,
-         self.gi_linewidth,
+        (self.gi_linewidth,
          self.gi_dash_style,
          self.gi_font,
          self.gi_fontsize) = self.gi_stack.pop()
@@ -145,31 +140,37 @@ class GraphicsInterface:
 
     def set_pen_gray(self, pen_gray):
         """
-        Sets gi_pen_gray. Derived classes should extend, not override this method.
+        Sets gi_pen_rgb. Derived classes should extend, not override this method.
         """
-        if self.gi_invert_colors:
-            self.gi_pen_gray = 1.0 - pen_gray
-            self.gi_pen_rgb = (1.0 - pen_gray, 1.0 - pen_gray, 1.0 - pen_gray)
+        if self.gi_night_mode:
+            self.gi_pen_rgb = (1.0-pen_gray, 2*(1.0-pen_gray)/5.0, 0.0)
+        elif self.gi_invert_colors:
+            self.gi_pen_rgb = (1.0-pen_gray, 1.0-pen_gray, 1.0-pen_gray)
         else:
-            self.gi_pen_gray = pen_gray
             self.gi_pen_rgb = (pen_gray, pen_gray, pen_gray)
+
 
     def set_pen_rgb(self, pen_rgb):
         """
         Sets gi_pen_gray. Derived classes should extend, not override this method.
         """
-        self.gi_pen_gray = max(pen_rgb)
-        self.gi_pen_rgb = pen_rgb
+        if self.gi_night_mode:
+            max_rgb = max(pen_rgb)
+            self.gi_pen_rgb = (max_rgb, 2*max_rgb/5.0, 0.0)
+        else:
+            self.gi_pen_rgb = pen_rgb
 
 
     def set_fill_gray(self, fill_gray):
         """
-        Sets gi_fill_gray. Derived classes should extend, not override this method.
+        Sets gi_fill_rgb. Derived classes should extend, not override this method.
         """
-        if self.gi_invert_colors:
-            self.gi_fill_gray = 1.0 -fill_gray
+        if self.gi_night_mode:
+            self.gi_fill_rgb = (1.0-fill_gray, 2*(1.0-fill_gray)/5.0, 0.0)
+        elif self.gi_invert_colors:
+            self.gi_fill_rgb = (1.0-fill_gray, 1.0-fill_gray, 1.0-fill_gray)
         else:
-            self.gi_fill_gray =fill_gray
+            self.gi_fill_rgb = (fill_gray, fill_gray, fill_gray)
 
     def set_solid_line(self):
         """
@@ -318,6 +319,11 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.reset_clip()')
 
+    def set_night_mode(self):
+        """
+        Set use night mode
+        """
+        self.gi_night_mode = True
 
 
 __all__=['INCH', 'DPI', 'DPMM', 'POINT', 'GraphicsInterface', 'paper_A']

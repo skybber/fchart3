@@ -111,6 +111,8 @@ class RuntimeSettings:
                                     help='specify language on the maps, either \'en\' or \'nl\' (default: en)')
         argumentparser.add_argument('-inv', '--invert-colors', dest='invert_colors', action='store_true',
                                     help='invert colors in generated maps.')
+        argumentparser.add_argument('-nm', '--night-mode', dest='night_mode', action='store_true',
+                                    help='activate red light mode.')
         argumentparser.add_argument('-x', '--add-cross', dest='cross_marks', nargs='?', action='append',
                                     help='add a cross in the map at a specified position. The format of the argument of this option is: ' +\
                                          '\"rah:ram:ras,+/-decd:decm:decs,label,labelposition\" For example: -x\"20:35:25.4,+60:07:17.7,SN,t\" for ' +\
@@ -205,16 +207,17 @@ class RuntimeSettings:
 #                                                           #
 #############################################################
 
-def _setup_engine(sm):
-    sm.set_show_dso_legend(settings.parser.show_dso_legend)
-    sm.set_invert_colors(settings.parser.invert_colors)
-    sm.set_mirror_x(settings.parser.mirror_x)
-    sm.set_mirror_y(settings.parser.mirror_y)
-    sm.set_constellation_linewidth(settings.parser.constellation_linewidth)
-    sm.set_star_border_linewidth(settings.parser.star_border_linewidth)
-    sm.set_open_cluster_linewidth(settings.parser.open_cluster_linewidth)
-    sm.set_dso_linewidth(settings.parser.dso_linewidth)
-    sm.set_legend_linewidth(settings.parser.legend_linewidth)
+def _setup_engine(engine):
+    engine.set_show_dso_legend(settings.parser.show_dso_legend)
+    engine.set_invert_colors(settings.parser.invert_colors)
+    engine.set_mirror_x(settings.parser.mirror_x)
+    engine.set_mirror_y(settings.parser.mirror_y)
+    engine.set_constellation_linewidth(settings.parser.constellation_linewidth)
+    engine.set_star_border_linewidth(settings.parser.star_border_linewidth)
+    engine.set_open_cluster_linewidth(settings.parser.open_cluster_linewidth)
+    engine.set_dso_linewidth(settings.parser.dso_linewidth)
+    engine.set_legend_linewidth(settings.parser.legend_linewidth)
+    engine.set_night_mode(settings.parser.night_mode)
 
 if __name__ == '__main__':
 
@@ -294,11 +297,11 @@ if __name__ == '__main__':
                 artist = CairoDrawing(filename,
                                       settings.parser.width,
                                       settings.parser.width)
-                sm = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
-                sm.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
-                sm.set_caption('M '+str(object.messier))
-                _setup_engine(sm)
-                sm.make_map(starcatalog, deepskycatalog, constellcatalog,
+                engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
+                engine.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
+                engine.set_caption('M '+str(object.messier))
+                _setup_engine(engine)
+                engine.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
         else:
             if ':' in source:
@@ -402,18 +405,18 @@ if __name__ == '__main__':
                 artist = CairoDrawing(filename,
                                       settings.parser.width,
                                       settings.parser.width)
-                sm = SkymapEngine(artist, settings.language,
+                engine = SkymapEngine(artist, settings.language,
                                   lm_stars = settings.parser.limiting_magnitude_stars)
-                sm.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
+                engine.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
                 caption = cat + ' ' + name
 
                 if settings.parser.caption != False:
                     caption = settings.parser.caption
                 if caption != '':
-                    sm.set_caption(caption)
+                    engine.set_caption(caption)
 
-                _setup_engine(sm)
+                _setup_engine(engine)
 
-                sm.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
+                engine.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')

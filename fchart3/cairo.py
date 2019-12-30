@@ -64,7 +64,7 @@ class CairoDrawing(GraphicsInterface):
         self.context = cairo.Context(self.surface)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
-        if self.gi_invert_colors:
+        if self.gi_invert_colors or self.gi_night_mode:
             self.context.set_source_rgb(0.0, 0.0, 0.0)
             self.context.rectangle(-sfc_width/2, -sfc_height/2, sfc_width, sfc_height)
             self.context.fill()
@@ -131,10 +131,10 @@ class CairoDrawing(GraphicsInterface):
             self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
             self.context.stroke()
         elif mode == 'F':
-            self.context.set_source_rgb(self.gi_fill_gray,self.gi_fill_gray,self.gi_fill_gray)
+            self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])
             self.context.fill()
         else:
-            self.context.set_source_rgb(self.gi_fill_gray,self.gi_fill_gray,self.gi_fill_gray)
+            self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])
             self.context.fill_preserve()
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.stroke()
@@ -164,10 +164,10 @@ class CairoDrawing(GraphicsInterface):
             self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
             self.context.stroke()
         elif mode == 'F':
-            self.context.set_source_rgb(self.gi_fill_gray,self.gi_fill_gray,self.gi_fill_gray)
+            self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])
             self.context.fill()
         else:
-            self.context.set_source_rgb(self.gi_fill_gray,self.gi_fill_gray,self.gi_fill_gray)
+            self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])
             self.context.fill_preserve()
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.stroke()
