@@ -1,7 +1,7 @@
 # fchart3
 Michiel Brentjens' fchart - astronomical finder charts now working with numpy and python3.x
 
-![star chart](https://github.com/skybber/fchart3/blob/assets/M31.png)
+![star chart](https://github.com/skybber/fchart3/blob/assets/M103.svg)
 
 fchart3 is a set of python3 scripts and a command line utility to create star maps/finder charts.
 
