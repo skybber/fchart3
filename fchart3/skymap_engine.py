@@ -493,12 +493,7 @@ class SkymapEngine:
         self.graphics.set_pen_gray(1.0)
         self.graphics.set_fill_gray(0.0)
         for i in range(len(xsorted)):
-            if magsorted[i] <= 13.8:
-                x = xsorted[i]
-                y = ysorted[i]
-                excluded = False
-                if not excluded:
-                    self.star(x, y, rsorted[i])
+            self.star(xsorted[i], ysorted[i], rsorted[i])
         self.graphics.set_pen_gray(0.0)
 
 

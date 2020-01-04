@@ -114,9 +114,6 @@ class StarCatalog:
         fieldcentre is a tuple (ra, dec) in radians. radius is also in
         radians
         """
-        stars_in_catalog = self.catalog.shape[0]
-
-        region_selection = zeros(stars_in_catalog,dtype=bool_)
         fieldsize = angular_distance(fieldcentre, (fieldcentre[0] - radius, fieldcentre[1] - radius))
         d = angular_distance(fieldcentre, (fieldcentre[0] - radius, fieldcentre[1] + radius))
         if d > fieldsize:
