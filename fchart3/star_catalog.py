@@ -127,22 +127,13 @@ class StarCatalog:
         first_records = self.index.first_record[select_regions]
 
         # end records are start of next region...
-        temp = select_regions[0:-1].copy()
-        select_regions[1:] = temp
+        select_regions = roll(select_regions, 1)
         select_regions[0] = False
-        end_records   = self.index.first_record[select_regions]
+        end_records = self.index.first_record[select_regions]
 
+        selected_regions = array([], dtype=float32).reshape(0, 3)
         for i in range(len(first_records)):
-            region_selection[int(first_records[i]):int(end_records[i])] = True
-        region_selection[self.index.records_in_main:] = True
-
-        selection_array = transpose(array([region_selection,
-                                           region_selection,
-                                           region_selection],dtype=bool_))
-
-        selected_regions = self.catalog[selection_array]
-        stars_in_field = len(selected_regions)//3
-        selected_regions = reshape(selected_regions, (stars_in_field, 3))
+            selected_regions = concatenate((selected_regions, self.catalog[int(first_records[i]):int(end_records[i])]), axis=0)
 
         ra = selected_regions[:,0]
         dec = selected_regions[:,1]
@@ -152,23 +143,13 @@ class StarCatalog:
         norm_ra_sep = toosmall * ra_sep + logical_not(toosmall) * (2*pi-ra_sep)
         star_in_field = logical_and(norm_ra_sep*cos(dec) < radius, abs(dec-fieldcentre[1]) < radius)
 
-        selection_array = transpose(array([star_in_field,
-                                           star_in_field,
-                                           star_in_field],dtype=bool_))
-        position_selection = selected_regions[selection_array]
-        stars_in_field = len(position_selection)//3
-        position_selection = reshape(position_selection, (stars_in_field, 3))
+        position_selection = selected_regions[star_in_field]
 
         # select on magnitude
         mag = position_selection[:,2]
         bright_enough = mag <= lm_stars
 
-        selection_array = transpose(array([bright_enough,
-                                           bright_enough,
-                                           bright_enough], dtype=bool_))
-        selection = position_selection[selection_array]
-        stars_in_field = len(selection)//3
-        selection =  reshape(selection, (stars_in_field, 3))
+        selection = position_selection[bright_enough]
 
         return selection
 
