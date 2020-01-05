@@ -50,8 +50,8 @@ class CairoDrawing(GraphicsInterface):
             self.surface.set_device_scale(DPMM_IMG, DPMM_IMG)
             self.surface.set_device_offset(self.gi_origin_x*DPMM_IMG, self.gi_origin_y*DPMM_IMG)
         if self.gi_filename.endswith('.svg'):
-            sfc_width = A4_WIDTH_POINTS
-            sfc_height = A4_WIDTH_POINTS
+            sfc_width = int(self.gi_width * DPMM)
+            sfc_height = int(self.gi_height * DPMM)
             self.surface = cairo.SVGSurface(self.gi_filename, sfc_width, sfc_height)
             self.surface.set_device_scale(DPMM, DPMM)
             self.surface.set_device_offset(self.gi_origin_x*DPMM, self.gi_origin_y*DPMM)
