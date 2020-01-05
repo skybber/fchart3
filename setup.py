@@ -1,4 +1,40 @@
 from setuptools import setup
+from distutils.core import Extension
+import platform
+from glob import glob
+
+packages = ['fchart3']
+ext_modules = []
+try:
+    import numpy
+    include_dirs=[numpy.get_include()]
+    have_numpy=True
+except:
+    have_numpy=False
+    ext_modules=[]
+    include_dirs=[]
+
+    stdout.write('Numpy not found:  Not building C extensions\n')
+    time.sleep(5)
+
+if platform.system()=='Darwin':
+    extra_compile_args=['-arch','i386','-arch','x86_64']
+    extra_link_args=['-arch','i386','-arch','x86_64']
+else:
+    extra_compile_args=[]
+    extra_link_args=[]
+
+if have_numpy:
+    include_dirs += ['fchart3/htm','fchart3/htm/htm_src','fchart3/htm/include']
+    htm_sources = glob('fchart3/htm/htm_src/*.cpp')
+    htm_sources += ['fchart3/htm/htmc.cc','fchart3/htm/htmc_wrap.cc']
+    htm_module = Extension('fchart3.htm._htmc',
+                           extra_compile_args=extra_compile_args,
+                           extra_link_args=extra_link_args,
+                           sources=htm_sources)
+
+    ext_modules.append(htm_module)
+    packages.append('fchart3.htm')
 
 setup(
     name='fchart3',
@@ -9,7 +45,7 @@ setup(
     author='Michiel Brentjens <brentjens@astron.nl>, Austin Riba <root@austinriba.com>, Vladimir Dvorak<lada.dvorak7@gmail.com',
     author_email='root@austinriba.com, lada.dvorak7@gmail.com',
     license='GPLv2',
-    packages=['fchart3'],
+    packages=packages,
     include_package_data=True,
     install_requires=['numpy'],
     scripts=['bin/fchart3', 'bin/tyc2_to_binary'],
@@ -21,5 +57,12 @@ setup(
                 'data/catalogs/bsc5.dat',
                 'data/catalogs/ConstellationLines.dat',
                 'data/catalogs/tyc2.bin',
-                'data/label_positions.txt']},
+                'data/catalogs/namedstars.dat',
+                'data/catalogs/starnames.dat',
+                'data/catalogs/unnamedstars.dat',
+                'data/catalogs/deepstars.dat',
+                'data/label_positions.txt',
+                ]},
+    ext_modules=ext_modules,
+    include_dirs=include_dirs,
 )

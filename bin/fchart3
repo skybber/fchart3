@@ -22,6 +22,8 @@
 import argparse
 import textwrap
 
+from time import time
+
 from numpy import *
 # Standard python modules
 import string
@@ -37,6 +39,7 @@ from fchart3 import saguaro
 from fchart3 import deepsky_object as deepsky
 from fchart3.deepsky import *
 from fchart3.star_catalog import *
+from fchart3.composite_star_catalog import *
 from fchart3.skymap_engine import *
 from fchart3.constellation import *
 
@@ -221,6 +224,8 @@ def _setup_engine(engine):
 
 if __name__ == '__main__':
 
+    # tm = time()
+
     data_dir    = os.path.join(fchart3.get_data('catalogs'))
 
     # Create default settings and parse commandline
@@ -234,7 +239,8 @@ if __name__ == '__main__':
         os.mkdir(settings.parser.output_dir)
 
     # Read basic catalogs
-    starcatalog    = StarCatalog(data_dir+os.sep+'tyc2.bin', data_dir+os.sep+'index.dat')
+    # starcatalog    = StarCatalog(data_dir+os.sep+'tyc2.bin', data_dir+os.sep+'index.dat')
+    starcatalog    = CompositeStarCatalog(data_dir)
     deeplist       = get_deepsky_list(data_dir)
     constellcatalog = ConstellationCatalog(data_dir+os.sep+'bsc5.dat', data_dir+os.sep+'ConstellationLines.dat')
 
@@ -417,6 +423,9 @@ if __name__ == '__main__':
 
                 _setup_engine(engine)
 
+                # print("Started in : " + str(time()-tm) + "ms")
                 engine.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')
+
+    print("Chart generated in : " + str(time()-tm) + "ms")
