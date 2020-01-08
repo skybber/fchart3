@@ -131,6 +131,7 @@ class StarCatalog:
         selected_regions = array([], dtype=float32).reshape(0, 3)
         for i in range(len(first_records)):
             selected_regions = concatenate((selected_regions, self.catalog[int(first_records[i]):int(end_records[i])]), axis=0)
+        selected_regions = concatenate((selected_regions, self.catalog[self.index.records_in_main:]), axis=0)
 
         ra = selected_regions[:,0]
         dec = selected_regions[:,1]
