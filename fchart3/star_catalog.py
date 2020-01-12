@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-from numpy import *
+import numpy as np
 import os
 import sys
 from fchart3.astrocalc import *
@@ -49,10 +49,10 @@ class TychoIndex:
             l = lines[i]
             linesplit = l.split('|')
             start = int(linesplit[0])
-            ra_min = float(linesplit[2])*pi/180
-            ra_max = float(linesplit[3])*pi/180
-            dec_min = float(linesplit[4])*pi/180
-            dec_max = float(linesplit[5])*pi/180
+            ra_min = float(linesplit[2])*np.pi/180
+            ra_max = float(linesplit[3])*np.pi/180
+            dec_min = float(linesplit[4])*np.pi/180
+            dec_max = float(linesplit[5])*np.pi/180
             end = start
             if i != (len(lines)-1):
                 end = int(lines[i+1].split('|')[0])
@@ -60,10 +60,10 @@ class TychoIndex:
                 start -= 1
                 self.index_list.append(IndexRecord(start, num_records, ra_min, dec_min, ra_max, dec_max))
         N = len(self.index_list)
-        self.ra           = zeros(N)*0.0
-        self.dec          = zeros(N)*0.0
-        self.max_radius   = zeros(N)*0.0
-        self.first_record = zeros(N)
+        self.ra           = np.zeros(N)*0.0
+        self.dec          = np.zeros(N)*0.0
+        self.max_radius   = np.zeros(N)*0.0
+        self.first_record = np.zeros(N)
 
         for i in range(N):
             self.ra[i], self.dec[i] = self.index_list[i].centre
@@ -76,7 +76,7 @@ class TychoIndex:
 class StarCatalog:
 
     def __init__(self, filename='', indexfilename=''):
-        self.catalog = zeros((0,3),dtype=float32)
+        self.catalog = np.zeros((0,3), dtype=np.float32)
 
         if filename != '':
             print(str(self.read_catalog(filename))+' stars loaded.')
@@ -99,7 +99,7 @@ class StarCatalog:
         num_bytes    = os.path.getsize(filename)
         num_records  = num_bytes//12 # 4 bytes times 3 floats
         # read from file using numarray function
-        self.catalog = fromfile(filename, float32).reshape((num_records, 3))
+        self.catalog = np.fromfile(filename, np.float32).reshape((num_records, 3))
         if sys.byteorder == 'little':
             self.catalog.byteswap()
         return num_records
@@ -124,22 +124,22 @@ class StarCatalog:
         first_records = self.index.first_record[select_regions]
 
         # end records are start of next region...
-        select_regions = roll(select_regions, 1)
+        select_regions = np.roll(select_regions, 1)
         select_regions[0] = False
         end_records = self.index.first_record[select_regions]
 
-        selected_regions = array([], dtype=float32).reshape(0, 3)
+        selected_regions = np.array([], dtype=np.float32).reshape(0, 3)
         for i in range(len(first_records)):
-            selected_regions = concatenate((selected_regions, self.catalog[int(first_records[i]):int(end_records[i])]), axis=0)
-        selected_regions = concatenate((selected_regions, self.catalog[self.index.records_in_main:]), axis=0)
+            selected_regions = np.concatenate((selected_regions, self.catalog[int(first_records[i]):int(end_records[i])]), axis=0)
+        selected_regions = np.concatenate((selected_regions, self.catalog[self.index.records_in_main:]), axis=0)
 
         ra = selected_regions[:,0]
         dec = selected_regions[:,1]
 
         ra_sep = abs(ra-fieldcentre[0])
-        toosmall = ra_sep < pi
-        norm_ra_sep = toosmall * ra_sep + logical_not(toosmall) * (2*pi-ra_sep)
-        star_in_field = logical_and(norm_ra_sep*cos(dec) < radius, abs(dec-fieldcentre[1]) < radius)
+        toosmall = ra_sep < np.pi
+        norm_ra_sep = toosmall * ra_sep + np.logical_not(toosmall) * (2*np.pi-ra_sep)
+        star_in_field = np.logical_and(norm_ra_sep*np.cos(dec) < radius, abs(dec-fieldcentre[1]) < radius)
 
         position_selection = selected_regions[star_in_field]
 
