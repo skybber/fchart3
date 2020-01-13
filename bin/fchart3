@@ -93,6 +93,8 @@ class RuntimeSettings:
                                     help='deepsky limiting magnitude (default: 12.5)')
         argumentparser.add_argument('-limstar', dest='limiting_magnitude_stars', nargs='?', action='store', default=13.8, type=float,
                                     help='stellar limiting magnitude (default: 13.8)')
+        argumentparser.add_argument('-usno-nomad', dest='usno_nomad_file', nargs='?', action='store',
+                                    help='Path to USNO NOMAD catalog (file USNO-NOMAD-1e8.dat)')
 
         argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
                                     help='width of the drawing area in mm.')
@@ -224,7 +226,7 @@ def _setup_engine(engine):
 
 if __name__ == '__main__':
 
-    # tm = time()
+    tm = time()
 
     data_dir    = os.path.join(fchart3.get_data('catalogs'))
 
@@ -240,7 +242,7 @@ if __name__ == '__main__':
 
     # Read basic catalogs
     # starcatalog    = StarCatalog(data_dir+os.sep+'tyc2.bin', data_dir+os.sep+'index.dat')
-    starcatalog    = CompositeStarCatalog(data_dir)
+    starcatalog    = CompositeStarCatalog(data_dir, usno_nomad=settings.parser.usno_nomad_file)
     deeplist       = get_deepsky_list(data_dir)
     constellcatalog = ConstellationCatalog(data_dir+os.sep+'bsc5.dat', data_dir+os.sep+'ConstellationLines.dat')
 
@@ -281,6 +283,8 @@ if __name__ == '__main__':
     print('   Force pg       : '+ str(settings.parser.force_unknown))
     print('   Extra points   : '+ str(len(settings.extra_positions_list)))
     print('   Show dso legend: '+ str(settings.parser.show_dso_legend))
+    if settings.parser.usno_nomad_file:
+        print('   USNO NOMAD catalog: '+ str(settings.parser.usno_nomad_file))
 
     for object in settings.extra_positions_list:
         rax,decx,label,labelpos = object
@@ -423,7 +427,7 @@ if __name__ == '__main__':
 
                 _setup_engine(engine)
 
-                # print("Started in : " + str(time()-tm) + "ms")
+                print("Started in : " + str(time()-tm) + "ms")
                 engine.make_map(starcatalog, deepskycatalog, constellcatalog, settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')
