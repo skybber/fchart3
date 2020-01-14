@@ -15,9 +15,8 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from math import pi
-from numpy import *
 import string
+import numpy as np
 
 from .label_potential import *
 from .astrocalc import *
@@ -226,9 +225,9 @@ class SkymapEngine:
         """
         x,y are coordinates of the lower left corner of the textbox
         """
-        rah = int(ra*12/pi)
-        ram = int((ra*12/pi -rah)*60)
-        ras = int(((ra*12/pi -rah)*60 - ram)*60+0.5)
+        rah = int(ra*12/np.pi)
+        ram = int((ra*12/np.pi -rah)*60)
+        ras = int(((ra*12/np.pi -rah)*60 - ram)*60+0.5)
         if ras == 60:
             ram +=1
             ras = 0
@@ -241,9 +240,9 @@ class SkymapEngine:
         decsign = '+'
         if dec < 0.0:
             decsign = '-'
-        decd= int(abs(dec)*180/pi)
-        decm = int((abs(dec)*180/pi-decd)*60)
-        decs = int( ((abs(dec)*180/pi-decd)*60 -decm)*60 + 0.5)
+        decd= int(abs(dec)*180/np.pi)
+        decm = int((abs(dec)*180/np.pi-decd)*60)
+        decs = int( ((abs(dec)*180/np.pi-decd)*60 -decm)*60 + 0.5)
 
         if decs == 60:
             decm += 1
@@ -389,7 +388,7 @@ class SkymapEngine:
             rlong  = object.rlong*self.drawingscale
             rshort = object.rshort*self.drawingscale
             posangle=object.position_angle+direction_ddec(\
-                (object.ra, object.dec), self.fieldcentre)+0.5*pi
+                (object.ra, object.dec), self.fieldcentre)+0.5*np.pi
 
             if rlong <= self.min_radius:
                 rshort *= self.min_radius/rlong
@@ -507,7 +506,7 @@ class SkymapEngine:
             slabel = star.greek
             if slabel == '' and star.constellation != '' and star.constell_number != '':
                 slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
-            if slabel == '' or abs(star.ra-self.fieldcentre[0]) > pi/2.0:
+            if slabel == '' or abs(star.ra-self.fieldcentre[0]) > np.pi/2.0:
                 continue
             constell_printed = printed.get(star.constellation)
             if not constell_printed:
@@ -542,7 +541,7 @@ class SkymapEngine:
                 star2 = constell_catalog.bright_stars[line[1]-1]
 
                 # just use hack for sin projection
-                if abs(star1.ra-self.fieldcentre[0]) > pi/2.0 or abs(star2.ra-self.fieldcentre[0]) > pi/2.0:
+                if abs(star1.ra-self.fieldcentre[0]) > np.pi/2.0 or abs(star2.ra-self.fieldcentre[0]) > np.pi/2.0:
                     continue
                 l1, m1 = radec_to_lm((star1.ra, star1.dec), self.fieldcentre)
                 l2, m2 = radec_to_lm((star2.ra, star2.dec), self.fieldcentre)
@@ -724,10 +723,10 @@ class SkymapEngine:
 
         self.graphics.set_linewidth(self.dso_linewidth)
         p = posangle
-        if posangle >= 0.5*pi:
-            p += pi
-        if posangle < -0.5*pi:
-            p -= pi
+        if posangle >= 0.5*np.pi:
+            p += np.pi
+        if posangle < -0.5*np.pi:
+            p -= np.pi
 
         fh = self.graphics.gi_fontsize
         self.mirroring_graphics.ellipse(x,y,rl, rs, p)
@@ -758,10 +757,10 @@ class SkymapEngine:
             rs = rlong/2.0
 
         p = posangle
-        if posangle >= 0.5*pi:
-            p += pi
-        if posangle < -0.5*pi:
-            p -= pi
+        if posangle >= 0.5*np.pi:
+            p += np.pi
+        if posangle < -0.5*np.pi:
+            p -= np.pi
 
         fh = self.graphics.gi_fontsize
         label_pos_list = []
@@ -815,7 +814,7 @@ class SkymapEngine:
             if arg < 1.0 and arg > -1.0:
                 a = arccos(arg)
             else:
-                a = 0.5*pi
+                a = 0.5*np.pi
             if labelpos == 0 or labelpos == -1:
                 self.mirroring_graphics.text_right(x+sin(a)*r+fh/6.0, y-r, label)
             elif labelpos == 1:
@@ -835,7 +834,7 @@ class SkymapEngine:
         if arg < 1.0 and arg > -1.0:
             a = arccos(arg)
         else:
-            a = 0.5*pi
+            a = 0.5*np.pi
 
         label_pos_list = []
         xs = x+sin(a)*r+fh/6.0
@@ -1006,7 +1005,9 @@ if __name__ == '__main__':
     from . import cairo
     from . import star_catalog as sc
 
-    stars = sc.StarCatalog('data/tyc2.bin')
+    data_dir='./data/catalogs/'
+
+    stars = sc.CompositeStarCatalog(data_dir)
 
     width = 200
     cairo = cairo.PDFDrawing('radec00.pdf',width, width)

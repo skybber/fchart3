@@ -38,7 +38,6 @@ from fchart3 import revngc
 from fchart3 import saguaro
 from fchart3 import deepsky_object as deepsky
 from fchart3.deepsky import *
-from fchart3.star_catalog import *
 from fchart3.composite_star_catalog import *
 from fchart3.skymap_engine import *
 from fchart3.constellation import *
@@ -241,7 +240,6 @@ if __name__ == '__main__':
         os.mkdir(settings.parser.output_dir)
 
     # Read basic catalogs
-    # starcatalog    = StarCatalog(data_dir+os.sep+'tyc2.bin', data_dir+os.sep+'index.dat')
     starcatalog    = CompositeStarCatalog(data_dir, usno_nomad=settings.parser.usno_nomad_file)
     deeplist       = get_deepsky_list(data_dir)
     constellcatalog = ConstellationCatalog(data_dir+os.sep+'bsc5.dat', data_dir+os.sep+'ConstellationLines.dat')
