@@ -469,7 +469,13 @@ class SkymapEngine:
 
     def magnitude_to_radius(self, magnitude):
         #radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
-        radius = 0.15*1.33 ** (int(self.lm_stars) - magnitude)
+        mag_scale_x = [0, 1, 2,   3,   4,    5, 25]
+        mag_scale_y = [0, 2, 3.5, 4.5, 5.25, 6, 15]
+
+        mag_d = self.lm_stars - np.clip(magnitude, a_min=None, a_max=self.lm_stars)
+        mag_s = np.interp(mag_d, mag_scale_x, mag_scale_y)
+
+        radius = 0.15 * 1.33 ** (mag_s)
         return radius
 
     def draw_stars(self, star_catalog):

@@ -161,7 +161,6 @@ class StarCatalogComponent:
 
 
     def _load_static_stars(self):
-
         record_size = self.data_reader.guess_record_size
 
         if record_size != 16 and record_size != 32:
@@ -171,13 +170,16 @@ class StarCatalogComponent:
         data_file = self.data_reader.file
         byteswap = self.data_reader.byteswap
 
-        cat_format = self._get_data_format()
+        data_format = self._get_data_format()
         for trixel in range(self.sky_mesh.size()):
             records = self.data_reader.get_record_count(trixel)
-            trixel_stars = np.fromfile(data_file, cat_format, records)
-            if byteswap:
-                trixel_stars.byteswap
-            self.star_blocks[trixel] = trixel_stars
+            if records > 0:
+                trixel_stars = np.fromfile(data_file, data_format, records)
+                if byteswap:
+                    trixel_stars.byteswap
+                self.star_blocks[trixel] = trixel_stars
+            else:
+                self.star_blocks[trixel] = []
 
         return True
 
@@ -187,6 +189,8 @@ class StarCatalogComponent:
 
 
     def get_trixel_stars(self, trixel):
+        if not self.file_opened:
+            return None
         trixel_stars = self.star_blocks[trixel]
         if trixel_stars is None:
             records = self.data_reader.get_record_count(trixel)
