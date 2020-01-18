@@ -128,6 +128,7 @@ class SkymapEngine:
         self.mirror_y = False
 
         self.night_mode = False
+        self.active_constellation = None
 
 
     def set_field(self, ra, dec, fieldradius):
@@ -199,6 +200,10 @@ class SkymapEngine:
 
     def set_night_mode(self, night_mode):
         self.night_mode = night_mode
+
+
+    def set_active_constellation(self, active_constellation):
+        self.active_constellation = active_constellation
 
 
     def draw_caption(self):
@@ -506,6 +511,12 @@ class SkymapEngine:
 
     def draw_constellations(self, constell_catalog):
         print('Drawing constellations...' + str(self.fieldcentre[0]))
+        self.draw_constellation_boundaries(constell_catalog)
+        self.draw_constellation_shapes(constell_catalog)
+        self.draw_constellation_stars(constell_catalog)
+
+
+    def draw_constellation_stars(self, constell_catalog):
         self.graphics.set_linewidth(self.constellation_linewidth)
         old_size = self.graphics.gi_fontsize
         printed = {}
@@ -537,6 +548,9 @@ class SkymapEngine:
 
         self.graphics.set_font(self.graphics.gi_font, old_size)
 
+
+    def draw_constellation_shapes(self, constell_catalog):
+        self.graphics.save()
         if self.night_mode:
             self.graphics.set_pen_rgb((0.2, 0.0, 0.0))
         else:
@@ -546,16 +560,55 @@ class SkymapEngine:
             for line in constell.lines:
                 star1 = constell_catalog.bright_stars[line[0]-1]
                 star2 = constell_catalog.bright_stars[line[1]-1]
-
                 # just use hack for sin projection
-                if abs(star1.ra-self.fieldcentre[0]) > np.pi/2.0 or abs(star2.ra-self.fieldcentre[0]) > np.pi/2.0:
-                    continue
-                l1, m1 = radec_to_lm((star1.ra, star1.dec), self.fieldcentre)
-                l2, m2 = radec_to_lm((star2.ra, star2.dec), self.fieldcentre)
-                x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
-                x2, y2 = -l2 * self.drawingscale, m2 * self.drawingscale
-                self.mirroring_graphics.line(x1, y1, x2, y2)
+                if self.is_fld_direction(star1.ra) and self.is_fld_direction(star2.ra):
+                    l1, m1 = radec_to_lm((star1.ra, star1.dec), self.fieldcentre)
+                    l2, m2 = radec_to_lm((star2.ra, star2.dec), self.fieldcentre)
+                    x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
+                    x2, y2 = -l2 * self.drawingscale, m2 * self.drawingscale
+                    self.mirroring_graphics.line(x1, y1, x2, y2)
+        self.graphics.restore()
         self.graphics.set_pen_gray(0.0)
+
+
+    def draw_constellation_boundaries(self, constell_catalog):
+        self.graphics.save()
+        self.graphics.set_dashed_line(1.2, 1.2)
+
+        if self.night_mode:
+            self.graphics.set_pen_rgb((0.05, 0.0, 0.0))
+        else:
+            self.graphics.set_pen_rgb((0.95, 0.90, 0.1))
+
+        for constell in constell_catalog.constellations:
+            self.draw_constellation_bound_lines(constell.boundaries)
+            if constell.boundaries1:
+                self.draw_constellation_bound_lines(constell.boundaries1)
+
+        self.graphics.restore()
+        self.graphics.set_pen_gray(0.0)
+
+    def draw_constellation_bound_lines(self, boundaries):
+        first = None
+        prev_disp = None
+        prev = None
+        for i in range(len(boundaries)):
+            p = boundaries[i]
+            l1, m1 = radec_to_lm((p[0], p[1]), self.fieldcentre)
+            pdisp = -l1 * self.drawingscale, m1 * self.drawingscale
+            if not first:
+                first = pdisp
+            else:
+                if self.is_fld_direction(p[0]) and self.is_fld_direction(prev[0]):
+                    self.mirroring_graphics.line(prev_disp[0], prev_disp[1], pdisp[0], pdisp[1])
+            prev_disp = pdisp
+            prev = p
+        if prev and self.is_fld_direction(prev[0]) and self.is_fld_direction(first[0]):
+            self.mirroring_graphics.line(prev_disp[0], prev_disp[1], first[0], first[1])
+
+
+    def is_fld_direction(self, ra):
+        return abs(ra-self.fieldcentre[0]) < np.pi/2.0
 
 
     def make_map(self, star_catalog=None, deepsky_catalog=None, constell_catalog=None, extra_positions=[]):

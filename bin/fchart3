@@ -243,7 +243,9 @@ if __name__ == '__main__':
     # Read basic catalogs
     starcatalog    = CompositeStarCatalog(data_dir, usno_nomad=settings.parser.usno_nomad_file)
     deeplist       = get_deepsky_list(data_dir)
-    constellcatalog = ConstellationCatalog(data_dir+os.sep+'bsc5.dat', data_dir+os.sep+'ConstellationLines.dat')
+    constellcatalog = ConstellationCatalog(data_dir+os.sep+'bsc5.dat',
+                                           data_dir+os.sep+'ConstellationLines.dat',
+                                           data_dir+os.sep+'constbnd.dat')
 
     # Apply magnitude selection to deepsky list, build Messier list
     reduced_deeplist = []
@@ -264,6 +266,7 @@ if __name__ == '__main__':
 
     deepskycatalog = DeepskyCatalog(reduced_deeplist)
 
+    print("Chart generated in : " + str(time()-tm) + "ms")
     # Final report before mapmaking
     print(str(len(reduced_deeplist))+'/'+str(len(deeplist))+' deepsky objects after magnitude/messier selection.')
 
@@ -307,6 +310,8 @@ if __name__ == '__main__':
                 engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 _setup_engine(engine)
+
+                engine.set_active_constellation(object.constellation)
 
                 engine.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
@@ -428,6 +433,8 @@ if __name__ == '__main__':
                 if showing_dso.master_object:
                     showing_dso = showing_dso.master_object
                 deepskycatalog.add_dso(showing_dso)
+                if showing_dso:
+                    engine.set_active_constellation(showing_dso.constellation)
 
                 _setup_engine(engine)
 

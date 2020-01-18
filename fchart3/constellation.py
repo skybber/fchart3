@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from math import pi
+import numpy as np
 
 class BscStar:
     def __init__(self):
@@ -46,11 +46,13 @@ class Constellation:
         self.name = ''
         self.lines = []
         self.stars = []
+        self.boundaries = []
+        self.boundaries1 = [] # Serpens is divided to 2 areas
 
 class ConstellationCatalog:
-    def __init__(self, bsc5_filename='', constell_filename=''):
+    def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename=''):
         self.bright_stars = import_bsc5(bsc5_filename)
-        self.constellations = import_constellation(constell_filename, self)
+        self.constellations = import_constellation(constell_filename, boundaries_filename, self)
 
 def parse_bsc5_line(line):
     star = BscStar()
@@ -64,8 +66,8 @@ def parse_bsc5_line(line):
     if star.name.startswith('NOVA'):
         star.greek = ''
     if line[75:77].strip() != '':
-        star.ra = float(line[75:77])*pi/12.0 + float(line[77:79])*pi/(12.0*60.0) + float(line[79:83])*pi/(12*60.0*60)
-        star.dec = float(line[83]+'1')*(float(line[84:86])*pi/180.0 + float(line[86:88])*pi/(180.0*60) + float(line[88:90])*pi/(180.0*60*60))
+        star.ra = float(line[75:77])*np.pi/12.0 + float(line[77:79])*np.pi/(12.0*60.0) + float(line[79:83])*np.pi/(12*60.0*60)
+        star.dec = float(line[83]+'1')*(float(line[84:86])*np.pi/180.0 + float(line[86:88])*np.pi/(180.0*60) + float(line[88:90])*np.pi/(180.0*60*60))
         star.mag = float(line[102]+'1') * float(line[103:107])
     return star
 
@@ -88,7 +90,6 @@ def parse_constellation_line(line, const_catalog):
                 s2 = const_catalog.bright_stars[star_stack[-1]-1]
     return constell
 
-
 def import_bsc5(filename):
     # Import all saguaro objects that are not NGC or IC objects, or M40
     bsc_star_list = []
@@ -104,7 +105,7 @@ def import_bsc5(filename):
     return bsc_star_list
 
 
-def import_constellation(filename, const_catalog):
+def import_constellation(filename, boundaries_filename, const_catalog):
     # Import all saguaro objects that are not NGC or IC objects, or M40
     constellation_list = []
 
@@ -112,12 +113,39 @@ def import_constellation(filename, const_catalog):
     lines = sf.readlines()
     sf.close()
 
+    cons_map = {}
+
     for line in lines:
         line = line.strip()
         if line.startswith('#') or line == '':
             continue
         constell = parse_constellation_line(line, const_catalog)
         constellation_list.append(constell)
+        cons_map[constell.name.upper()] = constell
+
+    bf = open(boundaries_filename, 'r')
+    bnd_lines = bf.readlines()
+    bf.close()
+
+    for line in bnd_lines:
+        spl = line.strip().split()
+        if len(spl) == 3:
+            sra, sdec, cons1, cons2 = spl[0], spl[1], spl[2], None
+        else:
+            sra, sdec, cons1, cons2 = spl[0], spl[1], spl[2], spl[3]
+        ra = float(sra)*np.pi/12.0
+        dec = float(sdec)*np.pi/180.0
+        cons = cons1.upper()
+
+        if cons.startswith('SER'):
+            if cons.endswith('1'):
+                cons_map[cons[:-1]].boundaries.append((ra, dec, cons2))
+            else:
+                cons_map[cons[:-1]].boundaries1.append((ra, dec, cons2))
+        else:
+            cons_map[cons].boundaries.append((ra, dec, cons2))
+
     return constellation_list
+
 
 __all__ = ['BscStar' , 'Constellation', 'ConstellationCatalog', 'import_bsc5', 'import_constellation']

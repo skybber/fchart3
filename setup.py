@@ -56,6 +56,8 @@ setup(
                 'data/catalogs/vic.txt',
                 'data/catalogs/bsc5.dat',
                 'data/catalogs/ConstellationLines.dat',
+                'data/catalogs/constbnd.dat',
+                'data/catalogs/constbnd.txt',
                 'data/catalogs/namedstars.dat',
                 'data/catalogs/starnames.dat',
                 'data/catalogs/unnamedstars.dat',

@@ -16,7 +16,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from fchart3.deepsky_object import *
-from numpy import *
+import numpy as np
 import sys
 import string
 import copy
@@ -93,10 +93,10 @@ def parse_saguaro_line(line):
     object.type = typenum
     object.constellation = strs[3]
     rhs,rms = strs[4].split()
-    object.ra = float(rhs)*pi/12 + float(rms)*pi/(12*60.0)
+    object.ra = float(rhs)*np.pi/12 + float(rms)*np.pi/(12*60.0)
     sign = float(strs[5][0]+'1')
     dds, dms = strs[5][1:].split()
-    object.dec =sign*(float(dds)*pi/180.0 + float(dms)*pi/(180*60))
+    object.dec =sign*(float(dds)*np.pi/180.0 + float(dms)*np.pi/(180*60))
     object.mag = float(strs[6][:-1])
 
     rlongstr  = strs[10].strip()
@@ -106,7 +106,7 @@ def parse_saguaro_line(line):
             rlongstr = rlongstr[1:]
         unit = rlongstr[-1]
         try:
-            rlong = float(rlongstr[:-1])*pi/180.0
+            rlong = float(rlongstr[:-1])*np.pi/180.0
         except ValueError:
             txt = ''
             for ch in rlongstr[:-1]:
@@ -114,7 +114,7 @@ def parse_saguaro_line(line):
                     txt += ch
                 else:
                     break
-            rlong = float(txt)*pi/180.0
+            rlong = float(txt)*np.pi/180.0
         if unit.lower() == 'm':
             rlong /= 60.0
         if unit.lower() == 's':
@@ -126,15 +126,15 @@ def parse_saguaro_line(line):
         if not rshortstr[0].isalnum():
             rshortstr = rlongstr[1:]
         unit = rshortstr[-1]
-        rshort = float(rshortstr[:-1])*pi/180.0
+        rshort = float(rshortstr[:-1])*np.pi/180.0
         if unit.lower() == 'm':
             rshort /= 60.0
         if unit.lower() == 's':
             rshort /= 3600.0
     pastr     = strs[12].strip()
-    pa = 90*pi/180.0
+    pa = 90*np.pi/180.0
     if pastr != '':
-        pa = float(pastr)*pi/180.0
+        pa = float(pastr)*np.pi/180.0
     object.rlong  = rlong
     object.rshort = rshort
     object.pa     = pa
