@@ -580,15 +580,17 @@ class SkymapEngine:
         else:
             self.graphics.set_pen_rgb((0.95, 0.90, 0.1))
 
+        drawn_pairs = set()
+
         for constell in constell_catalog.constellations:
-            self.draw_constellation_bound_lines(constell.boundaries)
+            self.draw_constellation_bound_lines(constell.name.upper(), constell.boundaries, drawn_pairs)
             if constell.boundaries1:
-                self.draw_constellation_bound_lines(constell.boundaries1)
+                self.draw_constellation_bound_lines(constell.name.upper(), constell.boundaries1, drawn_pairs)
 
         self.graphics.restore()
         self.graphics.set_pen_gray(0.0)
 
-    def draw_constellation_bound_lines(self, boundaries):
+    def draw_constellation_bound_lines(self, constell_name, boundaries, drawn_pairs):
         first = None
         first_disp = None
         prev = None
@@ -602,11 +604,19 @@ class SkymapEngine:
                 first_disp = pdisp
             else:
                 if self.is_fld_direction(p[0]) and self.is_fld_direction(prev[0]):
-                    self.mirroring_graphics.line(prev_disp[0], prev_disp[1], pdisp[0], pdisp[1])
+                    if (p[2] is None) or not ((p[2]+'_'+ constell_name) in drawn_pairs):
+                        self.mirroring_graphics.line(prev_disp[0], prev_disp[1], pdisp[0], pdisp[1])
+                        if p[2]:
+                            drawn_pairs.add(constell_name + '_' + p[2])
+                    else:
+                        print("Skip " + constell_name + '_' + p[2])
             prev = p
             prev_disp = pdisp
         if prev and self.is_fld_direction(prev[0]) and self.is_fld_direction(first[0]):
-            self.mirroring_graphics.line(prev_disp[0], prev_disp[1], first_disp[0], first_disp[1])
+            if (prev[2] is None) or not ((prev[2]+'_'+ constell_name) in drawn_pairs):
+                self.mirroring_graphics.line(prev_disp[0], prev_disp[1], first_disp[0], first_disp[1])
+                if prev[2]:
+                    drawn_pairs.add(constell_name + '_' + prev[2])
 
 
     def is_fld_direction(self, ra):

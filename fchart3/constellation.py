@@ -133,6 +133,7 @@ def import_constellation(filename, boundaries_filename, const_catalog):
             sra, sdec, cons1, cons2 = spl[0], spl[1], spl[2], None
         else:
             sra, sdec, cons1, cons2 = spl[0], spl[1], spl[2], spl[3]
+            cons2 = cons2.upper()
         ra = float(sra)*np.pi/12.0
         dec = float(sdec)*np.pi/180.0
         cons = cons1.upper()
