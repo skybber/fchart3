@@ -23,11 +23,22 @@ Previous fchart sources for python2.7 can be found here:
 
 This repository contains updated sourcecode so that the code may run with numpy.
 
-This repo also contains tyc2.bin in the data/catalogs directory. The original tyc2.bin hosted on Michiel's website seemed to have errors, so this is a rebuilt version using data downloaded here: http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/259
+This repository also contains following catalogs in the data/catalogs directory:
+
+- `bsc5.dat` catalogue of [bright stars](http://tdc-www.harvard.edu/catalogs/bsc5.html)
+- `constbnd.dat` [Catalogue of Constellation Boundary Data](http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/49#sRM2.2)
+- `ConstellationLines.dat` - constellation lines from [bsc](http://tdc-www.harvard.edu/catalogs/bsc5.html)
+- `deepstars.dat` - tycho2 catalog from [kstars](https://edu.kde.org/kstars/)
+- `namedstars.dat` - catalog of named stars from [kstars](https://edu.kde.org/kstars/)
+- `revic.dat` - [Revised IC Catalogue](http://www.klima-luft.de/steinicke/ngcic/rev2000/Explan.htm)
+- `revngc.txt` - [Revised New General Catalogue](http://www.klima-luft.de/steinicke/ngcic/rev2000/Explan.htm)
+- `sac.txt` - [Saguaro Astronomy Club Database](https://www.saguaroastro.org/sac-downloads/)
+- `starnames.dat` - star names from [kstars](https://edu.kde.org/kstars/)
+- `unamedstars.dat` - catalog of unamed stars from [kstars](https://edu.kde.org/kstars/)
 
 
 Authors
 =======
 * Michiel Brentjens - original author
 * Austin Riba - modern fchart for python 2.7, numpy. https://github.com/Fingel/fchart
-* Vladimir Dvorak - fchart3: python3 + pycairo support. Rectangular view and constellations shapes.
+* Vladimir Dvorak - fchart3: python3 + pycairo support. Rectangular view, constellations shapes, borderlines. Support for stars up to 16mag using HTM (hierarchical triangular mesh) and USNO NOMAD catalog.

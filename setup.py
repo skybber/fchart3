@@ -48,7 +48,7 @@ setup(
     packages=packages,
     include_package_data=True,
     install_requires=['numpy'],
-    scripts=['bin/fchart3', 'bin/tyc2_to_binary'],
+    scripts=['bin/fchart3'],
     package_data={'fchart3': ['data/catalogs/index.dat',
                 'data/catalogs/revngc.txt',
                 'data/catalogs/revic.txt',
