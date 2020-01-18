@@ -364,7 +364,7 @@ class SkymapEngine:
         if len(deepsky_list) == 1:
             print('1 deepsky object in map.')
         else:
-            print(str(len(deepsky_list))+' deepsky objects in map.')
+            print(str(len(deepsky_list)) +' deepsky objects in map.')
 
         deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
@@ -630,13 +630,11 @@ class SkymapEngine:
         Filled circle with boundary. Set fill colour and boundary
         colour in advance using set_pen_gray and set_fill_gray
         """
-        xx = int(x*100.0 + 0.5)/100.0
-        yy = int(y*100.0 + 0.5)/100.0
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         if mirroring:
-            self.mirroring_graphics.circle(xx, yy, r,'PF')
+            self.mirroring_graphics.circle(x, y, r,'PF')
         else:
-            self.graphics.circle(xx, yy, r,'PF')
+            self.graphics.circle(x, y, r,'PF')
 
 
     def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):

@@ -19,14 +19,9 @@ from fchart3.deepsky_object import *
 from numpy import *
 import sys
 import string
+import copy
 
-def parse_saguaro_line(line):
-    object = DeepskyObject()
-    strs = line.replace('","', '~').split('~')
-    strs[0] = strs[0].split('"')[1]
-    strs[-1] = strs[-1].split('"')[0]
-
-    cnstr = strs[0].strip()
+def parse_catalog_name(cnstr, ignore_err):
     if cnstr.startswith('Sh2-'):
         cnsplit = cnstr.split('-')
     else:
@@ -44,8 +39,24 @@ def parse_saguaro_line(line):
             cat = cnsplit[0]
             name = cnsplit[1]+cnsplit[2]
     else:
-        print('ERROR: '+str(cnsplit))
-        sys.exit(1)
+        if not ignore_err:
+            print('ERROR: '+str(cnsplit))
+            sys.exit(1)
+        cat, name = None, None
+    return (cat, name)
+
+def parse_saguaro_line(line):
+    object = DeepskyObject()
+    strs = line.replace('","', '~').split('~')
+    strs[0] = strs[0].split('"')[1]
+    strs[-1] = strs[-1].split('"')[0]
+
+    cat, name = parse_catalog_name(strs[0].strip(), False)
+    altern = strs[1].strip()
+    if altern:
+        cat1, name1 = parse_catalog_name(altern, True)
+    else:
+        cat1, name1 = None, None
 
     typestr = strs[2].strip()
     typenum = UNKNOWN
@@ -127,7 +138,13 @@ def parse_saguaro_line(line):
     object.rlong  = rlong
     object.rshort = rshort
     object.pa     = pa
-    return object
+    object1 = None
+    if cat1 and cat1 in ['Abell', 'UGC']:
+        object1 = copy.deepcopy(object)
+        object1.cat = cat1.strip()
+        object1.name = name1.strip().upper()
+        object1.all_names = [object1.name]
+    return (object, object1)
 
 
 def import_saguaro(filename):
@@ -139,9 +156,11 @@ def import_saguaro(filename):
     sf.close()
 
     for line in lines[1:]:
-        object = parse_saguaro_line(line)
+        object, object1 = parse_saguaro_line(line)
         if object.cat != 'NGC' and object.cat != 'IC' and not(object.cat == 'Winnecke' and object.name == '4'):
             deeplist.append(object)
+        if object1:
+            deeplist.append(object1)
     return deeplist
 
 

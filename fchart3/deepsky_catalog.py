@@ -25,7 +25,7 @@ class DeepskyCatalog:
     def __init__(self, deepsky_list=[], reject_doubles=False):
         self.deepsky_list = []
         self.names = []
-        self.pos_mag_array = zeros((0,3),dtype=float64)
+        self.pos_mag_array = None
 
         self.add_objects(deepsky_list, reject_doubles)
 
@@ -42,7 +42,7 @@ class DeepskyCatalog:
             deepsky_list.sort(cmp_name)
 
             for object in deepsky_list:
-                name = object.cat.upper()+' '+object.name.upper()
+                name = object.cat.upper() + ' ' + object.name.upper()
                 n = object.name
                 if len(self.names) == 0:
                     self.deepsky_list.append(object)
@@ -78,15 +78,14 @@ class DeepskyCatalog:
         else: # Do not reject doubles
             for object in deepsky_list:
                 self.deepsky_list.append(object)
-                self.names.append(object.cat.upper()+' '+object.name.upper())
+                self.names.append(object.cat.upper() + ' ' + object.name.upper())
 
 
-        # Recompute help array
-        self.pos_mag_array = zeros((len(self.deepsky_list),3),dtype=float64)
-        for i in range(len(self.deepsky_list)):
-            self.pos_mag_array[i,0] = self.deepsky_list[i].ra
-            self.pos_mag_array[i,1] = self.deepsky_list[i].dec
-            self.pos_mag_array[i,2] = self.deepsky_list[i].mag
+    def add_dso(self, object):
+        if not object in self.deepsky_list:
+            self.deepsky_list.append(object)
+            self.names.append(object.cat.upper() + ' ' + object.name.upper())
+
 
     def compute_names(self):
         self.names = []
@@ -94,13 +93,24 @@ class DeepskyCatalog:
             self.names.append(object.cat.upper()+' '+object.name.upper())
 
 
-    def select_deepsky(self, fieldcentre, radius, lm_deepsky=100.0, force_messier=False):
+    def _create_pos_mag_array(self):
+        # Recompute help array
+        self.pos_mag_array = zeros((len(self.deepsky_list),3),dtype=float64)
+        for i in range(len(self.deepsky_list)):
+            self.pos_mag_array[i,0] = self.deepsky_list[i].ra
+            self.pos_mag_array[i,1] = self.deepsky_list[i].dec
+            self.pos_mag_array[i,2] = self.deepsky_list[i].mag
+
+    def select_deepsky(self, fieldcentre, radius, lm_deepsky=100.0, force_messier=False, showing_dso=None):
         """
         returns a list of deepsky objects meeting the set requirements.
 
         fieldcentre is a tuple (ra, dec) in radians. radius is also in
         radians
         """
+        if not self.pos_mag_array:
+            self._create_pos_mag_array()
+
         ra = self.pos_mag_array[:,0]
         dec = self.pos_mag_array[:,1]
 
@@ -114,7 +124,7 @@ class DeepskyCatalog:
         # select on magnitude
         selection = []
         for object in selected_list_pos:
-            if object.mag <= lm_deepsky or (object.messier > 0 and force_messier):
+            if object.mag <= lm_deepsky or (object.messier > 0 and force_messier) or object == showing_dso:
                 selection.append(object)
 
         return DeepskyCatalog(selection, reject_doubles=False)
@@ -135,6 +145,7 @@ class DeepskyCatalog:
         lst = list(self.deepsky_list)
         lst.sort(cmp_func)
         return DeepskyCatalog(lst, reject_doubles=False)
+
 
     def __str__(self):
         s = StringIO()
