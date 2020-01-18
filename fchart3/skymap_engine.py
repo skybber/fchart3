@@ -517,7 +517,6 @@ class SkymapEngine:
 
 
     def draw_constellation_stars(self, constell_catalog):
-        self.graphics.set_linewidth(self.constellation_linewidth)
         old_size = self.graphics.gi_fontsize
         printed = {}
         for star in constell_catalog.bright_stars:
@@ -551,6 +550,7 @@ class SkymapEngine:
 
     def draw_constellation_shapes(self, constell_catalog):
         self.graphics.save()
+        self.graphics.set_linewidth(self.constellation_linewidth)
         if self.night_mode:
             self.graphics.set_pen_rgb((0.2, 0.0, 0.0))
         else:
@@ -574,6 +574,7 @@ class SkymapEngine:
     def draw_constellation_boundaries(self, constell_catalog):
         self.graphics.save()
         self.graphics.set_dashed_line(1.2, 1.2)
+        self.graphics.set_linewidth(self.constellation_linewidth)
 
         if self.night_mode:
             self.graphics.set_pen_rgb((0.05, 0.0, 0.0))
