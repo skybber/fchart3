@@ -254,6 +254,7 @@ if __name__ == '__main__':
         if settings.parser.force_messier and object.messier > 0:
             reduced_deeplist.append(object)
         elif object.mag <= settings.parser.limiting_magnitude_deepsky \
+               and object.master_object is None \
                and object.type != deepsky.GALCL \
                and (object.type != deepsky.STARS or settings.parser.force_asterisms or (object.messier > 0 and object.type == deepsky.STARS))\
                and (object.type != deepsky.PG or settings.parser.force_unknown or object.type == deepsky.PG and object.mag > -5.0):
@@ -424,6 +425,8 @@ if __name__ == '__main__':
                 if caption != '':
                     engine.set_caption(caption)
 
+                if showing_dso.master_object:
+                    showing_dso = showing_dso.master_object
                 deepskycatalog.add_dso(showing_dso)
 
                 _setup_engine(engine)

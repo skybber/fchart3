@@ -103,6 +103,7 @@ class DeepskyObject:
         self.rshort=-1.0
         self.position_angle=90.0*pi/180.0
         self.messier=-1
+        self.master_object = None
 
 
     def __str__(self):

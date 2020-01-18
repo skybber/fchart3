@@ -144,6 +144,10 @@ def parse_saguaro_line(line):
         object1.cat = cat1.strip()
         object1.name = name1.strip().upper()
         object1.all_names = [object1.name]
+        if cat1 == 'Abell':
+            object, object1 = object1, object
+        object1.master_object = object
+
     return (object, object1)
 
 
