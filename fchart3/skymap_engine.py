@@ -608,8 +608,6 @@ class SkymapEngine:
                         self.mirroring_graphics.line(prev_disp[0], prev_disp[1], pdisp[0], pdisp[1])
                         if p[2]:
                             drawn_pairs.add(constell_name + '_' + p[2])
-                    else:
-                        print("Skip " + constell_name + '_' + p[2])
             prev = p
             prev_disp = pdisp
         if prev and self.is_fld_direction(prev[0]) and self.is_fld_direction(first[0]):
