@@ -393,8 +393,7 @@ class SkymapEngine:
             x, y, rlong  = deepsky_list_mm[i]
             rlong  = object.rlong*self.drawingscale
             rshort = object.rshort*self.drawingscale
-            posangle=object.position_angle+direction_ddec(\
-                (object.ra, object.dec), self.fieldcentre)+0.5*np.pi
+            posangle=object.position_angle+direction_ddec((object.ra, object.dec), self.fieldcentre)+0.5*np.pi
 
             if rlong <= self.min_radius:
                 rshort *= self.min_radius/rlong
@@ -523,7 +522,7 @@ class SkymapEngine:
             slabel = star.greek
             if slabel == '' and star.constellation != '' and star.constell_number != '':
                 slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
-            if slabel == '' or abs(star.ra-self.fieldcentre[0]) > np.pi/2.0:
+            if slabel == '' or not self.is_fld_direction(star.ra):
                 continue
             constell_printed = printed.get(star.constellation)
             if not constell_printed:
@@ -591,25 +590,30 @@ class SkymapEngine:
 
     def draw_constellation_bound_lines(self, boundaries):
         first = None
-        prev_disp = None
+        first_disp = None
         prev = None
+        prev_disp = None
         for i in range(len(boundaries)):
             p = boundaries[i]
             l1, m1 = radec_to_lm((p[0], p[1]), self.fieldcentre)
             pdisp = -l1 * self.drawingscale, m1 * self.drawingscale
             if not first:
-                first = pdisp
+                first = p
+                first_disp = pdisp
             else:
                 if self.is_fld_direction(p[0]) and self.is_fld_direction(prev[0]):
                     self.mirroring_graphics.line(prev_disp[0], prev_disp[1], pdisp[0], pdisp[1])
-            prev_disp = pdisp
             prev = p
+            prev_disp = pdisp
         if prev and self.is_fld_direction(prev[0]) and self.is_fld_direction(first[0]):
-            self.mirroring_graphics.line(prev_disp[0], prev_disp[1], first[0], first[1])
+            self.mirroring_graphics.line(prev_disp[0], prev_disp[1], first_disp[0], first_disp[1])
 
 
     def is_fld_direction(self, ra):
-        return abs(ra-self.fieldcentre[0]) < np.pi/2.0
+        d = abs(ra-self.fieldcentre[0])
+        if d > np.pi:
+            d = 2*np.pi - d
+        return d < np.pi/2.0
 
 
     def make_map(self, star_catalog=None, deepsky_catalog=None, constell_catalog=None, extra_positions=[]):
