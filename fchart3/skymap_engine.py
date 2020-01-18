@@ -137,6 +137,7 @@ class SkymapEngine:
         """
         self.fieldcentre         = (ra,dec)
         self.fieldradius         = fieldradius
+        self.fieldsize           = sqrt(2.0) * fieldradius
         self.drawingscale        = BASE_SCALE * self.drawingwidth/2.0/sin(fieldradius)
         self.legend_fontscale    = self.drawingwidth/100.0
 
@@ -360,7 +361,7 @@ class SkymapEngine:
     def draw_deepsky_objects(self, deepsky_catalog):
         # Draw deep sky
         print('Drawing deepsky...')
-        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldradius).deepsky_list
+        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize).deepsky_list
         if len(deepsky_list) == 1:
             print('1 deepsky object in map.')
         else:
@@ -461,7 +462,7 @@ class SkymapEngine:
         print('Drawing extra objects...')
         for object in extra_positions:
             rax,decx,label,labelpos = object
-            if angular_distance((rax,decx),self.fieldcentre) < self.fieldradius:
+            if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
                 l,m =  radec_to_lm((rax,decx), self.fieldcentre)
                 x,y = -l*self.drawingscale, m*self.drawingscale
                 self.unknown_object(x,y,self.min_radius,label,labelpos)
@@ -481,7 +482,7 @@ class SkymapEngine:
     def draw_stars(self, star_catalog):
         # Select and draw stars
         print('Drawing stars...')
-        selection = star_catalog.select_stars(self.fieldcentre, self.fieldradius, self.lm_stars)
+        selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars)
         print(str(selection.shape[0]) + ' stars in map.')
         print('Faintest star: ' + str(int(max(selection[:,2])*100.0 + 0.5)/100.0))
 
