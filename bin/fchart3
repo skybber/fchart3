@@ -92,6 +92,7 @@ class RuntimeSettings:
                                     help='deepsky limiting magnitude (default: 12.5)')
         argumentparser.add_argument('-limstar', dest='limiting_magnitude_stars', nargs='?', action='store', default=13.8, type=float,
                                     help='stellar limiting magnitude (default: 13.8)')
+
         argumentparser.add_argument('-usno-nomad', dest='usno_nomad_file', nargs='?', action='store',
                                     help='Path to USNO NOMAD catalog (file USNO-NOMAD-1e8.dat)')
 
@@ -308,12 +309,15 @@ if __name__ == '__main__':
                 engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
                 engine.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
                 engine.set_caption('M '+str(object.messier))
+                engine.set_showing_dso(object)
                 _setup_engine(engine)
+
                 engine.make_map(starcatalog, deepskycatalog, constellcatalog,
                             settings.extra_positions_list)
         else:
+            showing_dso = None
             if ':' in source:
-                data= source.split(',')
+                data = source.split(',')
                 if len(data) >= 3:
                     ra_str, dec_str = data[0:2]
                     caption_str = ''
@@ -337,7 +341,7 @@ if __name__ == '__main__':
                         ras = float(rasplit[2])
 
                     decd, decm, decs, sign = 0.0, 0.0, 0.0, 1
-                    decd= abs(float(decsplit[0]))
+                    decd = abs(float(decsplit[0]))
                     if decsplit[0][0] == '-':
                         sign = -1
                     if len(decsplit) >= 2:
@@ -389,6 +393,7 @@ if __name__ == '__main__':
                                 ra = niobj.ra
                                 dec = niobj.dec
                                 cat = niobj.cat
+                                showing_dso = niobj
                                 break
                 else:
                     cat = 'M'
@@ -397,6 +402,7 @@ if __name__ == '__main__':
                             ra = mobj.ra
                             dec = mobj.dec
                             name = str(mobj.messier)
+                            showing_dso = mobj
                             break
 
             print('')
@@ -422,6 +428,8 @@ if __name__ == '__main__':
                     caption = settings.parser.caption
                 if caption != '':
                     engine.set_caption(caption)
+
+                deepskycatalog.add_dso(showing_dso)
 
                 _setup_engine(engine)
 
