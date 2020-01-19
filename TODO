@@ -1,6 +1,5 @@
-* Enable square maps...
-
-This requires a complete overhaul  of the layout engine. Legend should
-move below the map. Catalogs need new search functions.
-
-* Support for all 14 standard Postscript Type 1 fonts in PDF output
+* Move legends below map
+* Improve API - extract map configuration to dedicated class, create catalog loader class. Separate commandline tool from API
+* Add themes support using theme file. Move pen colors, backgrounds, thicknesses, fon sizes to it
+* Currently all printing is done in mm, since it is originally printed to PDF. Could be pixel in future?
+* Default map should not contain any widget, they should be pluggable
