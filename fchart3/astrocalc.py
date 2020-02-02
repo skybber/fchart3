@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from numpy import *
+import numpy as np
 
 def angular_distance(position1, position2):
     """
@@ -26,8 +26,8 @@ def angular_distance(position1, position2):
     (start_ra, start_dec) = position1
     (end_ra, end_dec)     = position2
     a = start_ra-end_ra
-    arg = sin(start_dec)*sin(end_dec) + cos(start_dec)*cos(end_dec)*cos(a)
-    return arccos(arg)
+    arg = np.sin(start_dec)*np.sin(end_dec) + np.cos(start_dec)*np.cos(end_dec)*np.cos(a)
+    return np.arccos(arg)
 
 
 
@@ -56,7 +56,7 @@ def rad2hms_t(angle):
     sign = 1
     if angle < 0:
         sign = -1
-    p2 = 2.0*pi
+    p2 = 2.0*np.pi
     h  = (sign*angle/p2)*24.0
     h_int = int(h + 1e-8)
     m  = (h - h_int)*60.0
@@ -74,7 +74,7 @@ def rad2dms_t(angle):
     sign = 1
     if angle < 0:
         sign = -1
-    p2 = 2.0*pi
+    p2 = 2.0*np.pi
     d  = (sign*angle/p2)*360.0
     d_int = int(d + 1e-8)
     m  = (d - d_int)*60.0
@@ -90,7 +90,7 @@ def rad2dms_t(angle):
 def rad2hms(angle):
     """
     Converts an angle in radians to a string in a 24-hour, hour,
-    minute, seconds format. 0 <= angle < 2pi.
+    minute, seconds format. 0 <= angle < 2np.pi.
 
     Usage:
         rad2hms(0.345) => '1h19m4.09054368322'
@@ -103,7 +103,7 @@ def rad2hms(angle):
 def rad2dms(angle):
     """
     Converts an angle in radians to a string in a 360 degree, degree,
-    minute, seconds format. 0 <= angle < 2pi.
+    minute, seconds format. 0 <= angle < 2np.pi.
 
     Usage:
         rad2dms(0.345) => '19d46m1.35815524824'
@@ -118,7 +118,7 @@ def dms2rad(d,m=0,s=0, sign=1):
     radians. The parameters d, m and s MUST be positive. If a negative
     angle needs to be converted, then sign must be set to -1.
     """
-    return sign*(d + m/60.0 + s/3600.0)*pi/180.0
+    return sign*(d + m/60.0 + s/3600.0)*np.pi/180.0
 
 
 def hms2rad(h,m=0,s=0, sign=1):
@@ -128,7 +128,7 @@ def hms2rad(h,m=0,s=0, sign=1):
     be set to -1.
 
     """
-    return (sign*(h + m/60.0 + s/3600.0)*pi/12.0)
+    return (sign*(h + m/60.0 + s/3600.0)*np.pi/12.0)
 
 
 def lm_to_radec(lm, fieldcentre):
@@ -143,8 +143,8 @@ def lm_to_radec(lm, fieldcentre):
     """
     (l,m) = lm
     (alpha0, delta0) = fieldcentre
-    alpha = alpha0 + arctan2(l,(cos(delta0)*sqrt(1-l*l -m*m) - m*sin(delta0)))
-    delta = asin((m*cos(delta0) + sin(delta0)*sqrt(1-l*l - m*m)))
+    alpha = alpha0 + np.arctan2(l,(np.cos(delta0)*np.sqrt(1-l*l -m*m) - m*np.sin(delta0)))
+    delta = np.asin((m*np.cos(delta0) + np.sin(delta0)*np.sqrt(1-l*l - m*m)))
     return (alpha, delta)
 
 
@@ -160,8 +160,8 @@ def radec_to_lm(radec, fieldcentre):
     (alpha, delta) = radec
     (alpha0, delta0) = fieldcentre
     dalpha = alpha - alpha0
-    l = cos(delta)*sin(dalpha)
-    m = sin(delta)*cos(delta0) - cos(delta)*sin(delta0)*cos(dalpha)
+    l = np.cos(delta)*np.sin(dalpha)
+    m = np.sin(delta)*np.cos(delta0) - np.cos(delta)*np.sin(delta0)*np.cos(dalpha)
     return (l,m)
 
 
@@ -177,11 +177,6 @@ def direction_ddec(radec, fieldcentre):
     (ra0, dec0) = fieldcentre
     (ra, dec)   = radec
 
-    angle = arctan2(-sin(dec)*sin(ra -ra0), cos(dec)*cos(dec0) + sin(dec)*sin(dec0)*cos(ra-ra0))
+    angle = np.arctan2(-np.sin(dec)*np.sin(ra -ra0), np.cos(dec)*np.cos(dec0) + np.sin(dec)*np.sin(dec0)*np.cos(ra-ra0))
     return angle
 
-
-__all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
-           'rad2dms', 'rad2hms',
-           'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm',
-           'direction_ddec']

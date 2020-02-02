@@ -54,7 +54,7 @@ class ConstellationCatalog:
         self.bright_stars = import_bsc5(bsc5_filename)
         self.constellations = import_constellation(constell_filename, boundaries_filename, self)
 
-def parse_bsc5_line(line):
+def _parse_bsc5_line(line):
     star = BscStar()
 
     star.number = int(line[:4].strip())
@@ -72,7 +72,7 @@ def parse_bsc5_line(line):
     return star
 
 
-def parse_constellation_line(line, const_catalog):
+def _parse_constellation_line(line, const_catalog):
     constell = Constellation()
     constell.name = line[0:3].upper()
     star_count = int(line[3:7].strip())
@@ -99,7 +99,7 @@ def import_bsc5(filename):
     sf.close()
 
     for line in lines:
-        bsc_star = parse_bsc5_line(line)
+        bsc_star = _parse_bsc5_line(line)
         if bsc_star:
             bsc_star_list.append(bsc_star)
     return bsc_star_list
@@ -119,7 +119,7 @@ def import_constellation(filename, boundaries_filename, const_catalog):
         line = line.strip()
         if line.startswith('#') or line == '':
             continue
-        constell = parse_constellation_line(line, const_catalog)
+        constell = _parse_constellation_line(line, const_catalog)
         constellation_list.append(constell)
         cons_map[constell.name.upper()] = constell
 
@@ -147,6 +147,3 @@ def import_constellation(filename, boundaries_filename, const_catalog):
             cons_map[cons].boundaries.append((ra, dec, cons2))
 
     return constellation_list
-
-
-__all__ = ['BscStar' , 'Constellation', 'ConstellationCatalog', 'import_bsc5', 'import_constellation']

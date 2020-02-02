@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-202 fchart authors
+#    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ import struct
 import numpy as np
 from time import time
 
-from fchart3.htm_binfile_reader import *
-from fchart3.htm.htm import HTM
-from fchart3.astrocalc import *
+from .htm_binfile_reader import *
+from .htm.htm import HTM
+from .astrocalc import *
 
 StarData = namedtuple('StarData' , 'ra dec dRa dDec parallax HD mag bv_index spec_type flags')
 
@@ -55,7 +55,7 @@ RAD2DEG = 180.0/np.pi
 
 htm_meshes = {}
 
-def get_htm_mesh(level):
+def _get_htm_mesh(level):
     mesh = htm_meshes.get(level)
     if not mesh:
         mesh = HTM(level)
@@ -141,7 +141,7 @@ class StarCatalogComponent:
 
         self.htm_level = struct.unpack('b', data_file.read(1))[0]
 
-        self.sky_mesh = get_htm_mesh(self.htm_level)
+        self.sky_mesh = _get_htm_mesh(self.htm_level)
 
         data_file.read(2) # unused
         self.file_opened = True
@@ -306,7 +306,7 @@ class CompositeStarCatalog:
         if faintmag / 100.0 > self.faint_magnitude:
             self.faint_magnitude = faintmag / 100.0
 
-        self.sky_mesh = get_htm_mesh(htm_level)
+        self.sky_mesh = _get_htm_mesh(htm_level)
         self.star_index = np.empty(self.sky_mesh.size(), dtype=object)
         self.star_blocks = np.empty(self.sky_mesh.size(), dtype=object)
 

@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-202 fchart authors
+#    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from numpy import *
-from .astrocalc import *
+import numpy as np
 
 #   0: unknown
 #   1: galaxy
@@ -87,7 +86,7 @@ class DeepskyObject:
         - rlong          long dimension of object in radians (-1 if unknown)
         - rshort         short dimension of object in radians (-1 if unknown)
         - position_angle position angle (N through E) in radians
-                         (default: 0.5pi)
+                         (default: 0.5np.pi)
         - messier        number in messier list (default: -1)
         """
         self.cat    = catalog.upper().rstrip().lstrip()
@@ -101,7 +100,7 @@ class DeepskyObject:
         self.mag=-100.0
         self.rlong=-1.0
         self.rshort=-1.0
-        self.position_angle=90.0*pi/180.0
+        self.position_angle=90.0*np.pi/180.0
         self.messier=-1
         self.master_object = None
 
@@ -131,11 +130,11 @@ class DeepskyObject:
         else:
             s += '        '
         if self.rlong > 0.0:
-            s += str(int(self.rlong*180*60/pi*10+0.5)/10.0).rjust(6)
+            s += str(int(self.rlong*180*60/np.pi*10+0.5)/10.0).rjust(6)
         else:
             s += '      '
         if self.rshort > 0.0:
-            s += str(int(self.rshort*180*60/pi*10+0.5)/10.0).rjust(6)
+            s += str(int(self.rshort*180*60/np.pi*10+0.5)/10.0).rjust(6)
         else:
             s += '      '
 
@@ -191,7 +190,3 @@ def cmp_to_key(mycmp):
             return mycmp(self.obj, other.obj) != 0
     return K
 
-__all__ = ['DeepskyObject','UNKNOWN',
-           'G', 'N', 'PN', 'OC','GC', 'PG',
-           'ALREADY_LISTED_1', 'ALREADY_LISTED_2', 'STARS',
-           'NOTFOUND', 'SNR', 'QSO','GALCL','cmp_ra', 'cmp_dec', 'cmp_name', 'cmp_to_key']

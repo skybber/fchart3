@@ -15,11 +15,12 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from .deepsky_object import *
-from numpy import *
-from fchart3.astrocalc import *
 
 from io import StringIO
+import numpy as np
+
+from .deepsky_object import *
+from .astrocalc import *
 
 class DeepskyCatalog:
     def __init__(self, deepsky_list=[], reject_doubles=False):
@@ -41,61 +42,61 @@ class DeepskyCatalog:
             # Reject doubles
             deepsky_list.sort(cmp_name)
 
-            for object in deepsky_list:
-                name = object.cat.upper() + ' ' + object.name.upper()
-                n = object.name
+            for obj in deepsky_list:
+                name = obj.cat.upper() + ' ' + obj.name.upper()
+                n = obj.name
                 if len(self.names) == 0:
-                    self.deepsky_list.append(object)
+                    self.deepsky_list.append(obj)
                     self.names.append(name)
                 else:
-                    ra = object.ra
-                    dec = object.dec
+                    ra = obj.ra
+                    dec = obj.dec
                     include = True
                     ang_dist = angular_distance
 
                     old_list = list(self.deepsky_list)
                     old_list.reverse()
                     for old in old_list:
-                        if object.name in old.all_names:
-                            old.all_names.append(object.name)
+                        if obj.name in old.all_names:
+                            old.all_names.append(obj.name)
                             include = False
                             break
 
                     if include:
-                        self.deepsky_list.append(object)
+                        self.deepsky_list.append(obj)
                         self.names.append(name)
 
-            for object in self.deepsky_list:
-                name = object.name
+            for obj in self.deepsky_list:
+                name = obj.name
                 count = 1
-                all_names = object.all_names
+                all_names = obj.all_names
                 for n in all_names:
                     c = all_names.count(n)
                     if c > count:
                         count = c
                         name = n
-                object.name = name
+                obj.name = name
         else: # Do not reject doubles
-            for object in deepsky_list:
-                self.deepsky_list.append(object)
-                self.names.append(object.cat.upper() + ' ' + object.name.upper())
+            for obj in deepsky_list:
+                self.deepsky_list.append(obj)
+                self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
 
 
-    def add_dso(self, object):
-        if not object in self.deepsky_list:
-            self.deepsky_list.append(object)
-            self.names.append(object.cat.upper() + ' ' + object.name.upper())
+    def add_dso(self, obj):
+        if not obj in self.deepsky_list:
+            self.deepsky_list.append(obj)
+            self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
 
 
     def compute_names(self):
         self.names = []
-        for object in self.deepsky_list:
-            self.names.append(object.cat.upper()+' '+object.name.upper())
+        for obj in self.deepsky_list:
+            self.names.append(obj.cat.upper()+' '+obj.name.upper())
 
 
     def _create_pos_mag_array(self):
         # Recompute help array
-        self.pos_mag_array = zeros((len(self.deepsky_list),3),dtype=float64)
+        self.pos_mag_array = np.zeros((len(self.deepsky_list),3),dtype=np.float64)
         for i in range(len(self.deepsky_list)):
             self.pos_mag_array[i,0] = self.deepsky_list[i].ra
             self.pos_mag_array[i,1] = self.deepsky_list[i].dec
@@ -114,8 +115,8 @@ class DeepskyCatalog:
         ra = self.pos_mag_array[:,0]
         dec = self.pos_mag_array[:,1]
 
-        object_in_field = logical_and(abs((ra-fieldcentre[0])*cos(dec)) < radius, abs(dec-fieldcentre[1]) < radius)
-        indices = where(object_in_field == 1)[0]
+        object_in_field = np.logical_and(np.abs((ra-fieldcentre[0])*np.cos(dec)) < radius, np.abs(dec-fieldcentre[1]) < radius)
+        indices = np.where(object_in_field == 1)[0]
 
         selected_list_pos = []
         for index in indices:
@@ -123,9 +124,9 @@ class DeepskyCatalog:
 
         # select on magnitude
         selection = []
-        for object in selected_list_pos:
-            if object.mag <= lm_deepsky or (object.messier > 0 and force_messier) or object == showing_dso:
-                selection.append(object)
+        for obj in selected_list_pos:
+            if obj.mag <= lm_deepsky or (obj.messier > 0 and force_messier) or obj == showing_dso:
+                selection.append(obj)
 
         return DeepskyCatalog(selection, reject_doubles=False)
 
@@ -135,9 +136,9 @@ class DeepskyCatalog:
         if typelist == []:
             selection = list(self.deepsky_list)
         else:
-            for object in self.deepsky_list:
-                if object.type in typelist:
-                    selection.append(object)
+            for obj in self.deepsky_list:
+                if obj.type in typelist:
+                    selection.append(obj)
         return DeepskyCatalog(selection, reject_doubles=False)
 
 
@@ -149,9 +150,7 @@ class DeepskyCatalog:
 
     def __str__(self):
         s = StringIO()
-        for object in self.deepsky_list:
-            s.write(str(object)+'\n')
+        for obj in self.deepsky_list:
+            s.write(str(obj)+'\n')
         return s.getvalue()[:-1]
 
-
-__all__ = ['DeepskyCatalog']

@@ -19,7 +19,7 @@ from fchart3.deepsky_object import *
 from numpy import *
 import csv
 
-def vic2int(s):
+def _vic2int(s):
     s.lstrip('0')
     if len(s) == 0:
         return 0
@@ -45,7 +45,7 @@ def import_vic(filename):
             sign = float(row['Dec'][0]+'1')
             dds, dms, dss = row['Dec'].split(',')
             object.dec = sign*pi*(float(dds) + float(dms)/60.0) / 180.0
-            object.mag = vic2int(row['mag']) / 10
+            object.mag = _vic2int(row['mag']) / 10
             deeplist.append(object)
     return deeplist
 

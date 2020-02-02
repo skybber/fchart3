@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-202 fchart authors
+#    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ from numpy import *
 
 from fchart3 import deepsky_object as deepsky
 
-def parse_rev_ngcic_line(line, catalog='NGC'):
+def _parse_rev_ngcic_line(line, catalog='NGC'):
     object = deepsky.DeepskyObject()
     object.cat = catalog
     typechar = line[11]
@@ -96,7 +96,7 @@ def import_revised_ngcic(filename, ngcic='NGC'):# or 'IC'
     ngclist_multiple = []
     for line in lines:
         if len(line) >= 170:
-            ngcobject = parse_rev_ngcic_line(line, ngcic)
+            ngcobject = _parse_rev_ngcic_line(line, ngcic)
 
             # Do not include ICs that are also NGCs. DO include NGCs or
             # ICs that have already been mentioned in their "own" catalog.
@@ -113,8 +113,6 @@ def import_revised_ngcic(filename, ngcic='NGC'):# or 'IC'
 
 
 if __name__=='__main__':
-
-
     print(__file__)
     ngclist = import_revised_ngcic('data/revngc.txt', 'NGC')
     iclist  = import_revised_ngcic('data/revic.txt', 'IC')

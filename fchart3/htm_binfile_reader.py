@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-202 fchart authors
+#    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ def swap16(i):
     return struct.unpack("<H", struct.pack(">H", i))[0]
 
 
-def read_exactly(file, size):
+def _read_exactly(file, size):
     bytes = file.read(size)
     if len(bytes) < size:
         raise IOError("Failed to read enough data")
@@ -114,7 +114,7 @@ class HtmBinFileReader:
     def read_header(self):
         # Read the first 124 bytes of the binary file which contains a general text about the binary data.
         # e.g. "KStars Star Data v1.0. To be read using the 32-bit StarData structure only"
-        self.header_text  = read_exactly(self._file, 124).decode("ascii")
+        self.header_text  = _read_exactly(self._file, 124).decode("ascii")
 
         # Find out endianess from reading "KS" 0x4B53 in the binary file which was encoded on a little endian machine
         # Therefore, in the binary file it is written as 53 4B (little endian as least significant byte is stored first),
@@ -210,3 +210,5 @@ if __name__ == '__main__':
     reader = HtmBinFileReader(file)
     reader.read_header()
     print("Done")
+
+__all__= ['HtmBinFileReader']

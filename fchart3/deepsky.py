@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-202 fchart authors
+#    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,14 +15,16 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import fchart3
-from fchart3.deepsky_catalog import *
-from fchart3.deepsky_object import *
-from fchart3.saguaro import *
-from fchart3.vic import *
-from fchart3.revngc import *
-from .astrocalc import *
 import os
+
+import fchart3
+
+from .deepsky_catalog import *
+from .deepsky_object import *
+from .saguaro import *
+from .vic import *
+from .revngc import *
+from .astrocalc import *
 
 
 def get_deepsky_list(data_dir=os.path.join(fchart3.get_data('catalogs'))):
@@ -113,8 +115,3 @@ def get_deepsky_catalog(data_dir=os.path.join(fchart3.get_data('catalogs'))):
     dc = DeepskyCatalog(l)
     return dc
 
-
-import fchart3.deepsky_object
-
-__all__=['get_deepsky_list', 'get_deepsky_catalog',
-         'DeepskyCatalog']+fchart3.deepsky_object.__all__
