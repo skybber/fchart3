@@ -23,12 +23,21 @@ from .deepsky_object import *
 from .astrocalc import *
 
 class DeepskyCatalog:
-    def __init__(self, deepsky_list=[], reject_doubles=False):
+    def __init__(self, deepsky_list=[], force_messier = False, reject_doubles=False):
         self.deepsky_list = []
         self.names = []
-        self.pos_mag_array = None
-
+        self.force_messier = force_messier
+        self.showing_dsos = set()
         self.add_objects(deepsky_list, reject_doubles)
+
+
+    def add_showing_dso(self, dso):
+        self.showing_dsos.add(dso)
+
+
+    def clear_showing_dsos(self):
+        self.showing_dsos.clear()
+
 
     def add_objects(self, objects, reject_doubles=False):
         # Sort
@@ -94,26 +103,21 @@ class DeepskyCatalog:
             self.names.append(obj.cat.upper()+' '+obj.name.upper())
 
 
-    def _create_pos_mag_array(self):
-        # Recompute help array
-        self.pos_mag_array = np.zeros((len(self.deepsky_list),3),dtype=np.float64)
-        for i in range(len(self.deepsky_list)):
-            self.pos_mag_array[i,0] = self.deepsky_list[i].ra
-            self.pos_mag_array[i,1] = self.deepsky_list[i].dec
-            self.pos_mag_array[i,2] = self.deepsky_list[i].mag
-
-    def select_deepsky(self, fieldcentre, radius, lm_deepsky=100.0, force_messier=False, showing_dso=None):
+    def select_deepsky(self, fieldcentre, radius, lm_deepsky):
         """
         returns a list of deepsky objects meeting the set requirements.
 
         fieldcentre is a tuple (ra, dec) in radians. radius is also in
         radians
         """
-        if not self.pos_mag_array:
-            self._create_pos_mag_array()
+        pos_mag_array = np.zeros((len(self.deepsky_list),3),dtype=np.float64)
+        for i in range(len(self.deepsky_list)):
+            pos_mag_array[i,0] = self.deepsky_list[i].ra
+            pos_mag_array[i,1] = self.deepsky_list[i].dec
+            pos_mag_array[i,2] = self.deepsky_list[i].mag
 
-        ra = self.pos_mag_array[:,0]
-        dec = self.pos_mag_array[:,1]
+        ra = pos_mag_array[:,0]
+        dec = pos_mag_array[:,1]
 
         object_in_field = np.logical_and(np.abs((ra-fieldcentre[0])*np.cos(dec)) < radius, np.abs(dec-fieldcentre[1]) < radius)
         indices = np.where(object_in_field == 1)[0]
@@ -125,7 +129,7 @@ class DeepskyCatalog:
         # select on magnitude
         selection = []
         for obj in selected_list_pos:
-            if obj.mag <= lm_deepsky or (obj.messier > 0 and force_messier) or obj == showing_dso:
+            if obj.mag <= lm_deepsky or (obj.messier > 0 and self.force_messier) or obj in self.showing_dsos:
                 selection.append(obj)
 
         return DeepskyCatalog(selection, reject_doubles=False)

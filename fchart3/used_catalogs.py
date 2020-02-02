@@ -35,20 +35,23 @@ class UsedCatalogs:
         # Apply magnitude selection to deepsky list, build Messier list
         self._reduced_deeplist = []
         self._messierlist=[]
-        for object in self._deeplist:
-            if object.messier > 0:
-                self._messierlist.append(object)
-            if force_messier and object.messier > 0:
-                self._reduced_deeplist.append(object)
-            elif object.mag <= limiting_magnitude_deepsky \
-                   and object.master_object is None \
-                   and object.type != deepsky.GALCL \
-                   and (object.type != deepsky.STARS or force_asterisms or (object.messier > 0 and object.type == deepsky.STARS))\
-                   and (object.type != deepsky.PG or force_unknown or object.type == deepsky.PG and object.mag > -5.0):
-                self._reduced_deeplist.append(object)
+        for dso in self._deeplist:
+            if dso.messier > 0:
+                self._messierlist.append(dso)
+            if force_messier and dso.messier > 0:
+                self._reduced_deeplist.append(dso)
+            elif dso.mag <= limiting_magnitude_deepsky \
+                   and dso.master_object is None \
+                   and dso.type != deepsky.GALCL \
+                   and (dso.type != deepsky.STARS or force_asterisms or (dso.messier > 0 and dso.type == deepsky.STARS))\
+                   and (dso.type != deepsky.PG or force_unknown or dso.type == deepsky.PG and dso.mag > -5.0):
+                self._reduced_deeplist.append(dso)
 
         self._messierlist.sort(key = lambda x: x.messier)
-        self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist)
+        self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
+
+    def free_mem(self):
+        self._starcatalog.free_mem()
 
     @property
     def messierlist(self):
@@ -123,4 +126,3 @@ class UsedCatalogs:
                     break
 
         return found_dso, cat, name
-

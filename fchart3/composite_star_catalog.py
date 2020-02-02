@@ -110,9 +110,9 @@ class StarCatalogComponent:
         self.sky_mesh = None
         self.trig_mag = trig_mag
         self._open_data_file()
+        self.static_stars = static_stars
         if self.file_opened and static_stars:
             self._load_static_stars()
-
 
 
     def _open_data_file(self):
@@ -207,6 +207,11 @@ class StarCatalogComponent:
         return trixel_stars
 
 
+    def free_mem(self):
+        if not self.file_opened or self.static_stars:
+            return
+        for i in range(len(self.star_blocks)):
+            self.star_blocks[i] = None
 
 class CompositeStarCatalog:
 
@@ -422,6 +427,10 @@ class CompositeStarCatalog:
         selection = position_selection[bright_enough]
 
         return selection
+
+    def free_mem(self):
+        for dsc in self.deepstar_catalogs:
+            dsc.free_mem()
 
 if __name__ == '__main__':
     data_dir='./data/catalogs/'

@@ -94,7 +94,7 @@ DEFAULT_FONT_SIZE=2.6
 
 class SkymapEngine:
 
-    def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, caption=''):
+    def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
         """
         Width is width of the map including the legend in mm.
         """
@@ -107,6 +107,7 @@ class SkymapEngine:
         self.min_radius   = 1.0 # of deepsky symbols (mm)
 
         self.lm_stars     = lm_stars
+        self.lm_deepsky   = lm_deepsky
         self.deepsky_label_limit = 15 # deepsky lm for labels
 
         self.set_caption(caption)
@@ -316,7 +317,7 @@ class SkymapEngine:
     def draw_deepsky_objects(self, deepsky_catalog):
         # Draw deep sky
         print('Drawing deepsky...')
-        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize).deepsky_list
+        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky).deepsky_list
         if len(deepsky_list) == 1:
             print('1 deepsky object in map.')
         else:

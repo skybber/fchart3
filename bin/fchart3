@@ -240,6 +240,7 @@ if __name__ == '__main__':
     if not os.path.exists(settings.parser.output_dir):
         print('Creating directory '+settings.parser.output_dir)
         os.mkdir(settings.parser.output_dir)
+
     used_catalogs = UsedCatalogs(data_dir, settings.parser.usno_nomad_file, settings.parser.limiting_magnitude_deepsky,
                                  settings.parser.force_messier, settings.parser.force_asterisms, settings.parser.force_unknown)
     print("Chart generated in : " + str(time()-tm) + "ms")
@@ -354,7 +355,8 @@ if __name__ == '__main__':
                                       settings.parser.width,
                                       settings.parser.width)
                 engine = SkymapEngine(artist, settings.language,
-                                  lm_stars = settings.parser.limiting_magnitude_stars)
+                                  lm_stars = settings.parser.limiting_magnitude_stars,
+                                  lm_deepsky = settings.parser.limiting_magnitude_deepsky)
                 engine.set_configuration(_create_engine_configuration())
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
                 caption = cat + ' ' + name
@@ -368,6 +370,7 @@ if __name__ == '__main__':
                     if showing_dso.master_object:
                         showing_dso = showing_dso.master_object
                     used_catalogs.deepskycatalog.add_dso(showing_dso)
+                    used_catalogs.deepskycatalog.add_showing_dso(showing_dso)
                     engine.set_active_constellation(showing_dso.constellation)
 
                 print("Started in : " + str(time()-tm) + "ms")
