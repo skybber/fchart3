@@ -27,7 +27,7 @@ from .revngc import *
 from .astrocalc import *
 
 
-def get_deepsky_list(data_dir=os.path.join(fchart3.get_data('catalogs'))):
+def get_deepsky_list(data_dir=os.path.join(fchart3.get_catalogs_dir())):
     deeplist = []
 
     m24 = DeepskyObject()
@@ -109,9 +109,13 @@ def get_deepsky_list(data_dir=os.path.join(fchart3.get_data('catalogs'))):
     return deeplist
 
 
-def get_deepsky_catalog(data_dir=os.path.join(fchart3.get_data('catalogs'))):
+def get_deepsky_catalog(data_dir=os.path.join(fchart3.get_catalogs_dir())):
     l = get_deepsky_list(data_dir)
     print(len(l))
     dc = DeepskyCatalog(l)
     return dc
 
+
+import fchart3.deepsky_object
+
+__all__=['get_deepsky_list', 'get_deepsky_catalog', 'DeepskyCatalog']+fchart3.deepsky_object.__all__

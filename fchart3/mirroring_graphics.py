@@ -77,4 +77,3 @@ class MirroringGraphics:
     def text_centred(self, x, y, text):
         self.graphics.text_centred(self.mul_x*x, self.mul_y*y, text)
 
-__all__ = ['MirroringGraphics']

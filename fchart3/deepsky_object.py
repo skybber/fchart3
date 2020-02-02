@@ -190,3 +190,7 @@ def cmp_to_key(mycmp):
             return mycmp(self.obj, other.obj) != 0
     return K
 
+__all__ = ['DeepskyObject','UNKNOWN',
+           'G', 'N', 'PN', 'OC','GC', 'PG',
+           'ALREADY_LISTED_1', 'ALREADY_LISTED_2', 'STARS',
+           'NOTFOUND', 'SNR', 'QSO','GALCL','cmp_ra', 'cmp_dec', 'cmp_name', 'cmp_to_key']

@@ -74,4 +74,53 @@ class UsedCatalogs:
     def reduced_deeplist(self):
         return self._reduced_deeplist
 
+    def lookup_dso(self, dso_name):
+        index = 0
+        cat = ''
+        if dso_name[0:3].upper() == 'SH2':
+            cat = 'SH2'
+            index = 4
+        elif dso_name[0:2].upper() == '3C':
+            cat = '3C'
+            index = 2
+        else:
+            for i in range(len(dso_name)):
+                ch = dso_name[i]
+                if ch.isalpha():
+                    cat += ch
+                else:
+                    index = i
+                    break
+            if cat.upper() == 'N' or cat == '' or cat.upper=='NGC':
+                cat = 'NGC'
+
+            if cat.upper() == 'I' or cat.upper() == 'IC':
+                cat = 'IC'
+
+        name = dso_name[index:].upper().rstrip().lstrip()
+        if cat == 'NGC' and name == '3690':
+            name = '3690A'
+
+        # determine ra, dec of fieldcentre
+        found_dso = None
+        if cat.upper() != 'M':
+            for dso in self.deeplist:
+                if dso.cat.upper() == cat.upper():
+                    if name.upper() in dso.all_names:
+                        ra = dso.ra
+                        dec = dso.dec
+                        cat = dso.cat
+                        found_dso = dso
+                        break
+        else:
+            cat = 'M'
+            for mdso in self.messierlist:
+                if mdso.messier == int(name):
+                    ra = mdso.ra
+                    dec = mdso.dec
+                    name = str(mdso.messier)
+                    found_dso = mdso
+                    break
+
+        return found_dso, cat, name
 

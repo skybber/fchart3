@@ -19,12 +19,15 @@ from collections import namedtuple
 import struct
 import os
 
+DataElement = namedtuple('DataElement' , 'name size type scale')
+DATAELEMENT_FMT = '10sbBi'
+DATA_ELEMT_SIZE = struct.calcsize(DATAELEMENT_FMT)
 
-def swap32(i):
+def _swap32(i):
     return struct.unpack("<I", struct.pack(">I", i))[0]
 
 
-def swap16(i):
+def _swap16(i):
     return struct.unpack("<H", struct.pack(">H", i))[0]
 
 
@@ -34,10 +37,6 @@ def _read_exactly(file, size):
         raise IOError("Failed to read enough data")
     return bytes
 
-
-DataElement = namedtuple('DataElement' , 'name size type scale')
-DATAELEMENT_FMT = '10sbBi'
-DATA_ELEMT_SIZE = struct.calcsize(DATAELEMENT_FMT)
 
 class HtmBinFileReader:
     """
@@ -128,13 +127,13 @@ class HtmBinFileReader:
         # Read the field descriptor table
         self.nfields = struct.unpack('h', self._file.read(2))[0]
         if self._byteswap:
-            self.nfields = swap16(self.nfields)
+            self.nfields = _swap16(self.nfields)
 
         for i in range(self.nfields):
             # Read 16 byte dataElement that describe each field (name[8], size[1], type[1], scale[4])
             de = DataElement._make(struct.unpack(DATAELEMENT_FMT, self._file.read(DATA_ELEMT_SIZE)))
             if self._byteswap:
-                de.scale = swap32(de.scale)
+                de.scale = _swap32(de.scale)
             self.fields.append(de)
 
         if not self.record_size:
@@ -145,7 +144,7 @@ class HtmBinFileReader:
         # Read the index table
         self.index_size = struct.unpack('i', self._file.read(4))[0]
         if self._byteswap:
-            self.index_size = swap32(self.index_size)
+            self.index_size = _swap32(self.index_size)
 
         # Find out current offset so far in the binary file (how many bytes we read so far)
         self.itable_offset = self._file.tell()
@@ -165,7 +164,7 @@ class HtmBinFileReader:
             ID = struct.unpack('I', self._file.read(4))[0]
 
             if self._byteswap:
-                ID = swap32(ID)
+                ID = _swap32(ID)
 
             if ID >= self.index_size:
                 raise IndexError("ID {} is greater than the expected number of expected entries ({})".format(ID, self.index_size))
@@ -176,12 +175,12 @@ class HtmBinFileReader:
             offset = struct.unpack('I', self._file.read(4))[0]
 
             if self._byteswap:
-                offset = swap32(offset)
+                offset = _swap32(offset)
 
             nrecs = struct.unpack('I', self._file.read(4))[0]
 
             if self._byteswap:
-                nrecs = swap32(nrecs)
+                nrecs = _swap32(nrecs)
 
             if prev_offset != 0 and prev_nrecs != (offset - prev_offset) / self.record_size:
                 raise ValueError("Expected {}  = ({} - {}) / {} records, but found {}, in index entry {}",
@@ -210,5 +209,3 @@ if __name__ == '__main__':
     reader = HtmBinFileReader(file)
     reader.read_header()
     print("Done")
-
-__all__= ['HtmBinFileReader']

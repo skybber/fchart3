@@ -180,3 +180,8 @@ def direction_ddec(radec, fieldcentre):
     angle = np.arctan2(-np.sin(dec)*np.sin(ra -ra0), np.cos(dec)*np.cos(dec0) + np.sin(dec)*np.sin(dec0)*np.cos(ra-ra0))
     return angle
 
+
+__all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
+           'rad2dms', 'rad2hms',
+           'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm',
+           'direction_ddec']

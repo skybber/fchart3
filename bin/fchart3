@@ -24,28 +24,19 @@ import textwrap
 
 from time import time
 
-from numpy import *
 # Standard python modules
 import string
 import os
 import sys
 import stat
+import numpy as np
 
-# Local modules:
 import fchart3
-from fchart3.astrocalc import *
-from fchart3 import revngc
-from fchart3 import saguaro
-from fchart3 import deepsky_object as deepsky
-from fchart3.deepsky import *
-from fchart3.composite_star_catalog import *
-from fchart3.skymap_engine import *
-from fchart3.constellation import *
+
+from fchart3.skymap_engine import SkymapEngine, EN, NL
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
-
-from fchart3.cairo import *
-
+from fchart3.cairo import CairoDrawing
 
 #################################################################
 
@@ -238,7 +229,7 @@ if __name__ == '__main__':
 
     tm = time()
 
-    data_dir    = os.path.join(fchart3.get_data('catalogs'))
+    data_dir    = os.path.join(fchart3.get_catalogs_dir())
 
     # Create default settings and parse commandline
     settings = RuntimeSettings()
@@ -292,7 +283,7 @@ if __name__ == '__main__':
                                       settings.parser.width)
                 engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration())
-                engine.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
+                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
                 engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 engine.set_active_constellation(object.constellation)
@@ -340,53 +331,13 @@ if __name__ == '__main__':
                     sys.exit(-1)
 
             else:# : in source
-                index = 0
-                cat = ''
-                if source[0:3].upper() == 'SH2':
-                    cat = 'SH2'
-                    index = 4
-                elif source[0:2].upper() == '3C':
-                    cat = '3C'
-                    index = 2
+                showing_dso, cat, name = used_catalogs.lookup_dso(source)
+                if showing_dso:
+                    ra = showing_dso.ra
+                    dec = showing_dso.dec
                 else:
-                    for i in range(len(source)):
-                        ch = source[i]
-                        if ch.isalpha():
-                            cat += ch
-                        else:
-                            index = i
-                            break
-                    if cat.upper() == 'N' or cat == '' or cat.upper=='NGC':
-                        cat = 'NGC'
-
-                    if cat.upper() == 'I' or cat.upper() == 'IC':
-                        cat = 'IC'
-
-                name = source[index:].upper().rstrip().lstrip()
-                if cat == 'NGC' and name == '3690':
-                    name = '3690A'
-
-                # determine ra, dec of fieldcentre
-                ra = -1.0
-                dec = 0.0
-                if cat.upper() != 'M':
-                    for niobj in used_catalogs.deeplist:
-                        if niobj.cat.upper() == cat.upper():
-                            if name.upper() in niobj.all_names:
-                                ra = niobj.ra
-                                dec = niobj.dec
-                                cat = niobj.cat
-                                showing_dso = niobj
-                                break
-                else:
-                    cat = 'M'
-                    for mobj in used_catalogs.messierlist:
-                        if mobj.messier == int(name):
-                            ra = mobj.ra
-                            dec = mobj.dec
-                            name = str(mobj.messier)
-                            showing_dso = mobj
-                            break
+                    ra = 1
+                    dec = 0
 
             print('')
             print(cat, name)
@@ -405,7 +356,7 @@ if __name__ == '__main__':
                 engine = SkymapEngine(artist, settings.language,
                                   lm_stars = settings.parser.limiting_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration())
-                engine.set_field(ra, dec, settings.parser.fieldsize*pi/180.0/2.0)
+                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
                 caption = cat + ' ' + name
 
                 if settings.parser.caption != False:
@@ -413,10 +364,10 @@ if __name__ == '__main__':
                 if caption != '':
                     engine.set_caption(caption)
 
-                if showing_dso.master_object:
-                    showing_dso = showing_dso.master_object
-                used_catalogs.deepskycatalog.add_dso(showing_dso)
                 if showing_dso:
+                    if showing_dso.master_object:
+                        showing_dso = showing_dso.master_object
+                    used_catalogs.deepskycatalog.add_dso(showing_dso)
                     engine.set_active_constellation(showing_dso.constellation)
 
                 print("Started in : " + str(time()-tm) + "ms")

@@ -1,5 +1,5 @@
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005  Michiel Brentjens
+#    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
 __doc__ = """
 The modules saguaro and revngc are meant for the import of deepsky data
 
@@ -25,22 +26,19 @@ from GraphicsInterface.
 astrocalc provides coordinate conversions etc.
 """
 
-
-# import astrocalc
-# import deepsky
-# import deepsky_object
-# import deepsky_catalog
-# import eps
-# import graphics_interface
-# import pdf
-# import revngc
-# import saguaro
-# import skymap_engine
-# import star_catalog
 import os
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
-
 def get_data(path):
     return os.path.join(_ROOT, 'data', path)
+
+def get_catalogs_dir():
+    return os.path.join(get_data('catalogs'))
+
+from fchart3.skymap_engine import *
+from fchart3.configuration import *
+from fchart3.used_catalogs import *
+from fchart3.cairo import *
+from fchart3.graphics_interface import *
+

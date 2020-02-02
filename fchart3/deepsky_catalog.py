@@ -154,3 +154,5 @@ class DeepskyCatalog:
             s.write(str(obj)+'\n')
         return s.getvalue()[:-1]
 
+
+__all__ = ['DeepskyCatalog']

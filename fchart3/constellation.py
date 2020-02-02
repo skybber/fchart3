@@ -147,3 +147,6 @@ def import_constellation(filename, boundaries_filename, const_catalog):
             cons_map[cons].boundaries.append((ra, dec, cons2))
 
     return constellation_list
+
+
+__all__ = ['BscStar' , 'Constellation', 'ConstellationCatalog', 'import_bsc5', 'import_constellation']
