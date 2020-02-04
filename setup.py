@@ -26,7 +26,7 @@ else:
 
 if have_numpy:
     include_dirs += ['fchart3/htm','fchart3/htm/htm_src','fchart3/htm/include']
-    htm_sources = glob('fchart3/htm/htm_src/*') + glob('fchart3/htm/include/*')
+    htm_sources = glob('fchart3/htm/htm_src/*.cpp')
     htm_sources += ['fchart3/htm/htmc.cc','fchart3/htm/htmc_wrap.cc']
     htm_module = Extension('fchart3.htm._htmc',
                            extra_compile_args=extra_compile_args,
