@@ -11,7 +11,7 @@ Download this project and
 
 `python setup.py install`
 
-[Read the original README](README)
+Run: `fchart3 --help` to show commandline options.
 
 The original source of this code can be found here:
 * https://www.astro.rug.nl/~brentjen/fchart.html

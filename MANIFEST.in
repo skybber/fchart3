@@ -1,0 +1,7 @@
+include README.md
+include README
+include *.txt
+include *.dat
+recursive-include fchart3 *
+global-exclude *.pyo
+global-exclude *.pyc

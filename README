@@ -1,7 +1,11 @@
+This is original README, it is obsolete now.
+
+
+
 Installation
 ------------
 
-* Make sure you have the numarray library installed
+* Make sure you have the numpy library installed
   (http://www.stsci.edu/resources/software_hardware/numarray)
 
 * Execute the setup.py script and read the help:

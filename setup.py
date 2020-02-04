@@ -31,14 +31,15 @@ if have_numpy:
     htm_module = Extension('fchart3.htm._htmc',
                            extra_compile_args=extra_compile_args,
                            extra_link_args=extra_link_args,
-                           sources=htm_sources)
+                           sources=htm_sources,
+                           include_dirs=include_dirs)
 
     ext_modules.append(htm_module)
     packages.append('fchart3.htm')
 
 setup(
     name='fchart3',
-    version='0.5',
+    version='0.5.1',
     description='Collection of Python scripts to make beautiful deepsky finder charts in various formats',
     keywords='fchart3 starchart star charts finder chart astronomy map',
     url='https://github.com/skybber/fchart3',
@@ -47,7 +48,7 @@ setup(
     license='GPLv2',
     packages=packages,
     include_package_data=True,
-    install_requires=['numpy'],
+    install_requires=['numpy', 'pycairo'],
     scripts=['bin/fchart3'],
     package_data={'fchart3': ['data/catalogs/index.dat',
                 'data/catalogs/revngc.txt',
