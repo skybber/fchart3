@@ -25,7 +25,6 @@ import textwrap
 from time import time
 
 # Standard python modules
-import string
 import os
 import sys
 import stat
@@ -33,6 +32,7 @@ import numpy as np
 
 import fchart3
 
+from fchart3.astrocalc import hms2rad, dms2rad
 from fchart3.skymap_engine import SkymapEngine, EN, NL
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
@@ -325,7 +325,7 @@ if __name__ == '__main__':
                         decs = float(decsplit[2])
                     ra, dec = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
                     cat = ''
-                    name = string.join(data[2:], ',')
+                    name = ','.join(data[2:])
                     filename = settings.parser.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
                 else:
                     print('Position specification needs three part argument, separated by comma\'s: "ra,dec,caption"')
