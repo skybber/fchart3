@@ -29,9 +29,15 @@ dso_type_map = {
     'STARS': STARS,
     'QUASR': QSO,
     'GALCL': GALCL,
+    '2STAR': STARS,
+    'ASTER': STARS,
 }
 
-extra_catalogs = ['vdB-Ha']
+extra_catalogs1 = {'Cannon', 'Haro', 'He', 'Hoffleit', 'Hu', 'K', 'Merrill', 'PK', 'Peimbert', 'Perek', 'Vy'}
+
+extra_catalogs2 = ['vdB-Ha' ]
+
+used_catalog = {}
 
 def parse_catalog_name(name):
     i = 0
@@ -42,12 +48,16 @@ def parse_catalog_name(name):
         i += 1
     else:
         return None, name
+
+    if name[:i] in extra_catalogs1:
+        return name[:i],name[i:]
+
     if name[i].isdigit():
         if i < name_len - 1:
-            if name[i+1] in ('-'):
+            if name[i+1] == '-':
                 i += 2
     if not name[i].isdigit():
-        for prefix in extra_catalogs:
+        for prefix in extra_catalogs2:
             if name.startswith(prefix):
                 return name[:len(prefix)],name[len(prefix):]
         # print('Unknown {}'.format(name))
@@ -66,18 +76,18 @@ def _parse_hnsky_line(line):
 
     names = items[3].split('/')
 
-    if not object.mag:
-        print(items[3])
-
     has_cat = False
     for n in names:
         cat, name = parse_catalog_name(n)
         if cat:
+            if not cat in used_catalog:
+                used_catalog[cat] = 0
             if not has_cat:
                 object.cat = cat
                 object.name = name
                 has_cat = True
-            if cat == 'M':
+                used_catalog[cat] = used_catalog[cat] + 1
+            if cat == 'M' and name.isdigit():
                 object.messier = int(name)
 
     # if len(names) > 1:
@@ -85,7 +95,17 @@ def _parse_hnsky_line(line):
 
     types = items[4].split('/')
 
-    object.type = dso_type_map.get(types[0], UNKNOWN)
+    type = types[0].strip()
+    indx = types[0].find('[')
+    if indx == -1:
+        indx = types[0].find(';')
+    if indx>0:
+        type = type[:indx]
+
+    object.type = dso_type_map.get(type, UNKNOWN)
+
+    # if object.type == UNKNOWN:
+    #    print(line)
 
     str_length = items[6].strip() if len(items) > 6 else None
 
@@ -140,4 +160,3 @@ if __name__=='__main__':
     print(len(dso_list_single))
 
     deeplist = dso_list_single
-
