@@ -28,14 +28,16 @@ This repository also contains following catalogs in the data/catalogs directory:
 - `bsc5.dat` catalogue of [bright stars](http://tdc-www.harvard.edu/catalogs/bsc5.html)
 - `constbnd.dat` [Catalogue of Constellation Boundary Data](http://cdsarc.u-strasbg.fr/viz-bin/Cat?VI/49#sRM2.2)
 - `ConstellationLines.dat` - constellation lines from [bsc](http://tdc-www.harvard.edu/catalogs/bsc5.html)
+- `deep_sky.hnd` - catalog of deepsky objects from Hnsky created by Han Kleijn (https://www.hnsky.org/software.htm)
 - `deepstars.dat` - tycho2 catalog from [kstars](https://edu.kde.org/kstars/)
 - `namedstars.dat` - catalog of named stars from [kstars](https://edu.kde.org/kstars/)
-- `revic.dat` - [Revised IC Catalogue](http://www.klima-luft.de/steinicke/ngcic/rev2000/Explan.htm)
-- `revngc.txt` - [Revised New General Catalogue](http://www.klima-luft.de/steinicke/ngcic/rev2000/Explan.htm)
-- `sac.txt` - [Saguaro Astronomy Club Database](https://www.saguaroastro.org/sac-downloads/)
 - `starnames.dat` - star names from [kstars](https://edu.kde.org/kstars/)
 - `unamedstars.dat` - catalog of unamed stars from [kstars](https://edu.kde.org/kstars/)
 
+DSO catalogs replaced now by catalog from hnsky:
+- `revic.dat` - [Revised IC Catalogue](http://www.klima-luft.de/steinicke/ngcic/rev2000/Explan.htm)
+- `revngc.txt` - [Revised New General Catalogue](http://www.klima-luft.de/steinicke/ngcic/rev2000/Explan.htm)
+- `sac.txt` - [Saguaro Astronomy Club Database](https://www.saguaroastro.org/sac-downloads/)
 
 Authors
 =======
