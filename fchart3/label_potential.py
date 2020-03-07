@@ -65,4 +65,3 @@ class LabelPotential:
         return value
 
 
-__all__ = ['LabelPotential']

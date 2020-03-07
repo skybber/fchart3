@@ -123,8 +123,8 @@ class SkymapEngine:
         """
         self.fieldcentre         = (ra,dec)
         self.fieldradius         = fieldradius
-        self.fieldsize           = sqrt(2.0) * fieldradius
-        self.drawingscale        = BASE_SCALE * self.drawingwidth/2.0/sin(fieldradius)
+        self.fieldsize           = np.sqrt(2.0) * fieldradius
+        self.drawingscale        = BASE_SCALE * self.drawingwidth/2.0/np.sin(fieldradius)
         self.legend_fontscale    = self.drawingwidth/100.0
 
         self.set_caption(self.caption)
@@ -135,7 +135,7 @@ class SkymapEngine:
 
 
     def get_field_radius_mm(self):
-        return self.drawingscale * sin(self.fieldradius)
+        return self.drawingscale * np.sin(self.fieldradius)
 
 
     def set_language(self, language):
@@ -787,8 +787,8 @@ class SkymapEngine:
         fh = self.graphics.gi_fontsize
         label_pos_list = []
 
-        sp = sin(p)
-        cp = cos(p)
+        sp = np.sin(p)
+        cp = np.cos(p)
 
         hl = label_length/2.0
 
@@ -834,17 +834,17 @@ class SkymapEngine:
         if label != '':
             arg = 1.0-2*fh/(3.0*r)
             if arg < 1.0 and arg > -1.0:
-                a = arccos(arg)
+                a = np.arccos(arg)
             else:
                 a = 0.5*np.pi
             if labelpos == 0 or labelpos == -1:
-                self.mirroring_graphics.text_right(x+sin(a)*r+fh/6.0, y-r, label)
+                self.mirroring_graphics.text_right(x+np.sin(a)*r+fh/6.0, y-r, label)
             elif labelpos == 1:
-                self.mirroring_graphics.text_left(x-sin(a)*r-fh/6.0, y-r, label)
+                self.mirroring_graphics.text_left(x-np.sin(a)*r-fh/6.0, y-r, label)
             elif labelpos == 2:
-                self.mirroring_graphics.text_right(x+sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
+                self.mirroring_graphics.text_right(x+np.sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
             elif labelpos == 3:
-                self.mirroring_graphics.text_left(x-sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
+                self.mirroring_graphics.text_left(x-np.sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
 
 
     def circular_object_labelpos(self, x, y, radius=-1.0, label_length=0.0):
@@ -854,22 +854,22 @@ class SkymapEngine:
             r = self.drawingwidth/40.0
         arg = 1.0-2*fh/(3.0*r)
         if arg < 1.0 and arg > -1.0:
-            a = arccos(arg)
+            a = np.arccos(arg)
         else:
             a = 0.5*np.pi
 
         label_pos_list = []
-        xs = x+sin(a)*r+fh/6.0
+        xs = x+np.sin(a)*r+fh/6.0
         ys = y-r+fh/3.0
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
-        xs = x-sin(a)*r-fh/6.0 - label_length
+        xs = x-np.sin(a)*r-fh/6.0 - label_length
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
 
-        xs = x+sin(a)*r+fh/6.0
+        xs = x+np.sin(a)*r+fh/6.0
         ys = y+r-fh/3.0
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
 
-        xs = x+sin(a)*r+fh/6.0
+        xs = x+np.sin(a)*r+fh/6.0
         ys = y+r-fh/3.0
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
         return label_pos_list
@@ -1040,4 +1040,3 @@ if __name__ == '__main__':
     sm.make_map(stars)
     cairo.close()
 
-__all__ = ['EN', 'NL', 'SkymapEngine']

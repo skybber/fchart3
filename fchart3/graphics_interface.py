@@ -325,5 +325,3 @@ class GraphicsInterface:
         """
         self.gi_night_mode = True
 
-
-__all__=['INCH', 'DPI', 'DPMM', 'POINT', 'GraphicsInterface', 'paper_A']

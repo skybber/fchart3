@@ -15,11 +15,12 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from fchart3.deepsky_object import *
 import numpy as np
 import sys
 import string
 import copy
+
+from .deepsky_object import *
 
 def parse_catalog_name(cnstr, ignore_err):
     if cnstr.startswith('Sh2-'):

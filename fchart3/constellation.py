@@ -148,5 +148,3 @@ def import_constellation(filename, boundaries_filename, const_catalog):
 
     return constellation_list
 
-
-__all__ = ['BscStar' , 'Constellation', 'ConstellationCatalog', 'import_bsc5', 'import_constellation']

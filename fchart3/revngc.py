@@ -17,7 +17,7 @@
 
 from numpy import *
 
-from fchart3 import deepsky_object as deepsky
+from . import deepsky_object as deepsky
 
 def _parse_rev_ngcic_line(line, catalog='NGC'):
     object = deepsky.DeepskyObject()
@@ -151,5 +151,3 @@ if __name__=='__main__':
     print(len(mlist))
     print(sort(mnumbers))
 
-
-__all__ = ['import_revised_ngcic']

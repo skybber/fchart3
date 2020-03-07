@@ -24,8 +24,12 @@ from .deepsky_object import *
 from .saguaro import *
 from .vic import *
 from .revngc import *
+from .hnsky_deepsky import *
 from .astrocalc import *
 
+def get_hnsky_deepsky_list(data_dir=os.path.join(fchart3.get_catalogs_dir())):
+    deeplist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'))
+    return deeplist
 
 def get_deepsky_list(data_dir=os.path.join(fchart3.get_catalogs_dir())):
     deeplist = []
@@ -115,7 +119,3 @@ def get_deepsky_catalog(data_dir=os.path.join(fchart3.get_catalogs_dir())):
     dc = DeepskyCatalog(l)
     return dc
 
-
-import fchart3.deepsky_object
-
-__all__=['get_deepsky_list', 'get_deepsky_catalog', 'DeepskyCatalog']+fchart3.deepsky_object.__all__

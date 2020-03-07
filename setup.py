@@ -64,6 +64,7 @@ setup(
                 'data/catalogs/unnamedstars.dat',
                 'data/catalogs/deepstars.dat',
                 'data/label_positions.txt',
+                'data/deep_sky.hnd',
                 ]},
     ext_modules=ext_modules,
     include_dirs=include_dirs,
