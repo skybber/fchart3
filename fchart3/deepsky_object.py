@@ -92,6 +92,7 @@ class DeepskyObject:
         self.cat    = catalog.upper().rstrip().lstrip()
         self.name = ''
         self.all_names = []
+        self.synonyms = []
         self.component = 0
         self.type   = UNKNOWN
         self.constellation=''

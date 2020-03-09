@@ -14,12 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
 import os
 
 from .constellation import ConstellationCatalog
 from .composite_star_catalog import CompositeStarCatalog
-from .deepsky import get_deepsky_list
+from .deepsky import get_deepsky_list, get_hnsky_deepsky_list
 from .deepsky_catalog import DeepskyCatalog
 from . import deepsky_object as deepsky
 
@@ -27,7 +26,7 @@ class UsedCatalogs:
     def __init__(self, data_dir, usno_nomad_file, limiting_magnitude_deepsky, force_messier, force_asterisms, force_unknown):
         # Read basic catalogs
         self._starcatalog    = CompositeStarCatalog(data_dir, usno_nomad=usno_nomad_file)
-        self._deeplist = get_deepsky_list(data_dir)
+        self._deeplist = get_hnsky_deepsky_list(data_dir)
         self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'ConstellationLines.dat',
                                                data_dir+os.sep + 'constbnd.dat')
@@ -80,8 +79,8 @@ class UsedCatalogs:
     def lookup_dso(self, dso_name):
         index = 0
         cat = ''
-        if dso_name[0:3].upper() == 'SH2':
-            cat = 'SH2'
+        if dso_name[0:3] == 'Sh2':
+            cat = 'Sh2'
             index = 4
         elif dso_name[0:2].upper() == '3C':
             cat = '3C'
@@ -101,20 +100,28 @@ class UsedCatalogs:
                 cat = 'IC'
 
         name = dso_name[index:].upper().rstrip().lstrip()
-        if cat == 'NGC' and name == '3690':
-            name = '3690A'
 
         # determine ra, dec of fieldcentre
         found_dso = None
-        if cat.upper() != 'M':
+        cat_upper = cat.upper()
+        if cat_upper != 'M':
             for dso in self.deeplist:
-                if dso.cat.upper() == cat.upper():
+                if dso.cat.upper() == cat_upper:
                     if name.upper() in dso.all_names:
                         ra = dso.ra
                         dec = dso.dec
                         cat = dso.cat
                         found_dso = dso
                         break
+                for syn_dso in dso.synonyms:
+                    if syn_dso[0].upper() == cat_upper and name.upper() == syn_dso[1]:
+                        ra = dso.ra
+                        dec = dso.dec
+                        cat = dso.cat
+                        found_dso = dso
+                        break
+                if found_dso:
+                    break
         else:
             cat = 'M'
             for mdso in self.messierlist:

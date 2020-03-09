@@ -23,12 +23,12 @@ from .deepsky_object import *
 from .astrocalc import *
 
 class DeepskyCatalog:
-    def __init__(self, deepsky_list=[], force_messier = False, reject_doubles=False):
+    def __init__(self, deepsky_list=[], force_messier = False):
         self.deepsky_list = []
         self.names = []
         self.force_messier = force_messier
         self.showing_dsos = set()
-        self.add_objects(deepsky_list, reject_doubles)
+        self.add_objects(deepsky_list)
 
 
     def add_showing_dso(self, dso):
@@ -39,7 +39,7 @@ class DeepskyCatalog:
         self.showing_dsos.clear()
 
 
-    def add_objects(self, objects, reject_doubles=False):
+    def add_objects(self, objects):
         # Sort
         deepsky_list = []
         if type(objects) != type([]):
@@ -47,48 +47,9 @@ class DeepskyCatalog:
         else:
             deepsky_list = list(objects)
 
-        if reject_doubles:
-            # Reject doubles
-            deepsky_list.sort(cmp_name)
-
-            for obj in deepsky_list:
-                name = obj.cat.upper() + ' ' + obj.name.upper()
-                n = obj.name
-                if len(self.names) == 0:
-                    self.deepsky_list.append(obj)
-                    self.names.append(name)
-                else:
-                    ra = obj.ra
-                    dec = obj.dec
-                    include = True
-                    ang_dist = angular_distance
-
-                    old_list = list(self.deepsky_list)
-                    old_list.reverse()
-                    for old in old_list:
-                        if obj.name in old.all_names:
-                            old.all_names.append(obj.name)
-                            include = False
-                            break
-
-                    if include:
-                        self.deepsky_list.append(obj)
-                        self.names.append(name)
-
-            for obj in self.deepsky_list:
-                name = obj.name
-                count = 1
-                all_names = obj.all_names
-                for n in all_names:
-                    c = all_names.count(n)
-                    if c > count:
-                        count = c
-                        name = n
-                obj.name = name
-        else: # Do not reject doubles
-            for obj in deepsky_list:
-                self.deepsky_list.append(obj)
-                self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
+        for obj in deepsky_list:
+            self.deepsky_list.append(obj)
+            self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
 
 
     def add_dso(self, obj):
@@ -132,7 +93,7 @@ class DeepskyCatalog:
             if obj.mag <= lm_deepsky or (obj.messier > 0 and self.force_messier) or obj in self.showing_dsos:
                 selection.append(obj)
 
-        return DeepskyCatalog(selection, reject_doubles=False)
+        return DeepskyCatalog(selection)
 
 
     def select_type(self, typelist=[]):
@@ -143,13 +104,13 @@ class DeepskyCatalog:
             for obj in self.deepsky_list:
                 if obj.type in typelist:
                     selection.append(obj)
-        return DeepskyCatalog(selection, reject_doubles=False)
+        return DeepskyCatalog(selection)
 
 
     def sort(self,cmp_func=cmp_ra):
         lst = list(self.deepsky_list)
         lst.sort(cmp_func)
-        return DeepskyCatalog(lst, reject_doubles=False)
+        return DeepskyCatalog(lst)
 
 
     def __str__(self):

@@ -33,37 +33,35 @@ dso_type_map = {
     'ASTER': STARS,
 }
 
-extra_catalogs1 = {'Cannon', 'Haro', 'He', 'Hoffleit', 'Hu', 'K', 'Merrill', 'PK', 'Peimbert', 'Perek', 'Vy'}
+CATALOG_SPECS0 = { 'Sh2' }
+CATALOGS_SPEC2 = ['vdB-Ha' ]
 
-extra_catalogs2 = ['vdB-Ha' ]
-
-used_catalog = {}
-
-def parse_catalog_name(name):
+def parse_catalog_name(dso_name):
     i = 0
-    name_len = len(name)
+    name_len = len(dso_name)
     while i < name_len:
-        if not name[i].isalpha():
+        if not dso_name[i].isalpha():
             break
         i += 1
     else:
-        return None, name
+        return None, dso_name
 
-    if name[:i] in extra_catalogs1:
-        return name[:i],name[i:]
-
-    if name[i].isdigit():
+    if dso_name[i].isdigit():
         if i < name_len - 1:
-            if name[i+1] == '-':
-                i += 2
-    if not name[i].isdigit():
-        for prefix in extra_catalogs2:
-            if name.startswith(prefix):
-                return name[:len(prefix)],name[len(prefix):]
-        # print('Unknown {}'.format(name))
-        return None, name
-    return name[:i], name[i:]
-
+            if dso_name[i+1] == '-' or dso_name[i+1] == '_':
+                if i ==1 and dso_name[0] == 'M': # special handling for minkowski
+                    return 'Mi', dso_name[1:]
+                for prefix in CATALOG_SPECS0:
+                    if dso_name.startswith(prefix):
+                        return dso_name[:len(prefix)],dso_name[len(prefix):]
+                return dso_name[:i],dso_name[i:]
+    if not dso_name[i].isdigit():
+        for prefix in CATALOGS_SPEC2:
+            if dso_name.startswith(prefix):
+                return dso_name[:len(prefix)],dso_name[len(prefix):]
+        # print('Unknown {}'.format(dso_name))
+        return None, dso_name
+    return dso_name[:i], dso_name[i:]
 
 def _parse_hnsky_line(line):
     object = DeepskyObject()
@@ -72,7 +70,8 @@ def _parse_hnsky_line(line):
     object.ra = 2.0 * np.pi * float(items[0])/864000.0
     object.dec = np.pi * float(items[1])/(324000.0 * 2.0)
     str_mag = items[2].strip()
-    object.mag = float(items[2])/10.0 if str_mag else 100.0
+    if str_mag:
+        object.mag = float(str_mag)/10.0
 
     names = items[3].split('/')
 
@@ -80,32 +79,27 @@ def _parse_hnsky_line(line):
     for n in names:
         cat, name = parse_catalog_name(n)
         if cat:
-            if not cat in used_catalog:
-                used_catalog[cat] = 0
             if not has_cat:
                 object.cat = cat
                 object.name = name
+                object.all_names = [name]
                 has_cat = True
-                used_catalog[cat] = used_catalog[cat] + 1
+            else:
+                object.synonyms.append((cat, name))
+
             if cat == 'M' and name.isdigit():
                 object.messier = int(name)
 
-    # if len(names) > 1:
-    #    object.all_names.extend(names)
-
     types = items[4].split('/')
 
-    type = types[0].strip()
-    indx = types[0].find('[')
+    obj_type = types[0].strip()
+    indx = obj_type.find('[')
     if indx == -1:
-        indx = types[0].find(';')
-    if indx>0:
-        type = type[:indx]
+        indx = obj_type.find(';')
+    if indx > 0:
+        obj_type = obj_type[:indx]
 
-    object.type = dso_type_map.get(type, UNKNOWN)
-
-    # if object.type == UNKNOWN:
-    #    print(line)
+    object.type = dso_type_map.get(obj_type, UNKNOWN)
 
     str_length = items[6].strip() if len(items) > 6 else None
 
@@ -142,20 +136,16 @@ def import_hnsky_deepsky(filename):# or 'IC'
     lines   = hnd_file.readlines()[2:]
     hnd_file.close()
 
-    dso_list_single = []
-    dso_list_multiple = []
-
+    dso_list = []
     for line in lines:
-        dso = _parse_hnsky_line(line)
+        dso_list.append(_parse_hnsky_line(line))
 
-        dso_list_single.append(dso)
-
-    return dso_list_single, dso_list_multiple
+    return dso_list
 
 if __name__=='__main__':
     print(__file__)
 
-    dso_list_single, dso_list_multiple = import_hnsky_deepsky('data/catalogs/deep_sky.hnd')
+    dso_list_single = import_hnsky_deepsky('data/catalogs/deep_sky.hnd')
 
     print(len(dso_list_single))
 
