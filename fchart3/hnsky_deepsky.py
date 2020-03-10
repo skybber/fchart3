@@ -63,7 +63,7 @@ def parse_catalog_name(dso_name):
         return None, dso_name
     return dso_name[:i], dso_name[i:]
 
-def _parse_hnsky_line(line):
+def _parse_hnsky_line(line, disabled_catalogs):
     object = DeepskyObject()
     items = line.split(',')
 
@@ -78,7 +78,7 @@ def _parse_hnsky_line(line):
     has_cat = False
     for n in names:
         cat, name = parse_catalog_name(n)
-        if cat:
+        if cat and not cat in disabled_catalogs:
             if not has_cat:
                 object.cat = cat
                 object.name = name
@@ -127,7 +127,7 @@ def _parse_hnsky_line(line):
 
     return object
 
-def import_hnsky_deepsky(filename):# or 'IC'
+def import_hnsky_deepsky(filename, disabled_catalogs):# or 'IC'
     """
     Reads data from HNKSKY's deep_sky.hnd. Returns a list
     of DeepskyObjects()
@@ -137,8 +137,10 @@ def import_hnsky_deepsky(filename):# or 'IC'
     hnd_file.close()
 
     dso_list = []
+    if not disabled_catalogs:
+        disabled_catalogs = []
     for line in lines:
-        dso_list.append(_parse_hnsky_line(line))
+        dso_list.append(_parse_hnsky_line(line, disabled_catalogs))
 
     return dso_list
 

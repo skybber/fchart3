@@ -27,9 +27,9 @@ from .revngc import *
 from .hnsky_deepsky import *
 from .astrocalc import *
 
-def get_hnsky_deepsky_list(data_dir=os.path.join(fchart3.get_catalogs_dir())):
+def get_hnsky_deepsky_list(data_dir=os.path.join(fchart3.get_catalogs_dir()), disabled_catalogs=None):
     print('Reading Hnsky...')
-    hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'))
+    hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), disabled_catalogs)
     print('Reading VIC...')
     viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
     deeplist = hnskylist + viclist
