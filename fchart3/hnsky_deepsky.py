@@ -33,8 +33,9 @@ dso_type_map = {
     'ASTER': STARS,
 }
 
-CATALOG_SPECS0 = { 'Sh2' }
+CATALOG_SPECS0 = { 'Sh2-' }
 CATALOGS_SPEC2 = ['vdB-Ha' ]
+DEFAULT_SHOWING_CATALOGUES = ['M', 'NGC', 'IC', 'Abell', 'HCG', 'Cr', 'PK', 'Stock', 'UGC', 'Mel', 'PGC', 'PNG']
 
 def parse_catalog_name(dso_name):
     i = 0
@@ -53,7 +54,7 @@ def parse_catalog_name(dso_name):
                     return 'Mi', dso_name[1:]
                 for prefix in CATALOG_SPECS0:
                     if dso_name.startswith(prefix):
-                        return dso_name[:len(prefix)],dso_name[len(prefix):]
+                        return dso_name[:len(prefix)-1],dso_name[len(prefix):]
                 return dso_name[:i],dso_name[i:]
     if not dso_name[i].isdigit():
         for prefix in CATALOGS_SPEC2:
@@ -63,7 +64,7 @@ def parse_catalog_name(dso_name):
         return None, dso_name
     return dso_name[:i], dso_name[i:]
 
-def _parse_hnsky_line(line, disabled_catalogs):
+def _parse_hnsky_line(line, show_catalogs):
     object = DeepskyObject()
     items = line.split(',')
 
@@ -78,7 +79,7 @@ def _parse_hnsky_line(line, disabled_catalogs):
     has_cat = False
     for n in names:
         cat, name = parse_catalog_name(n)
-        if cat and not cat in disabled_catalogs:
+        if cat and cat in show_catalogs:
             if not has_cat:
                 object.cat = cat
                 object.name = name
@@ -89,6 +90,9 @@ def _parse_hnsky_line(line, disabled_catalogs):
 
             if cat == 'M' and name.isdigit():
                 object.messier = int(name)
+
+    if not has_cat:
+        object.visible = False
 
     types = items[4].split('/')
 
@@ -127,7 +131,7 @@ def _parse_hnsky_line(line, disabled_catalogs):
 
     return object
 
-def import_hnsky_deepsky(filename, disabled_catalogs):# or 'IC'
+def import_hnsky_deepsky(filename, show_catalogs):# or 'IC'
     """
     Reads data from HNKSKY's deep_sky.hnd. Returns a list
     of DeepskyObjects()
@@ -136,11 +140,16 @@ def import_hnsky_deepsky(filename, disabled_catalogs):# or 'IC'
     lines   = hnd_file.readlines()[2:]
     hnd_file.close()
 
+    all_show_catalogs = set()
+    all_show_catalogs.update(DEFAULT_SHOWING_CATALOGUES)
+    if show_catalogs:
+        all_show_catalogs.update(show_catalogs)
+
     dso_list = []
-    if not disabled_catalogs:
-        disabled_catalogs = []
+    if not show_catalogs:
+        show_catalogs = []
     for line in lines:
-        dso_list.append(_parse_hnsky_line(line, disabled_catalogs))
+        dso_list.append(_parse_hnsky_line(line, all_show_catalogs))
 
     return dso_list
 

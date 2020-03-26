@@ -25,6 +25,7 @@ from .astrocalc import *
 class DeepskyCatalog:
     def __init__(self, deepsky_list=[], force_messier = False):
         self.deepsky_list = []
+        self.visible_deepsky_list = []
         self.names = []
         self.force_messier = force_messier
         self.showing_dsos = set()
@@ -41,14 +42,16 @@ class DeepskyCatalog:
 
     def add_objects(self, objects):
         # Sort
-        deepsky_list = []
-        if type(objects) != type([]):
-            deepsky_list = list([objects])
-        else:
-            deepsky_list = list(objects)
+        # deepsky_list = []
+        #if type(objects) != type([]):
+        #    deepsky_list = list([objects])
+        #else:
+        #    deepsky_list = list(objects)
 
-        for obj in deepsky_list:
+        for obj in objects:
             self.deepsky_list.append(obj)
+            if obj.visible:
+                self.visible_deepsky_list.append(obj)
             self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
 
 
@@ -56,6 +59,8 @@ class DeepskyCatalog:
         if not obj in self.deepsky_list:
             self.deepsky_list.append(obj)
             self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
+            if obj.visible:
+                self.visible_deepsky_list.append(obj)
 
 
     def compute_names(self):
@@ -71,11 +76,11 @@ class DeepskyCatalog:
         fieldcentre is a tuple (ra, dec) in radians. radius is also in
         radians
         """
-        pos_mag_array = np.zeros((len(self.deepsky_list),3),dtype=np.float64)
-        for i in range(len(self.deepsky_list)):
-            pos_mag_array[i,0] = self.deepsky_list[i].ra
-            pos_mag_array[i,1] = self.deepsky_list[i].dec
-            pos_mag_array[i,2] = self.deepsky_list[i].mag
+        pos_mag_array = np.zeros((len(self.visible_deepsky_list),3),dtype=np.float64)
+        for i in range(len(self.visible_deepsky_list)):
+            pos_mag_array[i,0] = self.visible_deepsky_list[i].ra
+            pos_mag_array[i,1] = self.visible_deepsky_list[i].dec
+            pos_mag_array[i,2] = self.visible_deepsky_list[i].mag
 
         ra = pos_mag_array[:,0]
         dec = pos_mag_array[:,1]
@@ -85,7 +90,7 @@ class DeepskyCatalog:
 
         selected_list_pos = []
         for index in indices:
-            selected_list_pos.append(self.deepsky_list[index])
+            selected_list_pos.append(self.visible_deepsky_list[index])
 
         # select on magnitude
         selection = []

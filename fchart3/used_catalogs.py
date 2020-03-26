@@ -23,10 +23,10 @@ from .deepsky_catalog import DeepskyCatalog
 from . import deepsky_object as deepsky
 
 class UsedCatalogs:
-    def __init__(self, data_dir, usno_nomad_file, limiting_magnitude_deepsky=10.0, force_messier=False, force_asterisms=False, force_unknown=False, disabled_catalogs=None):
+    def __init__(self, data_dir, usno_nomad_file, limiting_magnitude_deepsky=10.0, force_messier=False, force_asterisms=False, force_unknown=False, show_catalogs=None):
         # Read basic catalogs
         self._starcatalog    = CompositeStarCatalog(data_dir, usno_nomad=usno_nomad_file)
-        self._deeplist = get_hnsky_deepsky_list(data_dir, disabled_catalogs)
+        self._deeplist = get_hnsky_deepsky_list(data_dir, show_catalogs)
         self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'ConstellationLines.dat',
                                                data_dir+os.sep + 'constbnd.dat')

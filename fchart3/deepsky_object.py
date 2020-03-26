@@ -62,6 +62,7 @@ class DeepskyObject:
         - name           primary name of object in that catalog ('891',
                          '3683A',...)
         - all_names      all names of the object in this catalog.
+        - synonyms       all object synonyms
         - component      number of component if source consists of multiple
                          components (default: 0)
         - type           integer indicating the type of the object. There
@@ -88,6 +89,7 @@ class DeepskyObject:
         - position_angle position angle (N through E) in radians
                          (default: 0.5np.pi)
         - messier        number in messier list (default: -1)
+        - visible        True if object is visible on the map
         """
         self.cat    = catalog.upper().rstrip().lstrip()
         self.name = ''
@@ -104,6 +106,7 @@ class DeepskyObject:
         self.position_angle=90.0*np.pi/180.0
         self.messier=-1
         self.master_object = None
+        self.visible = True
 
 
     def __str__(self):
