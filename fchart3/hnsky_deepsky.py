@@ -47,10 +47,10 @@ def parse_catalog_name(dso_name):
     else:
         return None, dso_name
 
-    if dso_name[i].isdigit():
+    if dso_name[i].isdigit(): # handle catalog names in format X[0..9][-_]*+
         if i < name_len - 1:
             if dso_name[i+1] == '-' or dso_name[i+1] == '_':
-                if i ==1 and dso_name[0] == 'M': # special handling for minkowski
+                if i==1 and dso_name[0] == 'M': # special handling for minkowski
                     return 'Mi', dso_name[1:]
                 for prefix in CATALOG_SPECS0:
                     if dso_name.startswith(prefix):
@@ -77,9 +77,11 @@ def _parse_hnsky_line(line, show_catalogs):
     names = items[3].split('/')
 
     has_cat = False
+    visible = False
     for n in names:
         cat, name = parse_catalog_name(n)
-        if cat and cat in show_catalogs:
+        if cat:
+            visible =  visible or cat in show_catalogs
             if not has_cat:
                 object.cat = cat
                 object.name = name
@@ -91,8 +93,7 @@ def _parse_hnsky_line(line, show_catalogs):
             if cat == 'M' and name.isdigit():
                 object.messier = int(name)
 
-    if not has_cat:
-        object.visible = False
+    object.visible = visible
 
     types = items[4].split('/')
 
