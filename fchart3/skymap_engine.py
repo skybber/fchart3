@@ -1,4 +1,4 @@
-#    fchart draws beautiful deepsky charts in vector formats
+#    fchart3 draws beautiful deepsky charts in vector formats
 #    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -21,12 +21,15 @@ import numpy as np
 from .label_potential import *
 from .astrocalc import *
 from .constellation import *
-from .widget_mag_scale import *
-from .widget_map_scale import *
 from .mirroring_graphics import *
 from .configuration import *
 from . import deepsky_object as deepsky
 
+from .widget_mag_scale import WidgetMagnitudeScale
+from .widget_map_scale import WidgetMapScale
+from .widget_orientation import WidgetOrientation
+from .widget_coords import WidgetCoords
+from .widget_dso_legend import WidgetDsoLegend
 
 NL = {
     'h':'u',
@@ -178,140 +181,23 @@ class SkymapEngine:
         self.graphics.line(r, -r, -r, -r)
 
 
-    def draw_coordinates(self, x, y, ra, dec):
-        """
-        x,y are coordinates of the lower left corner of the textbox
-        """
-        rah = int(ra*12/np.pi)
-        ram = int((ra*12/np.pi -rah)*60)
-        ras = int(((ra*12/np.pi -rah)*60 - ram)*60+0.5)
-        if ras == 60:
-            ram +=1
-            ras = 0
-        if ram == 60:
-            rah += 1
-            ram = 0
-        if rah == 24:
-            rah = 0
-
-        decsign = '+'
-        if dec < 0.0:
-            decsign = '-'
-        decd= int(abs(dec)*180/np.pi)
-        decm = int((abs(dec)*180/np.pi-decd)*60)
-        decs = int( ((abs(dec)*180/np.pi-decd)*60 -decm)*60 + 0.5)
-
-        if decs == 60:
-            decm += 1
-            decs = 0
-        if decm == 60:
-            decm = 0
-
-        text = str(rah).rjust(2) + self.language['h'] + str(ram) + self.language['m'] + str(ras) + self.language['s'] + \
-             ' ' + decsign + str(decd) + '°' + str(decm) + '\'' + str(decs) + '"'
-
-        self.graphics.text_left(x, y, text)
-
-
     def get_legend_font_size(self):
         return DEFAULT_FONT_SIZE*self.legend_fontscale
 
 
-    def draw_legend(self, w_mag_scale, w_map_scale):
+    def draw_widgets(self):
         # Set the fontsize for the entire legend
         fontsize = self.get_legend_font_size()
         self.graphics.set_font(self.graphics.gi_font, fontsize=fontsize)
 
         r = self.get_field_radius_mm()
 
-        w_mag_scale.draw(self.graphics, -r, -r)
-        w_map_scale.draw(self.graphics, r,-r)
-
-        # Draw border of field-of-view
-        self.draw_field_border()
-
-        # Draw orientation indication
-        dl = 0.02*self.drawingwidth
-        x = -self.get_field_radius_mm() + dl + 0.2*fontsize
-        y =  self.get_field_radius_mm() - dl - fontsize*1.3
-        y_axis_caption = 'S' if self.config.mirror_y else 'N'
-        self.graphics.text_centred(x, y + dl + 0.65*fontsize, y_axis_caption)
-        x_axis_caption = 'E' if self.config.mirror_x else 'W'
-        self.graphics.text_right(x+dl+fontsize/6.0, y-fontsize/3.0, x_axis_caption)
-
-        self.graphics.line(x-dl, y, x+dl,y)
-        self.graphics.line(x,y-dl, x,y+dl)
-
-        # Draw coordinates of fieldcentre
-        self.draw_coordinates(x=r-fontsize/2,
-                              y=r-fontsize,
-                              ra=self.fieldcentre[0],
-                              dec=self.fieldcentre[1])
-
-    def draw_dso_legend(self):
-        fh = self.graphics.gi_fontsize
-        # Draw list of symbols
-        legendx  = 0.48*self.drawingwidth
-        legendy  = 0.49*self.drawingwidth
-        legendinc= fh
-
-        r = fh/3.0
-        text_offset = -2.5*r
-
-        toplabels=[('OCL', len(self.language['OCL'])),
-                   ('AST', len(self.language['AST'])),
-                   ('G', len(self.language['G'])),
-                   ('GCL', len(self.language['GCL']))]
-        bottomlabels=[('SNR', len(self.language['SNR'])),
-                      ('N',len(self.language['N'])),
-                      ('PN', len(self.language['PN'])),
-                      ('PG',len(self.language['PG']))]
-
-        def labsort(x,y):
-            r = 0
-            if x[1] < y[1]:
-                r = -1
-            if x[1] > y[1]:
-                r = 1
-            return r
-
-        toplabels.sort(key = deepsky.cmp_to_key(labsort))
-        toplabels.reverse()
-        tl = []
-        for lab in toplabels:
-            tl.append(lab[0])
-
-        bottomlabels.sort(key = deepsky.cmp_to_key(labsort))
-        bottomlabels.reverse()
-        bl = []
-        for lab in bottomlabels:
-            bl.append(lab[0])
-
-        self.open_cluster(legendx, legendy - (tl.index('OCL') + 1)*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('OCL') + 1)*legendinc - fh/3.0, self.language['OCL'])
-
-        self.asterism(legendx, legendy - (tl.index('AST') + 1)*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('AST') + 1)*legendinc - fh/3.0, self.language['AST'])
-
-        self.galaxy(legendx, legendy - (tl.index('G') + 1)*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('G') + 1)*legendinc - fh/3.0, self.language['G'])
-
-        self.globular_cluster(legendx, legendy  - (tl.index('GCL') +1 )*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
-
-        legendy = LEGEND_MARGIN*self.drawingwidth
-
-        self.supernova_remnant(legendx, -legendy + bl.index('SNR')*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])
-
-        self.planetary_nebula(legendx, -legendy + bl.index('PN')*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc -  fh/3.0, self.language['PN'])
-
-        self.diffuse_nebula(legendx, -legendy + bl.index('N')*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, -legendy + bl.index('N')*legendinc - fh/3.0, self.language['N'])
-
-        self.unknown_object(legendx, -legendy + bl.index('PG')*legendinc, r)
-        self.graphics.text_left(legendx + text_offset, -legendy + bl.index('PG')*legendinc - fh/3.0, self.language['PG'])
+        self.w_mag_scale.draw(self.graphics, -r, -r)
+        self.w_map_scale.draw(self.graphics, r,-r)
+        self.w_orientation.draw(self.graphics, -r, r)
+        self.w_coords.draw(self.graphics, left=r-fontsize/2, bottom=r-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1])
+        if self.config.show_dso_legend:
+            self.w_dso_legend.draw_dso_legend(self, self.graphics)
 
 
     def draw_deepsky_objects(self, deepsky_catalog):
@@ -581,6 +467,8 @@ class SkymapEngine:
         else:
             self.mirroring_graphics = self.graphics
 
+        self.create_widgets()
+
         self.graphics.set_invert_colors(self.config.invert_colors)
 
         if not self.config.invert_colors and self.config.night_mode:
@@ -594,22 +482,8 @@ class SkymapEngine:
 
         r = self.get_field_radius_mm()
 
-        w_mag_scale = WidgetMagnitudeScale(self,
-                                          field_radius_mm=r,
-                                          legend_fontsize=self.get_legend_font_size(),
-                                          stars_in_scale=STARS_IN_SCALE,
-                                          lm_stars=self.lm_stars,
-                                          star_border_linewidth=self.config.star_border_linewidth,
-                                          legend_linewidth=self.config.legend_linewidth)
-
-        w_map_scale = WidgetMapScale(drawingwidth=self.drawingwidth,
-                                    drawingscale=self.drawingscale,
-                                    maxlength=self.drawingwidth/3.0,
-                                    legend_fontsize=self.get_legend_font_size(),
-                                    legend_linewidth=self.config.legend_linewidth)
-
-        w_mags_width, w_mags_heigth = w_mag_scale.get_size()
-        w_maps_width, w_maps_height = w_map_scale.get_size()
+        w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
+        w_maps_width, w_maps_height = self.w_map_scale.get_size()
 
         self.graphics.clip_path([(r,r),
                                  (r,-r+w_maps_height),
@@ -634,13 +508,38 @@ class SkymapEngine:
 
         print('Drawing legend')
         self.draw_caption()
+        print('Drawing widgets')
+        self.draw_widgets()
 
-        self.draw_legend(w_mag_scale, w_map_scale)
-        print('Drawing dso legend')
-        if self.config.show_dso_legend:
-            self.draw_dso_legend()
+        # Draw border of field-of-view
+        self.draw_field_border()
 
         self.graphics.finish()
+
+    def create_widgets(self):
+        self.w_mag_scale = WidgetMagnitudeScale(self,
+                                          field_radius_mm=self.get_field_radius_mm(),
+                                          legend_fontsize=self.get_legend_font_size(),
+                                          stars_in_scale=STARS_IN_SCALE,
+                                          lm_stars=self.lm_stars,
+                                          star_border_linewidth=self.config.star_border_linewidth,
+                                          legend_linewidth=self.config.legend_linewidth)
+
+        self.w_map_scale = WidgetMapScale(drawingwidth=self.drawingwidth,
+                                    drawingscale=self.drawingscale,
+                                    maxlength=self.drawingwidth/3.0,
+                                    legend_fontsize=self.get_legend_font_size(),
+                                    legend_linewidth=self.config.legend_linewidth)
+
+        self.w_orientation = WidgetOrientation(drawingwidth=self.drawingwidth,
+                                               legend_fontsize=self.get_legend_font_size(),
+                                               mirror_x=self.config.mirror_x,
+                                               mirror_y=self.config.mirror_y
+                                               )
+
+        self.w_coords = WidgetCoords(self.language)
+
+        self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN)
 
 
     def star(self, x, y, radius, mirroring=True):

@@ -1,4 +1,4 @@
-#    fchart draws beautiful deepsky charts in vector formats
+#    fchart3 draws beautiful deepsky charts in vector formats
 #    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from numpy import *
+import numpy as np
 
 LEGEND_MARGIN = 0.96
 
@@ -43,10 +43,10 @@ class WidgetMagnitudeScale:
         to magnitude -1
         """
         fh = self.legend_fontsize
-        mags_in_scale = int(self.lm_stars) - arange(self.stars_in_scale)
+        mags_in_scale = int(self.lm_stars) - np.arange(self.stars_in_scale)
 
         legendx = -self.margin
-        legendy = -self.margin + arange(self.stars_in_scale)*fh
+        legendy = -self.margin + np.arange(self.stars_in_scale)*fh
 
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
         graphics.set_linewidth(self.star_border_linewidth)

@@ -1,4 +1,4 @@
-#    fchart draws beautiful deepsky charts in vector formats
+#    fchart3 draws beautiful deepsky charts in vector formats
 #    Copyright (C) 2005-2020  Michiel Brentjens
 #
 #    This program is free software; you can redistribute it and/or modify

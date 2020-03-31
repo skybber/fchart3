@@ -1,4 +1,4 @@
-#    fchart draws beautiful deepsky charts in vector formats
+#    fchart3 draws beautiful deepsky charts in vector formats
 #    Copyright (C) 2005-2020 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from numpy import *
+import numpy as np
 
 class WidgetMapScale:
 
@@ -29,10 +29,10 @@ class WidgetMapScale:
 
     def _initialize(self):
         # Determine a suitable scale ruler
-        allowed_ruler = array([1, 5, 10, 30, 60, 120, 300.0]) # arcminutes
+        allowed_ruler = np.array([1, 5, 10, 30, 60, 120, 300.0]) # arcminutes
         allowed_labels = ['1\'', '5\'', '10\'', '30\'', '1°', '2°', '5°']
 
-        ruler_mm = allowed_ruler*pi/(180.0*60.0)*self.drawingscale
+        ruler_mm = allowed_ruler*np.pi/(180.0*60.0)*self.drawingscale
         self.ruler_label = ''
         self.ruler_length = 0.0
 

@@ -222,7 +222,7 @@ def _create_engine_configuration():
     config.constellation_linewidth = settings.parser.constellation_linewidth
     config.star_border_linewidth = settings.parser.star_border_linewidth
     config.open_cluster_linewidth = settings.parser.open_cluster_linewidth
-    config.dso_linewidth = settings.parser.dso/_linewidth
+    config.dso_linewidth = settings.parser.dso_linewidth
     config.legend_linewidth = settings.parser.legend_linewidth
     config.night_mode = settings.parser.night_mode
     return config
