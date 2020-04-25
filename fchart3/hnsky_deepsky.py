@@ -70,9 +70,24 @@ def _parse_hnsky_line(line, show_catalogs):
 
     object.ra = 2.0 * np.pi * float(items[0])/864000.0
     object.dec = np.pi * float(items[1])/(324000.0 * 2.0)
+
+    types = items[4].split('/')
+
+    obj_type = types[0].strip()
+    indx = obj_type.find('[')
+    if indx == -1:
+        indx = obj_type.find(';')
+    if indx > 0:
+        obj_type = obj_type[:indx]
+
+    object.type = dso_type_map.get(obj_type, UNKNOWN)
+
     str_mag = items[2].strip()
+
     if str_mag:
         object.mag = float(str_mag)/10.0
+    elif obj_type in ('PN', 'GX'):
+        object.mag = 15.0
 
     names = items[3].split('/')
 
@@ -94,17 +109,6 @@ def _parse_hnsky_line(line, show_catalogs):
                 object.messier = int(name)
 
     object.visible = visible
-
-    types = items[4].split('/')
-
-    obj_type = types[0].strip()
-    indx = obj_type.find('[')
-    if indx == -1:
-        indx = obj_type.find(';')
-    if indx > 0:
-        obj_type = obj_type[:indx]
-
-    object.type = dso_type_map.get(obj_type, UNKNOWN)
 
     str_length = items[6].strip() if len(items) > 6 else None
 
