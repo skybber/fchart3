@@ -200,10 +200,12 @@ class SkymapEngine:
             self.w_dso_legend.draw_dso_legend(self, self.graphics)
 
 
-    def draw_deepsky_objects(self, deepsky_catalog):
+    def draw_deepsky_objects(self, deepsky_catalog, showing_dso):
         # Draw deep sky
         print('Drawing deepsky...')
-        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky).deepsky_list
+        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
+        if showing_dso and not showing_dso in deepsky_list:
+            deepsky_list.append(showing_dso)
         if len(deepsky_list) == 1:
             print('1 deepsky object in map.')
         else:
@@ -461,7 +463,7 @@ class SkymapEngine:
         return d < np.pi/2.0
 
 
-    def make_map(self, used_catalogs, extra_positions=[]):
+    def make_map(self, used_catalogs, extra_positions=[], showing_dso=None):
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
         else:
@@ -498,7 +500,7 @@ class SkymapEngine:
         if used_catalogs.constellcatalog != None:
             self.draw_constellations(used_catalogs.constellcatalog)
         if used_catalogs.deepskycatalog != None:
-            self.draw_deepsky_objects(used_catalogs.deepskycatalog)
+            self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dso)
         if extra_positions != []:
             self.draw_extra_objects(extra_positions)
         if used_catalogs.starcatalog != None:

@@ -128,6 +128,18 @@ class RuntimeSettings:
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
                                     help='show deepsky object legend.')
 
+        argumentparser.add_argument('--hide-widget-coords', dest='hide_widget_coords', action='store_true',
+                                    help='hide coordinations widget')
+
+        argumentparser.add_argument('--hide-widget-mag-scale', dest='hide_widget_mag_scale', action='store_true',
+                                    help='hide magnitude scale widget')
+
+        argumentparser.add_argument('--hide-widget-scale', dest='hide_widget_scale', action='store_true',
+                                    help='hide scale widget')
+
+        argumentparser.add_argument('--hide-widget-orientation', dest='hide_widget_orientation', action='store_true',
+                                    help='hide orientation widget')
+
         # Transformation
         argumentparser.add_argument('-mx', '--mirror-x', dest='mirror_x', action='store_true',
                                     help='mirror in x axis.')
@@ -216,6 +228,10 @@ class RuntimeSettings:
 def _create_engine_configuration():
     config = EngineConfiguration()
     config.show_dso_legend = settings.parser.show_dso_legend
+    config.hide_widget_coords = settings.parser.hide_widget_coords
+    config.hide_widget_mag_scale = settings.hide_widget_mag_scale
+    config.hide_widget_scale = settings.hide_widget_scale
+    config.hide_widget_orientation = settings.hide_widget_orientation
     config.invert_colors = settings.parser.invert_colors
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
@@ -378,12 +394,10 @@ if __name__ == '__main__':
                 if showing_dso:
                     if showing_dso.master_object:
                         showing_dso = showing_dso.master_object
-                    used_catalogs.deepskycatalog.add_dso(showing_dso)
-                    used_catalogs.deepskycatalog.add_showing_dso(showing_dso)
                     engine.set_active_constellation(showing_dso.constellation)
 
                 print("Started in : " + str(time()-tm) + "ms")
-                engine.make_map(used_catalogs, settings.extra_positions_list)
+                engine.make_map(used_catalogs, settings.extra_positions_list, showing_dso=showing_dso)
             else:
                 print('object not found, try appending an A or a B')
 

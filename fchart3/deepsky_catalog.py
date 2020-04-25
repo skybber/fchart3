@@ -28,16 +28,7 @@ class DeepskyCatalog:
         self.visible_deepsky_list = []
         self.names = []
         self.force_messier = force_messier
-        self.showing_dsos = set()
         self.add_objects(deepsky_list)
-
-
-    def add_showing_dso(self, dso):
-        self.showing_dsos.add(dso)
-
-
-    def clear_showing_dsos(self):
-        self.showing_dsos.clear()
 
 
     def add_objects(self, objects):
@@ -95,10 +86,10 @@ class DeepskyCatalog:
         # select on magnitude
         selection = []
         for obj in selected_list_pos:
-            if obj.mag <= lm_deepsky or (obj.messier > 0 and self.force_messier) or obj in self.showing_dsos:
+            if obj.mag <= lm_deepsky or (obj.messier > 0 and self.force_messier):
                 selection.append(obj)
 
-        return DeepskyCatalog(selection)
+        return selection
 
 
     def select_type(self, typelist=[]):
