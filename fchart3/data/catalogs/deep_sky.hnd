@@ -1,4 +1,4 @@
-HNSKY DEEPSKY DATABASE, 30000 objects. Based on SAC81, Wolfgang Steinicke's REV NGC&IC, HyperLeda, Sh2,vdB,HCG,LND. Version 2019-7-5. GX>=1_arcmin.
+HNSKY DEEPSKY DATABASE, 30000 objects. Based on SAC81, Wolfgang Steinicke's REV NGC&IC, HyperLeda, Sh2,vdB,HCG,LND. Version 2020-5-11. GX>=1_arcmin.
 RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, length [0.1 min], width[0.1 min], orientation[degrees]
 194160,-251100,4,LMC/PGC17223,GX/[SBm]/eB/eeL/mBM/mE/rrr;Local_Group_Memb;Many_Cl+NB_invl;SN_1987A,129,4200,3000,120
 160200,57600,5,Hyades/Mel25,OC/[II3m]/vvB/vvL/irr;Taurus_moving_cluster;Aldebaran_not_a_member,,3300
@@ -219,7 +219,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 453578,100655,100,NGC4559/PGC42002,GX/[SBc]/vB/vL/mE150/gbM/3_*_f;HI92;multi_arm_spiral,139,107,44,150
 727265,138078,100,NGC6888/Crescent_Nebula/Sh2-105,BN/[EN]/F/vL/vmE/**_att;HIV72;Wolf-Rayet_*_invl|photographic_H-alpha&oxygen-III_emission,157,180,130
 858000,244938,100,NGC7762,OC/[II2p]/Cl/pRi/pC/*11...15;HVII55,,150
-61381,185657,101,M76/NGC650/Barbell_Nebula,PN/[PN]/vB/p_of_Dneb;Little_Dumbbell_or_Cork_Nebula;PK130-10.1,123,31
+61381,185657,101,M76/NGC650/NGC651,PN/[PN]/vB/p_of_Dneb;Barbell_Nebula_or_Little_Dumbbell_or_Cork_Nebula;PK130-10.1,123,31
 440278,53638,101,M98/NGC4192,GX/[SBb]/B/vL/vmE152/vsvmbM;6_Comae_Berenices_is_30'_east,134,98,28,155
 330201,25334,101,NGC2775/PGC25861,GX/[Sab]/cB/cL/R/vgvsmbM/r;HI2;N_in_B_smooth_lens;many_knotty_arms_form_dk_lane,127,43,33,155
 453264,52187,102,M91/NGC4548,GX/[SBb]/B/L/lE/lbM;NGC4571_@_27_';HII120;F_outer_arms_in_S_pattrn,133,52,42,150
@@ -402,7 +402,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 403860,-212100,70,Stock13,OC/[I2pn];In_Carina_OB3,,30
 74700,231780,70,Stock5,OC/[IV2p]/13":/B/pL/nRi/nC_at_100X/17*/just_naked_eye;53_Cas_is_star_on_west_side,,150
 386640,-213660,70,Tr15/Cr231,OC/[III2pn],,150
-115140,227460,70,Tr3/Cr36;Harvard1,OC/[III3p]/L/nC/13":/B/pRi/25*_mags_11_to_13,,230
+115140,227460,70,Tr3/Cr36/Harvard1,OC/[III3p]/L/nC/13":/B/pRi/25*_mags_11_to_13,,230
 448380,-218820,71,Harvard5/Cr257,OC/[II3p]/pL/30*;Incl_D*_R_200,,60
 274500,-43440,71,Mel71/Cr155,OC/[II1m]/13":/B/pL/mC/mBM/48*_mags_10..14_at_100X;Very_compressed_w_central_condensation,,90
 89760,218340,71,Mrk6,OC/[IV2p]/13":/9_pB*_and_6_pF*_in_Small_grp_at_100X;About_12_*,,45
@@ -581,7 +581,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 485940,-231060,87,Cr271,OC/[III2p],,70
 757920,160500,87,Cr428,OC/[III2pn],,140
 223271,19651,87,NGC2186,OC/[II2p]/Cl/pL/pRi/pC/st_L_and_S;HVII25,,50
-285420,-93180,87,Tr9/Cr168;Harvard2,OC/[II2p]/13":/pB/pL/nRi/nC_at_100X/22*_mags_11...13;40_*_in_clumpy_groups,,60
+285420,-93180,87,Tr9/Cr168/Harvard2,OC/[II2p]/13":/pB/pL/nRi/nC_at_100X/22*_mags_11...13;40_*_in_clumpy_groups,,60
 629820,-117000,88,Antalova2,OC/[Iv1p],,30
 639780,-105600,88,Cr347,OC/[III2pn];In_nebula_Sh2-16,,100
 403380,-218700,88,Hogg12,OC/[I3p],,30
@@ -962,7 +962,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 727628,71964,114,NGC6886/PK60-7.2,PN/[PN]/stellar=10m,73,2
 793282,-115166,114,NGC7176/PGC67883,GX/[E0]/B/pL/R/f_of_Dneb/4th_of_4,106,8
 413160,-190560,114,PK290+7.1/Fleming1,PN/[3(4)],96,5
-648120,-139800,114,PK352-7.1/Fleming3;VV133,PN;Stellar_point_in_rich_field_found_w_prism--Hartung,37,0.3
+648120,-139800,114,PK352-7.1/Fleming3/VV133,PN;Stellar_point_in_rich_field_found_w_prism--Hartung,37,0.3
 269160,-55380,115,Haffner10,OC/[III2p]/13":/F/S/6*_12m_at_135X,,16
 299259,-91332,115,IC2311/PGC23304,GX[E0],118,13,13
 775510,160550,115,IC5117/PK89-5.1,PN[PN]/vS/F/Stellar,77,2
@@ -1071,7 +1071,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 687555,-21570,119,NGC6751/PK29-5.1,PN/[PN]/pB/S;Annular,98,4
 811020,172080,119,PK100-8.1/Merrill2-2,PN;Stellar,62,0.8
 335760,-213120,119,PK278-6.1/He2-26,PN,77,2
-584700,-197820,119,PK329-2.2/Menzel2;VV78,PN/[4(3)];Easy_grey_round_lies_in_dense_field--Hartung,95,4,3.5
+584700,-197820,119,PK329-2.2/Menzel2/VV78,PN/[4(3)];Easy_grey_round_lies_in_dense_field--Hartung,95,4,3.5
 598800,-200520,119,PK331-5.1/He2-172,PN,62,0.8
 652440,-183780,119,PK342-14.1/Shapley3,PN,105,6
 627780,-159120,119,PK345-4.1/Cannon1-3,PN,62,0.8
@@ -9798,7 +9798,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 801660,206940,135,PK103+0.1/M2-51,PN/[2(3)]/13":/pF/pL/R/cent*_easy_at_320X,136,12
 259500,-57960,135,PK229-2.1/K1-10,PN/[3b],133,14,8
 468420,-204780,135,PK304+5.2/Wray16_122,PN,121,6
-757380,132120,135,PK80-6.1/IVZw67;CRL2688,PN/13":/pB/S/E_2X1_in_PA_15/thin_dark_lane_in_middle;Egg_Nebula;protoplanetary?;bipolar;light_48%_polarized,125,10,5
+757380,132120,135,PK80-6.1/IVZw67/CRL2688,PN/13":/pB/S/E_2X1_in_PA_15/thin_dark_lane_in_middle;Egg_Nebula;protoplanetary?;bipolar;light_48%_polarized,125,10,5
 819694,136990,135,PGC69681/UGC12181,GX/[SBc],137,12,10,159
 466321,-6144,135,PGC44254/UGC8067,GX/[Sb],131,13,5,138
 394720,-141986,135,PGC32962,GX/[SBm],142,21,9,155
@@ -10950,7 +10950,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 722328,-95283,137,PGC64052,GX/[Sab],139,12,9,27
 71572,-182593,137,PGC7523,GX/[SO-a],138.25,10,3,49
 73197,-210855,137,PGC7727,GX/[Sc],139,14,9,13
-184860,110880,137,PK173-5.1/K2-1;SS38,PN/13":/pF/pL/R/nBM_at_165X/3*_invol;May_be_emission_nebula,152,22
+184860,110880,137,PK173-5.1/K2-1/SS38,PN/13":/pF/pL/R/nBM_at_165X/3*_invol;May_be_emission_nebula,152,22
 293220,-69240,137,PK238+7.2/Sa2_21,PN,126,7
 594000,-195000,137,PK331-3.2/He2-165,PN,130,9,8
 592500,100440,137,PK47+42.1/Abell39,PN/[2c]/13":/vF/L/R/nBM/averted_viz_helps,158,29
@@ -12759,7 +12759,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 786563,-33358,140,IC1404/PGC170377,GX[E0],132,8,8
 790980,30326,140,IC1414/PGC67763,GX[S0],122,5,5
 793199,15785,140,IC1418/PGC67872,GX[S?],132,9,7,0
-817445,289595,140,IC1454/PGC2783080/PK117+18.1,PN[PN]/vF/S/*_7_mag_4'_foll,127,6
+817445,289595,140,IC1454/Abell81/PK117+18.1,PN[PN]/vF/S/*_7_mag_4'_foll,127,6
 5934,-231736,140,IC1532/PGC695,GX[SBbc],135,16,5,74
 63162,38339,140,IC154/PGC6439,GX[Sb],124,15,2,66
 23401,-32454,140,IC1563/NGC191A/PGC2332,GX[S0/P],128,7,6,143
@@ -27594,9 +27594,10 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 647940,-114840,178,PK359-4.1/M3-48,PN,121,0.8
 659160,-101280,178,PK4-5.5/M2-37,PN,129,1.2,1.2
 645165,-201251,178,PGC61108,GX/[Sbc],172,13,3,109
+197367,129786,178,PK172+0.1/Abell9,PN,,6
 469617,79192,179,IC4107/PGC87149,GX[dE],169,7,7
 169740,130020,179,PK166-6.1/CRL618,PN,141,2
-307080,-115500,179,PK252+4.1/Abell27;K1-1,PN/[3b],176,10
+307080,-115500,179,PK252+4.1/Abell27/K1-1,PN/[3b],176,10
 610440,-149880,179,PK344+0.1/Haro1-5,PN,124,1.0,0.8
 639360,-82920,179,PK5+3.1/Perek1-9,PN,141,2
 767460,166740,180,PK89-2.1/M1-77,PN/[2a],130,1.2
@@ -27636,6 +27637,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 711720,87060,194,PK60-0.1/K3-45,PN,144,1.1
 662460,-40020,195,PK19+0.1/M3-53,PN,138,0.8
 647100,-99420,195,PK2-1.1/Perek2-11,PN,138,0.8
+669226,-831,195,PK 30+3.1/Abell47,PN,,3.5
 449220,-223560,196,PK300+0.1/He2-83,PN,163,3
 630480,-97560,196,PK359+3.2/He2-239,PN,146,1.2
 643980,-117660,200,PK357-3.3/Haro2-29,PN,143,2,0.4
@@ -28052,7 +28054,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 684992,-132809,,NGC6726,BN/[RN]/*6/7_in_F/pL_neb;Complex_neb_region_w_var*_TY_&_R_CrA_invl,,90,70
 685022,-132755,,NGC6727,BN/[RN]/*8_in_F/pL_neb;P_w_NGC6726-9,,800
 708240,98314,,NGC6813,BN/[EN]/**in_vf/S_neb,,30
-734830,152940,,NGC6914,BN/[RN]/vF/vL/iR/dif/2*_att_p,,30
+734830,152940,,NGC6914,BN/[RN]/vF/vL/iR/dif/2*_att_p;Photographic_Bluish_RN,,30
 750640,114594,,NGC6974,BN/[SNR]/neb_*/neby_cE_pf
 84945,-19835,,NGC894,PartOf/[GxyP]/vF/E/bM/Dneb_w_895
 87278,223270,,NGC896/IC1795,BN/[EN]/eF/pL/iF;HIII695,,100
@@ -28062,7 +28064,6 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 54420,210120,,PK128-4.1/Simeiz22,PN,,57
 110280,233640,,PK136+5.1/HFG1,PN,,83
 138960,185340,,PK149-1.1/Kr2-1,BN;Not_a_PLNNB;reflection_nebula,,14,11
-155880,191160,,PK151+2.1/SH2-208,BN/[E];Not_a_PLNNB;HII_region_SH2-207,,40
 227340,55020,,PK195-0.1/Sh2-266,BN;Not_a_PLNNB;HII_region_w_Balmer_line_emission,,13,9
 225120,44520,,PK197-2.1/Sh2-271,BN/[3b];Not_a_PLNNB;IRAS_confirms_HII_region,,20
 252240,15660,,PK210+3.1/We2_34,PN,,38
@@ -28130,7 +28131,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 773219,196631,,Sh2-127,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|medium_bright|0_*_involved,,20
 775288,201090,,Sh2-128,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|very_bright|0_*_involved,,10
 763052,215857,,Sh2-129,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|medium_bright|1_*_involved,,1400
-629400,-113460,,Sh2-13/Gum68;RCW133,BN/HII_region|photographic:|elliptical|between_amorphous_and_filamentary_|medium_bright|1_*_involved,,400,390
+629400,-113460,,Sh2-13/Gum68/RCW133,BN/HII_region|photographic:|elliptical|between_amorphous_and_filamentary_|medium_bright|1_*_involved,,400,390
 745801,227620,,Sh2-130,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|medium_bright|1_*_involved,,30
 779403,206946,,Sh2-131,BN/HII_region|photographic:|circular|between_amorphous_and_filamentary_|medium_bright|5_*_involved,,1700
 803580,201960,,Sh2-132/LBN470,BN/[E];NE_section_has_highest_surface_brightness,,400,250
@@ -28175,7 +28176,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 141447,206751,,Sh2-204,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|medium_bright|0_*_involved,,400
 139920,191040,,Sh2-205,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|medium_bright|1_*_involved,,800,230
 155920,191374,,Sh2-207/PK151+2.1,BN/HII_region_Not_a_PN_neb|photographic:|circular|between_amorphous_and_filamentary_|medium_bright|0_*_involved,,40
-155851,190726,,Sh2-208,BN/HII_region|photographic:|circular|between_amorphous_and_filamentary_|very_bright|0_*_involved,,10
+155740,190726,,Sh2-208,BN/HII_region|photographic:|circular|between_amorphous_and_filamentary_|very_bright|0_*_involved,,10
 150624,184193,,Sh2-209,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|medium_bright|0_*_involved,,140
 642988,-104027,,Sh2-21,BN/HII_region|photographic:|irregular|between_amorphous_and_filamentary_|medium_bright|0_*_involved,,50
 162584,189197,,Sh2-210,BN/HII_region|photographic:|irregular|amorphous|medium_bright|0_*_involved,,200

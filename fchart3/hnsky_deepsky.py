@@ -103,6 +103,16 @@ def _parse_hnsky_line(line, show_catalogs):
                 object.all_names = [name]
                 has_cat = True
             else:
+                if cat == 'Abell' and (object.cat == 'PK' or object.cat == 'Sh2-') or \
+                   cat == 'UGC' and object.cat == 'PGC':
+                    name_swap = object.name
+                    cat_swap = object.cat
+                    object.cat = cat
+                    object.name = name
+                    object.all_names = [name]
+                    name = name_swap
+                    cat = cat_swap
+
                 object.synonyms.append((cat, name))
 
             if cat == 'M' and name.isdigit():

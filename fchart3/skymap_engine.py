@@ -251,7 +251,7 @@ class SkymapEngine:
                     label = ''
             else :
                 label = object.cat+' '+'-'.join(object.all_names)
-                if object.mag > self.deepsky_label_limit:
+                if (not showing_dso or showing_dso != object) and object.mag > self.deepsky_label_limit:
                     label = ''
 
             label_length = self.graphics.text_width(label)
