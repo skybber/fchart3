@@ -93,6 +93,9 @@ class UsedCatalogs:
                 else:
                     index = i
                     break
+            # special handling for Minkowski
+            if cat == 'M' and i+1<len(dso_name) and (dso_name[i+1] == '-' or dso_name[i+1] == '_') :
+                cat = 'Mi'
             if cat.upper() == 'N' or cat == '' or cat.upper=='NGC':
                 cat = 'NGC'
 
