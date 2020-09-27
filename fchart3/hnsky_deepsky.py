@@ -37,7 +37,35 @@ CATALOG_SPECS0 = { 'Sh2-' }
 CATALOGS_SPEC2 = ['vdB-Ha' ]
 DEFAULT_SHOWING_CATALOGUES = ['M', 'NGC', 'IC', 'Abell', 'HCG', 'Cr', 'PK', 'Stock', 'UGC', 'Mel', 'PGC', 'PNG']
 
-def parse_catalog_name(dso_name):
+def _denormalize_pk_name(name):
+    denorm = ''
+    compress = True
+    outp = False
+    for i in range(0, len(name)):
+        c = name[i]
+        if compress and c == '0':
+            continue 
+        if not c.isdigit():
+            if not outp:
+                denorm += '0'
+            compress = True
+            outp = False
+        else:
+            outp = True
+            compress = False
+        denorm += c
+    return denorm
+
+def _parse_catalog_name(dso_name):
+    if dso_name.startswith('PN_'):
+        dso_name = dso_name[3:]
+        
+    if dso_name.startswith('A66_'):
+        dso_name = 'Abell' + dso_name[4:]
+
+    if dso_name.startswith('PK_'):
+        dso_name = 'PK' + _denormalize_pk_name(dso_name[3:])
+    
     i = 0
     name_len = len(dso_name)
     while i < name_len:
@@ -94,7 +122,7 @@ def _parse_hnsky_line(line, show_catalogs):
     has_cat = False
     visible = False
     for n in names:
-        cat, name = parse_catalog_name(n)
+        cat, name = _parse_catalog_name(n)
         if cat:
             visible =  visible or cat in show_catalogs
             if not has_cat:
