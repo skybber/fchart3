@@ -127,6 +127,9 @@ class RuntimeSettings:
 
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
                                     help='show deepsky object legend.')
+                                    
+        argumentparser.add_argument('--show-coords-legend', dest='show_coords_legend', action='store_true', default=True,
+                                    help='show coordinations legend.')
 
         argumentparser.add_argument('--hide-widget-coords', dest='hide_widget_coords', action='store_true',
                                     help='hide coordinations widget')
@@ -228,6 +231,7 @@ class RuntimeSettings:
 def _create_engine_configuration():
     config = EngineConfiguration()
     config.show_dso_legend = settings.parser.show_dso_legend
+    config.show_coords_legend = settings.parser.show_coords_legend
     config.hide_widget_coords = settings.parser.hide_widget_coords
     config.hide_widget_mag_scale = settings.hide_widget_mag_scale
     config.hide_widget_scale = settings.hide_widget_scale

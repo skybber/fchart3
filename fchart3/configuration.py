@@ -24,6 +24,7 @@ DEFAULT_LEGEND_LINEWIDTH = 0.2
 class EngineConfiguration:
     def __init__(self):
         self._show_dso_legend = False
+        self._show_coords_legend = False
         self._invert_colors = False
         self._mirror_x = False
         self._mirror_y = False
@@ -41,6 +42,14 @@ class EngineConfiguration:
     @show_dso_legend.setter
     def show_dso_legend(self, value):
         self._show_dso_legend = value
+
+    @property
+    def show_coords_legend(self):
+        return self._show_coords_legend
+
+    @show_coords_legend.setter
+    def show_coords_legend(self, value):
+        self._show_coords_legend = value
 
     @property
     def invert_colors(self):

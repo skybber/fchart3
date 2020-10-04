@@ -195,7 +195,8 @@ class SkymapEngine:
         self.w_mag_scale.draw(self.graphics, -r, -r)
         self.w_map_scale.draw(self.graphics, r,-r)
         self.w_orientation.draw(self.graphics, -r, r)
-        self.w_coords.draw(self.graphics, left=r-fontsize/2, bottom=r-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1])
+        if self.config.show_coords_legend:
+            self.w_coords.draw(self.graphics, left=r-fontsize/2, bottom=r-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1])
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics)
 
