@@ -30,7 +30,7 @@ A4_HEIGHT_POINTS = 842
 
 class CairoDrawing(GraphicsInterface):
 
-    def __init__(self, filename, width, height):
+    def __init__(self, width, height, filename=None, png_fobj=None):
         """
         width (horizontal) and height (vertical) in mm
         """
@@ -40,10 +40,11 @@ class CairoDrawing(GraphicsInterface):
         self.context = None
         self.set_filename(filename)
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
+        self.png_fobj = png_fobj 
 
 
     def new(self):
-        if self.gi_filename.endswith('.png'):
+        if self.png_fobj or self.gi_filename.endswith('.png'):
             self.set_point_size(PONT_IMG)
             sfc_width = int(self.gi_width * DPMM_IMG)
             sfc_height = int(self.gi_height * DPMM_IMG)
@@ -236,7 +237,9 @@ class CairoDrawing(GraphicsInterface):
 
 
     def finish(self):
-        if self.gi_filename.endswith('.png'):
+        if self.png_fobj:
+            self.surface.write_to_png(self.png_fobj)
+        elif self.gi_filename.endswith('.png'):
             self.surface.write_to_png(self.gi_filename)
         else:
             self.surface.show_page()
