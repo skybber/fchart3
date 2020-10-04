@@ -30,7 +30,7 @@ class WidgetMagnitudeScale:
         if int(self.lm_stars) < 10:
             self.width += 1.2 * self.legend_fontsize
         else:
-            self.width += 1.6 * self.legend_fontsize
+            self.width += 1.7 * self.legend_fontsize
         self.height = (self.stars_in_scale + 0.6) * self.legend_fontsize
 
     def get_size(self):
@@ -53,7 +53,7 @@ class WidgetMagnitudeScale:
         for i in range(len(legendy)):
             if mags_in_scale[i] >= -1:
                 self.engine.star(left+0.6*fh, legendy[i] + 0.33 * fh, legendr[i], False)
-                graphics.text_left(left+self.width-0.5*fh, legendy[i], str(mags_in_scale[i]))
+                graphics.text_right(left+1.2*fh, legendy[i], str(mags_in_scale[i]))
         graphics.set_linewidth(self.legend_linewidth)
         graphics.line(left, bottom+self.height, left+self.width, bottom+self.height)
         graphics.line(left+self.width, bottom+self.height, left+self.width, bottom)
