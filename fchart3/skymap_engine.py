@@ -310,6 +310,35 @@ class SkymapEngine:
                 x,y = -l*self.drawingscale, m*self.drawingscale
                 self.unknown_object(x,y,self.min_radius,label,labelpos)
 
+    def draw_trajectory(self,trajectory):
+        # Draw extra objects
+        print('Drawing trajectory...')
+        self.graphics.save()
+        self.graphics.set_linewidth(self.config.constellation_linewidth)
+        if self.config.night_mode:
+            self.graphics.set_pen_rgb((0.2, 0.0, 0.0))
+        else:
+            self.graphics.set_pen_rgb((0.0, 0.0, 0.0))
+
+        fh = self.graphics.gi_fontsize
+        label1 = ''
+        x1 = None
+        y1 = None
+            
+        for i in range(0, len(trajectory)-1):
+            rax2, decx2, label2 = trajectory[i]
+            l2,m2 =  radec_to_lm((rax2,decx2), self.fieldcentre)
+            x2,y2 = -l2*self.drawingscale, m2*self.drawingscale
+            if i > 0:
+                self.mirroring_graphics.line(x1, y1, x2, y2)
+                if label1 != '':
+                    self.mirroring_graphics.text_centred(x1, y1 + fh/2.0, label1)
+                
+            x1,y1 = (x2, y2)
+            label1 = label2
+            
+        self.graphics.restore()
+        self.graphics.set_pen_gray(0.0)
 
     def magnitude_to_radius(self, magnitude):
         #radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
@@ -463,7 +492,7 @@ class SkymapEngine:
         return d < np.pi/2.0
 
 
-    def make_map(self, used_catalogs, extra_positions=[], showing_dso=None):
+    def make_map(self, used_catalogs, extra_positions=[], trajectory=[], showing_dso=None):
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
         else:
@@ -503,6 +532,8 @@ class SkymapEngine:
             self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dso)
         if extra_positions != []:
             self.draw_extra_objects(extra_positions)
+        if trajectory != []:
+            self.draw_trajectory(trajectory)
         if used_catalogs.starcatalog != None:
             self.draw_stars(used_catalogs.starcatalog)
 
@@ -933,7 +964,7 @@ if __name__ == '__main__':
     stars = sc.CompositeStarCatalog(data_dir)
 
     width = 200
-    cairo = cairo.CairoDrawing('radec00.pdf',width, width)
+    cairo = cairo.CairoDrawing(width, width, 'radec00.pdf',)
 
     sm = SkymapEngine(cairo)
     sm.set_caption('Probeersel')
