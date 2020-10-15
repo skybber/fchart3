@@ -23,8 +23,13 @@ DEFAULT_LEGEND_LINEWIDTH = 0.2
 
 class EngineConfiguration:
     def __init__(self):
+        self._legend_only = False
+        self._show_mag_scale_legend = False
+        self._show_map_scale_legend = False
+        self._show_orientation_legend = False
         self._show_dso_legend = False
         self._show_coords_legend = False
+        self._show_field_border = False
         self._invert_colors = False
         self._mirror_x = False
         self._mirror_y = False
@@ -34,6 +39,38 @@ class EngineConfiguration:
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
         self._night_mode = False
+
+    @property
+    def legend_only(self):
+        return self._legend_only
+
+    @legend_only.setter
+    def legend_only(self, value):
+        self._legend_only = value
+
+    @property
+    def show_mag_scale_legend(self):
+        return self._show_mag_scale_legend
+
+    @show_mag_scale_legend.setter
+    def show_mag_scale_legend(self, value):
+        self._show_mag_scale_legend = value
+
+    @property
+    def show_map_scale_legend(self):
+        return self._show_map_scale_legend
+
+    @show_map_scale_legend.setter
+    def show_map_scale_legend(self, value):
+        self._show_map_scale_legend = value
+
+    @property
+    def show_orientation_legend(self):
+        return self._show_orientation_legend
+
+    @show_orientation_legend.setter
+    def show_orientation_legend(self, value):
+        self._show_orientation_legend = value
 
     @property
     def show_dso_legend(self):
@@ -50,6 +87,14 @@ class EngineConfiguration:
     @show_coords_legend.setter
     def show_coords_legend(self, value):
         self._show_coords_legend = value
+
+    @property
+    def show_field_border(self):
+        return self._show_field_border
+
+    @show_field_border.setter
+    def show_field_border(self, value):
+        self._show_field_border = value
 
     @property
     def invert_colors(self):

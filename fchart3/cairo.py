@@ -19,7 +19,7 @@ from math import pi
 
 import cairo
 
-from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface
+from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode
 
 DPI_IMG    = 100.0
 DPMM_IMG   = DPI_IMG/INCH
@@ -38,6 +38,8 @@ class CairoDrawing(GraphicsInterface):
 
         self.surface = None
         self.context = None
+        self.sfc_width = None
+        self.sfc_height = None
         self.set_filename(filename)
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
         self.png_fobj = png_fobj 
@@ -46,31 +48,33 @@ class CairoDrawing(GraphicsInterface):
     def new(self):
         if self.png_fobj or self.gi_filename.endswith('.png'):
             self.set_point_size(PONT_IMG)
-            sfc_width = int(self.gi_width * DPMM_IMG)
-            sfc_height = int(self.gi_height * DPMM_IMG)
-            self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, sfc_width, sfc_height)
+            self.sfc_width = int(self.gi_width * DPMM_IMG)
+            self.sfc_height = int(self.gi_height * DPMM_IMG)
+            self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM_IMG, DPMM_IMG)
             self.surface.set_device_offset(self.gi_origin_x*DPMM_IMG, self.gi_origin_y*DPMM_IMG)
         elif self.gi_filename.endswith('.svg'):
-            sfc_width = int(self.gi_width * DPMM)
-            sfc_height = int(self.gi_height * DPMM)
-            self.surface = cairo.SVGSurface(self.gi_filename, sfc_width, sfc_height)
+            self.sfc_width = int(self.gi_width * DPMM)
+            self.sfc_height = int(self.gi_height * DPMM)
+            self.surface = cairo.SVGSurface(self.gi_filename, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM, DPMM)
             self.surface.set_device_offset(self.gi_origin_x*DPMM, self.gi_origin_y*DPMM)
         else:
-            sfc_width = A4_WIDTH_POINTS
-            sfc_height = A4_HEIGHT_POINTS
-            self.surface = cairo.PDFSurface(self.gi_filename, sfc_width, sfc_height)
+            self.sfc_width = A4_WIDTH_POINTS
+            self.sfc_height = A4_HEIGHT_POINTS
+            self.surface = cairo.PDFSurface(self.gi_filename, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM, DPMM)
             self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 20)
         self.context = cairo.Context(self.surface)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
-        if self.gi_invert_colors or self.gi_night_mode:
-            self.context.set_source_rgb(0.0, 0.0, 0.0)
-            self.context.rectangle(-sfc_width/2, -sfc_height/2, sfc_width, sfc_height)
-            self.context.fill()
+        
 
+    def clear(self):
+        if self.gi_background_rgb:
+            self.context.set_source_rgb(self.gi_background_rgb[0], self.gi_background_rgb[1], self.gi_background_rgb[2])
+            self.context.rectangle(-self.sfc_width/2, -self.sfc_height/2, self.sfc_width, self.sfc_height)
+            self.context.fill()
 
     def save(self):
         GraphicsInterface.save(self)
@@ -116,42 +120,28 @@ class CairoDrawing(GraphicsInterface):
         self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
         self.context.stroke()
 
-
-    def circle(self, x,y,r, mode='P'):
+    def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
         """
-        Draw a circle with centre at (x,y) and radius r. 'mode'
-        determines how it  is drawn:
-        'P': only draw border with pen
-        'F': only fill interior
-        'PF': fill interior with fill gray value and draw border with
+        Draw a rectangle with left upper corner in (x,y) and widt/height
         pen gray value
+        """
+        self.context.rectangle(x, -y, width, height)
+        self._draw_element(mode)
+
+    def circle(self, x,y,r, mode=DrawMode.BORDER):
+        """
+        Draw a circle with centre at (x,y) and radius r.
         """
         self.moveto(x+r, y)
         self.context.arc(x, -y, r, 0, 2.0*pi)
-        if mode == 'P':
-            self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
-            self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
-            self.context.stroke()
-        elif mode == 'F':
-            self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])
-            self.context.fill()
-        else:
-            self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])
-            self.context.fill_preserve()
-            self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
-            self.context.stroke()
+        self._draw_element(mode)
 
 
-    def ellipse(self,x,y,rlong,rshort, posangle, mode='P'):
+    def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):
         """
         Draw an ellipse with centre at (x,y) and long radius rlong and
         short radius rshort. position_angle is the angle between the
-        long axis and the positive x-axis in radians. 'mode'
-        determines how it is drawn:
-        'P': only draw border with pen
-        'F': only fill interior
-        'PF': fill interior with fill gray value and draw border with
-        pen gray value
+        long axis and the positive x-axis in radians.
         """
         self.context.save()
         scale = rshort/rlong
@@ -161,11 +151,14 @@ class CairoDrawing(GraphicsInterface):
         self.moveto(rlong, 0)
         self.context.arc(0, 0, rlong, 0, 2.0*pi)
         self.context.restore()
-        if mode == 'P':
+        self._draw_element(mode)
+
+    def _draw_element(self, mode):
+        if mode == DrawMode.BORDER:
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
             self.context.stroke()
-        elif mode == 'F':
+        elif mode == DrawMode.FILL:
             self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])
             self.context.fill()
         else:
@@ -173,7 +166,6 @@ class CairoDrawing(GraphicsInterface):
             self.context.fill_preserve()
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.stroke()
-
 
     def text(self, text):
         self.context.show_text(text)

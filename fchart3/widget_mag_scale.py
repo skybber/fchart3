@@ -17,6 +17,8 @@
 
 import numpy as np
 
+from .graphics_interface import DrawMode
+
 class WidgetMagnitudeScale:
 
     def __init__(self, sky_map_engine, field_radius_mm, legend_fontsize, stars_in_scale, lm_stars, star_border_linewidth, legend_linewidth):
@@ -37,7 +39,7 @@ class WidgetMagnitudeScale:
         return (self.width, self.height)
 
 
-    def draw(self, graphics, left, bottom):
+    def draw(self, graphics, left, bottom, legend_only):
         """
         Draws a vertical magnitude scale with at most \"stars_in_scale\" stars down
         to magnitude -1
@@ -49,7 +51,13 @@ class WidgetMagnitudeScale:
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
         
         graphics.set_linewidth(self.star_border_linewidth)
-
+        
+        if legend_only and graphics.gi_background_rgb:
+            graphics.save()
+            graphics.set_fill_background(graphics.gi_background_rgb)
+            graphics.rectangle(left, bottom+self.height, self.width, self.height, DrawMode.FILL)
+            graphics.restore()
+            
         for i in range(len(legendy)):
             if mags_in_scale[i] >= -1:
                 self.engine.star(left+0.6*fh, legendy[i] + 0.33 * fh, legendr[i], False)

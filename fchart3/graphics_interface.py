@@ -15,11 +15,23 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from enum import Enum
+
 INCH   = 25.4
 DPI    = 72.0
 DPMM   = DPI/INCH
 POINT  = 1.0/DPMM
 
+class DrawMode(Enum):
+    """
+    BORDER - only draw border with pen
+    FILL - only fill interior
+    BOTH - fill interior with fill gray value and draw border with gray
+    """
+    BORDER = 1
+    FILL = 2
+    BOTH = 3
+ 
 def paper_A(n):
     """
     Returns (width, height) of ISO An paper in mm
@@ -66,6 +78,7 @@ class GraphicsInterface:
 
         self.gi_filename = ''
         self.gi_stack = []
+        self.gi_background_rgb = None
 
 
     def set_point_size(self, pointsize):
@@ -85,7 +98,8 @@ class GraphicsInterface:
         self.gi_stack.append((self.gi_linewidth,
                               self.gi_dash_style,
                               self.gi_font,
-                              self.gi_fontsize))
+                              self.gi_fontsize,
+                              self.gi_fill_rgb))
 
     def restore(self):
         """
@@ -96,7 +110,8 @@ class GraphicsInterface:
         (self.gi_linewidth,
          self.gi_dash_style,
          self.gi_font,
-         self.gi_fontsize) = self.gi_stack.pop()
+         self.gi_fontsize,
+         self.gi_fill_rgb) = self.gi_stack.pop()
 
     def new(self):
         """
@@ -172,6 +187,9 @@ class GraphicsInterface:
         else:
             self.gi_fill_rgb = (fill_gray, fill_gray, fill_gray)
 
+    def set_fill_background(self, fill_gray):
+        self.gi_fill_rgb = (self.gi_background_rgb[0], self.gi_background_rgb[0], self.gi_background_rgb[0])
+        
     def set_solid_line(self):
         """
         From now on, all lines should be drawn solid. Extend this method.
@@ -234,26 +252,25 @@ class GraphicsInterface:
         print('GraphicsInterface.line()')
 
 
-    def circle(self, x, y, r, mode='P'):
+    def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
         """
-        Draw a circle with centre at (x,y) and radius r. 'mode' determines how it is drawn:
-        'P': only draw border with pen
-        'F': only fill interior
-        'PF': fill interior with fill gray value and draw border with pen gray value
+        Draw a rectangle with left upper corner in (x,y) and widt/height
+        pen gray value
+        """
+        print('GraphicsInterface.rectangle()')
+
+    def circle(self, x, y, r, mode=DrawMode.BORDER):
+        """
+        Draw a circle with centre at (x,y) and radius r.
         """
         print('GraphicsInterface.circle()')
 
 
-    def ellipse(self, x, y, rlong, rshort, position_angle, mode='P'):
+    def ellipse(self, x, y, rlong, rshort, position_angle, mode=DrawMode.BORDER):
         """
         Draw an ellipse with centre at (x,y) and long radius rlong and
         short radius rshort. position_angle is the angle between the
-        long axis and the positive x-axis in radians. 'mode'
-        determines how it is drawn:
-        'P': only draw border with pen
-        'F': only fill interior
-        'PF': fill interior with fill gray value and draw border with
-        pen gray value
+        long axis and the positive x-axis in radians.
         """
         print('GraphicsInterface.ellipse()')
 
@@ -319,9 +336,20 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.reset_clip()')
 
-    def set_night_mode(self):
+    def set_night_mode(self, night_mode):
         """
         Set use night mode
         """
-        self.gi_night_mode = True
+        self.gi_night_mode = night_mode
+    
+    def clear(self):
+        """
+        Fill by background color
+        """
+        print('GraphicsInterface.clwar()')
 
+    def set_background_rgb(self, background_rgb):
+        """
+        Set if is transparent
+        """
+        self.gi_background_rgb = background_rgb

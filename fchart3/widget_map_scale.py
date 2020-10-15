@@ -17,6 +17,8 @@
 
 import numpy as np
 
+from .graphics_interface import DrawMode
+
 class WidgetMapScale:
 
     def __init__(self, drawingwidth, drawingscale, maxlength, legend_fontsize, legend_linewidth):
@@ -49,7 +51,7 @@ class WidgetMapScale:
         return (self.width, self.height)
 
 
-    def draw(self, graphics, right, bottom):
+    def draw(self, graphics, right, bottom, legend_only):
         """
         x,y are the coordinates of the leftmost point of the horizontal line.
         This is excluding the vertical end bars. maxlength is the maximum
@@ -63,6 +65,12 @@ class WidgetMapScale:
         graphics.set_linewidth(self.legend_linewidth)
 
         lw = graphics.gi_linewidth
+
+        if legend_only and graphics.gi_background_rgb:
+            graphics.save()
+            graphics.set_fill_background(graphics.gi_background_rgb)
+            graphics.rectangle(right-self.width, bottom+self.height, self.width, self.height, DrawMode.FILL)
+            graphics.restore()
 
         graphics.line(x, y, x - self.ruler_length, y)
         graphics.line(x - lw/2.0, y - 0.01*self.drawingwidth,

@@ -25,6 +25,8 @@ from .mirroring_graphics import *
 from .configuration import *
 from . import deepsky_object as deepsky
 
+from .graphics_interface import DrawMode
+
 from .widget_mag_scale import WidgetMagnitudeScale
 from .widget_map_scale import WidgetMapScale
 from .widget_orientation import WidgetOrientation
@@ -57,7 +59,7 @@ EN = {
     'PN': 'Planetary nebula',
     'N': 'Diffuse nebula',
     'SNR':'Supernova remnant',
-    'PG':'Part of external galaxy'
+    'PG':'Part of galaxy'
     }
 
 STAR_LABELS = {
@@ -173,12 +175,13 @@ class SkymapEngine:
         """
         Draw a circle representing bthe edge of the field of view.
         """
-        self.graphics.set_linewidth(self.config.legend_linewidth)
-        r = self.get_field_radius_mm()
-        self.graphics.line(-r, -r, -r, r)
-        self.graphics.line(-r, r, r, r)
-        self.graphics.line(r, r, r, -r)
-        self.graphics.line(r, -r, -r, -r)
+        if self.config.show_field_border:
+            self.graphics.set_linewidth(self.config.legend_linewidth)
+            r = self.get_field_radius_mm()
+            self.graphics.line(-r, -r, -r, r)
+            self.graphics.line(-r, r, r, r)
+            self.graphics.line(r, r, r, -r)
+            self.graphics.line(r, -r, -r, -r)
 
 
     def get_legend_font_size(self):
@@ -192,13 +195,16 @@ class SkymapEngine:
 
         r = self.get_field_radius_mm()
 
-        self.w_mag_scale.draw(self.graphics, -r, -r)
-        self.w_map_scale.draw(self.graphics, r,-r)
-        self.w_orientation.draw(self.graphics, -r, r)
+        if self.config.show_mag_scale_legend:
+            self.w_mag_scale.draw(self.graphics, -r, -r, self.config.legend_only)
+        if self.config.show_map_scale_legend:
+            self.w_map_scale.draw(self.graphics, r,-r, self.config.legend_only)
+        if self.config.show_orientation_legend:
+            self.w_orientation.draw(self.graphics, -r, r, self.config.legend_only)
         if self.config.show_coords_legend:
-            self.w_coords.draw(self.graphics, left=r-fontsize/2, bottom=r-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1])
+            self.w_coords.draw(self.graphics, left=r-fontsize/2, bottom=r-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1], legend_only=self.config.legend_only)
         if self.config.show_dso_legend:
-            self.w_dso_legend.draw_dso_legend(self, self.graphics)
+            self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
 
     def draw_deepsky_objects(self, deepsky_catalog, showing_dso):
@@ -502,11 +508,18 @@ class SkymapEngine:
         self.create_widgets()
 
         self.graphics.set_invert_colors(self.config.invert_colors)
+        self.graphics.set_night_mode(self.config.night_mode)
 
-        if not self.config.invert_colors and self.config.night_mode:
-            self.graphics.set_night_mode()
+        if self.config.invert_colors or self.config.night_mode:
+            self.graphics.set_background_rgb((0.0,0.0,0.0,))
+        else:
+            self.graphics.set_background_rgb((1.0,1.0,1.0,))
 
         self.graphics.new()
+        
+        if not self.config.legend_only:
+            self.graphics.clear()
+        
         self.graphics.set_pen_gray(0.0)
         self.graphics.set_fill_gray(0.0)
         self.graphics.set_font(fontsize=DEFAULT_FONT_SIZE)
@@ -517,28 +530,38 @@ class SkymapEngine:
         w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
         w_maps_width, w_maps_height = self.w_map_scale.get_size()
 
-        self.graphics.clip_path([(r,r),
-                                 (r,-r+w_maps_height),
+        if not self.config.legend_only:
+            clip_path = [(r,r)]
+            if self.config.show_map_scale_legend:
+                clip_path.extend([(r,-r+w_maps_height),
                                  (r-w_maps_width, -r+w_maps_height),
-                                 (r-w_maps_width, -r),
-                                 (-r + w_mags_width, -r),
+                                 (r-w_maps_width, -r)])
+            else:
+                clip_path.append((r,-r))
+                
+            if self.config.show_mag_scale_legend:
+                clip_path.extend([(-r + w_mags_width, -r),
                                  (-r + w_mags_width, -r + w_mags_heigth),
-                                 (-r, -r + w_mags_heigth),
-                                 (-r,r),
-                                 ])
+                                 (-r, -r + w_mags_heigth)])
+            else:
+                clip_path.append((-r,-r))
 
-        if used_catalogs.constellcatalog != None:
-            self.draw_constellations(used_catalogs.constellcatalog)
-        if used_catalogs.deepskycatalog != None:
-            self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dso)
-        if extra_positions != []:
-            self.draw_extra_objects(extra_positions)
-        if trajectory != []:
-            self.draw_trajectory(trajectory)
-        if used_catalogs.starcatalog != None:
-            self.draw_stars(used_catalogs.starcatalog)
+            clip_path.append((-r,r))
 
-        self.graphics.reset_clip()
+            self.graphics.clip_path(clip_path)
+            
+            if used_catalogs.constellcatalog != None:
+                self.draw_constellations(used_catalogs.constellcatalog)
+            if used_catalogs.deepskycatalog != None:
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dso)
+            if extra_positions != []:
+                self.draw_extra_objects(extra_positions)
+            if trajectory != []:
+                self.draw_trajectory(trajectory)
+            if used_catalogs.starcatalog != None:
+                self.draw_stars(used_catalogs.starcatalog)
+
+            self.graphics.reset_clip()
 
         print('Drawing legend')
         self.draw_caption()
@@ -583,9 +606,9 @@ class SkymapEngine:
         """
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         if mirroring:
-            self.mirroring_graphics.circle(x, y, r,'PF')
+            self.mirroring_graphics.circle(x, y, r,DrawMode.BOTH)
         else:
-            self.graphics.circle(x, y, r,'PF')
+            self.graphics.circle(x, y, r,DrawMode.BOTH)
 
 
     def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):

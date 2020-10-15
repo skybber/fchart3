@@ -22,7 +22,7 @@ class WidgetCoords:
     def __init__(self, language):
         self.language = language
 
-    def draw(self, graphics, left, bottom, ra, dec):
+    def draw(self, graphics, left, bottom, ra, dec, legend_only):
         """
         left,bottom are coordinates of the lower left corner of the textbox
         """
@@ -52,6 +52,6 @@ class WidgetCoords:
             decm = 0
 
         text = str(rah).rjust(2) + self.language['h'] + str(ram) + self.language['m'] + str(ras) + self.language['s'] + \
-             ' ' + decsign + str(decd) + '°' + str(decm) + '\'' + str(decs) + '"'
+             ' ' + decsign + str(decd) + '??' + str(decm) + '\'' + str(decs) + '"'
 
         graphics.text_left(left, bottom, text)
