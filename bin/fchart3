@@ -125,6 +125,9 @@ class RuntimeSettings:
         argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default='',
                                     help='force a specific caption for the maps. All maps will get the same caption.')
 
+        argumentparser.add_argument('--show-flamsteed', dest='show_flamsteed', action='store_true', default=True,
+                                    help='show Flamsteed designation.')
+                                    
         argumentparser.add_argument('--show-mag-scale-legend', dest='show_mag_scale_legend', action='store_true', default=True,
                                     help='show magnitude scale legend.')
 
@@ -242,6 +245,7 @@ class RuntimeSettings:
 
 def _create_engine_configuration():
     config = EngineConfiguration()
+    config.show_flamsteed = settings.parser.show_flamsteed
     config.show_mag_scale_legend = settings.parser.show_mag_scale_legend
     config.show_map_scale_legend = settings.parser.show_map_scale_legend
     config.show_orientation_legend = settings.parser.show_orientation_legend

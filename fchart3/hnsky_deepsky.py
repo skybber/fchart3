@@ -31,6 +31,15 @@ dso_type_map = {
     'GALCL': GALCL,
     '2STAR': STARS,
     'ASTER': STARS,
+    'CL+NB': OC,
+    'NB':  N,
+    'DN&HII': N,
+    'pA*': UNKNOWN,    # Post-AGB Star (proto-PN)
+    'C*': UNKNOWN,    # Carbon Star
+    'CV*': UNKNOWN, # Cataclysmic Variable Star
+    'RNe': N, # Reflection Nebula 
+    'NL*': UNKNOWN,  # Nova-like Star
+    'HII': N 
 }
 
 CATALOG_SPECS0 = { 'Sh2-' }
@@ -116,6 +125,8 @@ def _parse_hnsky_line(line, show_catalogs):
         object.mag = float(str_mag)/10.0
     elif obj_type in ('PN', 'GX'):
         object.mag = 15.0
+    else:
+        object.mag = 100.0
 
     names = items[3].split('/')
 

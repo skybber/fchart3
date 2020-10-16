@@ -395,8 +395,9 @@ class SkymapEngine:
         printed = {}
         for star in constell_catalog.bright_stars:
             slabel = star.greek
-            if slabel == '' and star.constellation != '' and star.constell_number != '':
-                slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
+            if self.config.show_flamsteed:
+                if slabel == '' and star.constellation != '' and star.constell_number != '':
+                    slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
             if slabel == '' or not self.is_fld_direction(star.ra):
                 continue
             constell_printed = printed.get(star.constellation)

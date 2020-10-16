@@ -24,6 +24,7 @@ DEFAULT_LEGEND_LINEWIDTH = 0.2
 class EngineConfiguration:
     def __init__(self):
         self._legend_only = False
+        self._show_flamsteed = True
         self._show_mag_scale_legend = False
         self._show_map_scale_legend = False
         self._show_orientation_legend = False
@@ -47,6 +48,14 @@ class EngineConfiguration:
     @legend_only.setter
     def legend_only(self, value):
         self._legend_only = value
+
+    @property
+    def show_flamsteed(self):
+        return self._show_flamsteed
+
+    @show_flamsteed.setter
+    def show_flamsteed(self, value):
+        self._show_flamsteed = value
 
     @property
     def show_mag_scale_legend(self):
