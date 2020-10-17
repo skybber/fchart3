@@ -21,12 +21,11 @@ from .graphics_interface import DrawMode
 
 class WidgetMagnitudeScale:
 
-    def __init__(self, sky_map_engine, field_radius_mm, legend_fontsize, stars_in_scale, lm_stars, star_border_linewidth, legend_linewidth):
+    def __init__(self, sky_map_engine, field_radius_mm, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth):
         self.engine = sky_map_engine
         self.legend_fontsize = legend_fontsize
         self.stars_in_scale = stars_in_scale
         self.lm_stars = lm_stars
-        self.star_border_linewidth = star_border_linewidth
         self.legend_linewidth = legend_linewidth
         self.width = self.legend_fontsize
         if int(self.lm_stars) < 10:
@@ -50,11 +49,11 @@ class WidgetMagnitudeScale:
         legendy = bottom + np.arange(self.stars_in_scale)*fh + 0.5*fh
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
         
-        graphics.set_linewidth(self.star_border_linewidth)
+        graphics.set_linewidth(0)
         
         if legend_only and graphics.gi_background_rgb:
             graphics.save()
-            graphics.set_fill_background(graphics.gi_background_rgb)
+            graphics.set_fill_background()
             graphics.rectangle(left, bottom+self.height, self.width, self.height, DrawMode.FILL)
             graphics.restore()
             

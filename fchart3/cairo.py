@@ -97,14 +97,6 @@ class CairoDrawing(GraphicsInterface):
         self.context.set_line_width(linewidth)
 
 
-    def set_pen_gray(self, whiteness):
-        GraphicsInterface.set_pen_gray(self, whiteness)
-
-
-    def set_fill_gray(self, whiteness):
-        GraphicsInterface.set_fill_gray(self, whiteness)
-
-
     def set_solid_line(self):
         GraphicsInterface.set_solid_line(self)
 
@@ -123,7 +115,7 @@ class CairoDrawing(GraphicsInterface):
     def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
         """
         Draw a rectangle with left upper corner in (x,y) and widt/height
-        pen gray value
+        pen rgb value
         """
         self.context.rectangle(x, -y, width, height)
         self._draw_element(mode)

@@ -39,7 +39,7 @@ if have_numpy:
 
 setup(
     name='fchart3',
-    version='0.5.2',
+    version='0.6.0',
     description='Collection of Python scripts to make beautiful deepsky finder charts in various formats',
     keywords='fchart3 starchart star charts finder chart astronomy map',
     url='https://github.com/skybber/fchart3',

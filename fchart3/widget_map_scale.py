@@ -68,7 +68,7 @@ class WidgetMapScale:
 
         if legend_only and graphics.gi_background_rgb:
             graphics.save()
-            graphics.set_fill_background(graphics.gi_background_rgb)
+            graphics.set_fill_background()
             graphics.rectangle(right-self.width, bottom+self.height, self.width, self.height, DrawMode.FILL)
             graphics.restore()
 

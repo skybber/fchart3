@@ -15,11 +15,17 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-DEFAULT_CONSTELLATION_LINEWIDTH = 0.5
-DEFAULT_STAR_BORDER_LINEWIDTH = 0.06
+DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_OPEN_CLUSTER_LINEWIDTH = 0.3
 DEFAULT_DSO_LINEWIDTH = 0.2
 DEFAULT_LEGEND_LINEWIDTH = 0.2
+
+DEFAULT_BACKGROUND_COLOR = (1.0, 1.0, 1.0)
+DEFAULT_DRAW_COLOR = (0.0, 0.0, 0.0)
+DEFAULT_LABEL_COLOR = (0.0, 0.0, 0.0)
+DEFAULT_CONSTELLATION_LINES_COLOR = (0.2, 0.7, 1.0)
+DEFAULT_CONSTELLATION_BORDER_COLOR = (0.95, 0.90, 0.1)
+DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
 
 class EngineConfiguration:
     def __init__(self):
@@ -31,15 +37,21 @@ class EngineConfiguration:
         self._show_dso_legend = False
         self._show_coords_legend = False
         self._show_field_border = False
-        self._invert_colors = False
         self._mirror_x = False
         self._mirror_y = False
+        self._background_color = DEFAULT_BACKGROUND_COLOR
+        self._draw_color = DEFAULT_DRAW_COLOR
+        self._label_color = DEFAULT_LABEL_COLOR
+        self._constellation_lines_color = DEFAULT_CONSTELLATION_LINES_COLOR
+        self._constellation_border_color = DEFAULT_CONSTELLATION_BORDER_COLOR
+        self._dso_color = DEFAULT_DSO_COLOR
+        self._nebula_color = DEFAULT_DSO_COLOR
+        self._galaxy_color = DEFAULT_DSO_COLOR
+        self._star_cluster_color = DEFAULT_DSO_COLOR
         self._constellation_linewidth = DEFAULT_CONSTELLATION_LINEWIDTH
-        self._star_border_linewidth = DEFAULT_STAR_BORDER_LINEWIDTH
         self._open_cluster_linewidth = DEFAULT_OPEN_CLUSTER_LINEWIDTH
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
-        self._night_mode = False
 
     @property
     def legend_only(self):
@@ -106,14 +118,6 @@ class EngineConfiguration:
         self._show_field_border = value
 
     @property
-    def invert_colors(self):
-        return self._invert_colors
-
-    @invert_colors.setter
-    def invert_colors(self, value):
-        self._invert_colors = value
-
-    @property
     def mirror_x(self):
         return self._mirror_x
 
@@ -128,6 +132,78 @@ class EngineConfiguration:
     @mirror_y.setter
     def mirror_y(self, value):
         self._mirror_y = value
+        
+    @property
+    def background_color(self):
+        return self._background_color
+
+    @background_color.setter
+    def background_color(self, value):
+        self._background_color = value
+        
+    @property
+    def draw_color(self):
+        return self._draw_color
+
+    @draw_color.setter
+    def draw_color(self, value):
+        self._draw_color = value
+        
+    @property
+    def label_color(self):
+        return self._label_color
+
+    @label_color.setter
+    def label_color(self, value):
+        self._label_color = value
+        
+    @property
+    def constellation_lines_color(self):
+        return self._constellation_lines_color
+
+    @constellation_lines_color.setter
+    def constellation_lines_color(self, value):
+        self._constellation_lines_color = value
+        
+    @property
+    def constellation_border_color(self):
+        return self._constellation_border_color
+
+    @constellation_border_color.setter
+    def constellation_border_color(self, value):
+        self._constellation_border_color = value
+        
+    @property
+    def dso_color(self):
+        return self._dso_color
+
+    @dso_color.setter
+    def dso_color(self, value):
+        self._dso_color = value
+        
+    @property
+    def nebula_color(self):
+        return self._nebula_color
+
+    @nebula_color.setter
+    def nebula_color(self, value):
+        self._nebula_color = value
+
+    @property
+    def galaxy_color(self):
+        return self._galaxy_color
+
+    @galaxy_color.setter
+    def galaxy_color(self, value):
+        self._galaxy_color = value
+
+    @property
+    def star_cluster_color(self):
+        return self._star_cluster_color
+
+    @star_cluster_color.setter
+    def star_cluster_color(self, value):
+        self._star_cluster_color = value
 
     @property
     def constellation_linewidth(self):
@@ -136,14 +212,6 @@ class EngineConfiguration:
     @constellation_linewidth.setter
     def constellation_linewidth(self, value):
         self._constellation_linewidth = value
-
-    @property
-    def star_border_linewidth(self):
-        return self._star_border_linewidth
-
-    @star_border_linewidth.setter
-    def star_border_linewidth(self, value):
-        self._star_border_linewidth = value
 
     @property
     def open_cluster_linewidth(self):
@@ -168,12 +236,3 @@ class EngineConfiguration:
     @legend_linewidth.setter
     def legend_linewidth(self, value):
         self._legend_linewidth = value
-
-    @property
-    def night_mode(self):
-        return self._night_mode
-
-    @night_mode.setter
-    def night_mode(self, value):
-        self._night_mode = value
-

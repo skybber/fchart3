@@ -26,7 +26,7 @@ class DrawMode(Enum):
     """
     BORDER - only draw border with pen
     FILL - only fill interior
-    BOTH - fill interior with fill gray value and draw border with gray
+    BOTH - fill interior with fill rgb value and draw border with gray
     """
     BORDER = 1
     FILL = 2
@@ -72,9 +72,6 @@ class GraphicsInterface:
         self.gi_origin_y  = self.gi_height/2.0
         self.gi_font      = 'Times-Roman'
         self.set_point_size(POINT)
-
-        self.gi_invert_colors = False
-        self.gi_night_mode = False
 
         self.gi_filename = ''
         self.gi_stack = []
@@ -123,8 +120,6 @@ class GraphicsInterface:
     def set_filename(self, filename):
         self.gi_filename = filename
 
-    def set_invert_colors(self, invert_colors):
-        self.gi_invert_colors = invert_colors
 
     def set_dimensions(self, width, height):
         """
@@ -153,42 +148,26 @@ class GraphicsInterface:
         self.gi_linewidth = linewidth
 
 
-    def set_pen_gray(self, pen_gray):
+    def set_pen_rgb(self, pen_rgb):
         """
         Sets gi_pen_rgb. Derived classes should extend, not override this method.
         """
-        if self.gi_night_mode:
-            self.gi_pen_rgb = (1.0-pen_gray, 2*(1.0-pen_gray)/5.0, 0.0)
-        elif self.gi_invert_colors:
-            self.gi_pen_rgb = (1.0-pen_gray, 1.0-pen_gray, 1.0-pen_gray)
-        else:
-            self.gi_pen_rgb = (pen_gray, pen_gray, pen_gray)
+        self.gi_pen_rgb = pen_rgb
 
 
-    def set_pen_rgb(self, pen_rgb):
-        """
-        Sets gi_pen_gray. Derived classes should extend, not override this method.
-        """
-        if self.gi_night_mode:
-            max_rgb = max(pen_rgb)
-            self.gi_pen_rgb = (max_rgb, 2*max_rgb/5.0, 0.0)
-        else:
-            self.gi_pen_rgb = pen_rgb
-
-
-    def set_fill_gray(self, fill_gray):
+    def set_fill_rgb(self, fill_rgb):
         """
         Sets gi_fill_rgb. Derived classes should extend, not override this method.
         """
-        if self.gi_night_mode:
-            self.gi_fill_rgb = (1.0-fill_gray, 2*(1.0-fill_gray)/5.0, 0.0)
-        elif self.gi_invert_colors:
-            self.gi_fill_rgb = (1.0-fill_gray, 1.0-fill_gray, 1.0-fill_gray)
-        else:
-            self.gi_fill_rgb = (fill_gray, fill_gray, fill_gray)
+        self.gi_fill_rgb = fill_rgb
 
-    def set_fill_background(self, fill_gray):
-        self.gi_fill_rgb = (self.gi_background_rgb[0], self.gi_background_rgb[0], self.gi_background_rgb[0])
+
+    def set_fill_background(self):
+        """
+        Sets gi_fill_rgb. to g_background 
+        """
+        self.gi_fill_rgb = self.gi_background_rgb
+        
         
     def set_solid_line(self):
         """
@@ -336,17 +315,13 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.reset_clip()')
 
-    def set_night_mode(self, night_mode):
-        """
-        Set use night mode
-        """
-        self.gi_night_mode = night_mode
     
     def clear(self):
         """
         Fill by background color
         """
         print('GraphicsInterface.clwar()')
+
 
     def set_background_rgb(self, background_rgb):
         """

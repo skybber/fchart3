@@ -77,6 +77,7 @@ class RuntimeSettings:
 
         argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', default='./',
                                     help='specify the output directory (default: .)')
+        
         argumentparser.add_argument('-f', '--output-file', dest='output_file', nargs='?', action='store',
                                     help='specify output file name. (default: name of dso object). Image format is defined by extension.' +\
                                          'Supported format/extensions are pdf, png and svg.')
@@ -108,11 +109,6 @@ class RuntimeSettings:
         argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
                                     help='specify language on the maps, either \'en\' or \'nl\' (default: en)')
 
-        # TODO: inv + night mode should be replaced by themes
-        argumentparser.add_argument('-inv', '--invert-colors', dest='invert_colors', action='store_true',
-                                    help='invert colors in generated maps.')
-        argumentparser.add_argument('-nm', '--night-mode', dest='night_mode', action='store_true',
-                                    help='activate red light mode.')
         argumentparser.add_argument('-sc', '--show-catalogs', dest='show_catalogs', nargs='?', action='store',
                                     help='comma separated list of additional catalogs to be show on the map. (e.g. LBN).')
 
@@ -164,11 +160,28 @@ class RuntimeSettings:
         argumentparser.add_argument('-my', '--mirror-y', dest='mirror_y', action='store_true',
                                     help='mirror in y axis.')
 
-        # TODO: Should be placed into theme file / allow overriding only with long option format (--xyz)
+
+        argumentparser.add_argument('--color-background', dest='background_color', action='store',
+                                    help='Background color. (default white)')
+        argumentparser.add_argument('--color-draw', dest='draw_color', action='store',
+                                    help='Drawing color for stars. (default black)')
+        argumentparser.add_argument('--color-label', dest='label_color', action='store',
+                                    help='Label color. (default black)')
+        argumentparser.add_argument('--color-constellation-lines', dest='constellation_lines_color', action='store',
+                                    help='Constellation border color.')
+        argumentparser.add_argument('--color-constellation-border', dest='constellation_border_color', action='store',
+                                    help='Constellation lines color.')
+        argumentparser.add_argument('--color-deepsky', dest='dso_color', action='store',
+                                    help='Deepsky color.')
+        argumentparser.add_argument('--color-nebula', dest='nebula_color', action='store',
+                                    help='Nebula color.')
+        argumentparser.add_argument('--color-galaxy', dest='galaxy_color', action='store',
+                                    help='Galaxy color.')
+        argumentparser.add_argument('--color-star-cluster', dest='star_cluster_color', action='store',
+                                    help='Star cluster color.')
+
         argumentparser.add_argument('-lconst', '--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
                                     help='Constellation line width (default: 0.5)')
-        argumentparser.add_argument('-lstar', '--linewidth-star-border', dest='star_border_linewidth', nargs='?', action='store', default=0.06, type=float,
-                                    help='Star border line width (default: 0.06)')
         argumentparser.add_argument('-locl', '--linewidth-open-cluster', dest='open_cluster_linewidth', nargs='?', action='store', default=0.3, type=float,
                                     help='Line width of open cluster (default: 0.3)')
         argumentparser.add_argument('-ldso', '--linewidth-deepsky', dest='dso_linewidth', nargs='?', action='store', default=0.2, type=float,
@@ -256,15 +269,21 @@ def _create_engine_configuration():
     config.hide_widget_mag_scale = settings.hide_widget_mag_scale
     config.hide_widget_scale = settings.hide_widget_scale
     config.hide_widget_orientation = settings.hide_widget_orientation
-    config.invert_colors = settings.parser.invert_colors
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
+    config.background_color = settings.background_color
+    config.draw_color = settings.draw_color
+    config.label_color = settings.label_color
+    config.constellation_lines_color = settings.constellation_lines_color
+    config.constellation_border_color = settings.constellation_border_color
+    config.dso_color = settings.dso_color
+    config.nebula_color = settings.nebula_color
+    config.galaxy_color = settings.galaxy_color
+    config.star_cluster_color = settings.star_cluster_color
     config.constellation_linewidth = settings.parser.constellation_linewidth
-    config.star_border_linewidth = settings.parser.star_border_linewidth
     config.open_cluster_linewidth = settings.parser.open_cluster_linewidth
     config.dso_linewidth = settings.parser.dso_linewidth
     config.legend_linewidth = settings.parser.legend_linewidth
-    config.night_mode = settings.parser.night_mode
     return config
 
 if __name__ == '__main__':
