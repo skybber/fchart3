@@ -30,11 +30,11 @@ A4_HEIGHT_POINTS = 842
 
 class CairoDrawing(GraphicsInterface):
 
-    def __init__(self, width, height, filename=None, png_fobj=None):
+    def __init__(self, width, height, filename=None, png_fobj=None, pixels=False):
         """
         width (horizontal) and height (vertical) in mm
         """
-        GraphicsInterface.__init__(self, width, height)
+        GraphicsInterface.__init__(self, (width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
 
         self.surface = None
         self.context = None
