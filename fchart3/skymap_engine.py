@@ -207,12 +207,14 @@ class SkymapEngine:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
 
-    def draw_deepsky_objects(self, deepsky_catalog, showing_dso):
+    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos):
         # Draw deep sky
         print('Drawing deepsky...')
         deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
-        if showing_dso and not showing_dso in deepsky_list:
-            deepsky_list.append(showing_dso)
+        if showing_dsos:
+            for dso in showing_dsos:
+                if not dso in deepsky_list:
+                    deepsky_list.append(dso)
 
         deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
@@ -254,7 +256,7 @@ class SkymapEngine:
                     label = ''
             else :
                 label = object.cat+' '+'-'.join(object.all_names)
-                if (not showing_dso or showing_dso != object) and object.mag > self.deepsky_label_limit:
+                if (not showing_dsos or not object in showing_dsos) and object.mag > self.deepsky_label_limit:
                     label = ''
 
             label_length = self.graphics.text_width(label)
@@ -483,7 +485,7 @@ class SkymapEngine:
         return d < np.pi/2.0
 
 
-    def make_map(self, used_catalogs, extra_positions=[], trajectory=[], showing_dso=None):
+    def make_map(self, used_catalogs, extra_positions=[], trajectory=[], showing_dsos=None):
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
         else:
@@ -531,7 +533,7 @@ class SkymapEngine:
             if used_catalogs.constellcatalog != None:
                 self.draw_constellations(used_catalogs.constellcatalog)
             if used_catalogs.deepskycatalog != None:
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dso)
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos)
             if extra_positions != []:
                 self.draw_extra_objects(extra_positions)
             if trajectory != []:

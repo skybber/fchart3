@@ -440,7 +440,7 @@ if __name__ == '__main__':
                     engine.set_active_constellation(showing_dso.constellation)
 
                 print("Started in : " + str(time()-tm) + "ms")
-                engine.make_map(used_catalogs, settings.extra_positions_list, showing_dso=showing_dso)
+                engine.make_map(used_catalogs, settings.extra_positions_list, showing_dsos=(showing_dso,))
             else:
                 print('object not found, try appending an A or a B')
 
