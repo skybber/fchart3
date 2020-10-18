@@ -21,7 +21,7 @@ from .graphics_interface import DrawMode
 
 class WidgetMagnitudeScale:
 
-    def __init__(self, sky_map_engine, field_radius_mm, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth):
+    def __init__(self, sky_map_engine, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth):
         self.engine = sky_map_engine
         self.legend_fontsize = legend_fontsize
         self.stars_in_scale = stars_in_scale

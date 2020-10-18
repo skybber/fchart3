@@ -109,6 +109,7 @@ class SkymapEngine:
         self.caption = ''
         self.language = language
         self.drawingwidth = self.graphics.gi_width
+        self.drawingheight = self.graphics.gi_height
         self.min_radius   = 1.0 # of deepsky symbols (mm)
 
         self.lm_stars     = lm_stars
@@ -129,11 +130,17 @@ class SkymapEngine:
         self.fieldcentre         = (ra,dec)
         self.fieldradius         = fieldradius
         self.fieldsize           = np.sqrt(2.0) * fieldradius
+        
+        wh = max(self.drawingwidth, self.drawingheight)
+        
         if self.config.no_margin:
-            self.drawingscale    = (self.drawingwidth - self.config.legend_linewidth) / self.drawingwidth * self.drawingwidth/2.0/np.sin(fieldradius)
+            self.scene_scale = (wh - self.config.legend_linewidth) / wh
         else:
-            self.drawingscale    = BASE_SCALE / self.drawingwidth * self.drawingwidth/2.0/np.sin(fieldradius)
-        self.legend_fontscale    = self.drawingwidth/100.0
+            self.scene_scale = BASE_SCALE
+
+        self.drawingscale    = self.scene_scale * wh /2.0/np.sin(fieldradius)
+            
+        self.legend_fontscale    = wh/100.0
 
         self.set_caption(self.caption)
 
@@ -145,6 +152,10 @@ class SkymapEngine:
     def get_field_radius_mm(self):
         return self.drawingscale * np.sin(self.fieldradius)
 
+    def get_field_rect_mm(self):
+        x = self.scene_scale * self.drawingwidth / 2.0
+        y = self.scene_scale * self.drawingheight / 2.0
+        return (-x, -y, x, y)
 
     def set_language(self, language):
         """
@@ -155,10 +166,8 @@ class SkymapEngine:
 
     def set_caption(self, caption):
         self.caption = caption
-        if caption == '':
-            self.graphics.set_dimensions(self.drawingwidth, self.drawingwidth)
-        else:
-            self.graphics.set_dimensions(self.drawingwidth,self.drawingwidth + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
+        if caption != '':
+            self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
 
 
     def set_active_constellation(self, active_constellation):
@@ -180,11 +189,11 @@ class SkymapEngine:
         """
         if self.config.show_field_border:
             self.graphics.set_linewidth(self.config.legend_linewidth)
-            r = self.get_field_radius_mm()
-            self.graphics.line(-r, -r, -r, r)
-            self.graphics.line(-r, r, r, r)
-            self.graphics.line(r, r, r, -r)
-            self.graphics.line(r, -r, -r, -r)
+            x1, y1, x2, y2 = self.get_field_rect_mm()
+            self.graphics.line(x1, y1, x1, y2)
+            self.graphics.line(x1, y2, x2, y2)
+            self.graphics.line(x2, y2, x2, y1)
+            self.graphics.line(x2, y1, x1, y1)
 
 
     def get_legend_font_size(self):
@@ -196,16 +205,16 @@ class SkymapEngine:
         fontsize = self.get_legend_font_size()
         self.graphics.set_font(self.graphics.gi_font, fontsize=fontsize)
 
-        r = self.get_field_radius_mm()
+        x1, y1, x2, y2 = self.get_field_rect_mm()
 
         if self.config.show_mag_scale_legend:
-            self.w_mag_scale.draw(self.graphics, -r, -r, self.config.legend_only)
+            self.w_mag_scale.draw(self.graphics, x1, y1, self.config.legend_only)
         if self.config.show_map_scale_legend:
-            self.w_map_scale.draw(self.graphics, r,-r, self.config.legend_only)
+            self.w_map_scale.draw(self.graphics, x2, y1, self.config.legend_only)
         if self.config.show_orientation_legend:
-            self.w_orientation.draw(self.graphics, -r, r, self.config.legend_only)
+            self.w_orientation.draw(self.graphics, x1, y2, self.config.legend_only)
         if self.config.show_coords_legend:
-            self.w_coords.draw(self.graphics, left=r-fontsize/2, bottom=r-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1], legend_only=self.config.legend_only)
+            self.w_coords.draw(self.graphics, left=x2-fontsize/2, bottom=y2-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1], legend_only=self.config.legend_only)
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
@@ -508,28 +517,28 @@ class SkymapEngine:
         self.graphics.set_font(fontsize=DEFAULT_FONT_SIZE)
         self.graphics.set_linewidth(self.config.legend_linewidth)
 
-        r = self.get_field_radius_mm()
+        x1, y1, x2, y2 = self.get_field_rect_mm()
 
         w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
         w_maps_width, w_maps_height = self.w_map_scale.get_size()
 
         if not self.config.legend_only:
-            clip_path = [(r,r)]
+            clip_path = [(x2,y2)]
             if self.config.show_map_scale_legend:
-                clip_path.extend([(r,-r+w_maps_height),
-                                 (r-w_maps_width, -r+w_maps_height),
-                                 (r-w_maps_width, -r)])
+                clip_path.extend([(x2,y1+w_maps_height),
+                                 (x2-w_maps_width, y1+w_maps_height),
+                                 (x2-w_maps_width, y1)])
             else:
-                clip_path.append((r,-r))
+                clip_path.append((x2,y1))
                 
             if self.config.show_mag_scale_legend:
-                clip_path.extend([(-r + w_mags_width, -r),
-                                 (-r + w_mags_width, -r + w_mags_heigth),
-                                 (-r, -r + w_mags_heigth)])
+                clip_path.extend([(x1 + w_mags_width, y1),
+                                 (x1 + w_mags_width, y1 + w_mags_heigth),
+                                 (x1, y1 + w_mags_heigth)])
             else:
-                clip_path.append((-r,-r))
+                clip_path.append((x1, y1))
 
-            clip_path.append((-r,r))
+            clip_path.append((x1, y2))
 
             self.graphics.clip_path(clip_path)
             
@@ -558,7 +567,6 @@ class SkymapEngine:
 
     def create_widgets(self):
         self.w_mag_scale = WidgetMagnitudeScale(self,
-                                          field_radius_mm=self.get_field_radius_mm(),
                                           legend_fontsize=self.get_legend_font_size(),
                                           stars_in_scale=STARS_IN_SCALE,
                                           lm_stars=self.lm_stars,
