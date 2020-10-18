@@ -52,6 +52,7 @@ class EngineConfiguration:
         self._open_cluster_linewidth = DEFAULT_OPEN_CLUSTER_LINEWIDTH
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
+        self._no_margin = False
 
     @property
     def legend_only(self):
@@ -236,3 +237,11 @@ class EngineConfiguration:
     @legend_linewidth.setter
     def legend_linewidth(self, value):
         self._legend_linewidth = value
+        
+    @property
+    def no_margin(self):
+        return self._no_margin
+
+    @no_margin.setter
+    def no_margin(self, value):
+        self._no_margin = value

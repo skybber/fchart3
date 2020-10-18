@@ -129,7 +129,10 @@ class SkymapEngine:
         self.fieldcentre         = (ra,dec)
         self.fieldradius         = fieldradius
         self.fieldsize           = np.sqrt(2.0) * fieldradius
-        self.drawingscale        = BASE_SCALE * self.drawingwidth/2.0/np.sin(fieldradius)
+        if self.config.no_margin:
+            self.drawingscale    = (self.drawingwidth - self.config.legend_linewidth) / self.drawingwidth * self.drawingwidth/2.0/np.sin(fieldradius)
+        else:
+            self.drawingscale    = BASE_SCALE / self.drawingwidth * self.drawingwidth/2.0/np.sin(fieldradius)
         self.legend_fontscale    = self.drawingwidth/100.0
 
         self.set_caption(self.caption)
