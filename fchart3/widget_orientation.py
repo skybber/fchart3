@@ -17,15 +17,14 @@
 
 class WidgetOrientation:
 
-    def __init__(self, drawingwidth, legend_fontsize, mirror_x, mirror_y):
-        self.drawingwidth = drawingwidth
+    def __init__(self, legend_fontsize, mirror_x, mirror_y):
         self.legend_fontsize = legend_fontsize
         self.mirror_x = mirror_x
         self.mirror_y = mirror_y
 
     def draw(self, graphics, left, top, legend_only):
         # Draw orientation indication
-        dl = 0.02*self.drawingwidth
+        dl = self.legend_fontsize
         x = left + dl + 0.2*self.legend_fontsize
         y =  top - dl - self.legend_fontsize*1.3
         y_axis_caption = 'S' if self.mirror_y else 'N'

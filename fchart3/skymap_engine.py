@@ -140,7 +140,7 @@ class SkymapEngine:
 
         self.drawingscale    = self.scene_scale * wh /2.0/np.sin(fieldradius)
             
-        self.legend_fontscale    = wh/100.0
+        self.legend_fontscale    = min(3, wh/100.0)
 
         self.set_caption(self.caption)
 
@@ -572,14 +572,12 @@ class SkymapEngine:
                                           lm_stars=self.lm_stars,
                                           legend_linewidth=self.config.legend_linewidth)
 
-        self.w_map_scale = WidgetMapScale(drawingwidth=self.drawingwidth,
-                                    drawingscale=self.drawingscale,
+        self.w_map_scale = WidgetMapScale(drawingscale=self.drawingscale,
                                     maxlength=self.drawingwidth/3.0,
                                     legend_fontsize=self.get_legend_font_size(),
                                     legend_linewidth=self.config.legend_linewidth)
 
-        self.w_orientation = WidgetOrientation(drawingwidth=self.drawingwidth,
-                                               legend_fontsize=self.get_legend_font_size(),
+        self.w_orientation = WidgetOrientation(legend_fontsize=self.get_legend_font_size(),
                                                mirror_x=self.config.mirror_x,
                                                mirror_y=self.config.mirror_y
                                                )

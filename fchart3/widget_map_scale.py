@@ -21,8 +21,7 @@ from .graphics_interface import DrawMode
 
 class WidgetMapScale:
 
-    def __init__(self, drawingwidth, drawingscale, maxlength, legend_fontsize, legend_linewidth):
-        self.drawingwidth = drawingwidth
+    def __init__(self, drawingscale, maxlength, legend_fontsize, legend_linewidth):
         self.drawingscale = drawingscale
         self.maxlength = maxlength
         self.legend_fontsize = legend_fontsize
@@ -73,10 +72,10 @@ class WidgetMapScale:
             graphics.restore()
 
         graphics.line(x, y, x - self.ruler_length, y)
-        graphics.line(x - lw/2.0, y - 0.01*self.drawingwidth,
-                      x - lw/2.0, y + 0.01*self.drawingwidth)
-        graphics.line(x - self.ruler_length + lw/2.0, y - 0.01*self.drawingwidth,
-                      x - self.ruler_length + lw/2.0, y + 0.01*self.drawingwidth)
+        graphics.line(x - lw/2.0, y - 0.5*fh,
+                      x - lw/2.0, y + 0.5*fh)
+        graphics.line(x - self.ruler_length + lw/2.0, y - 0.5*fh,
+                      x - self.ruler_length + lw/2.0, y + 0.5*fh)
         old_fontsize = graphics.gi_fontsize
         graphics.set_font(graphics.gi_font, fh)
         graphics.text_centred(x - self.ruler_length/2.0, y + graphics.gi_fontsize*2/3.0, self.ruler_label)

@@ -27,11 +27,10 @@ class WidgetMagnitudeScale:
         self.stars_in_scale = stars_in_scale
         self.lm_stars = lm_stars
         self.legend_linewidth = legend_linewidth
-        self.width = self.legend_fontsize
         if int(self.lm_stars) < 10:
-            self.width += 1.2 * self.legend_fontsize
+            self.width = 2.2 * self.legend_fontsize
         else:
-            self.width += 1.7 * self.legend_fontsize
+            self.width = 2.7 * self.legend_fontsize
         self.height = (self.stars_in_scale + 0.6) * self.legend_fontsize
 
     def get_size(self):
