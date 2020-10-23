@@ -1,0 +1,41 @@
+# Following code converts stellarium constellation_boundaries.dat to file consbndJ200.dat using only 
+# start point and endpoint of interpolated boundary lines. Each boundary line takes single line in output
+# of the following format:
+# ra1 dec1 ra2 dec2 constellation1 constellation2
+#
+# consbndJ2000.dat 
+
+bf = open('constellation_boundaries.dat', 'r')
+bnd_lines = bf.readlines()
+bf.close()
+
+i = 0
+while i < len(bnd_lines):
+    spl = bnd_lines[i].strip().split()
+    num = int(spl[0])
+    inl_index = 1
+    j = 0;
+    ra_start = None
+    dec_start = None
+    while True:
+        ra = spl[inl_index]
+        dec = spl[inl_index + 1]
+        if not ra_start:
+            ra_start = ra
+            dec_start = dec
+        inl_index += 2
+        j += 1
+        if j >= num:
+            ra_end = ra
+            dec_end = dec
+            x = spl[inl_index]
+            con1 = spl[inl_index + 1]
+            con2 = spl[inl_index + 2]
+            i += 1
+            break
+        if inl_index >= len(spl):
+            i += 1
+            spl = bnd_lines[i].strip().split()
+            inl_index = 0
+            
+    print('{} {} {} {} {} {}'.format(ra_start, dec_start, ra_end, dec_end, con1, con2))

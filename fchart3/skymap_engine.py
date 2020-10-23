@@ -456,10 +456,13 @@ class SkymapEngine:
 
         drawn_pairs = set()
 
-        for constell in constell_catalog.constellations:
-            self.draw_constellation_bound_lines(constell.name.upper(), constell.boundaries, drawn_pairs)
-            if constell.boundaries1:
-                self.draw_constellation_bound_lines(constell.name.upper(), constell.boundaries1, drawn_pairs)
+        for p in constell_catalog.boundaries:
+            if self.is_fld_direction(p[0]) and self.is_fld_direction(p[2]):
+                l1, m1 = radec_to_lm((p[0], p[1]), self.fieldcentre)
+                l2, m2 = radec_to_lm((p[2], p[3]), self.fieldcentre)
+                pdisp1 = -l1 * self.drawingscale, m1 * self.drawingscale
+                pdisp2 = -l2 * self.drawingscale, m2 * self.drawingscale
+                self.mirroring_graphics.line(pdisp1[0], pdisp1[1], pdisp2[0], pdisp2[1])
 
         self.graphics.restore()
 

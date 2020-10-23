@@ -46,13 +46,12 @@ class Constellation:
         self.name = ''
         self.lines = []
         self.stars = []
-        self.boundaries = []
-        self.boundaries1 = [] # Serpens is divided to 2 areas
 
 class ConstellationCatalog:
     def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename='', cross_id_file=''):
         self.bright_stars = import_bsc5(bsc5_filename)
-        self.constellations = import_constellation(constell_filename, boundaries_filename, cross_id_file, self)
+        self.constellations, self.boundaries = import_constellation(constell_filename, boundaries_filename, cross_id_file, self)
+        
 
 def _parse_bsc5_line(line):
     star = BscStar()
@@ -119,7 +118,7 @@ def import_constellation(filename, boundaries_filename, cross_id_file, const_cat
     with open(filename, 'r') as f:
         lines = f.readlines()
 
-    cons_map = {}
+    boundaries = []
 
     for line in lines:
         line = line.strip()
@@ -127,7 +126,6 @@ def import_constellation(filename, boundaries_filename, cross_id_file, const_cat
             continue
         constell = _parse_constellation_line(line, const_catalog, cross_id_map)
         constellation_list.append(constell)
-        cons_map[constell.name.upper()] = constell
 
     bf = open(boundaries_filename, 'r')
     bnd_lines = bf.readlines()
@@ -135,22 +133,14 @@ def import_constellation(filename, boundaries_filename, cross_id_file, const_cat
 
     for line in bnd_lines:
         spl = line.strip().split()
-        if len(spl) == 3:
-            sra, sdec, cons1, cons2 = spl[0], spl[1], spl[2], None
-        else:
-            sra, sdec, cons1, cons2 = spl[0], spl[1], spl[2], spl[3]
-            cons2 = cons2.upper()
-        ra = float(sra)*np.pi/12.0
-        dec = float(sdec)*np.pi/180.0
-        cons = cons1.upper()
+        sra1, sdec1, sra2, sdec2, cons1, cons2 = spl[0], spl[1], spl[2], spl[3], spl[4], spl[5]
+        ra1 = float(sra1)*np.pi/12.0
+        dec1 = float(sdec1)*np.pi/180.0
+        ra2 = float(sra2)*np.pi/12.0
+        dec2 = float(sdec2)*np.pi/180.0
+        cons1 = cons1.upper()
+        cons2 = cons2.upper()
 
-        if cons.startswith('SER'):
-            if cons.endswith('1'):
-                cons_map[cons[:-1]].boundaries.append((ra, dec, cons2))
-            else:
-                cons_map[cons[:-1]].boundaries1.append((ra, dec, cons2))
-        else:
-            cons_map[cons].boundaries.append((ra, dec, cons2))
-
-    return constellation_list
+        boundaries.append((ra1, dec1, ra2, dec2, cons1, cons2))
+    return (constellation_list, boundaries)
 

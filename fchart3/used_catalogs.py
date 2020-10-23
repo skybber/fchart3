@@ -29,7 +29,7 @@ class UsedCatalogs:
         self._deeplist = get_hnsky_deepsky_list(data_dir, show_catalogs)
         self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'constellationship_western.fab',
-                                               data_dir+os.sep + 'constbnd.dat',
+                                               data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
 
         # Apply magnitude selection to deepsky list, build Messier list
