@@ -92,8 +92,6 @@ STAR_LABELS = {
 STARS_IN_SCALE = 7
 LEGEND_MARGIN = 0.47
 BASE_SCALE=0.98
-DEFAULT_FONT_SIZE=2.6
-
 
 #====================>>>  SkymapEngine  <<<====================
 
@@ -197,7 +195,7 @@ class SkymapEngine:
 
 
     def get_legend_font_size(self):
-        return DEFAULT_FONT_SIZE*self.legend_fontscale
+        return self.config.font_size * self.legend_fontscale
 
 
     def draw_widgets(self):
@@ -517,7 +515,7 @@ class SkymapEngine:
         
         self.graphics.set_pen_rgb(self.config.draw_color)
         self.graphics.set_fill_rgb(self.config.draw_color)
-        self.graphics.set_font(fontsize=DEFAULT_FONT_SIZE)
+        self.graphics.set_font(font=self.config.font, fontsize=self.config.font_size)
         self.graphics.set_linewidth(self.config.legend_linewidth)
 
         x1, y1, x2, y2 = self.get_field_rect_mm()

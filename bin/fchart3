@@ -160,7 +160,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--color-constellation-border', dest='constellation_border_color', action='store',
                                     help='Constellation lines color.')
         argumentparser.add_argument('--color-deepsky', dest='dso_color', action='store',
-                                    help='Deepsky color.')
+                                    help='Unclassified deepsky color.')
         argumentparser.add_argument('--color-nebula', dest='nebula_color', action='store',
                                     help='Nebula color.')
         argumentparser.add_argument('--color-galaxy', dest='galaxy_color', action='store',
@@ -179,6 +179,12 @@ class RuntimeSettings:
 
         argumentparser.add_argument('--no-margin', dest='no_margin', action='store_true', default=False,
                                     help='Star cluster color.')
+        
+        argumentparser.add_argument('--font', dest='font', action='store', default='Arial',
+                                    help='Font (Arial)')
+        
+        argumentparser.add_argument('--font-size', dest='font_size', type=float,
+                                    help='Font size')
         
         argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
         argumentparser.add_argument('sourcelist', nargs='*')
@@ -272,6 +278,8 @@ def _create_engine_configuration():
     config.dso_linewidth = settings.parser.dso_linewidth
     config.legend_linewidth = settings.parser.legend_linewidth
     config.no_margin = settings.parser.no_margin
+    config.font = settings.font
+    config.font_size = settings.font_size
     return config
 
 if __name__ == '__main__':

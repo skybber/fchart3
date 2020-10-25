@@ -26,6 +26,8 @@ DEFAULT_LABEL_COLOR = (0.0, 0.0, 0.0)
 DEFAULT_CONSTELLATION_LINES_COLOR = (0.2, 0.7, 1.0)
 DEFAULT_CONSTELLATION_BORDER_COLOR = (0.95, 0.90, 0.1)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
+DEFAULT_FONT_SIZE = 2.6
+DEFAULT_FONT = 'Arial' 
 
 class EngineConfiguration:
     def __init__(self):
@@ -53,6 +55,8 @@ class EngineConfiguration:
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
         self._no_margin = False
+        self._font = DEFAULT_FONT
+        self._font_size = DEFAULT_FONT_SIZE
 
     @property
     def legend_only(self):
@@ -245,3 +249,19 @@ class EngineConfiguration:
     @no_margin.setter
     def no_margin(self, value):
         self._no_margin = value
+
+    @property
+    def font(self):
+        return self._font
+
+    @font.setter
+    def font(self, value):
+        self._font = value
+        
+    @property
+    def font_size(self):
+        return self._font_size
+
+    @font_size.setter
+    def font_size(self, value):
+        self._font_size = value
