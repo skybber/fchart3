@@ -404,7 +404,9 @@ class SkymapEngine:
                 slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
             if slabel == '' or not self.is_fld_direction(star.ra):
                 continue
+            
             constell_printed = printed.get(star.constellation)
+            
             if not constell_printed:
                 constell_printed = set()
                 printed[star.constellation] = constell_printed
@@ -413,16 +415,17 @@ class SkymapEngine:
 
             constell_printed.add(slabel)
 
-            if slabel in STAR_LABELS:
-                slabel = STAR_LABELS.get(slabel)
-                self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
-            else:
-                self.graphics.set_font(self.graphics.gi_font, 0.9*old_size)
+            if self.config.show_star_labels:
+                if slabel in STAR_LABELS:
+                    slabel = STAR_LABELS.get(slabel)
+                    self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
+                else:
+                    self.graphics.set_font(self.graphics.gi_font, 0.9*old_size)
 
-            l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
-            x, y = -l * self.drawingscale, m * self.drawingscale
-            r = self.magnitude_to_radius(star.mag)
-            self.draw_circular_object_label(x, y , r, slabel)
+                l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
+                x, y = -l * self.drawingscale, m * self.drawingscale
+                r = self.magnitude_to_radius(star.mag)
+                self.draw_circular_object_label(x, y , r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, old_size)
 

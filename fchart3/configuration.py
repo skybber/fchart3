@@ -32,6 +32,7 @@ DEFAULT_FONT = 'Arial'
 class EngineConfiguration:
     def __init__(self):
         self._legend_only = False
+        self._show_star_labels = True
         self._show_flamsteed = True
         self._show_mag_scale_legend = False
         self._show_map_scale_legend = False
@@ -65,6 +66,14 @@ class EngineConfiguration:
     @legend_only.setter
     def legend_only(self, value):
         self._legend_only = value
+
+    @property
+    def show_star_labels(self):
+        return self._show_star_labels
+
+    @show_star_labels.setter
+    def show_star_labels(self, value):
+        self._show_star_labels = value
 
     @property
     def show_flamsteed(self):

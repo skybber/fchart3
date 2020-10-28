@@ -121,6 +121,9 @@ class RuntimeSettings:
         argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default='',
                                     help='force a specific caption for the maps. All maps will get the same caption.')
 
+        argumentparser.add_argument('--hide-star-labels', dest='show_star_labels', action='store_false',
+                                    help='hide star labels.')
+                                    
         argumentparser.add_argument('--hide-flamsteed', dest='show_flamsteed', action='store_false',
                                     help='hide Flamsteed designation.')
                                     
@@ -255,6 +258,7 @@ class RuntimeSettings:
 
 def _create_engine_configuration():
     config = EngineConfiguration()
+    config.show_star_labels = settings.parser.show_star_labels
     config.show_flamsteed = settings.parser.show_flamsteed
     config.show_mag_scale_legend = settings.parser.show_mag_scale_legend
     config.show_map_scale_legend = settings.parser.show_map_scale_legend
