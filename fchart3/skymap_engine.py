@@ -394,6 +394,12 @@ class SkymapEngine:
         self.draw_constellation_shapes(constell_catalog)
         self.draw_constellation_stars(constell_catalog)
 
+    def in_field(self, ra, dec):
+        ra_sep = abs(ra-self.fieldcentre[0])
+        if ra_sep > np.pi:
+            ra_sep = 2*np.pi-ra_sep
+        
+        return ra_sep * np.cos(dec) < self.fieldsize and abs(dec-self.fieldcentre[1]) < self.fieldsize 
 
     def draw_constellation_stars(self, constell_catalog):
         old_size = self.graphics.gi_fontsize
@@ -422,10 +428,11 @@ class SkymapEngine:
                 else:
                     self.graphics.set_font(self.graphics.gi_font, 0.9*old_size)
 
-                l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
-                x, y = -l * self.drawingscale, m * self.drawingscale
-                r = self.magnitude_to_radius(star.mag)
-                self.draw_circular_object_label(x, y , r, slabel)
+                if self.in_field(star.ra, star.dec):
+                    l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
+                    x, y = -l * self.drawingscale, m * self.drawingscale
+                    r = self.magnitude_to_radius(star.mag)
+                    self.draw_circular_object_label(x, y , r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, old_size)
 
@@ -440,7 +447,8 @@ class SkymapEngine:
                 star1 = constell_catalog.bright_stars[line[0]-1]
                 star2 = constell_catalog.bright_stars[line[1]-1]
                 # just use hack for sin projection
-                if self.is_fld_direction(star1.ra) and self.is_fld_direction(star2.ra):
+                if self.is_fld_direction(star1.ra) and self.is_fld_direction(star2.ra) and \
+                   self.in_field(star1.ra, star1.dec) and self.in_field(star2.ra, star2.dec):
                     l1, m1 = radec_to_lm((star1.ra, star1.dec), self.fieldcentre)
                     l2, m2 = radec_to_lm((star2.ra, star2.dec), self.fieldcentre)
                     x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
@@ -458,7 +466,8 @@ class SkymapEngine:
         drawn_pairs = set()
 
         for p in constell_catalog.boundaries:
-            if self.is_fld_direction(p[0]) and self.is_fld_direction(p[2]):
+            if self.is_fld_direction(p[0]) and self.is_fld_direction(p[2]) and \
+               self.in_field(p[0], p[1]) and self.in_field(p[2], p[3]):
                 l1, m1 = radec_to_lm((p[0], p[1]), self.fieldcentre)
                 l2, m2 = radec_to_lm((p[2], p[3]), self.fieldcentre)
                 pdisp1 = -l1 * self.drawingscale, m1 * self.drawingscale
@@ -466,32 +475,6 @@ class SkymapEngine:
                 self.mirroring_graphics.line(pdisp1[0], pdisp1[1], pdisp2[0], pdisp2[1])
 
         self.graphics.restore()
-
-    def draw_constellation_bound_lines(self, constell_name, boundaries, drawn_pairs):
-        first = None
-        first_disp = None
-        prev = None
-        prev_disp = None
-        for i in range(len(boundaries)):
-            p = boundaries[i]
-            l1, m1 = radec_to_lm((p[0], p[1]), self.fieldcentre)
-            pdisp = -l1 * self.drawingscale, m1 * self.drawingscale
-            if not first:
-                first = p
-                first_disp = pdisp
-            else:
-                if self.is_fld_direction(p[0]) and self.is_fld_direction(prev[0]):
-                    if (p[2] is None) or not ((p[2]+'_'+ constell_name) in drawn_pairs):
-                        self.mirroring_graphics.line(prev_disp[0], prev_disp[1], pdisp[0], pdisp[1])
-                        if p[2]:
-                            drawn_pairs.add(constell_name + '_' + p[2])
-            prev = p
-            prev_disp = pdisp
-        if prev and self.is_fld_direction(prev[0]) and self.is_fld_direction(first[0]):
-            if (prev[2] is None) or not ((prev[2]+'_'+ constell_name) in drawn_pairs):
-                self.mirroring_graphics.line(prev_disp[0], prev_disp[1], first_disp[0], first_disp[1])
-                if prev[2]:
-                    drawn_pairs.add(constell_name + '_' + prev[2])
 
 
     def is_fld_direction(self, ra):

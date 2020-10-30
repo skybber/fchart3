@@ -75,8 +75,12 @@ class DeepskyCatalog:
 
         ra = pos_mag_array[:,0]
         dec = pos_mag_array[:,1]
+        
+        ra_sep = np.abs(ra-fieldcentre[0])
+        toosmall = ra_sep < np.pi
+        norm_ra_sep = toosmall * ra_sep + np.logical_not(toosmall) * (2*np.pi-ra_sep)
 
-        object_in_field = np.logical_and(np.abs((ra-fieldcentre[0])*np.cos(dec)) < radius, np.abs(dec-fieldcentre[1]) < radius)
+        object_in_field = np.logical_and(norm_ra_sep*np.cos(dec) < radius, np.abs(dec-fieldcentre[1]) < radius)
         indices = np.where(object_in_field == 1)[0]
 
         selected_list_pos = []
