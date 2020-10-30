@@ -448,7 +448,7 @@ class SkymapEngine:
                 star2 = constell_catalog.bright_stars[line[1]-1]
                 # just use hack for sin projection
                 if self.is_fld_direction(star1.ra) and self.is_fld_direction(star2.ra) and \
-                   self.in_field(star1.ra, star1.dec) and self.in_field(star2.ra, star2.dec):
+                   (self.in_field(star1.ra, star1.dec) or self.in_field(star2.ra, star2.dec)):
                     l1, m1 = radec_to_lm((star1.ra, star1.dec), self.fieldcentre)
                     l2, m2 = radec_to_lm((star2.ra, star2.dec), self.fieldcentre)
                     x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
@@ -467,7 +467,7 @@ class SkymapEngine:
 
         for p in constell_catalog.boundaries:
             if self.is_fld_direction(p[0]) and self.is_fld_direction(p[2]) and \
-               self.in_field(p[0], p[1]) and self.in_field(p[2], p[3]):
+               (self.in_field(p[0], p[1]) or self.in_field(p[2], p[3])):
                 l1, m1 = radec_to_lm((p[0], p[1]), self.fieldcentre)
                 l2, m2 = radec_to_lm((p[2], p[3]), self.fieldcentre)
                 pdisp1 = -l1 * self.drawingscale, m1 * self.drawingscale
