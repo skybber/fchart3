@@ -30,8 +30,8 @@ class WidgetMapScale:
 
     def _initialize(self):
         # Determine a suitable scale ruler
-        allowed_ruler = np.array([1, 5, 10, 30, 60, 120, 300.0]) # arcminutes
-        allowed_labels = ['1\'', '5\'', '10\'', '30\'', '1°', '2°', '5°']
+        allowed_ruler = np.array([1, 5, 10, 30, 60, 120, 300.0, 600.0, 1200.0]) # arcminutes
+        allowed_labels = ['1\'', '5\'', '10\'', '30\'', '1°', '2°', '5°', '10°', '20°']
 
         ruler_mm = allowed_ruler*np.pi/(180.0*60.0)*self.drawingscale
         self.ruler_label = ''

@@ -40,6 +40,7 @@ class EngineConfiguration:
         self._show_dso_legend = False
         self._show_coords_legend = False
         self._show_field_border = False
+        self._fov_telrad = False
         self._mirror_x = False
         self._mirror_y = False
         self._background_color = DEFAULT_BACKGROUND_COLOR
@@ -130,6 +131,14 @@ class EngineConfiguration:
     @show_field_border.setter
     def show_field_border(self, value):
         self._show_field_border = value
+
+    @property
+    def fov_telrad(self):
+        return self._fov_telrad
+
+    @fov_telrad.setter
+    def fov_telrad(self, value):
+        self._fov_telrad = value
 
     @property
     def mirror_x(self):

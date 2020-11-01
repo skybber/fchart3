@@ -145,12 +145,14 @@ class RuntimeSettings:
         argumentparser.add_argument('--hide-field-border', dest='show_field_border', action='store_false',
                                     help='hide field border.')
                                     
+        argumentparser.add_argument('--FOV-telrad', dest='fov_telrad', action='store_true',
+                                    help='show telrad circles at FOV.')
+
         # Transformation
         argumentparser.add_argument('-mx', '--mirror-x', dest='mirror_x', action='store_true',
                                     help='mirror in x axis.')
         argumentparser.add_argument('-my', '--mirror-y', dest='mirror_y', action='store_true',
                                     help='mirror in y axis.')
-
 
         argumentparser.add_argument('--color-background', dest='background_color', action='store',
                                     help='Background color. (default white)')
@@ -266,6 +268,7 @@ def _create_engine_configuration():
     config.show_dso_legend = settings.parser.show_dso_legend
     config.show_coords_legend = settings.parser.show_coords_legend
     config.show_field_border = settings.parser.show_field_border
+    config.fov_telrad = settings.fov_telrad
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
     config.background_color = settings.parser.background_color

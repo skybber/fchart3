@@ -96,7 +96,8 @@ class GraphicsInterface:
                               self.gi_dash_style,
                               self.gi_font,
                               self.gi_fontsize,
-                              self.gi_fill_rgb))
+                              self.gi_fill_rgb,
+                              self.gi_pen_rgb))
 
     def restore(self):
         """
@@ -108,7 +109,8 @@ class GraphicsInterface:
          self.gi_dash_style,
          self.gi_font,
          self.gi_fontsize,
-         self.gi_fill_rgb) = self.gi_stack.pop()
+         self.gi_fill_rgb,
+         self.gi_pen_rgb) = self.gi_stack.pop()
 
     def new(self):
         """

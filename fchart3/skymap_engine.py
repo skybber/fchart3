@@ -32,6 +32,7 @@ from .widget_map_scale import WidgetMapScale
 from .widget_orientation import WidgetOrientation
 from .widget_coords import WidgetCoords
 from .widget_dso_legend import WidgetDsoLegend
+from .widget_telrad import WidgetTelrad
 
 NL = {
     'h':'u',
@@ -192,8 +193,8 @@ class SkymapEngine:
             self.graphics.line(x1, y2, x2, y2)
             self.graphics.line(x2, y2, x2, y1)
             self.graphics.line(x2, y1, x1, y1)
-
-
+            
+            
     def get_legend_font_size(self):
         return self.config.font_size * self.legend_fontscale
 
@@ -205,6 +206,8 @@ class SkymapEngine:
 
         x1, y1, x2, y2 = self.get_field_rect_mm()
 
+        if self.config.fov_telrad:
+            self.w_telrad.draw(self.graphics)
         if self.config.show_mag_scale_legend:
             self.w_mag_scale.draw(self.graphics, x1, y1, self.config.legend_only)
         if self.config.show_map_scale_legend:
@@ -544,6 +547,7 @@ class SkymapEngine:
 
         print('Drawing legend')
         self.draw_caption()
+        
         print('Drawing widgets')
         self.draw_widgets()
 
@@ -572,6 +576,8 @@ class SkymapEngine:
         self.w_coords = WidgetCoords(self.language)
 
         self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN)
+        
+        self.w_telrad = WidgetTelrad(self.drawingscale, self.config.constellation_linewidth)
 
 
     def star(self, x, y, radius, mirroring=True):
