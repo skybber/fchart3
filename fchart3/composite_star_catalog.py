@@ -91,13 +91,13 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
                 trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
                 trixel_stars['dec'] / (180.0*100000.0) * np.pi,
                 trixel_stars['dRa'], trixel_stars['dDec'], trixel_stars['parallax'], trixel_stars['HD'],
-                trixel_stars['mag']/100.0, trixel_stars['bv_index'], trixel_stars['spec_type'], trixel_stars['flags'] 
+                trixel_stars['mag']/100.0, trixel_stars['bv_index'], trixel_stars['spec_type'], trixel_stars['flags']
             ], \
             dtype=STARDATA_DT_DEST)
 
     use_b = np.logical_and(trixel_stars['V'] == 30000, trixel_stars['B'] != 30000)
-    mag = use_b * (trixel_stars['B'] - 1600) / 1000.0 + np.logical_not(use_b) * trixel_stars['V'] / 1000.0 
-        
+    mag = use_b * (trixel_stars['B'] - 1600) / 1000.0 + np.logical_not(use_b) * trixel_stars['V'] / 1000.0
+
     return np.core.records.fromarrays( \
         [ \
             trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
@@ -374,9 +374,9 @@ class CompositeStarCatalog:
             trixel_stars = np.fromfile(data_file, STARDATA_DT, trixel_size)
             if byteswap:
                 trixel_stars.byteswap
-                
+
             trixel_stars = _convert_trixels_stars_helper(trixel_stars, True)
-            
+
             self.star_blocks[trixel] = trixel_stars
 
             for stardata in trixel_stars:

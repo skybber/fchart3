@@ -31,7 +31,7 @@ class DrawMode(Enum):
     BORDER = 1
     FILL = 2
     BOTH = 3
- 
+
 def paper_A(n):
     """
     Returns (width, height) of ISO An paper in mm
@@ -166,11 +166,11 @@ class GraphicsInterface:
 
     def set_fill_background(self):
         """
-        Sets gi_fill_rgb. to g_background 
+        Sets gi_fill_rgb. to g_background
         """
         self.gi_fill_rgb = self.gi_background_rgb
-        
-        
+
+
     def set_solid_line(self):
         """
         From now on, all lines should be drawn solid. Extend this method.
@@ -317,7 +317,7 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.reset_clip()')
 
-    
+
     def clear(self):
         """
         Fill by background color

@@ -75,7 +75,7 @@ class DeepskyCatalog:
 
         ra = pos_mag_array[:,0]
         dec = pos_mag_array[:,1]
-        
+
         ra_sep = np.abs(ra-fieldcentre[0])
         toosmall = ra_sep < np.pi
         norm_ra_sep = toosmall * ra_sep + np.logical_not(toosmall) * (2*np.pi-ra_sep)

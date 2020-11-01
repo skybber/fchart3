@@ -26,8 +26,9 @@ DEFAULT_LABEL_COLOR = (0.0, 0.0, 0.0)
 DEFAULT_CONSTELLATION_LINES_COLOR = (0.2, 0.7, 1.0)
 DEFAULT_CONSTELLATION_BORDER_COLOR = (0.95, 0.90, 0.1)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
+DEFAULT_HIGHLIGHT_COLOR = (0.0, 0.5, 0.0)
 DEFAULT_FONT_SIZE = 2.6
-DEFAULT_FONT = 'Arial' 
+DEFAULT_FONT = 'Arial'
 
 class EngineConfiguration:
     def __init__(self):
@@ -59,6 +60,7 @@ class EngineConfiguration:
         self._no_margin = False
         self._font = DEFAULT_FONT
         self._font_size = DEFAULT_FONT_SIZE
+        self._highlight_color = DEFAULT_HIGHLIGHT_COLOR
 
     @property
     def legend_only(self):
@@ -155,7 +157,7 @@ class EngineConfiguration:
     @mirror_y.setter
     def mirror_y(self, value):
         self._mirror_y = value
-        
+
     @property
     def background_color(self):
         return self._background_color
@@ -163,7 +165,7 @@ class EngineConfiguration:
     @background_color.setter
     def background_color(self, value):
         self._background_color = value
-        
+
     @property
     def draw_color(self):
         return self._draw_color
@@ -171,7 +173,7 @@ class EngineConfiguration:
     @draw_color.setter
     def draw_color(self, value):
         self._draw_color = value
-        
+
     @property
     def label_color(self):
         return self._label_color
@@ -179,7 +181,7 @@ class EngineConfiguration:
     @label_color.setter
     def label_color(self, value):
         self._label_color = value
-        
+
     @property
     def constellation_lines_color(self):
         return self._constellation_lines_color
@@ -187,7 +189,7 @@ class EngineConfiguration:
     @constellation_lines_color.setter
     def constellation_lines_color(self, value):
         self._constellation_lines_color = value
-        
+
     @property
     def constellation_border_color(self):
         return self._constellation_border_color
@@ -195,7 +197,7 @@ class EngineConfiguration:
     @constellation_border_color.setter
     def constellation_border_color(self, value):
         self._constellation_border_color = value
-        
+
     @property
     def dso_color(self):
         return self._dso_color
@@ -203,7 +205,7 @@ class EngineConfiguration:
     @dso_color.setter
     def dso_color(self, value):
         self._dso_color = value
-        
+
     @property
     def nebula_color(self):
         return self._nebula_color
@@ -259,7 +261,7 @@ class EngineConfiguration:
     @legend_linewidth.setter
     def legend_linewidth(self, value):
         self._legend_linewidth = value
-        
+
     @property
     def no_margin(self):
         return self._no_margin
@@ -275,7 +277,7 @@ class EngineConfiguration:
     @font.setter
     def font(self, value):
         self._font = value
-        
+
     @property
     def font_size(self):
         return self._font_size
@@ -283,3 +285,11 @@ class EngineConfiguration:
     @font_size.setter
     def font_size(self, value):
         self._font_size = value
+
+    @property
+    def highlight_color(self):
+        return self._highlight_color
+
+    @highlight_color.setter
+    def highlight_color(self, value):
+        self._highlight_color = value

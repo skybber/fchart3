@@ -42,7 +42,7 @@ class CairoDrawing(GraphicsInterface):
         self.sfc_height = None
         self.set_filename(filename)
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
-        self.png_fobj = png_fobj 
+        self.png_fobj = png_fobj
 
 
     def new(self):
@@ -68,7 +68,7 @@ class CairoDrawing(GraphicsInterface):
         self.context = cairo.Context(self.surface)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
-        
+
 
     def clear(self):
         if self.gi_background_rgb:

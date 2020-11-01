@@ -51,7 +51,7 @@ class ConstellationCatalog:
     def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename='', cross_id_file=''):
         self.bright_stars = import_bsc5(bsc5_filename)
         self.constellations, self.boundaries = import_constellation(constell_filename, boundaries_filename, cross_id_file, self)
-        
+
 
 def _parse_bsc5_line(line):
     star = BscStar()
@@ -91,8 +91,8 @@ def _parse_constellation_line(line, const_catalog, cross_id_map):
     constell.name = constell_items[0].upper()
     stars = constell_items[2:]
     for i in range(2, len(constell_items), 2):
-        star_id1 = int(constell_items[i]) 
-        star_id2 = int(constell_items[i+1]) 
+        star_id1 = int(constell_items[i])
+        star_id2 = int(constell_items[i+1])
         if not star_id1 in cross_id_map:
             print('Skipping constallation={} line. No HR for HIP={}'.format(constell.name, star_id1), flush=True)
             continue
@@ -108,13 +108,13 @@ def import_constellation(filename, boundaries_filename, cross_id_file, const_cat
     constellation_list = []
 
     cross_id_map = {}
-    
+
     with open(cross_id_file, 'r') as f:
         lines = f.readlines()
         for line in lines[1:]:
             ids = line.split()
             cross_id_map[int(ids[0])] = int(ids[-1])
-                
+
     with open(filename, 'r') as f:
         lines = f.readlines()
 

@@ -37,9 +37,9 @@ dso_type_map = {
     'pA*': UNKNOWN,    # Post-AGB Star (proto-PN)
     'C*': UNKNOWN,    # Carbon Star
     'CV*': UNKNOWN, # Cataclysmic Variable Star
-    'RNe': N, # Reflection Nebula 
+    'RNe': N, # Reflection Nebula
     'NL*': UNKNOWN,  # Nova-like Star
-    'HII': N 
+    'HII': N
 }
 
 CATALOG_SPECS0 = { 'Sh2-' }
@@ -53,7 +53,7 @@ def _denormalize_pk_name(name):
     for i in range(0, len(name)):
         c = name[i]
         if compress and c == '0':
-            continue 
+            continue
         if not c.isdigit():
             if not outp:
                 denorm += '0'
@@ -68,13 +68,13 @@ def _denormalize_pk_name(name):
 def _parse_catalog_name(dso_name):
     if dso_name.startswith('PN_'):
         dso_name = dso_name[3:]
-        
+
     if dso_name.startswith('A66_'):
         dso_name = 'Abell' + dso_name[4:]
 
     if dso_name.startswith('PK_'):
         dso_name = 'PK' + _denormalize_pk_name(dso_name[3:])
-    
+
     i = 0
     name_len = len(dso_name)
     while i < name_len:
