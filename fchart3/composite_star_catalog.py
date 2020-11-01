@@ -442,8 +442,6 @@ class CompositeStarCatalog:
         fieldcentre is a tuple (ra, dec) in radians. radius is also in
         radians
         """
-        fieldsize = angular_distance(fieldcentre, (fieldcentre[0] - radius, fieldcentre[1] - radius))
-
         selected_stars = self._select_stars_from_mash(self, fieldcentre, radius, lm_stars)
 
         for cat in self.deepstar_catalogs:
@@ -452,21 +450,10 @@ class CompositeStarCatalog:
                 if mesh_stars.shape[0] > 0:
                     selected_stars = np.concatenate((selected_stars, mesh_stars), axis=0)
 
-        ra = selected_stars[:,0]
-        dec = selected_stars[:,1]
-
-        ra_sep = abs(ra-fieldcentre[0])
-        toosmall = ra_sep < np.pi
-        norm_ra_sep = toosmall * ra_sep + np.logical_not(toosmall) * (2*np.pi-ra_sep)
-        star_in_field = np.logical_and(norm_ra_sep*np.cos(dec) < radius, abs(dec-fieldcentre[1]) < radius)
-
-        position_selection = selected_stars[star_in_field]
-
-        # select on magnitude
-        mag = position_selection[:,2]
+        mag = selected_stars[:,2]
         bright_enough = mag <= lm_stars
 
-        selection = position_selection[bright_enough]
+        selection = selected_stars[bright_enough]
 
         return selection
 

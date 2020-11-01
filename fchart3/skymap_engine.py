@@ -232,22 +232,21 @@ class SkymapEngine:
         deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
         for object in deepsky_list:
-            l, m  =  radec_to_lm((object.ra, object.dec), self.fieldcentre)
-            x, y   = -l*self.drawingscale, m*self.drawingscale
-            rlong  = object.rlong*self.drawingscale
-            if object.type == deepsky.GALCL:
-                rlong = self.min_radius
-            if rlong < self.min_radius:
-                rlong = self.min_radius
-            deepsky_list_mm.append((x, y, rlong))
+            l, m, z  =  radec_to_lmz((object.ra, object.dec), self.fieldcentre)
+            if z >= 0:
+                x, y   = -l*self.drawingscale, m*self.drawingscale
+                rlong  = object.rlong*self.drawingscale
+                if object.type == deepsky.GALCL:
+                    rlong = self.min_radius
+                if rlong < self.min_radius:
+                    rlong = self.min_radius
+                deepsky_list_mm.append((object, x, y, rlong))
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_mm)
 
         print('Drawing objects...')
-        for i in range(len(deepsky_list)):
-            object = deepsky_list[i]
-
-            x, y, rlong  = deepsky_list_mm[i]
+        for i in range(len(deepsky_list_mm)):
+            object, x, y, rlong  = deepsky_list_mm[i]
             rlong  = object.rlong*self.drawingscale
             rshort = object.rshort*self.drawingscale
             posangle=object.position_angle+direction_ddec((object.ra, object.dec), self.fieldcentre)+0.5*np.pi
@@ -324,9 +323,10 @@ class SkymapEngine:
         for object in extra_positions:
             rax,decx,label,labelpos = object
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                l,m =  radec_to_lm((rax,decx), self.fieldcentre)
-                x,y = -l*self.drawingscale, m*self.drawingscale
-                self.unknown_object(x,y,self.min_radius,label,labelpos)
+                l,m,z =  radec_to_lmz((rax,decx), self.fieldcentre)
+                if z > 0:
+                    x,y = -l*self.drawingscale, m*self.drawingscale
+                    self.unknown_object(x,y,self.min_radius,label,labelpos)
 
     def draw_highlights(self, highlights):
         # Draw extra objects
@@ -334,9 +334,10 @@ class SkymapEngine:
         for hi in highlights:
             rax, decx = hi
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                l,m =  radec_to_lm((rax,decx), self.fieldcentre)
-                x,y = -l*self.drawingscale, m*self.drawingscale
-                self.highlight_cross(x,y)
+                l,m,z =  radec_to_lmz((rax,decx), self.fieldcentre)
+                if z > 0:
+                    x,y = -l*self.drawingscale, m*self.drawingscale
+                    self.highlight_cross(x,y)
 
     def draw_trajectory(self,trajectory):
         # Draw extra objects
@@ -352,7 +353,7 @@ class SkymapEngine:
 
         for i in range(0, len(trajectory)-1):
             rax2, decx2, label2 = trajectory[i]
-            l2,m2 =  radec_to_lm((rax2,decx2), self.fieldcentre)
+            l2,m2,z2 =  radec_to_lmz((rax2,decx2), self.fieldcentre)
             x2,y2 = -l2*self.drawingscale, m2*self.drawingscale
 
             if i > 0:
@@ -360,7 +361,7 @@ class SkymapEngine:
 
             self.unknown_object(x1, y1, self.min_radius, label2, '')
 
-            x1,y1 = (x2, y2)
+            x1,y1,z1 = (x2, y2,z2)
             label1 = label2
 
         self.graphics.restore()
@@ -383,7 +384,7 @@ class SkymapEngine:
         print(str(selection.shape[0]) + ' stars in map.')
         print('Faintest star: ' + str(int(max(selection[:,2])*100.0 + 0.5)/100.0))
 
-        l, m = radec_to_lm((selection[:,0], selection[:,1]), self.fieldcentre)
+        l, m, z = radec_to_lmz((selection[:,0], selection[:,1]), self.fieldcentre)
         x, y = -l, m
 
         mag       = selection[:,2]
@@ -391,6 +392,7 @@ class SkymapEngine:
         magsorted = mag[indices]
         xsorted   = x[indices]*self.drawingscale
         ysorted   = y[indices]*self.drawingscale
+        zsorted   = z[indices]
 
         rsorted = self.magnitude_to_radius(magsorted)
 
@@ -422,7 +424,7 @@ class SkymapEngine:
             slabel = star.greek
             if slabel == '' and self.config.show_flamsteed and star.constellation != '' and star.constell_number != '':
                 slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
-            if slabel == '' or not self.is_fld_direction(star.ra):
+            if slabel == '':
                 continue
 
             constell_printed = printed.get(star.constellation)
@@ -443,10 +445,11 @@ class SkymapEngine:
                     self.graphics.set_font(self.graphics.gi_font, 0.9*old_size)
 
                 if self.in_field(star.ra, star.dec):
-                    l, m = radec_to_lm((star.ra, star.dec), self.fieldcentre)
-                    x, y = -l * self.drawingscale, m * self.drawingscale
-                    r = self.magnitude_to_radius(star.mag)
-                    self.draw_circular_object_label(x, y , r, slabel)
+                    l, m, z = radec_to_lmz((star.ra, star.dec), self.fieldcentre)
+                    if z > 0:
+                        x, y = -l * self.drawingscale, m * self.drawingscale
+                        r = self.magnitude_to_radius(star.mag)
+                        self.draw_circular_object_label(x, y , r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, old_size)
 
@@ -461,10 +464,9 @@ class SkymapEngine:
                 star1 = constell_catalog.bright_stars[line[0]-1]
                 star2 = constell_catalog.bright_stars[line[1]-1]
                 # just use hack for sin projection
-                if self.is_fld_direction(star1.ra) and self.is_fld_direction(star2.ra) and \
-                   (self.in_field(star1.ra, star1.dec) or self.in_field(star2.ra, star2.dec)):
-                    l1, m1 = radec_to_lm((star1.ra, star1.dec), self.fieldcentre)
-                    l2, m2 = radec_to_lm((star2.ra, star2.dec), self.fieldcentre)
+                l1, m1, z1 = radec_to_lmz((star1.ra, star1.dec), self.fieldcentre)
+                l2, m2, z2 = radec_to_lmz((star2.ra, star2.dec), self.fieldcentre)
+                if z1 > 0 and z2 > 0:
                     x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
                     x2, y2 = -l2 * self.drawingscale, m2 * self.drawingscale
                     self.mirroring_graphics.line(x1, y1, x2, y2)
@@ -480,22 +482,14 @@ class SkymapEngine:
         drawn_pairs = set()
 
         for p in constell_catalog.boundaries:
-            if self.is_fld_direction(p[0]) and self.is_fld_direction(p[2]) and \
-               (self.in_field(p[0], p[1]) or self.in_field(p[2], p[3])):
-                l1, m1 = radec_to_lm((p[0], p[1]), self.fieldcentre)
-                l2, m2 = radec_to_lm((p[2], p[3]), self.fieldcentre)
+            l1, m1, z1 = radec_to_lmz((p[0], p[1]), self.fieldcentre)
+            l2, m2, z2 = radec_to_lmz((p[2], p[3]), self.fieldcentre)
+            if z1 > 0 and z2 > 0:
                 pdisp1 = -l1 * self.drawingscale, m1 * self.drawingscale
                 pdisp2 = -l2 * self.drawingscale, m2 * self.drawingscale
                 self.mirroring_graphics.line(pdisp1[0], pdisp1[1], pdisp2[0], pdisp2[1])
 
         self.graphics.restore()
-
-
-    def is_fld_direction(self, ra):
-        d = abs(ra-self.fieldcentre[0])
-        if d > np.pi:
-            d = 2*np.pi - d
-        return d < np.pi/2.0
 
 
     def make_map(self, used_catalogs, showing_dsos=None, highlights=[], extra_positions=[], trajectory=[] ):

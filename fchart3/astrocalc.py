@@ -157,12 +157,37 @@ def radec_to_lm(radec, fieldcentre):
     The formulae are taken from Greisen 1983: AIPS Memo 27,
     'Non-linear Coordinate Systems in AIPS'
     """
-    (alpha, delta) = radec
-    (alpha0, delta0) = fieldcentre
-    dalpha = alpha - alpha0
-    l = np.cos(delta)*np.sin(dalpha)
-    m = np.sin(delta)*np.cos(delta0) - np.cos(delta)*np.sin(delta0)*np.cos(dalpha)
+    (ra, dec) = radec
+    (ra0, dec0) = fieldcentre
+    delta_ra = ra - ra0
+    l = np.cos(dec)*np.sin(delta_ra)
+    m = np.sin(dec)*np.cos(dec0) - np.cos(dec)*np.cos(delta_ra)*np.sin(dec0)
     return (l,m)
+
+
+def radec_to_lmz(radec, fieldcentre):
+    """
+    SIN projection. Converts radec (alpha, delta) with respect to
+    a fieldcentre (alpha0, delta0) to direction cosines (l, m). All
+    units are in radians. radec is a tuple (alpha, delta), Fieldcentre
+    is a tuple (alpha0, delta0). The routine returns a tuple (l,m).
+    The formulae are taken from Greisen 1983: AIPS Memo 27,
+    'Non-linear Coordinate Systems in AIPS'
+    """
+    (ra, dec) = radec
+    (ra0, dec0) = fieldcentre
+    delta_ra = ra - ra0
+
+    sin_dec = np.sin(dec)
+    cos_dec = np.cos(dec)
+    cos_dec0 = np.cos(dec0)
+    sin_dec0 = np.sin(dec0)
+    cos_delta_ra = np.cos(delta_ra)
+
+    m = cos_dec*np.sin(delta_ra)
+    l = sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0
+    z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
+    return (m,l,z)
 
 
 def direction_ddec(radec, fieldcentre):
@@ -183,5 +208,5 @@ def direction_ddec(radec, fieldcentre):
 
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
            'rad2dms', 'rad2hms',
-           'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm',
+           'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm', 'radec_to_lmz',
            'direction_ddec']

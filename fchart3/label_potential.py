@@ -29,7 +29,7 @@ class LabelPotential:
         self.positions = zeros((len(deepskylist), 2))*0.0
         self.sizes = zeros(len(deepskylist))*0.0
         for i in range(len(deepskylist)):
-            x,y,s = deepskylist[i]
+            _, x,y,s = deepskylist[i]
             if s <= 0:
                 s = 1
             self.sizes[i] = s**0.5
