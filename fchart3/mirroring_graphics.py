@@ -77,3 +77,9 @@ class MirroringGraphics:
     def text_centred(self, x, y, text):
         self.graphics.text_centred(self.mul_x*x, self.mul_y*y, text)
 
+
+    def set_pen_rgb(self, pen_rgb):
+        """
+        Sets gi_pen_rgb. Derived classes should extend, not override this method.
+        """
+        self.graphics.set_pen_rgb(pen_rgb)
