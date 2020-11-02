@@ -18,6 +18,8 @@
 import string
 import numpy as np
 
+from time import time
+
 from .label_potential import *
 from .astrocalc import *
 from .constellation import *
@@ -232,7 +234,7 @@ class SkymapEngine:
         deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
         for object in deepsky_list:
-            l, m, z  =  radec_to_lmz((object.ra, object.dec), self.fieldcentre)
+            l, m, z  =  radec_to_lmz(object.ra, object.dec, self.fieldcentre)
             if z >= 0:
                 x, y   = -l*self.drawingscale, m*self.drawingscale
                 rlong  = object.rlong*self.drawingscale
@@ -323,7 +325,7 @@ class SkymapEngine:
         for object in extra_positions:
             rax,decx,label,labelpos = object
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                l,m,z =  radec_to_lmz((rax,decx), self.fieldcentre)
+                l,m,z =  radec_to_lmz(rax, decx, self.fieldcentre)
                 if z > 0:
                     x,y = -l*self.drawingscale, m*self.drawingscale
                     self.unknown_object(x,y,self.min_radius,label,labelpos)
@@ -334,7 +336,7 @@ class SkymapEngine:
         for hi in highlights:
             rax, decx = hi
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                l,m,z =  radec_to_lmz((rax,decx), self.fieldcentre)
+                l,m,z =  radec_to_lmz(rax,decx, self.fieldcentre)
                 if z > 0:
                     x,y = -l*self.drawingscale, m*self.drawingscale
                     self.highlight_cross(x,y)
@@ -353,7 +355,7 @@ class SkymapEngine:
 
         for i in range(0, len(trajectory)-1):
             rax2, decx2, label2 = trajectory[i]
-            l2,m2,z2 =  radec_to_lmz((rax2,decx2), self.fieldcentre)
+            l2,m2,z2 =  radec_to_lmz(rax2,decx2, self.fieldcentre)
             x2,y2 = -l2*self.drawingscale, m2*self.drawingscale
 
             if i > 0:
@@ -384,7 +386,7 @@ class SkymapEngine:
         print(str(selection.shape[0]) + ' stars in map.')
         print('Faintest star: ' + str(int(max(selection[:,2])*100.0 + 0.5)/100.0))
 
-        l, m, z = radec_to_lmz((selection[:,0], selection[:,1]), self.fieldcentre)
+        l, m, z = radec_to_lmz(selection[:,0], selection[:,1], self.fieldcentre)
         x, y = -l, m
 
         mag       = selection[:,2]
@@ -418,40 +420,50 @@ class SkymapEngine:
         return ra_sep * np.cos(dec) < self.fieldsize and abs(dec-self.fieldcentre[1]) < self.fieldsize
 
     def draw_constellation_stars(self, constell_catalog):
-        old_size = self.graphics.gi_fontsize
+        if not self.config.show_star_labels:
+            return
+        fn = self.graphics.gi_fontsize
         printed = {}
+        star_ra = []
+        star_dec = []
+        star_label_mag = []
         for star in constell_catalog.bright_stars:
             slabel = star.greek
             if slabel == '' and self.config.show_flamsteed and star.constellation != '' and star.constell_number != '':
                 slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
-            if slabel == '':
+            if not slabel:
                 continue
 
-            constell_printed = printed.get(star.constellation)
+            printed_labels = printed.get(star.constellation)
 
-            if not constell_printed:
-                constell_printed = set()
-                printed[star.constellation] = constell_printed
-            elif slabel in constell_printed:
+            if not printed_labels:
+                printed_labels = set()
+                printed[star.constellation] = printed_labels
+            elif slabel in printed_labels:
                 continue
 
-            constell_printed.add(slabel)
+            printed_labels.add(slabel)
 
-            if self.config.show_star_labels:
-                if slabel in STAR_LABELS:
-                    slabel = STAR_LABELS.get(slabel)
-                    self.graphics.set_font(self.graphics.gi_font, 1.3*old_size)
+            big_label = slabel in STAR_LABELS
+            if big_label:
+                slabel = STAR_LABELS.get(slabel)
+
+            star_ra.append(star.ra)
+            star_dec.append(star.dec)
+            star_label_mag.append((big_label, slabel, star.mag))
+
+        x, y, z = radec_to_xyz(np.array(star_ra), np.array(star_dec), self.fieldcentre, self.drawingscale)
+
+        for i in range(len(x)):
+            if z[i] > 0:
+                if star_label_mag[i][0]:
+                    self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
                 else:
-                    self.graphics.set_font(self.graphics.gi_font, 0.9*old_size)
+                    self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
+                r = self.magnitude_to_radius(star_label_mag[i][2])
+                self.draw_circular_object_label(-x[i], y[i], r, star_label_mag[i][1])
 
-                if self.in_field(star.ra, star.dec):
-                    l, m, z = radec_to_lmz((star.ra, star.dec), self.fieldcentre)
-                    if z > 0:
-                        x, y = -l * self.drawingscale, m * self.drawingscale
-                        r = self.magnitude_to_radius(star.mag)
-                        self.draw_circular_object_label(x, y , r, slabel)
-
-        self.graphics.set_font(self.graphics.gi_font, old_size)
+        self.graphics.set_font(self.graphics.gi_font, fn)
 
 
     def draw_constellation_shapes(self, constell_catalog):
@@ -459,17 +471,13 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
-        for constell in constell_catalog.constellations:
-            for line in constell.lines:
-                star1 = constell_catalog.bright_stars[line[0]-1]
-                star2 = constell_catalog.bright_stars[line[1]-1]
-                # just use hack for sin projection
-                l1, m1, z1 = radec_to_lmz((star1.ra, star1.dec), self.fieldcentre)
-                l2, m2, z2 = radec_to_lmz((star2.ra, star2.dec), self.fieldcentre)
-                if z1 > 0 and z2 > 0:
-                    x1, y1 = -l1 * self.drawingscale, m1 * self.drawingscale
-                    x2, y2 = -l2 * self.drawingscale, m2 * self.drawingscale
-                    self.mirroring_graphics.line(x1, y1, x2, y2)
+        x1, y1, z1 = radec_to_xyz(constell_catalog.all_constell_lines[:,0], constell_catalog.all_constell_lines[:,1], self.fieldcentre, self.drawingscale)
+        x2, y2, z2 = radec_to_xyz(constell_catalog.all_constell_lines[:,2], constell_catalog.all_constell_lines[:,3], self.fieldcentre, self.drawingscale)
+
+        for i in range(len(x1)):
+            if z1[i] > 0 and z2[i] > 0:
+                self.mirroring_graphics.line(-x1[i], y1[i], -x2[i], y2[i])
+
         self.graphics.restore()
 
 
@@ -479,20 +487,20 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_border_color)
 
-        drawn_pairs = set()
+        x1, y1, z1 = radec_to_xyz(constell_catalog.boundaries[:,0], constell_catalog.boundaries[:,1], self.fieldcentre, self.drawingscale)
+        x2, y2, z2 = radec_to_xyz(constell_catalog.boundaries[:,2], constell_catalog.boundaries[:,3], self.fieldcentre, self.drawingscale)
 
-        for p in constell_catalog.boundaries:
-            l1, m1, z1 = radec_to_lmz((p[0], p[1]), self.fieldcentre)
-            l2, m2, z2 = radec_to_lmz((p[2], p[3]), self.fieldcentre)
-            if z1 > 0 and z2 > 0:
-                pdisp1 = -l1 * self.drawingscale, m1 * self.drawingscale
-                pdisp2 = -l2 * self.drawingscale, m2 * self.drawingscale
-                self.mirroring_graphics.line(pdisp1[0], pdisp1[1], pdisp2[0], pdisp2[1])
+        for i in range(len(x1)):
+            if z1[i] > 0 and z2[i] > 0:
+                self.mirroring_graphics.line(-x1[i], y1[i], -x2[i], y2[i])
 
         self.graphics.restore()
 
 
     def make_map(self, used_catalogs, showing_dsos=None, highlights=[], extra_positions=[], trajectory=[] ):
+
+        # tm = time()
+
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
         else:
@@ -542,14 +550,20 @@ class SkymapEngine:
 
             if used_catalogs.constellcatalog != None:
                 self.draw_constellations(used_catalogs.constellcatalog)
+                # print("constellations within {} ms".format(str(time()-tm)), flush=True)
+                # tm = time()
             if used_catalogs.deepskycatalog != None:
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos)
+                # print("DSO within {} ms".format(str(time()-tm)), flush=True)
+                # tm = time()
             if extra_positions != []:
                 self.draw_extra_objects(extra_positions)
             if trajectory != []:
                 self.draw_trajectory(trajectory)
             if used_catalogs.starcatalog != None:
                 self.draw_stars(used_catalogs.starcatalog)
+                # print("Stars within {} ms".format(str(time()-tm)), flush=True)
+                # tm = time()
 
             self.graphics.reset_clip()
 
@@ -563,6 +577,7 @@ class SkymapEngine:
         self.draw_field_border()
 
         self.graphics.finish()
+        # print("Rest {} ms".format(str(time()-tm)), flush=True)
 
     def create_widgets(self):
         self.w_mag_scale = WidgetMagnitudeScale(self,

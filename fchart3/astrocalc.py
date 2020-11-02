@@ -165,16 +165,15 @@ def radec_to_lm(radec, fieldcentre):
     return (l,m)
 
 
-def radec_to_lmz(radec, fieldcentre):
+def radec_to_lmz(ra, dec, fieldcentre):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
     a fieldcentre (alpha0, delta0) to direction cosines (l, m). All
     units are in radians. radec is a tuple (alpha, delta), Fieldcentre
-    is a tuple (alpha0, delta0). The routine returns a tuple (l,m).
+    is a tuple (alpha0, delta0). The routine returns a tuple (l,m,z).
     The formulae are taken from Greisen 1983: AIPS Memo 27,
     'Non-linear Coordinate Systems in AIPS'
     """
-    (ra, dec) = radec
     (ra0, dec0) = fieldcentre
     delta_ra = ra - ra0
 
@@ -184,10 +183,34 @@ def radec_to_lmz(radec, fieldcentre):
     sin_dec0 = np.sin(dec0)
     cos_delta_ra = np.cos(delta_ra)
 
-    m = cos_dec*np.sin(delta_ra)
-    l = sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0
     z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-    return (m,l,z)
+    l = np.where(z>0,cos_dec*np.sin(delta_ra),0)
+    m = np.where(z>0,sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0,0)
+    return (l,m,z)
+
+
+def radec_to_xyz(ra, dec, fieldcentre, scale):
+    """
+    SIN projection. Converts radec (alpha, delta) with respect to
+    a fieldcentre (alpha0, delta0) to coordinates (x, y, z). All
+    units are in radians. radec is a tuple (alpha, delta), Fieldcentre
+    is a tuple (alpha0, delta0). The routine returns a tuple (x,y,z).
+    The formulae are taken from Greisen 1983: AIPS Memo 27,
+    'Non-linear Coordinate Systems in AIPS'
+    """
+    (ra0, dec0) = fieldcentre
+    delta_ra = ra - ra0
+
+    sin_dec = np.sin(dec)
+    cos_dec = np.cos(dec)
+    cos_dec0 = np.cos(dec0)
+    sin_dec0 = np.sin(dec0)
+    cos_delta_ra = np.cos(delta_ra)
+
+    z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
+    x = np.where(z>0,cos_dec*np.sin(delta_ra)*scale,0)
+    y = np.where(z>0,(sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*scale,0)
+    return (x,y,z)
 
 
 def direction_ddec(radec, fieldcentre):
@@ -208,5 +231,5 @@ def direction_ddec(radec, fieldcentre):
 
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
            'rad2dms', 'rad2hms',
-           'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm', 'radec_to_lmz',
+           'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm', 'radec_to_lmz', 'radec_to_xyz',
            'direction_ddec']
