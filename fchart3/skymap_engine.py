@@ -662,7 +662,7 @@ class SkymapEngine:
         Filled circle with boundary. Set fill colour and boundary
         colour in advance using set_pen_rgb and set_fill_rgb
         """
-        star_color_n = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(round(spec_type[1]/10)), (255, 255, 255))
+        star_color_n = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(int(round(spec_type[1]/10))), (255, 255, 255))
         star_color = (star_color_n[0]/255, star_color_n[1]/255, star_color_n[2]/255)
         self.graphics.set_pen_rgb((star_color[0]/3, star_color[0]/3, star_color[0]/3))
         self.graphics.set_fill_rgb(star_color)
