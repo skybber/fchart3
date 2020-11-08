@@ -234,15 +234,13 @@ class SkymapEngine:
         deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
         for object in deepsky_list:
-            l, m, z  =  radec_to_lmz(object.ra, object.dec, self.fieldcentre)
-            if z >= 0:
-                x, y   = -l*self.drawingscale, m*self.drawingscale
-                rlong  = object.rlong*self.drawingscale
-                if object.type == deepsky.GALCL:
-                    rlong = self.min_radius
-                if rlong < self.min_radius:
-                    rlong = self.min_radius
-                deepsky_list_mm.append((object, x, y, rlong))
+            x, y  =  radec_to_xy(object.ra, object.dec, self.fieldcentre, self.drawingscale)
+            rlong  = object.rlong*self.drawingscale
+            if object.type == deepsky.GALCL:
+                rlong = self.min_radius
+            if rlong < self.min_radius:
+                rlong = self.min_radius
+            deepsky_list_mm.append((object, x, y, rlong))
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_mm)
 
@@ -325,10 +323,8 @@ class SkymapEngine:
         for object in extra_positions:
             rax,decx,label,labelpos = object
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                l,m,z =  radec_to_lmz(rax, decx, self.fieldcentre)
-                if z > 0:
-                    x,y = -l*self.drawingscale, m*self.drawingscale
-                    self.unknown_object(x,y,self.min_radius,label,labelpos)
+                x, y =  radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale)
+                self.unknown_object(x,y,self.min_radius,label,labelpos)
 
     def draw_highlights(self, highlights):
         # Draw extra objects
@@ -336,10 +332,8 @@ class SkymapEngine:
         for hi in highlights:
             rax, decx = hi
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                l,m,z =  radec_to_lmz(rax,decx, self.fieldcentre)
-                if z > 0:
-                    x,y = -l*self.drawingscale, m*self.drawingscale
-                    self.highlight_cross(x,y)
+                x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale)
+                self.highlight_cross(x,y)
 
     def draw_trajectory(self,trajectory):
         # Draw extra objects
@@ -355,8 +349,7 @@ class SkymapEngine:
 
         for i in range(0, len(trajectory)-1):
             rax2, decx2, label2 = trajectory[i]
-            l2,m2,z2 =  radec_to_lmz(rax2,decx2, self.fieldcentre)
-            x2,y2 = -l2*self.drawingscale, m2*self.drawingscale
+            x2,y2,z2 =  radec_to_xyz(rax2,decx2, self.fieldcentre, self.drawingscale)
 
             if i > 0:
                 self.mirroring_graphics.line(x1, y1, x2, y2)
@@ -386,15 +379,13 @@ class SkymapEngine:
         print(str(selection.shape[0]) + ' stars in map.')
         print('Faintest star: ' + str(int(max(selection[:,2])*100.0 + 0.5)/100.0))
 
-        l, m, z = radec_to_lmz(selection[:,0], selection[:,1], self.fieldcentre)
-        x, y = -l, m
+        x, y = radec_to_xy(selection[:,0], selection[:,1], self.fieldcentre, self.drawingscale)
 
         mag       = selection[:,2]
         indices   = argsort(mag)
         magsorted = mag[indices]
-        xsorted   = x[indices]*self.drawingscale
-        ysorted   = y[indices]*self.drawingscale
-        zsorted   = z[indices]
+        xsorted   = x[indices]
+        ysorted   = y[indices]
 
         rsorted = self.magnitude_to_radius(magsorted)
 
@@ -461,7 +452,7 @@ class SkymapEngine:
                 else:
                     self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
                 r = self.magnitude_to_radius(star_label_mag[i][2])
-                self.draw_circular_object_label(-x[i], y[i], r, star_label_mag[i][1])
+                self.draw_circular_object_label(x[i], y[i], r, star_label_mag[i][1])
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
@@ -476,7 +467,7 @@ class SkymapEngine:
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
-                self.mirroring_graphics.line(-x1[i], y1[i], -x2[i], y2[i])
+                self.mirroring_graphics.line(x1[i], y1[i], x2[i], y2[i])
 
         self.graphics.restore()
 
@@ -492,7 +483,7 @@ class SkymapEngine:
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
-                self.mirroring_graphics.line(-x1[i], y1[i], -x2[i], y2[i])
+                self.mirroring_graphics.line(x1[i], y1[i], x2[i], y2[i])
 
         self.graphics.restore()
 
