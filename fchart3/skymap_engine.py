@@ -48,7 +48,7 @@ NL = {
     'N': 'Diffuse emissienevel',
     'SNR':'Supernovarest',
     'PG':'Deel van sterrenstelsel'
-    }
+}
 
 
 EN = {
@@ -63,7 +63,7 @@ EN = {
     'N': 'Diffuse nebula',
     'SNR':'Supernova remnant',
     'PG':'Part of galaxy'
-    }
+}
 
 STAR_LABELS = {
     "alp":"α",
@@ -90,7 +90,19 @@ STAR_LABELS = {
     "chi":"χ",
     "psi":"ψ",
     "ome":"ω"
-    };
+}
+
+STAR_SPEC_COLORS = {
+    ord('O') : (0.0, 0.0, 1.0),
+    ord('B') : (0.0, 0.8, 1.0),
+    ord('A') : (0.0, 1.0, 1.0),
+    ord('F') : (0.8, 1.0, 0.4),
+    ord('G') : (1.0, 1.0, 0.4),
+    ord('K') : (1.0, 0.8, 0.0),
+    ord('M') : (1.0, 0.0, 0.0),
+    ord('?') : (1.0, 1.0, 1.0)
+}
+
 
 STARS_IN_SCALE = 7
 LEGEND_MARGIN = 0.47
@@ -377,24 +389,25 @@ class SkymapEngine:
         print('Drawing stars...')
         selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars)
         print(str(selection.shape[0]) + ' stars in map.')
-        print('Faintest star: ' + str(int(max(selection[:,2])*100.0 + 0.5)/100.0))
+        print('Faintest star: ' + str(int(max(selection['mag'])*100.0 + 0.5)/100.0))
 
-        x, y = radec_to_xy(selection[:,0], selection[:,1], self.fieldcentre, self.drawingscale)
+        x, y = radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale)
 
-        mag       = selection[:,2]
+        mag       = selection['mag']
+        spec_type = selection['spec_type']
+
         indices   = argsort(mag)
         magsorted = mag[indices]
         xsorted   = x[indices]
         ysorted   = y[indices]
+        spec_type_sorted = spec_type[indices]
 
         rsorted = self.magnitude_to_radius(magsorted)
 
-        self.graphics.set_pen_rgb((self.config.draw_color[0]/3, self.config.draw_color[0]/3, self.config.draw_color[0]/3))
-        self.graphics.set_fill_rgb(self.config.draw_color)
         self.graphics.set_linewidth(0)
 
         for i in range(len(xsorted)):
-            self.star(xsorted[i], ysorted[i], rsorted[i])
+            self.star(xsorted[i], ysorted[i], rsorted[i], spec_type_sorted[i])
 
 
     def draw_constellations(self, constell_catalog):
@@ -594,17 +607,26 @@ class SkymapEngine:
         self.w_telrad = WidgetTelrad(self.drawingscale, self.config.constellation_linewidth)
 
 
-    def star(self, x, y, radius, mirroring=True):
+    def star(self, x, y, radius, spec_type):
+        """
+        Filled circle with boundary. Set fill colour and boundary
+        colour in advance using set_pen_rgb and set_fill_rgb
+        """
+        star_color = STAR_SPEC_COLORS.get(spec_type, (1.0, 1.0, 1.0))
+        self.graphics.set_pen_rgb((star_color[0]/3, star_color[0]/3, star_color[0]/3))
+        self.graphics.set_fill_rgb(star_color)
+
+        r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
+        self.mirroring_graphics.circle(x, y, r,DrawMode.BOTH)
+
+
+    def no_mirror_star(self, x, y, radius):
         """
         Filled circle with boundary. Set fill colour and boundary
         colour in advance using set_pen_rgb and set_fill_rgb
         """
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
-        if mirroring:
-            self.mirroring_graphics.circle(x, y, r,DrawMode.BOTH)
-        else:
-            self.graphics.circle(x, y, r,DrawMode.BOTH)
-
+        self.graphics.circle(x, y, r,DrawMode.BOTH)
 
     def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius

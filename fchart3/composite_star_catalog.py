@@ -45,11 +45,9 @@ STARDATA_DT_DEST = np.dtype([('ra', np.float32),
                             ('dec', np.float32),
                             ('dRa', np.int32),
                             ('dDec', np.int32),
-                            ('parallax', np.int32),
-                            ('HD', np.int32),
                             ('mag', np.int16),
-                            ('bv_index', np.int16),
-                            ('spec_type', np.int8, (2,)),
+                            ('spec_type', np.int8),
+                            ('HD', np.int32),
                             ('flags', np.int8),
                           ])
 
@@ -65,9 +63,8 @@ DEEP_STARDATA_DT_DEST = np.dtype([('ra', np.float32),
                         ('dec', np.float32),
                         ('dRa', np.int16),
                         ('dDec', np.int16),
-                        ('B', np.int16),
-                        ('V', np.int16),
                         ('mag', np.float32),
+                        ('spec_type', np.int8),
                         ])
 
 
@@ -90,19 +87,29 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
             [ \
                 trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
                 trixel_stars['dec'] / (180.0*100000.0) * np.pi,
-                trixel_stars['dRa'], trixel_stars['dDec'], trixel_stars['parallax'], trixel_stars['HD'],
-                trixel_stars['mag']/100.0, trixel_stars['bv_index'], trixel_stars['spec_type'], trixel_stars['flags']
+                trixel_stars['dRa'], trixel_stars['dDec'],
+                trixel_stars['mag']/100.0, trixel_stars['spec_type'][:,0],
+                trixel_stars['HD'], trixel_stars['flags']
             ], \
             dtype=STARDATA_DT_DEST)
 
     use_b = np.logical_and(trixel_stars['V'] == 30000, trixel_stars['B'] != 30000)
     mag = use_b * (trixel_stars['B'] - 1600) / 1000.0 + np.logical_not(use_b) * trixel_stars['V'] / 1000.0
 
+    bv_index = (trixel_stars['B'] - trixel_stars['V']) / 1000.0;
+
+    spec_type = np.where(np.logical_and(trixel_stars['V'] != 30000, trixel_stars['B'] != 30000),
+                   np.where(bv_index <= 0.325, ord('A'),
+                   np.where(bv_index <= 0.575, ord('F'),
+                   np.where(bv_index <= 0.975, ord('G'),
+                   np.where(bv_index <= 1.6, ord('K'), ord('M'))))), ord('?'))
+
     return np.core.records.fromarrays( \
         [ \
             trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
             trixel_stars['dec'] / (180.0*100000.0) * np.pi,
-            trixel_stars['dRa'], trixel_stars['dDec'], trixel_stars['B'], trixel_stars['V'], mag
+            trixel_stars['dRa'], trixel_stars['dDec'],
+            mag, spec_type
         ], \
         dtype=DEEP_STARDATA_DT_DEST)
 
@@ -112,10 +119,8 @@ class StarObject:
         self.dec = None
         self.dRa = None
         self.dDec = None
-        self.parallax = None
         self.HD = None
         self.mag = None
-        self.bv_index = None
         self.spec_type = None
         self.flags = None
         self.name = None
@@ -127,10 +132,7 @@ class StarObject:
         self.dec = stardata['dec']
         self.dRa = stardata['dRa']
         self.dDec = stardata['dDec']
-        self.parallax = stardata['parallax']
-        self.HD = stardata['HD']
         self.mag = stardata['mag']
-        self.bv_index = stardata['bv_index']
         self.spec_type = stardata['spec_type']
         self.flags = stardata['flags']
 
@@ -422,14 +424,18 @@ class CompositeStarCatalog:
     def _select_stars_from_mash(self, catalog, fieldcentre, radius, lm_stars):
         sky_mesh = catalog.get_sky_mesh()
         intersecting_trixels = sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
-        mesh_stars = np.array([], dtype=np.float64).reshape(0, 3)
-        mesh_size = sky_mesh.size()
+        dt = np.dtype([('ra', np.float64), ('dec', np.float64), ('mag', np.float64), ('spec_type', np.int8)])
+        mesh_stars = None
         mask = 1 << (sky_mesh.get_depth() * 2 + 3)
 
         for trixel in intersecting_trixels:
             trixel_stars = catalog.get_trixel_stars(trixel ^ mask)
             if not trixel_stars is None and len(trixel_stars) > 0:
-                mesh_stars = np.concatenate((mesh_stars, np.column_stack((trixel_stars['ra'], trixel_stars['dec'], trixel_stars['mag']))), axis=0)
+                ar = np.array(list(zip(trixel_stars['ra'], trixel_stars['dec'], trixel_stars['mag'], trixel_stars['spec_type'])), dtype=dt)
+                if mesh_stars is None:
+                    mesh_stars= ar
+                else:
+                    mesh_stars = np.append(mesh_stars, ar)
         return mesh_stars
 
 
@@ -450,7 +456,7 @@ class CompositeStarCatalog:
                 if mesh_stars.shape[0] > 0:
                     selected_stars = np.concatenate((selected_stars, mesh_stars), axis=0)
 
-        mag = selected_stars[:,2]
+        mag = selected_stars['mag']
         bright_enough = mag <= lm_stars
 
         selection = selected_stars[bright_enough]

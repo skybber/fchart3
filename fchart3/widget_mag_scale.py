@@ -47,18 +47,18 @@ class WidgetMagnitudeScale:
 
         legendy = bottom + np.arange(self.stars_in_scale)*fh + 0.5*fh
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
-        
+
         graphics.set_linewidth(0)
-        
+
         if legend_only and graphics.gi_background_rgb:
             graphics.save()
             graphics.set_fill_background()
             graphics.rectangle(left, bottom+self.height, self.width, self.height, DrawMode.FILL)
             graphics.restore()
-            
+
         for i in range(len(legendy)):
             if mags_in_scale[i] >= -1:
-                self.engine.star(left+0.6*fh, legendy[i] + 0.33 * fh, legendr[i], False)
+                self.engine.no_mirror_star(left+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
                 graphics.text_right(left+1.2*fh, legendy[i], str(mags_in_scale[i]))
         graphics.set_linewidth(self.legend_linewidth)
         graphics.line(left, bottom+self.height, left+self.width, bottom+self.height)
