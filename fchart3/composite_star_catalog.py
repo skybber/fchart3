@@ -29,16 +29,16 @@ from .astrocalc import *
 StarData = namedtuple('StarData' , 'ra dec dRa dDec parallax HD mag bv_index spec_type flags')
 
 STARDATA_DT = np.dtype([('ra', np.int32),
-                        ('dec', np.int32),
-                        ('dRa', np.int32),
-                        ('dDec', np.int32),
-                        ('parallax', np.int32),
-                        ('HD', np.int32),
-                        ('mag', np.int16),
-                        ('bv_index', np.int16),
-                        ('spec_type', np.int8, (2,)),
-                        ('flags', np.int8),
-                        ('padding', np.int8),
+                          ('dec', np.int32),
+                          ('dRa', np.int32),
+                          ('dDec', np.int32),
+                          ('parallax', np.int32),
+                          ('HD', np.int32),
+                          ('mag', np.int16),
+                          ('bv_index', np.int16),
+                          ('spec_type', np.int8, (2,)),
+                          ('flags', np.int8),
+                          ('padding', np.int8),
                         ])
 
 STARDATA_DT_DEST = np.dtype([('ra', np.float32),
@@ -46,25 +46,25 @@ STARDATA_DT_DEST = np.dtype([('ra', np.float32),
                             ('dRa', np.int32),
                             ('dDec', np.int32),
                             ('mag', np.int16),
-                            ('spec_type', np.int8),
+                            ('spec_type', np.int8, (2,)),
                             ('HD', np.int32),
                             ('flags', np.int8),
                           ])
 
 DEEP_STARDATA_DT = np.dtype([('ra', np.int32),
-                        ('dec', np.int32),
-                        ('dRa', np.int16),
-                        ('dDec', np.int16),
-                        ('B', np.int16),
-                        ('V', np.int16),
+                          ('dec', np.int32),
+                          ('dRa', np.int16),
+                          ('dDec', np.int16),
+                          ('B', np.int16),
+                          ('V', np.int16),
                         ])
 
 DEEP_STARDATA_DT_DEST = np.dtype([('ra', np.float32),
-                        ('dec', np.float32),
-                        ('dRa', np.int16),
-                        ('dDec', np.int16),
-                        ('mag', np.float32),
-                        ('spec_type', np.int8),
+                          ('dec', np.float32),
+                          ('dRa', np.int16),
+                          ('dDec', np.int16),
+                          ('mag', np.float32),
+                          ('spec_type', np.int8, (2,)),
                         ])
 
 
@@ -88,7 +88,7 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
                 trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
                 trixel_stars['dec'] / (180.0*100000.0) * np.pi,
                 trixel_stars['dRa'], trixel_stars['dDec'],
-                trixel_stars['mag']/100.0, trixel_stars['spec_type'][:,0],
+                trixel_stars['mag']/100.0, trixel_stars['spec_type'],
                 trixel_stars['HD'], trixel_stars['flags']
             ], \
             dtype=STARDATA_DT_DEST)
@@ -98,18 +98,21 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
 
     bv_index = (trixel_stars['B'] - trixel_stars['V']) / 1000.0;
 
-    spec_type = np.where(np.logical_and(trixel_stars['V'] != 30000, trixel_stars['B'] != 30000),
+    spec_type_base = np.where(np.logical_and(trixel_stars['V'] != 30000, trixel_stars['B'] != 30000),
                    np.where(bv_index <= 0.325, ord('A'),
                    np.where(bv_index <= 0.575, ord('F'),
                    np.where(bv_index <= 0.975, ord('G'),
                    np.where(bv_index <= 1.6, ord('K'), ord('M'))))), ord('?'))
+    dim = len(spec_type_base)
+    spec_type = np.zeros((dim,2))
+    spec_type[:,:-1] = spec_type_base.reshape(dim, 1)
 
     return np.core.records.fromarrays( \
         [ \
             trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
             trixel_stars['dec'] / (180.0*100000.0) * np.pi,
             trixel_stars['dRa'], trixel_stars['dDec'],
-            mag, spec_type
+            mag, spec_type,
         ], \
         dtype=DEEP_STARDATA_DT_DEST)
 
@@ -424,7 +427,7 @@ class CompositeStarCatalog:
     def _select_stars_from_mash(self, catalog, fieldcentre, radius, lm_stars):
         sky_mesh = catalog.get_sky_mesh()
         intersecting_trixels = sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
-        dt = np.dtype([('ra', np.float64), ('dec', np.float64), ('mag', np.float64), ('spec_type', np.int8)])
+        dt = np.dtype([('ra', np.float64), ('dec', np.float64), ('mag', np.float64), ('spec_type', np.int8, (2,))])
         mesh_stars = None
         mask = 1 << (sky_mesh.get_depth() * 2 + 3)
 
