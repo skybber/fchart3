@@ -41,11 +41,11 @@ STARDATA_DT = np.dtype([('ra', np.int32),
                           ('padding', np.int8),
                         ])
 
-STARDATA_DT_DEST = np.dtype([('ra', np.float32),
-                            ('dec', np.float32),
+STARDATA_DT_DEST = np.dtype([('ra', np.float64),
+                            ('dec', np.float64),
                             ('dRa', np.int32),
                             ('dDec', np.int32),
-                            ('mag', np.int16),
+                            ('mag', np.float64),
                             ('spec_type', np.int8, (2,)),
                             ('HD', np.int32),
                             ('flags', np.int8),
@@ -59,11 +59,11 @@ DEEP_STARDATA_DT = np.dtype([('ra', np.int32),
                           ('V', np.int16),
                         ])
 
-DEEP_STARDATA_DT_DEST = np.dtype([('ra', np.float32),
-                          ('dec', np.float32),
+DEEP_STARDATA_DT_DEST = np.dtype([('ra', np.float64),
+                          ('dec', np.float64),
                           ('dRa', np.int16),
                           ('dDec', np.int16),
-                          ('mag', np.float32),
+                          ('mag', np.float64),
                           ('spec_type', np.int8, (2,)),
                         ])
 
@@ -103,6 +103,7 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
                    np.where(bv_index <= 0.575, ord('F'),
                    np.where(bv_index <= 0.975, ord('G'),
                    np.where(bv_index <= 1.6, ord('K'), ord('M'))))), ord('?'))
+
     dim = len(spec_type_base)
     spec_type = np.zeros((dim,2))
     spec_type[:,:-1] = spec_type_base.reshape(dim, 1)

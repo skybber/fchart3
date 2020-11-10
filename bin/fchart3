@@ -77,7 +77,7 @@ class RuntimeSettings:
 
         argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', default='./',
                                     help='specify the output directory (default: .)')
-        
+
         argumentparser.add_argument('-f', '--output-file', dest='output_file', nargs='?', action='store',
                                     help='specify output file name. (default: name of dso object). Image format is defined by extension.' +\
                                          'Supported format/extensions are pdf, png and svg.')
@@ -123,28 +123,28 @@ class RuntimeSettings:
 
         argumentparser.add_argument('--hide-star-labels', dest='show_star_labels', action='store_false',
                                     help='hide star labels.')
-                                    
+
         argumentparser.add_argument('--hide-flamsteed', dest='show_flamsteed', action='store_false',
                                     help='hide Flamsteed designation.')
-                                    
-        argumentparser.add_argument('--hide-mag-scale-legend', dest='show_mag_scale_legend', action='store_false', 
+
+        argumentparser.add_argument('--hide-mag-scale-legend', dest='show_mag_scale_legend', action='store_false',
                                     help='hide magnitude scale legend.')
 
-        argumentparser.add_argument('--hide-map-scale-legend', dest='show_map_scale_legend', action='store_false', 
+        argumentparser.add_argument('--hide-map-scale-legend', dest='show_map_scale_legend', action='store_false',
                                     help='hide map scale legend.')
 
-        argumentparser.add_argument('--hide-map-orientation-legend', dest='show_orientation_legend', action='store_false', 
+        argumentparser.add_argument('--hide-map-orientation-legend', dest='show_orientation_legend', action='store_false',
                                     help='hide orientation legend.')
 
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
                                     help='show deepsky object legend.')
-                                    
-        argumentparser.add_argument('--hide-coords-legend', dest='show_coords_legend', gaction='store_false', 
+
+        argumentparser.add_argument('--hide-coords-legend', dest='show_coords_legend', gaction='store_false',
                                     help='hide coordinations legend.')
 
         argumentparser.add_argument('--hide-field-border', dest='show_field_border', action='store_false',
                                     help='hide field border.')
-                                    
+
         argumentparser.add_argument('--FOV-telrad', dest='fov_telrad', action='store_true',
                                     help='show telrad circles at FOV.')
 
@@ -153,6 +153,8 @@ class RuntimeSettings:
                                     help='mirror in x axis.')
         argumentparser.add_argument('-my', '--mirror-y', dest='mirror_y', action='store_true',
                                     help='mirror in y axis.')
+        argumentparser.add_argument('--star-colors', dest='star_colors', action='store_true',
+                                    help='colorify stars according spectral type.')
 
         argumentparser.add_argument('--color-background', dest='background_color', action='store',
                                     help='Background color. (default white)')
@@ -184,13 +186,13 @@ class RuntimeSettings:
 
         argumentparser.add_argument('--no-margin', dest='no_margin', action='store_true', default=False,
                                     help='Star cluster color.')
-        
+
         argumentparser.add_argument('--font', dest='font', action='store', default='Arial',
                                     help='Font (Arial)')
-        
+
         argumentparser.add_argument('--font-size', dest='font_size', type=float,
                                     help='Font size')
-        
+
         argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
         argumentparser.add_argument('sourcelist', nargs='*')
 
@@ -271,6 +273,7 @@ def _create_engine_configuration():
     config.fov_telrad = settings.fov_telrad
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
+    config.star_colors = settings.parser.star_colors
     config.background_color = settings.parser.background_color
     config.draw_color = settings.parser.draw_color
     config.label_color = settings.parser.label_color

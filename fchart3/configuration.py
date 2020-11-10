@@ -44,6 +44,7 @@ class EngineConfiguration:
         self._fov_telrad = False
         self._mirror_x = False
         self._mirror_y = False
+        self._star_colors = False
         self._background_color = DEFAULT_BACKGROUND_COLOR
         self._draw_color = DEFAULT_DRAW_COLOR
         self._label_color = DEFAULT_LABEL_COLOR
@@ -157,6 +158,14 @@ class EngineConfiguration:
     @mirror_y.setter
     def mirror_y(self, value):
         self._mirror_y = value
+
+    @property
+    def star_colors(self):
+        return self._star_colors
+
+    @star_colors.setter
+    def star_colors(self, value):
+        self._star_colors = value
 
     @property
     def background_color(self):
