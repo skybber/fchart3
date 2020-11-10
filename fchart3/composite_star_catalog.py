@@ -41,16 +41,6 @@ STARDATA_DT = np.dtype([('ra', np.int32),
                           ('padding', np.int8),
                         ])
 
-STARDATA_DT_DEST = np.dtype([('ra', np.float64),
-                            ('dec', np.float64),
-                            ('dRa', np.int32),
-                            ('dDec', np.int32),
-                            ('mag', np.float64),
-                            ('spec_type', np.int8, (2,)),
-                            ('HD', np.int32),
-                            ('flags', np.int8),
-                          ])
-
 DEEP_STARDATA_DT = np.dtype([('ra', np.int32),
                           ('dec', np.int32),
                           ('dRa', np.int16),
@@ -59,13 +49,11 @@ DEEP_STARDATA_DT = np.dtype([('ra', np.int32),
                           ('V', np.int16),
                         ])
 
-DEEP_STARDATA_DT_DEST = np.dtype([('ra', np.float64),
-                          ('dec', np.float64),
-                          ('dRa', np.int16),
-                          ('dDec', np.int16),
-                          ('mag', np.float64),
-                          ('spec_type', np.int8, (2,)),
-                        ])
+TRIXEL_STARDATA_DT = np.dtype([('ra', np.float64),
+                            ('dec', np.float64),
+                            ('mag', np.float64),
+                            ('spec_type', np.int8, (2,)),
+                          ])
 
 
 StarName = namedtuple('StarName', 'bayer_name long_name')
@@ -87,11 +75,10 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
             [ \
                 trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
                 trixel_stars['dec'] / (180.0*100000.0) * np.pi,
-                trixel_stars['dRa'], trixel_stars['dDec'],
-                trixel_stars['mag']/100.0, trixel_stars['spec_type'],
-                trixel_stars['HD'], trixel_stars['flags']
+                trixel_stars['mag']/100.0,
+                trixel_stars['spec_type'],
             ], \
-            dtype=STARDATA_DT_DEST)
+            dtype=TRIXEL_STARDATA_DT)
 
     use_b = np.logical_and(trixel_stars['V'] == 30000, trixel_stars['B'] != 30000)
     mag = use_b * (trixel_stars['B'] - 1600) / 1000.0 + np.logical_not(use_b) * trixel_stars['V'] / 1000.0
@@ -112,10 +99,10 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
         [ \
             trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
             trixel_stars['dec'] / (180.0*100000.0) * np.pi,
-            trixel_stars['dRa'], trixel_stars['dDec'],
-            mag, spec_type,
+            mag,
+            spec_type,
         ], \
-        dtype=DEEP_STARDATA_DT_DEST)
+        dtype=TRIXEL_STARDATA_DT)
 
 class StarObject:
     def __init__(self):
@@ -273,11 +260,9 @@ class CompositeStarCatalog:
 
     def __init__(self, data_dir, usno_nomad=None):
         self.sky_mesh = None
-        self.star_index = None
         self.star_blocks = None
         self.stars_loaded = False
         self.faint_magnitude = 0.0
-        self.nstars = 0
         self.deepstar_catalogs = []
         self._load_static_data(os.path.join(data_dir, 'namedstars.dat'), os.path.join(data_dir, 'starnames.dat'))
         self._load_deepstar_catalogs(data_dir, usno_nomad)
@@ -347,7 +332,6 @@ class CompositeStarCatalog:
         byteswap = False
         named = False
         gnamed = False
-        self.nstars = 0
 
         name_file.seek(name_reader.data_offset)
         byteswap = data_reader.byteswap
@@ -368,7 +352,6 @@ class CompositeStarCatalog:
             self.faint_magnitude = faintmag / 100.0
 
         self.sky_mesh = _get_htm_mesh(htm_level)
-        self.star_index = np.empty(self.sky_mesh.size(), dtype=object)
         self.star_blocks = np.empty(self.sky_mesh.size(), dtype=object)
 
         starname_size = struct.calcsize(STARNAME_FMT)
@@ -385,38 +368,33 @@ class CompositeStarCatalog:
 
             self.star_blocks[trixel] = trixel_stars
 
-            for stardata in trixel_stars:
-                name = None
-                gname = None
+#             for stardata in trixel_stars:
+#                 name = None
+#                 gname = None
+#
+#                 # Named Star - Read the nameFile
+#                 visible_name = ''
+#                 if stardata['flags'] & 0x01:
+#                     star_name = StarName._make(struct.unpack(STARNAME_FMT, name_file.read(starname_size)))
+#
+#                     name = star_name.long_name.decode("ascii")
+#                     gname = star_name.bayer_name.decode("ascii")
+#
+#                     if gname and gname[0] != '.':
+#                         visible_name = gname
+#                 else:
+#                     print("ERROR: Named star file contains unnamed stars! Expect trouble.")
+#
+#                 # Create the new StarObject
+#                 star = StarObject()
+#                 star.init(stardata)
+#
+#                 if stardata['HD']:
+#                     if not name:
+#                         name  = "HD {}".format(stardata['HD'])
+#
+#                 star.set_names(name, visible_name)
 
-                # Named Star - Read the nameFile
-                visible_name = ''
-                if stardata['flags'] & 0x01:
-                    star_name = StarName._make(struct.unpack(STARNAME_FMT, name_file.read(starname_size)))
-
-                    name = star_name.long_name.decode("ascii")
-                    gname = star_name.bayer_name.decode("ascii")
-
-                    if gname and gname[0] != '.':
-                        visible_name = gname
-                else:
-                    print("ERROR: Named star file contains unnamed stars! Expect trouble.")
-
-                # Create the new StarObject
-                star = StarObject()
-                star.init(stardata)
-
-                if stardata['HD']:
-                    if not name:
-                        name  = "HD {}".format(stardata['HD'])
-
-                star.set_names(name, visible_name)
-                self.nstars += 1
-
-                if not self.star_index[trixel]:
-                    self.star_index[trixel] = [star]
-                else:
-                    self.star_index[trixel].append(star)
 
         data_reader.close_file()
         name_reader.close_file()
@@ -428,18 +406,16 @@ class CompositeStarCatalog:
     def _select_stars_from_mash(self, catalog, fieldcentre, radius, lm_stars):
         sky_mesh = catalog.get_sky_mesh()
         intersecting_trixels = sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
-        dt = np.dtype([('ra', np.float64), ('dec', np.float64), ('mag', np.float64), ('spec_type', np.int8, (2,))])
         mesh_stars = None
         mask = 1 << (sky_mesh.get_depth() * 2 + 3)
 
         for trixel in intersecting_trixels:
             trixel_stars = catalog.get_trixel_stars(trixel ^ mask)
             if not trixel_stars is None and len(trixel_stars) > 0:
-                ar = np.array(list(zip(trixel_stars['ra'], trixel_stars['dec'], trixel_stars['mag'], trixel_stars['spec_type'])), dtype=dt)
                 if mesh_stars is None:
-                    mesh_stars= ar
+                    mesh_stars= trixel_stars
                 else:
-                    mesh_stars = np.append(mesh_stars, ar)
+                    mesh_stars = np.append(mesh_stars, trixel_stars)
         return mesh_stars
 
 
