@@ -173,7 +173,9 @@ def _parse_hnsky_line(line, show_catalogs):
         try:
             object.rshort = float(str_width)/600.0*np.pi/180.0/2.0
         except (ValueError, TypeError):
-            object.rshort = None
+            object.rshort = object.rlong
+    else:
+        object.rshort = object.rlong
 
     str_pos_angle = items[8].strip() if len(items) > 8 else None
 
