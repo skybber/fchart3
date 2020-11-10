@@ -434,7 +434,10 @@ class CompositeStarCatalog:
             if cat.trig_mag < lm_stars:
                 mesh_stars = self._select_stars_from_mash(cat, fieldcentre, radius, lm_stars)
                 if mesh_stars.shape[0] > 0:
-                    selected_stars = np.concatenate((selected_stars, mesh_stars), axis=0)
+                    if selected_stars is not None  and selected_stars.shape[0] > 0:
+                        selected_stars = np.concatenate((selected_stars, mesh_stars), axis=0)
+                    else:
+                        selected_stars = mesh_stars
 
         mag = selected_stars['mag']
         bright_enough = mag <= lm_stars
