@@ -463,7 +463,7 @@ class SkymapEngine:
         rsorted = self.magnitude_to_radius(magsorted)
 
         if not self.config.star_colors:
-            self.graphics.set_pen_rgb((self.config.draw_color[0]/3, self.config.draw_color[0]/3, self.config.draw_color[0]/3))
+            # self.graphics.set_pen_rgb((self.config.draw_color[0]/3, self.config.draw_color[0]/3, self.config.draw_color[0]/3))
             self.graphics.set_fill_rgb(self.config.draw_color)
 
         self.graphics.set_linewidth(0)
@@ -679,11 +679,11 @@ class SkymapEngine:
             if subtype > 9:
                 subtype = 9
             star_color = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(subtype), (1.0, 1.0, 1.0))
-            self.graphics.set_pen_rgb((star_color[0]/3, star_color[0]/3, star_color[0]/3))
+            # self.graphics.set_pen_rgb((star_color[0]/3, star_color[1]/3, star_color[2]/3))
             self.graphics.set_fill_rgb(star_color)
 
-        r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
-        self.mirroring_graphics.circle(x, y, r,DrawMode.BOTH)
+        r = int(radius*100.0 + 0.5)/100.0
+        self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
 
 
     def no_mirror_star(self, x, y, radius):
