@@ -428,17 +428,19 @@ class CompositeStarCatalog:
         fieldcentre is a tuple (ra, dec) in radians. radius is also in
         radians
         """
+        tmp_arr = []
         selected_stars = self._select_stars_from_mash(self, fieldcentre, radius, lm_stars)
+
+        if selected_stars is not None  and selected_stars.shape[0] > 0:
+            tmp_arr.append(selected_stars)
 
         for cat in self.deepstar_catalogs:
             if cat.trig_mag < lm_stars:
                 mesh_stars = self._select_stars_from_mash(cat, fieldcentre, radius, lm_stars)
                 if mesh_stars.shape[0] > 0:
-                    if selected_stars is not None  and selected_stars.shape[0] > 0:
-                        selected_stars = np.concatenate((selected_stars, mesh_stars), axis=0)
-                    else:
-                        selected_stars = mesh_stars
+                    tmp_arr.append(mesh_stars)
 
+        selected_stars = np.concatenate(tmp_arr, axis=0)
         mag = selected_stars['mag']
         bright_enough = mag <= lm_stars
 
