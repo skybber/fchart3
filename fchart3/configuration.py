@@ -62,6 +62,7 @@ class EngineConfiguration:
         self._font = DEFAULT_FONT
         self._font_size = DEFAULT_FONT_SIZE
         self._highlight_color = DEFAULT_HIGHLIGHT_COLOR
+        self._dso_symbol_brightness = False
 
     @property
     def legend_only(self):
@@ -302,3 +303,11 @@ class EngineConfiguration:
     @highlight_color.setter
     def highlight_color(self, value):
         self._highlight_color = value
+
+    @property
+    def dso_symbol_brightness(self):
+        return self._dso_symbol_brightness
+
+    @dso_symbol_brightness.setter
+    def dso_symbol_brightness(self, value):
+        self._dso_symbol_brightness = value

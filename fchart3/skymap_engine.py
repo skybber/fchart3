@@ -370,7 +370,7 @@ class SkymapEngine:
             label_potential.add_position(xx, yy, label_length)
 
             if object.type == deepsky.G:
-                self.galaxy(x, y, rlong, rshort, posangle, label, labelpos)
+                self.galaxy(x, y, rlong, rshort, posangle, object.mag, label, labelpos)
             elif object.type == deepsky.N:
                 self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
             elif object.type == deepsky.PN:
@@ -771,7 +771,7 @@ class SkymapEngine:
         return label_pos_list
 
 
-    def galaxy(self, x, y, rlong=-1, rshort=-1, posangle=0.0, label='', labelpos=-1):
+    def galaxy(self, x, y, rlong=-1, rshort=-1, posangle=0.0, mag=None, label='', labelpos=-1):
         """
         If rlong != -1 and rshort == -1 =>   rshort <- rlong
         if rlong < 0.0 => standard galaxy
@@ -789,7 +789,20 @@ class SkymapEngine:
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
-        self.graphics.set_pen_rgb(self.config.galaxy_color)
+        if self.config.dso_symbol_brightness and (mag is not None) and self.lm_deepsky > 8.0:
+            fac = self.lm_deepsky - 8.0
+            if fac > 5:
+                fac = 5.0
+            diff_mag = self.lm_deepsky - mag
+            if diff_mag < 0:
+                diff_mag = 0
+            dso_intensity = 1.0 if diff_mag > fac else 0.5 + 0.5 * diff_mag / fac;
+        else:
+            dso_intensity = 1.0
+
+        self.graphics.set_pen_rgb((self.config.galaxy_color[0]*dso_intensity,
+                                   self.config.galaxy_color[1]*dso_intensity,
+                                   self.config.galaxy_color[2]*dso_intensity))
 
         p = posangle
         if posangle >= 0.5*np.pi:
@@ -804,7 +817,10 @@ class SkymapEngine:
             self.graphics.save()
             self.mirroring_graphics.translate(x,y)
             self.mirroring_graphics.rotate(p)
-            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+            self.mirroring_graphics.set_pen_rgb((self.config.label_color[0]*dso_intensity,
+                                                 self.config.label_color[1]*dso_intensity,
+                                                 self.config.label_color[2]*dso_intensity))
+
             if labelpos == 0 or labelpos == -1:
                 self.graphics.text_centred(0, -rshort-0.5*fh, label)
             elif labelpos == 1:
