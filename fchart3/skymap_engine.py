@@ -789,13 +789,15 @@ class SkymapEngine:
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
-        if self.config.dso_symbol_brightness and (mag is not None) and self.lm_deepsky > 8.0:
+        if self.config.dso_symbol_brightness and (mag is not None) and self.lm_deepsky >= 10.0:
             fac = self.lm_deepsky - 8.0
             if fac > 5:
                 fac = 5.0
             diff_mag = self.lm_deepsky - mag
             if diff_mag < 0:
                 diff_mag = 0
+            if diff_mag > 5:
+                diff_mag = 5
             dso_intensity = 1.0 if diff_mag > fac else 0.5 + 0.5 * diff_mag / fac;
         else:
             dso_intensity = 1.0
