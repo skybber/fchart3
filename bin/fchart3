@@ -139,7 +139,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
                                     help='show deepsky object legend.')
 
-        argumentparser.add_argument('--hide-coords-legend', dest='show_coords_legend', gaction='store_false',
+        argumentparser.add_argument('--hide-coords-legend', dest='show_coords_legend', action='store_false',
                                     help='hide coordinations legend.')
 
         argumentparser.add_argument('--hide-field-border', dest='show_field_border', action='store_false',
@@ -190,7 +190,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--font', dest='font', action='store', default='Arial',
                                     help='Font (Arial)')
 
-        argumentparser.add_argument('--font-size', dest='font_size', type=float,
+        argumentparser.add_argument('--font-size', dest='font_size', type=float, default=3.0,
                                     help='Font size')
 
         argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
@@ -270,7 +270,7 @@ def _create_engine_configuration():
     config.show_dso_legend = settings.parser.show_dso_legend
     config.show_coords_legend = settings.parser.show_coords_legend
     config.show_field_border = settings.parser.show_field_border
-    config.fov_telrad = settings.fov_telrad
+    config.fov_telrad = settings.parser.fov_telrad
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
     config.star_colors = settings.parser.star_colors
@@ -288,8 +288,8 @@ def _create_engine_configuration():
     config.dso_linewidth = settings.parser.dso_linewidth
     config.legend_linewidth = settings.parser.legend_linewidth
     config.no_margin = settings.parser.no_margin
-    config.font = settings.font
-    config.font_size = settings.font_size
+    config.font = settings.parser.font
+    config.font_size = settings.parser.font_size
     return config
 
 if __name__ == '__main__':
@@ -440,13 +440,15 @@ if __name__ == '__main__':
                 if caption != '':
                     engine.set_caption(caption)
 
+                showing_dsos = None
                 if showing_dso:
                     if showing_dso.master_object:
                         showing_dso = showing_dso.master_object
+                    showing_dsos = [showing_dso]
                     engine.set_active_constellation(showing_dso.constellation)
 
                 print("Started in : " + str(time()-tm) + "ms")
-                engine.make_map(used_catalogs, settings.extra_positions_list, showing_dsos=(showing_dso,))
+                engine.make_map(used_catalogs, showing_dsos=showing_dsos, extra_positions=settings.extra_positions_list)
             else:
                 print('object not found, try appending an A or a B')
 
