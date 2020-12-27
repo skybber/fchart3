@@ -156,23 +156,23 @@ class RuntimeSettings:
         argumentparser.add_argument('--star-colors', dest='star_colors', action='store_true',
                                     help='colorify stars according spectral type.')
 
-        argumentparser.add_argument('--color-background', dest='background_color', action='store',
+        argumentparser.add_argument('--color-background', dest='background_color', action='store', default='#F0F0F0',
                                     help='Background color. (default white)')
-        argumentparser.add_argument('--color-draw', dest='draw_color', action='store',
+        argumentparser.add_argument('--color-draw', dest='draw_color', action='store', default='#000000',
                                     help='Drawing color for stars. (default black)')
-        argumentparser.add_argument('--color-label', dest='label_color', action='store',
+        argumentparser.add_argument('--color-label', dest='label_color', action='store', default='#202020',
                                     help='Label color. (default black)')
-        argumentparser.add_argument('--color-constellation-lines', dest='constellation_lines_color', action='store',
+        argumentparser.add_argument('--color-constellation-lines', dest='constellation_lines_color', action='store', default='#80a0c0',
                                     help='Constellation border color.')
-        argumentparser.add_argument('--color-constellation-border', dest='constellation_border_color', action='store',
+        argumentparser.add_argument('--color-constellation-border', dest='constellation_border_color', action='store', default='#b0a020',
                                     help='Constellation lines color.')
-        argumentparser.add_argument('--color-deepsky', dest='dso_color', action='store',
+        argumentparser.add_argument('--color-deepsky', dest='dso_color', action='store', default='#505050',
                                     help='Unclassified deepsky color.')
-        argumentparser.add_argument('--color-nebula', dest='nebula_color', action='store',
+        argumentparser.add_argument('--color-nebula', dest='nebula_color', action='store', default='#005000',
                                     help='Nebula color.')
-        argumentparser.add_argument('--color-galaxy', dest='galaxy_color', action='store',
+        argumentparser.add_argument('--color-galaxy', dest='galaxy_color', action='store', default='#500000',
                                     help='Galaxy color.')
-        argumentparser.add_argument('--color-star-cluster', dest='star_cluster_color', action='store',
+        argumentparser.add_argument('--color-star-cluster', dest='star_cluster_color', action='store', default='#505000',
                                     help='Star cluster color.')
 
         argumentparser.add_argument('-lconst', '--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
@@ -260,6 +260,18 @@ class RuntimeSettings:
 #                                                           #
 #############################################################
 
+def _convert_color(color):
+    if color.startswith('#'):
+        color = color[1:]
+    try:
+        r, g, b = [int(color[i:i+2], 16) / 255.0 for i in range(0, len(color), 2)]
+    except ValueError:
+        print('Invalid color format {}'.format(color))
+        sys.exit()
+
+    return r, g, b
+
+
 def _create_engine_configuration():
     config = EngineConfiguration()
     config.show_star_labels = settings.parser.show_star_labels
@@ -274,15 +286,15 @@ def _create_engine_configuration():
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
     config.star_colors = settings.parser.star_colors
-    config.background_color = settings.parser.background_color
-    config.draw_color = settings.parser.draw_color
-    config.label_color = settings.parser.label_color
-    config.constellation_lines_color = settings.parser.constellation_lines_color
-    config.constellation_border_color = settings.parser.constellation_border_color
-    config.dso_color = settings.parser.dso_color
-    config.nebula_color = settings.parser.nebula_color
-    config.galaxy_color = settings.parser.galaxy_color
-    config.star_cluster_color = settings.parser.star_cluster_color
+    config.background_color = _convert_color(settings.parser.background_color)
+    config.draw_color = _convert_color(settings.parser.draw_color)
+    config.label_color = _convert_color(settings.parser.label_color)
+    config.constellation_lines_color = _convert_color(settings.parser.constellation_lines_color)
+    config.constellation_border_color = _convert_color(settings.parser.constellation_border_color)
+    config.dso_color = _convert_color(settings.parser.dso_color)
+    config.nebula_color = _convert_color(settings.parser.nebula_color)
+    config.galaxy_color = _convert_color(settings.parser.galaxy_color)
+    config.star_cluster_color = _convert_color(settings.parser.star_cluster_color)
     config.constellation_linewidth = settings.parser.constellation_linewidth
     config.open_cluster_linewidth = settings.parser.open_cluster_linewidth
     config.dso_linewidth = settings.parser.dso_linewidth
