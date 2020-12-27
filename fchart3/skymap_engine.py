@@ -209,7 +209,7 @@ class SkymapEngine:
         else:
             self.scene_scale = BASE_SCALE
 
-        self.drawingscale    = self.scene_scale * wh /2.0/np.sin(fieldradius)
+        self.drawingscale    = self.scene_scale*wh/2.0/np.sin(fieldradius)
 
         self.legend_fontscale    = min(3, wh/100.0)
 
@@ -454,7 +454,7 @@ class SkymapEngine:
         mag       = selection['mag']
         spec_type = selection['spec_type']
 
-        indices   = argsort(mag)
+        indices   = np.argsort(mag)
         magsorted = mag[indices]
         xsorted   = x[indices]
         ysorted   = y[indices]

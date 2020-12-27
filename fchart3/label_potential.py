@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from numpy import *
+import numpy as np
 
 
 class LabelPotential:
@@ -26,8 +26,8 @@ class LabelPotential:
         x,y, size in mm
         """
         self.fieldradius  = fieldradius
-        self.positions = zeros((len(deepskylist), 2))*0.0
-        self.sizes = zeros(len(deepskylist))*0.0
+        self.positions = np.zeros((len(deepskylist), 2))*0.0
+        self.sizes = np.zeros(len(deepskylist))*0.0
         for i in range(len(deepskylist)):
             _, x,y,s = deepskylist[i]
             if s <= 0:
@@ -39,11 +39,11 @@ class LabelPotential:
 
     def add_position(self,x,y,size):
         N = len(self.sizes)
-        newpos = zeros((N+1,2))*0.0
+        newpos = np.zeros((N+1,2))*0.0
         newpos[0:N,:] = self.positions
         newpos[N,:] = [x,y]
 
-        newsize = zeros(N+1)*0.0
+        newsize = np.zeros(N+1)*0.0
         newsize[0:N] = self.sizes
         newsize[N] = size**0.5
 
@@ -55,13 +55,13 @@ class LabelPotential:
         x,y in mm
         """
         value = 0.0
-        ss = sum(self.sizes)
+        ss = np.sum(self.sizes)
         rf = ((x**2+y**2)**0.5 - self.fieldradius)**-3
 
         r2 = (self.positions[:,0]-x)**2 + (self.positions[:,1]-y)**2
         sr = (r2+0.1)**(-1)
         p = self.sizes*sr
-        value = sum(p) + ss*rf
+        value = np.sum(p) + ss*rf
         return value
 
 
