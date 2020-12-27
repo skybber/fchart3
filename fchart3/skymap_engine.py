@@ -166,6 +166,9 @@ STARS_IN_SCALE = 7
 LEGEND_MARGIN = 0.47
 BASE_SCALE=0.98
 
+ra_grid_scale = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
+dec_grid_scale = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*60, 30*60, 45*60, 60*60]
+
 #====================>>>  SkymapEngine  <<<====================
 
 class SkymapEngine:
@@ -473,7 +476,7 @@ class SkymapEngine:
 
 
     def draw_constellations(self, constell_catalog):
-        print('Drawing constellations...' + str(self.fieldcentre[0]))
+        print('Drawing constellations...')
         self.draw_constellation_boundaries(constell_catalog)
         self.draw_constellation_shapes(constell_catalog)
         self.draw_constellation_stars(constell_catalog)
@@ -484,6 +487,83 @@ class SkymapEngine:
             ra_sep = 2*np.pi-ra_sep
 
         return ra_sep * np.cos(dec) < self.fieldsize and abs(dec-self.fieldcentre[1]) < self.fieldsize
+
+
+    def draw_grid_equatorial(self):
+        print('Drawing equatorial grid...')
+        self.graphics.save()
+        self.graphics.set_linewidth(self.config.constellation_linewidth/2)
+        self.graphics.set_pen_rgb((self.config.constellation_lines_color[0]/2, self.config.constellation_lines_color[1]/2, self.config.constellation_lines_color[2]/2))
+
+        for grid_minutes in reversed(dec_grid_scale):
+            ddec = np.pi * grid_minutes / (180 * 60)
+            steps = self.fieldradius / ddec
+            if steps > 3:
+                break
+
+        dec = -np.pi
+        while dec < np.pi:
+            dec = dec + ddec
+            if dec > self.fieldcentre[1] - self.fieldradius and dec < self.fieldcentre[1] + self.fieldradius:
+                self.draw_grid_ra(dec)
+
+        for grid_minutes in reversed(ra_grid_scale):
+            dra = np.pi * grid_minutes / (12 * 60)
+            steps = self.fieldradius / (np.cos(self.fieldcentre[1]) * dra)
+            if steps > 3:
+                break
+
+        ra = 0
+        ra_size = self.fieldradius / np.cos(self.fieldcentre[1])
+        if ra_size > 2*np.pi:
+            ra_size = 2*np.pi
+
+        while ra <= np.pi * 2:
+            if abs(self.fieldcentre[0]-ra) < ra_size:
+                self.draw_grid_dec(ra)
+            ra = ra + dra
+
+        self.graphics.restore()
+
+
+    def draw_grid_ra(self, dec):
+        dra = self.fieldradius / 10
+        x11, y11, z11 = (None, None, None)
+        agg_ra = 0
+        while True:
+            x12, y12, z12 = radec_to_xyz(self.fieldcentre[0] + agg_ra, dec, self.fieldcentre, self.drawingscale)
+            x22, y22, z22 = radec_to_xyz(self.fieldcentre[0] - agg_ra, dec, self.fieldcentre, self.drawingscale)
+            if not x11 is None and z11 > 0 and z12 > 0:
+                self.mirroring_graphics.line(x11, y11, x12, y12)
+                self.mirroring_graphics.line(x21, y21, x22, y22)
+            x11,y11,z11 = (x12, y12, z12)
+            x21,y21,z21 = (x22, y22, z22)
+            agg_ra = agg_ra + dra
+            if agg_ra > np.pi:
+                break
+            if x12 < -self.drawingwidth/2:
+                break
+
+    def draw_grid_dec(self, ra):
+        ddec = self.fieldradius / 10
+        x11, y11, z11 = (None, None, None)
+        agg_dec = 0
+        while True:
+            x12, y12, z12 = radec_to_xyz(ra, self.fieldcentre[1] + agg_dec, self.fieldcentre, self.drawingscale)
+            x22, y22, z22 = radec_to_xyz(ra, self.fieldcentre[1] - agg_dec, self.fieldcentre, self.drawingscale)
+            if not x11 is None:
+                if z11 > 0 and z12 > 0:
+                    self.mirroring_graphics.line(x11, y11, x12, y12)
+                if z21 > 0 and z22 > 0:
+                    self.mirroring_graphics.line(x21, y21, x22, y22)
+            x11,y11,z11 = (x12, y12, z12)
+            x21,y21,z21 = (x22, y22, z22)
+            agg_dec = agg_dec + ddec
+            if agg_dec > np.pi/2:
+                break
+            if y12 < -self.drawingheight/2:
+                break
+
 
     def draw_constellation_stars(self, constell_catalog):
         if not self.config.show_star_labels:
@@ -630,6 +710,8 @@ class SkymapEngine:
                 self.draw_stars(used_catalogs.starcatalog)
                 # print("Stars within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
+
+            self.draw_grid_equatorial()
 
             self.graphics.reset_clip()
 
