@@ -17,6 +17,7 @@
 
 import string
 import numpy as np
+import math
 
 from time import time
 
@@ -167,8 +168,8 @@ LEGEND_MARGIN = 0.47
 BASE_SCALE = 0.98
 GRID_DENSITY = 4
 
-ra_grid_scale = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
-dec_grid_scale = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*60, 30*60, 45*60, 60*60]
+RA_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
+DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*60, 30*60, 45*60, 60*60]
 
 #====================>>>  SkymapEngine  <<<====================
 
@@ -496,35 +497,91 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.grid_linewidth)
         self.graphics.set_pen_rgb((self.config.grid_color[0], self.config.grid_color[1], self.config.grid_color[2]))
 
-        prev_steps = None
-        for grid_minutes in dec_grid_scale:
+        self.draw_grid_ra()
+        self.draw_grid_dec()
+
+        self.graphics.restore()
+
+
+    def grid_dec_label(self, dec, label_fmt):
+        frac, deg = math.modf(dec * 180 / np.pi)
+        return label_fmt.format(int(deg), int(round(frac * 60)))
+
+
+    def grid_ra_label(self, ra, label_fmt):
+        frac, hrs = math.modf(ra * 12 / np.pi)
+        return label_fmt.format(int(round(hrs)), int(round(frac * 60)))
+
+
+    def draw_grid_ra(self):
+        prev_ddec, prev_steps, prev_grid_minutes = (None, None, None)
+        for grid_minutes in DEC_GRID_SCALE:
             ddec = np.pi * grid_minutes / (180 * 60)
             steps = self.fieldradius / ddec
             if steps < GRID_DENSITY:
                 if not prev_steps is None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
-                        steps = prev_steps
+                        ddec = prev_ddec
+                        grid_minutes = prev_grid_minutes
                 break
-            prev_steps = steps
+            prev_ddec, prev_steps, prev_grid_minutes = (ddec, steps, grid_minutes)
 
         dec = -np.pi
         dec_min = self.fieldcentre[1] - self.fieldradius
         dec_max = self.fieldcentre[1] + self.fieldradius
+
+        label_fmt = '{}°' if grid_minutes >= 60 else '{}°{:02d}\''
+
         while dec < np.pi:
             dec = dec + ddec
             if dec > dec_min and dec < dec_max:
-                self.draw_grid_ra(dec)
+                self.draw_grid_ra_line(dec, label_fmt)
 
-        prev_steps = None
-        for grid_minutes in ra_grid_scale:
+
+
+    def draw_grid_ra_line(self, dec, label_fmt):
+        dra = self.fieldradius / 10
+        x11, y11, z11 = (None, None, None)
+        agg_ra = 0
+        while True:
+            x12, y12, z12 = radec_to_xyz(self.fieldcentre[0] + agg_ra, dec, self.fieldcentre, self.drawingscale)
+            x22, y22, z22 = radec_to_xyz(self.fieldcentre[0] - agg_ra, dec, self.fieldcentre, self.drawingscale)
+            if not x11 is None and z11 > 0 and z12 > 0:
+                self.mirroring_graphics.line(x11, y11, x12, y12)
+                self.mirroring_graphics.line(x21, y21, x22, y22)
+            agg_ra = agg_ra + dra
+            if agg_ra > np.pi:
+                break
+            if x12 < -self.drawingwidth/2:
+                y = (y12-y11) * (self.drawingwidth/2 + x11) / (x11 - x12) + y11
+                label = self.grid_dec_label(dec, label_fmt)
+                self.graphics.save()
+                self.mirroring_graphics.translate(-self.drawingwidth/2,y)
+                text_ang = np.arctan2(y11-y12, x11-x12)
+                self.mirroring_graphics.rotate(text_ang)
+                fh =  self.graphics.gi_fontsize
+                if dec >= 0:
+                    self.graphics.text_right(2*fh/3, +fh/3, label)
+                else:
+                    self.graphics.text_right(2*fh/3, -fh, label)
+                self.graphics.restore()
+                break
+            x11,y11,z11 = (x12, y12, z12)
+            x21,y21,z21 = (x22, y22, z22)
+
+
+    def draw_grid_dec(self):
+        prev_dra, prev_steps, prev_grid_minutes = (None, None, None)
+        for grid_minutes in RA_GRID_SCALE:
             dra = np.pi * grid_minutes / (12 * 60)
             steps = self.fieldradius / (np.cos(self.fieldcentre[1]) * dra)
             if steps < GRID_DENSITY:
                 if not prev_steps is None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
-                        steps = prev_steps
+                        dra = prev_dra
+                        grid_minutes = prev_grid_minutes
                 break
-            prev_steps = steps
+            prev_dra, prev_steps, prev_grid_minutes = (dra, steps, grid_minutes)
 
         ra = 0
         mm_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1]>0 else self.fieldcentre[1]-self.fieldradius;
@@ -535,35 +592,18 @@ class SkymapEngine:
             if ra_size > 2*np.pi:
                 ra_size = 2*np.pi
 
+        label_fmt = '{}h' if grid_minutes >= 60 else '{}h{:02d}m'
+
         while ra <= np.pi * 2:
             if abs(self.fieldcentre[0]-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
-                self.draw_grid_dec(ra)
+                self.draw_grid_dec_line(ra, label_fmt)
             ra = ra + dra
 
-        self.graphics.restore()
 
-
-    def draw_grid_ra(self, dec):
-        dra = self.fieldradius / 10
-        x11, y11, z11 = (None, None, None)
-        agg_ra = 0
-        while True:
-            x12, y12, z12 = radec_to_xyz(self.fieldcentre[0] + agg_ra, dec, self.fieldcentre, self.drawingscale)
-            x22, y22, z22 = radec_to_xyz(self.fieldcentre[0] - agg_ra, dec, self.fieldcentre, self.drawingscale)
-            if not x11 is None and z11 > 0 and z12 > 0:
-                self.mirroring_graphics.line(x11, y11, x12, y12)
-                self.mirroring_graphics.line(x21, y21, x22, y22)
-            x11,y11,z11 = (x12, y12, z12)
-            x21,y21,z21 = (x22, y22, z22)
-            agg_ra = agg_ra + dra
-            if agg_ra > np.pi:
-                break
-            if x12 < -self.drawingwidth/2:
-                break
-
-    def draw_grid_dec(self, ra):
+    def draw_grid_dec_line(self, ra, label_fmt):
         ddec = self.fieldradius / 10
         x11, y11, z11 = (None, None, None)
+        x21, y21, z21 = (None, None, None)
         agg_dec = 0
         while True:
             x12, y12, z12 = radec_to_xyz(ra, self.fieldcentre[1] + agg_dec, self.fieldcentre, self.drawingscale)
@@ -573,13 +613,27 @@ class SkymapEngine:
                     self.mirroring_graphics.line(x11, y11, x12, y12)
                 if z21 > 0 and z22 > 0:
                     self.mirroring_graphics.line(x21, y21, x22, y22)
-            x11,y11,z11 = (x12, y12, z12)
-            x21,y21,z21 = (x22, y22, z22)
             agg_dec = agg_dec + ddec
             if agg_dec > np.pi/2:
                 break
-            if y12 > self.drawingheight/2:
+            if y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
+                label = self.grid_ra_label(ra, label_fmt)
+                self.graphics.save()
+                if self.fieldcentre[1] <= 0:
+                    x = (x12-x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
+                    self.mirroring_graphics.translate(x, self.drawingheight/2)
+                    text_ang = np.arctan2(y11-y12, x11-x12)
+                else:
+                    x = (x22-x21) * (-self.drawingheight/2 - y21) / (y22 - y21) + x21
+                    self.mirroring_graphics.translate(x, -self.drawingheight/2)
+                    text_ang = np.arctan2(y21-y22, x21-x22)
+                self.mirroring_graphics.rotate(text_ang)
+                fh =  self.graphics.gi_fontsize
+                self.graphics.text_right(2*fh/3, fh/3, label)
+                self.graphics.restore()
                 break
+            x11,y11,z11 = (x12, y12, z12)
+            x21,y21,z21 = (x22, y22, z22)
 
 
     def draw_constellation_stars(self, constell_catalog):
@@ -708,6 +762,11 @@ class SkymapEngine:
 
             self.graphics.clip_path(clip_path)
 
+            if self.config.show_equatorial_grid:
+                self.draw_grid_equatorial()
+            # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
+            # tm = time()
+
             if highlights != []:
                 self.draw_highlights(highlights)
 
@@ -715,23 +774,22 @@ class SkymapEngine:
                 self.draw_constellations(used_catalogs.constellcatalog)
                 # print("constellations within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
+
             if used_catalogs.deepskycatalog != None:
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos)
                 # print("DSO within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
+
             if extra_positions != []:
                 self.draw_extra_objects(extra_positions)
+
             if trajectory != []:
                 self.draw_trajectory(trajectory)
+
             if used_catalogs.starcatalog != None:
                 self.draw_stars(used_catalogs.starcatalog)
                 # print("Stars within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
-
-            if self.config.show_equatorial_grid:
-                self.draw_grid_equatorial()
-            # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
-            # tm = time()
 
             self.graphics.reset_clip()
 
