@@ -19,6 +19,7 @@ DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_OPEN_CLUSTER_LINEWIDTH = 0.3
 DEFAULT_DSO_LINEWIDTH = 0.2
 DEFAULT_LEGEND_LINEWIDTH = 0.2
+DEFAULT_GRID_LINEWIDTH = 0.2
 
 DEFAULT_BACKGROUND_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DRAW_COLOR = (0.0, 0.0, 0.0)
@@ -27,6 +28,7 @@ DEFAULT_CONSTELLATION_LINES_COLOR = (0.2, 0.7, 1.0)
 DEFAULT_CONSTELLATION_BORDER_COLOR = (0.95, 0.90, 0.1)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_HIGHLIGHT_COLOR = (0.0, 0.5, 0.0)
+DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
 DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
 
@@ -41,6 +43,7 @@ class EngineConfiguration:
         self._show_dso_legend = False
         self._show_coords_legend = False
         self._show_field_border = False
+        self._show_equatorial_grid = False
         self._fov_telrad = False
         self._mirror_x = False
         self._mirror_y = False
@@ -54,10 +57,12 @@ class EngineConfiguration:
         self._nebula_color = DEFAULT_DSO_COLOR
         self._galaxy_color = DEFAULT_DSO_COLOR
         self._star_cluster_color = DEFAULT_DSO_COLOR
+        self._grid_color = DEFAULT_GRID_COLOR
         self._constellation_linewidth = DEFAULT_CONSTELLATION_LINEWIDTH
         self._open_cluster_linewidth = DEFAULT_OPEN_CLUSTER_LINEWIDTH
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
+        self._grid_linewidth = DEFAULT_GRID_LINEWIDTH
         self._no_margin = False
         self._font = DEFAULT_FONT
         self._font_size = DEFAULT_FONT_SIZE
@@ -135,6 +140,14 @@ class EngineConfiguration:
     @show_field_border.setter
     def show_field_border(self, value):
         self._show_field_border = value
+
+    @property
+    def show_equatorial_grid(self):
+        return self._show_equatorial_grid
+
+    @show_equatorial_grid.setter
+    def show_equatorial_grid(self, value):
+        self._show_equatorial_grid = value
 
     @property
     def fov_telrad(self):
@@ -241,6 +254,14 @@ class EngineConfiguration:
         self._star_cluster_color = value
 
     @property
+    def grid_color(self):
+        return self._grid_color
+
+    @grid_color.setter
+    def grid_color(self, value):
+        self._grid_color = value
+
+    @property
     def constellation_linewidth(self):
         return self._constellation_linewidth
 
@@ -271,6 +292,14 @@ class EngineConfiguration:
     @legend_linewidth.setter
     def legend_linewidth(self, value):
         self._legend_linewidth = value
+
+    @property
+    def grid_linewidth(self):
+        return self._grid_linewidth
+
+    @grid_linewidth.setter
+    def grid_linewidth(self, value):
+        self._grid_linewidth = value
 
     @property
     def no_margin(self):

@@ -139,6 +139,9 @@ class RuntimeSettings:
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
                                     help='show deepsky object legend.')
 
+        argumentparser.add_argument('--show-equatorial-grid', dest='show_equatorial_grid', action='store_true',
+                                    help='show equatorial grid.')
+
         argumentparser.add_argument('--hide-coords-legend', dest='show_coords_legend', action='store_false',
                                     help='hide coordinations legend.')
 
@@ -174,15 +177,20 @@ class RuntimeSettings:
                                     help='Galaxy color.')
         argumentparser.add_argument('--color-star-cluster', dest='star_cluster_color', action='store', default='#505000',
                                     help='Star cluster color.')
+        argumentparser.add_argument('--color-grid', dest='grid_color', action='store', default='#405060',
+                                    help='Star cluster color.')
 
-        argumentparser.add_argument('-lconst', '--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
+        argumentparser.add_argument('--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
                                     help='Constellation line width (default: 0.5)')
-        argumentparser.add_argument('-locl', '--linewidth-open-cluster', dest='open_cluster_linewidth', nargs='?', action='store', default=0.3, type=float,
+        argumentparser.add_argument('--linewidth-open-cluster', dest='open_cluster_linewidth', nargs='?', action='store', default=0.3, type=float,
                                     help='Line width of open cluster (default: 0.3)')
-        argumentparser.add_argument('-ldso', '--linewidth-deepsky', dest='dso_linewidth', nargs='?', action='store', default=0.2, type=float,
+        argumentparser.add_argument('--linewidth-deepsky', dest='dso_linewidth', nargs='?', action='store', default=0.2, type=float,
                                     help='Line width of open cluster (default: 0.2)')
-        argumentparser.add_argument('-llegend', '--linewidth-legend', dest='legend_linewidth', nargs='?', action='store', default=0.2, type=float,
+        argumentparser.add_argument('--linewidth-legend', dest='legend_linewidth', nargs='?', action='store', default=0.2, type=float,
                                     help='Line width of open cluster (default: 0.3)')
+        argumentparser.add_argument('--linewidth-grid', dest='grid_linewidth', nargs='?', action='store', default=0.2, type=float,
+                                    help='Line width of equatorial grid (default: 0.2)')
+
 
         argumentparser.add_argument('--no-margin', dest='no_margin', action='store_true', default=False,
                                     help='Star cluster color.')
@@ -282,6 +290,7 @@ def _create_engine_configuration():
     config.show_dso_legend = settings.parser.show_dso_legend
     config.show_coords_legend = settings.parser.show_coords_legend
     config.show_field_border = settings.parser.show_field_border
+    config.show_equatorial_grid = settings.parser.show_equatorial_grid
     config.fov_telrad = settings.parser.fov_telrad
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
@@ -295,10 +304,12 @@ def _create_engine_configuration():
     config.nebula_color = _convert_color(settings.parser.nebula_color)
     config.galaxy_color = _convert_color(settings.parser.galaxy_color)
     config.star_cluster_color = _convert_color(settings.parser.star_cluster_color)
+    config.grid_color = _convert_color(settings.parser.grid_color)
     config.constellation_linewidth = settings.parser.constellation_linewidth
     config.open_cluster_linewidth = settings.parser.open_cluster_linewidth
     config.dso_linewidth = settings.parser.dso_linewidth
     config.legend_linewidth = settings.parser.legend_linewidth
+    config.grid_linewidth = settings.parser.grid_linewidth
     config.no_margin = settings.parser.no_margin
     config.font = settings.parser.font
     config.font_size = settings.parser.font_size

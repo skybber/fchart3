@@ -493,8 +493,8 @@ class SkymapEngine:
     def draw_grid_equatorial(self):
         print('Drawing equatorial grid...')
         self.graphics.save()
-        self.graphics.set_linewidth(self.config.constellation_linewidth/2)
-        self.graphics.set_pen_rgb((self.config.constellation_lines_color[0]/2, self.config.constellation_lines_color[1]/2, self.config.constellation_lines_color[2]/2))
+        self.graphics.set_linewidth(self.config.grid_linewidth)
+        self.graphics.set_pen_rgb((self.config.grid_color[0], self.config.grid_color[1], self.config.grid_color[2]))
 
         prev_steps = None
         for grid_minutes in dec_grid_scale:
@@ -728,7 +728,8 @@ class SkymapEngine:
                 # print("Stars within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
 
-            self.draw_grid_equatorial()
+            if self.config.show_equatorial_grid:
+                self.draw_grid_equatorial()
             # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
             # tm = time()
 
