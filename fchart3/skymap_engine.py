@@ -164,7 +164,8 @@ SPEC_TYPE_2_RGB = {
 
 STARS_IN_SCALE = 7
 LEGEND_MARGIN = 0.47
-BASE_SCALE=0.98
+BASE_SCALE = 0.98
+GRID_DENSITY = 4
 
 ra_grid_scale = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
 dec_grid_scale = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*60, 30*60, 45*60, 60*60]
@@ -495,31 +496,47 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth/2)
         self.graphics.set_pen_rgb((self.config.constellation_lines_color[0]/2, self.config.constellation_lines_color[1]/2, self.config.constellation_lines_color[2]/2))
 
-        for grid_minutes in reversed(dec_grid_scale):
+        prev_steps = None
+        for grid_minutes in dec_grid_scale:
             ddec = np.pi * grid_minutes / (180 * 60)
             steps = self.fieldradius / ddec
-            if steps > 3:
+            if steps < GRID_DENSITY:
+                if not prev_steps is None:
+                    if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
+                        steps = prev_steps
                 break
+            prev_steps = steps
 
         dec = -np.pi
+        dec_min = self.fieldcentre[1] - self.fieldradius
+        dec_max = self.fieldcentre[1] + self.fieldradius
         while dec < np.pi:
             dec = dec + ddec
-            if dec > self.fieldcentre[1] - self.fieldradius and dec < self.fieldcentre[1] + self.fieldradius:
+            if dec > dec_min and dec < dec_max:
                 self.draw_grid_ra(dec)
 
-        for grid_minutes in reversed(ra_grid_scale):
+        prev_steps = None
+        for grid_minutes in ra_grid_scale:
             dra = np.pi * grid_minutes / (12 * 60)
             steps = self.fieldradius / (np.cos(self.fieldcentre[1]) * dra)
-            if steps > 3:
+            if steps < GRID_DENSITY:
+                if not prev_steps is None:
+                    if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
+                        steps = prev_steps
                 break
+            prev_steps = steps
 
         ra = 0
-        ra_size = self.fieldradius / np.cos(self.fieldcentre[1])
-        if ra_size > 2*np.pi:
+        mm_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1]>0 else self.fieldcentre[1]-self.fieldradius;
+        if mm_dec >= np.pi/2 or mm_dec <= -np.pi/2:
             ra_size = 2*np.pi
+        else:
+            ra_size = self.fieldradius / np.cos(mm_dec)
+            if ra_size > 2*np.pi:
+                ra_size = 2*np.pi
 
         while ra <= np.pi * 2:
-            if abs(self.fieldcentre[0]-ra) < ra_size:
+            if abs(self.fieldcentre[0]-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
                 self.draw_grid_dec(ra)
             ra = ra + dra
 
@@ -561,7 +578,7 @@ class SkymapEngine:
             agg_dec = agg_dec + ddec
             if agg_dec > np.pi/2:
                 break
-            if y12 < -self.drawingheight/2:
+            if y12 > self.drawingheight/2:
                 break
 
 
@@ -712,6 +729,8 @@ class SkymapEngine:
                 # tm = time()
 
             self.draw_grid_equatorial()
+            # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
+            # tm = time()
 
             self.graphics.reset_clip()
 
