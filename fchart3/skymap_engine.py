@@ -216,7 +216,7 @@ class SkymapEngine:
 
         self.drawingscale    = self.scene_scale*wh/2.0/np.sin(fieldradius)
 
-        self.legend_fontscale    = min(3, wh/100.0)
+        self.legend_fontscale    = min(1.75, wh/100.0)
 
         self.set_caption(self.caption)
 

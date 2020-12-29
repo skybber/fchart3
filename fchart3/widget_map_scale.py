@@ -43,7 +43,7 @@ class WidgetMapScale:
                 self.ruler_length = ruler_mm[-(i+1)]
                 break
 
-        fh = self.legend_fontsize * 0.5
+        fh = self.legend_fontsize * 0.66
         self.width, self.height = self.ruler_length + 2*fh, fh*3
 
     def get_size(self):
@@ -56,7 +56,7 @@ class WidgetMapScale:
         This is excluding the vertical end bars. maxlength is the maximum
         length of the ruler line excluding the endbars.
         """
-        fh = self.legend_fontsize * 0.5
+        fh = self.legend_fontsize * 0.66
 
         x = right - fh
         y = bottom + fh + fh/2
