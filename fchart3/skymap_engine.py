@@ -495,7 +495,7 @@ class SkymapEngine:
         print('Drawing equatorial grid...')
         self.graphics.save()
         self.graphics.set_linewidth(self.config.grid_linewidth)
-        self.graphics.set_pen_rgb((self.config.grid_color[0], self.config.grid_color[1], self.config.grid_color[2]))
+        self.graphics.set_pen_rgb(self.config.grid_color)
 
         self.draw_grid_ra()
         self.draw_grid_dec()
@@ -503,43 +503,49 @@ class SkymapEngine:
         self.graphics.restore()
 
 
-    def grid_dec_label(self, dec, label_fmt):
-        frac, deg = math.modf(dec * 180 / np.pi)
-        return label_fmt.format(int(deg), int(round(frac * 60)))
+    def grid_dec_label(self, dec_minutes, label_fmt):
+        deg = abs(int(dec_minutes/60))
+        minutes = abs(dec_minutes) - deg * 60
+        if dec_minutes > 0:
+            prefix = '+'
+        elif dec_minutes < 0:
+            prefix = '-'
+        else:
+            prefix = ''
+        return  prefix + label_fmt.format(deg, minutes)
 
 
-    def grid_ra_label(self, ra, label_fmt):
-        frac, hrs = math.modf(ra * 12 / np.pi)
-        return label_fmt.format(int(round(hrs)), int(round(frac * 60)))
+    def grid_ra_label(self, ra_minutes, label_fmt):
+        return label_fmt.format(ra_minutes//60, ra_minutes % 60)
 
 
     def draw_grid_ra(self):
-        prev_ddec, prev_steps, prev_grid_minutes = (None, None, None)
+        prev_steps, prev_grid_minutes = (None, None)
         for grid_minutes in DEC_GRID_SCALE:
-            ddec = np.pi * grid_minutes / (180 * 60)
-            steps = self.fieldradius / ddec
+            steps = self.fieldradius / (np.pi * grid_minutes / (180 * 60))
             if steps < GRID_DENSITY:
                 if not prev_steps is None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
-                        ddec = prev_ddec
                         grid_minutes = prev_grid_minutes
                 break
-            prev_ddec, prev_steps, prev_grid_minutes = (ddec, steps, grid_minutes)
+            prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
-        dec = -np.pi
         dec_min = self.fieldcentre[1] - self.fieldradius
         dec_max = self.fieldcentre[1] + self.fieldradius
 
         label_fmt = '{}°' if grid_minutes >= 60 else '{}°{:02d}\''
 
-        while dec < np.pi:
-            dec = dec + ddec
+        dec_minutes = -90*60 + grid_minutes
+
+        while dec_minutes < 90*60:
+            dec = np.pi * dec_minutes / (180*60)
             if dec > dec_min and dec < dec_max:
-                self.draw_grid_ra_line(dec, label_fmt)
+                self.draw_grid_ra_line(dec, dec_minutes, label_fmt)
+            dec_minutes += grid_minutes
 
 
 
-    def draw_grid_ra_line(self, dec, label_fmt):
+    def draw_grid_ra_line(self, dec, dec_minutes, label_fmt):
         dra = self.fieldradius / 10
         x11, y11, z11 = (None, None, None)
         agg_ra = 0
@@ -554,7 +560,7 @@ class SkymapEngine:
                 break
             if x12 < -self.drawingwidth/2:
                 y = (y12-y11) * (self.drawingwidth/2 + x11) / (x11 - x12) + y11
-                label = self.grid_dec_label(dec, label_fmt)
+                label = self.grid_dec_label(dec_minutes, label_fmt)
                 self.graphics.save()
                 self.mirroring_graphics.translate(-self.drawingwidth/2,y)
                 text_ang = np.arctan2(y11-y12, x11-x12)
@@ -571,36 +577,36 @@ class SkymapEngine:
 
 
     def draw_grid_dec(self):
-        prev_dra, prev_steps, prev_grid_minutes = (None, None, None)
+        prev_steps, prev_grid_minutes = (None, None)
         for grid_minutes in RA_GRID_SCALE:
-            dra = np.pi * grid_minutes / (12 * 60)
-            steps = self.fieldradius / (np.cos(self.fieldcentre[1]) * dra)
+            steps = self.fieldradius / (np.cos(self.fieldcentre[1]) * (np.pi * grid_minutes / (12 * 60)))
             if steps < GRID_DENSITY:
                 if not prev_steps is None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
-                        dra = prev_dra
                         grid_minutes = prev_grid_minutes
                 break
-            prev_dra, prev_steps, prev_grid_minutes = (dra, steps, grid_minutes)
+            prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
-        ra = 0
-        mm_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1]>0 else self.fieldcentre[1]-self.fieldradius;
-        if mm_dec >= np.pi/2 or mm_dec <= -np.pi/2:
+        max_visible_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1]>0 else self.fieldcentre[1]-self.fieldradius;
+        if max_visible_dec >= np.pi/2 or max_visible_dec <= -np.pi/2:
             ra_size = 2*np.pi
         else:
-            ra_size = self.fieldradius / np.cos(mm_dec)
+            ra_size = self.fieldradius / np.cos(max_visible_dec)
             if ra_size > 2*np.pi:
                 ra_size = 2*np.pi
 
         label_fmt = '{}h' if grid_minutes >= 60 else '{}h{:02d}m'
 
-        while ra <= np.pi * 2:
+        ra_minutes = 0
+
+        while ra_minutes <= 24*60:
+            ra = np.pi * ra_minutes / (12*60)
             if abs(self.fieldcentre[0]-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
-                self.draw_grid_dec_line(ra, label_fmt)
-            ra = ra + dra
+                self.draw_grid_dec_line(ra, ra_minutes, label_fmt)
+            ra_minutes += grid_minutes
 
 
-    def draw_grid_dec_line(self, ra, label_fmt):
+    def draw_grid_dec_line(self, ra, ra_minutes, label_fmt):
         ddec = self.fieldradius / 10
         x11, y11, z11 = (None, None, None)
         x21, y21, z21 = (None, None, None)
@@ -617,7 +623,7 @@ class SkymapEngine:
             if agg_dec > np.pi/2:
                 break
             if y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
-                label = self.grid_ra_label(ra, label_fmt)
+                label = self.grid_ra_label(ra_minutes, label_fmt)
                 self.graphics.save()
                 if self.fieldcentre[1] <= 0:
                     x = (x12-x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
