@@ -39,6 +39,6 @@ def get_catalogs_dir():
 from fchart3.skymap_engine import *
 from fchart3.configuration import *
 from fchart3.used_catalogs import *
-from fchart3.cairo import *
+from fchart3.graphics_cairo import *
 from fchart3.graphics_interface import *
 

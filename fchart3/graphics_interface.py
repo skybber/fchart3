@@ -32,6 +32,7 @@ class DrawMode(Enum):
     FILL = 2
     BOTH = 3
 
+
 def paper_A(n):
     """
     Returns (width, height) of ISO An paper in mm
@@ -62,8 +63,8 @@ class GraphicsInterface:
         width and height in mm
         """
         # length of point in mm
-        self.gi_width     = width*1.0
-        self.gi_height    = height*1.0
+        self.gi_width     = float(width)
+        self.gi_height    = float(height)
         self.gi_pen_rgb  = (0.0, 0.0, 0.0)
         self.gi_fill_rgb = (0.0, 0.0, 0.0)
         self.gi_linewidth = 0.1
@@ -99,6 +100,7 @@ class GraphicsInterface:
                               self.gi_fill_rgb,
                               self.gi_pen_rgb))
 
+
     def restore(self):
         """
         Save graphics state to stack. This method should be extended,
@@ -111,6 +113,7 @@ class GraphicsInterface:
          self.gi_fontsize,
          self.gi_fill_rgb,
          self.gi_pen_rgb) = self.gi_stack.pop()
+
 
     def new(self):
         """
@@ -202,14 +205,6 @@ class GraphicsInterface:
         self.gi_fontsize = fontsize
 
 
-    def moveto(self,x,y):
-        """
-        Move to position x,y. Derived classes should override this
-        method.
-        """
-        print('GraphicsInterface.moveto()')
-
-
     def translate(self, dx, dy):
         """
         Shift origin of coordinate system (dx,dy) mm with respect to
@@ -239,6 +234,7 @@ class GraphicsInterface:
         pen gray value
         """
         print('GraphicsInterface.rectangle()')
+
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         """
@@ -284,11 +280,13 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.text_centred()')
 
+
     def text_width(self, text):
         """
         Text width in current font
         """
         print('GraphicsInterface.text_width()')
+
 
     def finish(self):
         """
@@ -302,13 +300,6 @@ class GraphicsInterface:
         Clip path
         """
         print('GraphicsInterface.clip_rectangle()')
-
-
-    def clip_circle(self, x, y, r):
-        """
-        Clip circle
-        """
-        print('GraphicsInterface.clip_circle()')
 
 
     def reset_clip(self):

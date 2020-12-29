@@ -749,24 +749,27 @@ class SkymapEngine:
         w_maps_width, w_maps_height = self.w_map_scale.get_size()
 
         if not self.config.legend_only:
-            clip_path = [(x2,y2)]
-            if self.config.show_map_scale_legend:
-                clip_path.extend([(x2,y1+w_maps_height),
-                                 (x2-w_maps_width, y1+w_maps_height),
-                                 (x2-w_maps_width, y1)])
-            else:
-                clip_path.append((x2,y1))
 
-            if self.config.show_mag_scale_legend:
-                clip_path.extend([(x1 + w_mags_width, y1),
-                                 (x1 + w_mags_width, y1 + w_mags_heigth),
-                                 (x1, y1 + w_mags_heigth)])
-            else:
-                clip_path.append((x1, y1))
+            if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
+                clip_path = [(x2,y2)]
 
-            clip_path.append((x1, y2))
+                if self.config.show_map_scale_legend:
+                    clip_path.extend([(x2,y1+w_maps_height),
+                                     (x2-w_maps_width, y1+w_maps_height),
+                                     (x2-w_maps_width, y1)])
+                else:
+                    clip_path.append((x2,y1))
 
-            self.graphics.clip_path(clip_path)
+                if self.config.show_mag_scale_legend:
+                    clip_path.extend([(x1 + w_mags_width, y1),
+                                     (x1 + w_mags_width, y1 + w_mags_heigth),
+                                     (x1, y1 + w_mags_heigth)])
+                else:
+                    clip_path.append((x1, y1))
+
+                clip_path.append((x1, y2))
+
+                self.graphics.clip_path(clip_path)
 
             if self.config.show_equatorial_grid:
                 self.draw_grid_equatorial()
@@ -1294,7 +1297,7 @@ class SkymapEngine:
 
 
 if __name__ == '__main__':
-    from . import cairo
+    from . import graphics_cairo
     from . import composite_star_catalog as sc
 
     data_dir='./data/catalogs/'

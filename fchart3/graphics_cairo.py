@@ -29,6 +29,9 @@ A4_WIDTH_POINTS = 594
 A4_HEIGHT_POINTS = 842
 
 class CairoDrawing(GraphicsInterface):
+    """
+    A CairoDrawing - implement Graphics interface using PyCairo
+    """
 
     def __init__(self, width, height, filename=None, png_fobj=None, pixels=False):
         """
@@ -113,37 +116,26 @@ class CairoDrawing(GraphicsInterface):
         self.context.stroke()
 
     def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
-        """
-        Draw a rectangle with left upper corner in (x,y) and widt/height
-        pen rgb value
-        """
         self.context.rectangle(x, -y, width, height)
         self._draw_element(mode)
 
     def circle(self, x,y,r, mode=DrawMode.BORDER):
-        """
-        Draw a circle with centre at (x,y) and radius r.
-        """
-        self.moveto(x+r, y)
+        self._moveto(x+r, y)
         self.context.arc(x, -y, r, 0, 2.0*pi)
         self._draw_element(mode)
 
 
     def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):
-        """
-        Draw an ellipse with centre at (x,y) and long radius rlong and
-        short radius rshort. position_angle is the angle between the
-        long axis and the positive x-axis in radians.
-        """
         self.context.save()
         scale = rshort/rlong
         self.context.translate(x, -y)
         self.context.rotate(-posangle)
         self.context.scale(1, scale)
-        self.moveto(rlong, 0)
+        self._moveto(rlong, 0)
         self.context.arc(0, 0, rlong, 0, 2.0*pi)
         self.context.restore()
         self._draw_element(mode)
+
 
     def _draw_element(self, mode):
         if mode == DrawMode.BORDER:
@@ -159,26 +151,27 @@ class CairoDrawing(GraphicsInterface):
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.stroke()
 
+
     def text(self, text):
         self.context.show_text(text)
 
 
     def text_right(self, x, y, text):
-        self.moveto(x, y)
+        self._moveto(x, y)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
 
     def text_left(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
-        self.moveto(x-width, y)
+        self._moveto(x-width, y)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
 
     def text_centred(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
-        self.moveto(x-width/2, y - height/2)
+        self._moveto(x-width/2, y - height/2)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
@@ -188,7 +181,7 @@ class CairoDrawing(GraphicsInterface):
         return width
 
 
-    def moveto(self, x, y):
+    def _moveto(self, x, y):
         self.context.move_to(x,-y)
 
 
@@ -208,11 +201,6 @@ class CairoDrawing(GraphicsInterface):
         for (x,y) in path[1:]:
             self.context.line_to(x,-y)
         self.context.close_path()
-        self.context.clip()
-
-
-    def clip_circle(self, x, y, r):
-        self.context.arc(-x, -y, r, 0, 2.0*pi)
         self.context.clip()
 
 
