@@ -403,7 +403,7 @@ class CompositeStarCatalog:
         return True
 
 
-    def _select_stars_from_mash(self, catalog, fieldcentre, radius, lm_stars):
+    def _select_stars_from_mesh(self, catalog, fieldcentre, radius, lm_stars):
         sky_mesh = catalog.get_sky_mesh()
         intersecting_trixels = sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
         mesh_stars = None
@@ -412,6 +412,8 @@ class CompositeStarCatalog:
         for trixel in intersecting_trixels:
             trixel_stars = catalog.get_trixel_stars(trixel ^ mask)
             if not trixel_stars is None and len(trixel_stars) > 0:
+                mag = trixel_stars['mag']
+                trixel_stars = trixel_stars[mag <= lm_stars]
                 if mesh_stars is None:
                     mesh_stars= trixel_stars
                 else:
@@ -429,24 +431,20 @@ class CompositeStarCatalog:
         radians
         """
         tmp_arr = []
-        selected_stars = self._select_stars_from_mash(self, fieldcentre, radius, lm_stars)
+        selected_stars = self._select_stars_from_mesh(self, fieldcentre, radius, lm_stars)
 
         if selected_stars is not None  and selected_stars.shape[0] > 0:
             tmp_arr.append(selected_stars)
 
         for cat in self.deepstar_catalogs:
             if cat.trig_mag < lm_stars:
-                mesh_stars = self._select_stars_from_mash(cat, fieldcentre, radius, lm_stars)
+                mesh_stars = self._select_stars_from_mesh(cat, fieldcentre, radius, lm_stars)
                 if mesh_stars.shape[0] > 0:
                     tmp_arr.append(mesh_stars)
 
         selected_stars = np.concatenate(tmp_arr, axis=0)
-        mag = selected_stars['mag']
-        bright_enough = mag <= lm_stars
 
-        selection = selected_stars[bright_enough]
-
-        return selection
+        return selected_stars
 
     def free_mem(self):
         for dsc in self.deepstar_catalogs:
