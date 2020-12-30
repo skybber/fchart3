@@ -63,7 +63,6 @@ class DeepskyCatalog:
     def select_deepsky(self, fieldcentre, radius, lm_deepsky):
         """
         returns a list of deepsky objects meeting the set requirements.
-
         fieldcentre is a tuple (ra, dec) in radians. radius is also in
         radians
         """

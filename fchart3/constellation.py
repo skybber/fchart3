@@ -29,8 +29,11 @@ class BscStar:
         - mag            magnitude
         """
         self.number = None
-        self.greek = ''
+        self.name = ''
         self.constellation=''
+        self.constell_number = None
+        self.greek = ''
+        self.flamsteed = ''
         self.ra=-1.0
         self.dec=0.0
         self.mag=-100.0
@@ -51,7 +54,7 @@ class ConstellationCatalog:
     def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename='', cross_id_file=''):
         self.all_constell_lines = []
         self.bright_stars = self._import_bsc5(bsc5_filename)
-        self.constellations, self.boundaries = self._import_constellation(constell_filename, boundaries_filename, cross_id_file, self)
+        self.constellations, self.boundaries_lines, self.boundaries_points = self._import_constellation(constell_filename, boundaries_filename, cross_id_file, self)
         self.all_constell_lines = np.array(self.all_constell_lines)
 
     def _parse_bsc5_line(self, line):
@@ -63,12 +66,17 @@ class ConstellationCatalog:
         star.constell_number = line[4:7].strip().upper()
 
         star.greek = line[7:10].strip().lower()
+
+        if star.constellation and star.constell_number:
+            star.flamsteed = star.constell_number + ' ' + star.constellation.lower().capitalize()
+
         if star.name.startswith('NOVA'):
             star.greek = ''
         if line[75:77].strip() != '':
             star.ra = float(line[75:77])*np.pi/12.0 + float(line[77:79])*np.pi/(12.0*60.0) + float(line[79:83])*np.pi/(12*60.0*60)
             star.dec = float(line[83]+'1')*(float(line[84:86])*np.pi/180.0 + float(line[86:88])*np.pi/(180.0*60) + float(line[88:90])*np.pi/(180.0*60*60))
             star.mag = float(line[102]+'1') * float(line[103:107])
+
         return star
 
 
@@ -122,8 +130,6 @@ class ConstellationCatalog:
         with open(filename, 'r') as f:
             lines = f.readlines()
 
-        boundaries = []
-
         for line in lines:
             line = line.strip()
             if line.startswith('#') or line == '':
@@ -135,15 +141,37 @@ class ConstellationCatalog:
         bnd_lines = bf.readlines()
         bf.close()
 
+        index_map = {}
+        boundaries_points = []
+        boundaries_lines = []
+        cur_index = 0
+
         for line in bnd_lines:
             spl = line.strip().split()
             sra1, sdec1, sra2, sdec2, cons1, cons2 = spl[0], spl[1], spl[2], spl[3], spl[4], spl[5]
+
             ra1 = float(sra1)*np.pi/12.0
             dec1 = float(sdec1)*np.pi/180.0
+            key1 = str(ra1) + '_' + str(dec1)
+
+            index1 = index_map.get(key1)
+            if index1 is None:
+                index1 = cur_index
+                index_map[key1] = index1
+                boundaries_points.append([ra1, dec1])
+                cur_index += 1
+
             ra2 = float(sra2)*np.pi/12.0
             dec2 = float(sdec2)*np.pi/180.0
-            cons1 = cons1.upper()
-            cons2 = cons2.upper()
+            key2 = str(ra2) + '_' + str(dec2)
 
-            boundaries.append([ra1, dec1, ra2, dec2])
-        return (constellation_list, np.array(boundaries))
+            index2 = index_map.get(key2)
+            if index2 is None:
+                index2 = cur_index
+                index_map[key2] = index2
+                boundaries_points.append([ra2, dec2])
+                cur_index += 1
+
+            boundaries_lines.append([index1, index2])
+
+        return (constellation_list, boundaries_lines, np.array(boundaries_points))

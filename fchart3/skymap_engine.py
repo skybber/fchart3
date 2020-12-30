@@ -172,6 +172,9 @@ GRID_DENSITY = 4
 RA_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
 DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*60, 30*60, 45*60, 60*60]
 
+MAG_SCALE_X = [0, 1,   2,   3,   4,    5,    25]
+MAG_SCALE_Y = [0, 1.8, 3.3, 4.6, 5.6,  6.6,  16.6]
+
 #====================>>>  SkymapEngine  <<<====================
 
 class SkymapEngine:
@@ -437,16 +440,14 @@ class SkymapEngine:
 
         self.graphics.restore()
 
+
     def magnitude_to_radius(self, magnitude):
         #radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
-        mag_scale_x = [0, 1,   2,   3,   4,    5,    25]
-        mag_scale_y = [0, 1.8, 3.3, 4.6, 5.6,  6.6,  16.6]
-
         mag_d = self.lm_stars - np.clip(magnitude, a_min=None, a_max=self.lm_stars)
-        mag_s = np.interp(mag_d, mag_scale_x, mag_scale_y)
-
+        mag_s = np.interp(mag_d, MAG_SCALE_X, MAG_SCALE_Y)
         radius = 0.1 * 1.33 ** (mag_s)
         return radius
+
 
     def draw_stars(self, star_catalog):
         # Select and draw stars
@@ -653,14 +654,14 @@ class SkymapEngine:
         star_label_mag = []
         for star in constell_catalog.bright_stars:
             slabel = star.greek
-            if slabel == '' and self.config.show_flamsteed and star.constellation != '' and star.constell_number != '':
-                slabel = star.constell_number + ' ' + star.constellation.lower().capitalize()
+            if not slabel and self.config.show_flamsteed:
+                slabel = star.flamsteed
             if not slabel:
                 continue
 
             printed_labels = printed.get(star.constellation)
 
-            if not printed_labels:
+            if printed_labels is None:
                 printed_labels = set()
                 printed[star.constellation] = printed_labels
             elif slabel in printed_labels:
@@ -711,12 +712,11 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_border_color)
 
-        x1, y1, z1 = radec_to_xyz(constell_catalog.boundaries[:,0], constell_catalog.boundaries[:,1], self.fieldcentre, self.drawingscale)
-        x2, y2, z2 = radec_to_xyz(constell_catalog.boundaries[:,2], constell_catalog.boundaries[:,3], self.fieldcentre, self.drawingscale)
+        x, y, z = radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale)
 
-        for i in range(len(x1)):
-            if z1[i] > 0 and z2[i] > 0:
-                self.mirroring_graphics.line(x1[i], y1[i], x2[i], y2[i])
+        for index1, index2 in constell_catalog.boundaries_lines:
+            if z[index1] > 0 and z[index2] > 0:
+                self.mirroring_graphics.line(x[index1], y[index1], x[index2], y[index2])
 
         self.graphics.restore()
 
