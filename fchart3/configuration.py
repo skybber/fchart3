@@ -31,6 +31,7 @@ DEFAULT_HIGHLIGHT_COLOR = (0.0, 0.5, 0.0)
 DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
 DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
+DEFAULT_LEGEND_FONT_SCALE=1.75
 
 class EngineConfiguration:
     def __init__(self):
@@ -68,6 +69,7 @@ class EngineConfiguration:
         self._font_size = DEFAULT_FONT_SIZE
         self._highlight_color = DEFAULT_HIGHLIGHT_COLOR
         self._dso_symbol_brightness = False
+        self._legend_font_scale = DEFAULT_LEGEND_FONT_SCALE
 
     @property
     def legend_only(self):
@@ -340,3 +342,13 @@ class EngineConfiguration:
     @dso_symbol_brightness.setter
     def dso_symbol_brightness(self, value):
         self._dso_symbol_brightness = value
+
+    @property
+    def legend_font_scale(self):
+        return self._legend_font_scale
+
+    @legend_font_scale.setter
+    def legend_font_scale(self, value):
+        self._legend_font_scale = value
+
+

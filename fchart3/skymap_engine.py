@@ -37,6 +37,7 @@ from .widget_coords import WidgetCoords
 from .widget_dso_legend import WidgetDsoLegend
 from .widget_telrad import WidgetTelrad
 
+
 NL = {
     'h':'u',
     'm':'m',
@@ -216,7 +217,7 @@ class SkymapEngine:
 
         self.drawingscale    = self.scene_scale*wh/2.0/np.sin(fieldradius)
 
-        self.legend_fontscale    = min(1.75, wh/100.0)
+        self.legend_fontscale    = min(self.config.legend_font_scale, wh/100.0)
 
         self.set_caption(self.caption)
 
@@ -255,7 +256,7 @@ class SkymapEngine:
             old_size = self.graphics.gi_fontsize
             font_size = self.get_legend_font_size()
             self.graphics.set_font(self.graphics.gi_font, 2.0*font_size)
-            self.graphics.text_centred(0,self.drawingwidth/2.0*BASE_SCALE + font_size, self.caption)
+            self.graphics.text_centred(0, self.drawingwidth/2.0*BASE_SCALE + font_size, self.caption)
             self.graphics.set_font(self.graphics.gi_font, old_size)
 
 
@@ -862,6 +863,7 @@ class SkymapEngine:
         """
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         self.graphics.circle(x, y, r,DrawMode.BOTH)
+
 
     def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius
