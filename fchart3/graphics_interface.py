@@ -25,8 +25,8 @@ POINT  = 1.0/DPMM
 class DrawMode(Enum):
     """
     BORDER - only draw border with pen
-    FILL - only fill interior
-    BOTH - fill interior with fill rgb value and draw border with gray
+    FILL   - only fill interior
+    BOTH   - fill interior with fill rgb value and draw border with gray
     """
     BORDER = 1
     FILL = 2

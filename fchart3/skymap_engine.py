@@ -209,9 +209,10 @@ class SkymapEngine:
         """
         self.fieldcentre         = (ra,dec)
         self.fieldradius         = fieldradius
-        self.fieldsize           = np.sqrt(2.0) * fieldradius
 
         wh = max(self.drawingwidth, self.drawingheight)
+
+        self.fieldsize           = fieldradius * np.sqrt(self.drawingwidth**2 + self.drawingheight**2) / wh
 
         if self.config.no_margin:
             self.scene_scale = (wh - self.config.legend_linewidth) / wh
@@ -463,10 +464,6 @@ class SkymapEngine:
 
         indices   = np.argsort(mag)
         magsorted = mag[indices]
-        xsorted   = x[indices]
-        ysorted   = y[indices]
-        spec_type_sorted = spec_type[indices]
-
         rsorted = self.magnitude_to_radius(magsorted)
 
         if not self.config.star_colors:
@@ -475,15 +472,59 @@ class SkymapEngine:
 
         self.graphics.set_linewidth(0)
 
-        for i in range(len(xsorted)):
-            self.star(xsorted[i], ysorted[i], rsorted[i], spec_type_sorted[i])
+        named_star_list = []
+        for i in range(len(indices)):
+            index = indices[i]
+            xx, yy, rr = (x[index], y[index], rsorted[i],)
+            self.star(xx, yy, rr, spec_type[index])
+            bsc_star = selection[index]['bsc']
+            if not bsc_star is None:
+                named_star_list.append((xx, yy, rr, bsc_star,))
+
+        self.draw_stars_labels(named_star_list)
+
+
+    def draw_stars_labels(self, star_list):
+        if not self.config.show_star_labels:
+            return
+
+        fn = self.graphics.gi_fontsize
+
+        printed = {}
+        for x, y, r, star in star_list:
+
+            slabel = star.greek
+            if not slabel and self.config.show_flamsteed:
+                slabel = star.flamsteed
+            if not slabel:
+                continue
+
+            printed_labels = printed.get(star.constellation)
+
+            if printed_labels is None:
+                printed_labels = set()
+                printed[star.constellation] = printed_labels
+            elif slabel in printed_labels:
+                continue
+
+            printed_labels.add(slabel)
+
+            if slabel in STAR_LABELS:
+                self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
+                slabel = STAR_LABELS.get(slabel)
+            else:
+                self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
+
+            self.draw_circular_object_label(x, y, r, slabel)
+
+        self.graphics.set_font(self.graphics.gi_font, fn)
 
 
     def draw_constellations(self, constell_catalog):
         print('Drawing constellations...')
         self.draw_constellation_boundaries(constell_catalog)
         self.draw_constellation_shapes(constell_catalog)
-        self.draw_constellation_stars(constell_catalog)
+
 
     def in_field(self, ra, dec):
         ra_sep = abs(ra-self.fieldcentre[0])
@@ -642,53 +683,6 @@ class SkymapEngine:
                 break
             x11,y11,z11 = (x12, y12, z12)
             x21,y21,z21 = (x22, y22, z22)
-
-
-    def draw_constellation_stars(self, constell_catalog):
-        if not self.config.show_star_labels:
-            return
-        fn = self.graphics.gi_fontsize
-        printed = {}
-        star_ra = []
-        star_dec = []
-        star_label_mag = []
-        for star in constell_catalog.bright_stars:
-            slabel = star.greek
-            if not slabel and self.config.show_flamsteed:
-                slabel = star.flamsteed
-            if not slabel:
-                continue
-
-            printed_labels = printed.get(star.constellation)
-
-            if printed_labels is None:
-                printed_labels = set()
-                printed[star.constellation] = printed_labels
-            elif slabel in printed_labels:
-                continue
-
-            printed_labels.add(slabel)
-
-            big_label = slabel in STAR_LABELS
-            if big_label:
-                slabel = STAR_LABELS.get(slabel)
-
-            star_ra.append(star.ra)
-            star_dec.append(star.dec)
-            star_label_mag.append((big_label, slabel, star.mag))
-
-        x, y, z = radec_to_xyz(np.array(star_ra), np.array(star_dec), self.fieldcentre, self.drawingscale)
-
-        for i in range(len(x)):
-            if z[i] > 0:
-                if star_label_mag[i][0]:
-                    self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
-                else:
-                    self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-                r = self.magnitude_to_radius(star_label_mag[i][2])
-                self.draw_circular_object_label(x[i], y[i], r, star_label_mag[i][1])
-
-        self.graphics.set_font(self.graphics.gi_font, fn)
 
 
     def draw_constellation_shapes(self, constell_catalog):

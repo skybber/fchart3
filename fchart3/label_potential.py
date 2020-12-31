@@ -50,6 +50,7 @@ class LabelPotential:
         self.positions = newpos
         self.sizes = newsize
 
+
     def compute_potential(self,x,y):
         """
         x,y in mm

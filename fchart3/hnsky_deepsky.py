@@ -46,6 +46,7 @@ CATALOG_SPECS0 = { 'Sh2-' }
 CATALOGS_SPEC2 = ['vdB-Ha' ]
 DEFAULT_SHOWING_CATALOGUES = ['M', 'NGC', 'IC', 'Abell', 'HCG', 'Cr', 'PK', 'Stock', 'UGC', 'Mel', 'PGC', 'PNG']
 
+
 def _denormalize_pk_name(name):
     denorm = ''
     compress = True
@@ -64,6 +65,7 @@ def _denormalize_pk_name(name):
             compress = False
         denorm += c
     return denorm
+
 
 def _parse_catalog_name(dso_name):
     if dso_name.startswith('PN_'):
@@ -186,6 +188,7 @@ def _parse_hnsky_line(line, show_catalogs):
             object.position_angle = None
 
     return object
+
 
 def import_hnsky_deepsky(filename, show_catalogs):# or 'IC'
     """

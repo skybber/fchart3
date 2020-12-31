@@ -20,16 +20,21 @@ import numpy as np
 class BscStar:
     def __init__(self):
         """
-        This class has the following fields:
-        - name           name of star
-        - greek          assigned letter of greek alphabet
-        - constellation  three letter constellation abbreviation, e.g. AND
-        - ra             right ascension in radians (J2000)
-        - dec            declination in radians (J2000)
-        - mag            magnitude
+        BscStar - has the following fields:
+        - number                bsc number
+        - name                  name of star
+        - HD                    Henry Draper Catalog Number
+        - constellation         three letter constellation abbreviation, e.g. AND
+        - constellation_number  number in constellation
+        - greek                 assigned letter of greek alphabet
+        - flamsteed             Flamsteed designation
+        - ra                    right ascension in radians (J2000)
+        - dec                   declination in radians (J2000)
+        - mag                   magnitude
         """
         self.number = None
         self.name = ''
+        self.HD = None
         self.constellation=''
         self.constell_number = None
         self.greek = ''
@@ -42,7 +47,7 @@ class BscStar:
 class Constellation:
     def __init__(self):
         """
-        This class has the following fields:
+        Constellation - hold information about constellation
         - name           name of star
         - lines          constellation lines as list of tuples of bsc5 star numbers
         """
@@ -51,9 +56,18 @@ class Constellation:
         self.stars = []
 
 class ConstellationCatalog:
+    """
+    ConstellationCatalog - keeps constellation data
+
+    - all_constell_lines  - np array of constellations lines (pair for each line)
+    - bright stars        - list of BscStars
+    - bsc_map             - map HD->BscStar
+    - constellations      - list od Constellations
+    - boundaries_lines    - list of boundaries lines (pair of index to boundaries_points for each line)
+    """
     def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename='', cross_id_file=''):
         self.all_constell_lines = []
-        self.bright_stars = self._import_bsc5(bsc5_filename)
+        self.bsc_map, self.bright_stars = self._import_bsc5(bsc5_filename)
         self.constellations, self.boundaries_lines, self.boundaries_points = self._import_constellation(constell_filename, boundaries_filename, cross_id_file, self)
         self.all_constell_lines = np.array(self.all_constell_lines)
 
@@ -66,12 +80,16 @@ class ConstellationCatalog:
         star.constell_number = line[4:7].strip().upper()
 
         star.greek = line[7:10].strip().lower()
+        str_HD = line[25:31].strip()
+        if str_HD:
+            star.HD = int(str_HD)
 
         if star.constellation and star.constell_number:
             star.flamsteed = star.constell_number + ' ' + star.constellation.lower().capitalize()
 
         if star.name.startswith('NOVA'):
             star.greek = ''
+
         if line[75:77].strip() != '':
             star.ra = float(line[75:77])*np.pi/12.0 + float(line[77:79])*np.pi/(12.0*60.0) + float(line[79:83])*np.pi/(12*60.0*60)
             star.dec = float(line[83]+'1')*(float(line[84:86])*np.pi/180.0 + float(line[86:88])*np.pi/(180.0*60) + float(line[88:90])*np.pi/(180.0*60*60))
@@ -83,6 +101,7 @@ class ConstellationCatalog:
     def _import_bsc5(self, filename):
         # Import all saguaro objects that are not NGC or IC objects, or M40
         bsc_star_list = []
+        bsc_map = {}
 
         with open(filename, 'r') as f:
             lines = f.readlines()
@@ -91,7 +110,9 @@ class ConstellationCatalog:
             bsc_star = self._parse_bsc5_line(line)
             if bsc_star:
                 bsc_star_list.append(bsc_star)
-        return bsc_star_list
+                if not bsc_star.HD is None:
+                    bsc_map[bsc_star.HD] = bsc_star
+        return (bsc_map, bsc_star_list,)
 
 
     def _parse_constellation_line(self, line, const_catalog, cross_id_map):

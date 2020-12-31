@@ -53,6 +53,7 @@ TRIXEL_STARDATA_DT = np.dtype([('ra', np.float64),
                             ('dec', np.float64),
                             ('mag', np.float64),
                             ('spec_type', np.int8, (2,)),
+                            ('bsc', np.dtype(object))
                           ])
 
 
@@ -69,17 +70,29 @@ def _get_htm_mesh(level):
         htm_meshes[level] = mesh
     return mesh
 
-def _convert_trixels_stars_helper(trixel_stars, is_long_format):
-    if is_long_format:
-        return np.core.records.fromarrays( \
-            [ \
-                trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
-                trixel_stars['dec'] / (180.0*100000.0) * np.pi,
-                trixel_stars['mag']/100.0,
-                trixel_stars['spec_type'],
-            ], \
-            dtype=TRIXEL_STARDATA_DT)
+def _convert_trixels_stars_helper(trixel_stars, bsc_map):
+    dim = len(trixel_stars)
+    trixel_star_data = np.core.records.fromarrays( \
+        [ \
+            trixel_stars['ra'] / (12.0*1000000.0) * np.pi,
+            trixel_stars['dec'] / (180.0*100000.0) * np.pi,
+            trixel_stars['mag']/100.0,
+            trixel_stars['spec_type'],
+            np.empty(dim, np.dtype(object)),
+        ], \
+        dtype=TRIXEL_STARDATA_DT)
 
+    if bsc_map:
+        for i in range(dim):
+            hd = trixel_stars[i]['HD']
+            if hd != 0:
+                bsc_star = bsc_map.get(hd)
+                if bsc_star:
+                    trixel_star_data[i]['bsc'] = bsc_star
+
+    return trixel_star_data
+
+def _convert_trixels_deep_stars_helper(trixel_stars):
     use_b = np.logical_and(trixel_stars['V'] == 30000, trixel_stars['B'] != 30000)
     mag = use_b * (trixel_stars['B'] - 1600) / 1000.0 + np.logical_not(use_b) * trixel_stars['V'] / 1000.0
 
@@ -101,6 +114,7 @@ def _convert_trixels_stars_helper(trixel_stars, is_long_format):
             trixel_stars['dec'] / (180.0*100000.0) * np.pi,
             mag,
             spec_type,
+            np.empty(dim, np.dtype(object)),
         ], \
         dtype=TRIXEL_STARDATA_DT)
 
@@ -140,7 +154,7 @@ class StarObject:
 
 class StarCatalogComponent:
 
-    def __init__(self, file_name, trig_mag, static_stars):
+    def __init__(self, file_name, trig_mag, static_stars, bsc_map):
         self.file_name = file_name
         self.file_opened = False
         self.star_blocks = None
@@ -149,7 +163,7 @@ class StarCatalogComponent:
         self._open_data_file()
         self.static_stars = static_stars
         if self.file_opened and static_stars:
-            self._load_static_stars()
+            self._load_static_stars(bsc_map)
 
 
     def _open_data_file(self):
@@ -197,11 +211,13 @@ class StarCatalogComponent:
         return DEEP_STARDATA_DT
 
 
-    def _convert_trixels_stars(self, trixel_stars):
-        return _convert_trixels_stars_helper(trixel_stars, self.data_reader.guess_record_size == 32)
+    def _convert_trixels_stars(self, trixel_stars, bsc_map):
+        if self.data_reader.guess_record_size == 32:
+            return _convert_trixels_stars_helper(trixel_stars, bsc_map)
+        return _convert_trixels_deep_stars_helper(trixel_stars)
 
 
-    def _load_static_stars(self):
+    def _load_static_stars(self, bsc_map):
         record_size = self.data_reader.guess_record_size
 
         if record_size != 16 and record_size != 32:
@@ -218,7 +234,7 @@ class StarCatalogComponent:
                 trixel_stars = np.fromfile(data_file, data_format, records)
                 if byteswap:
                     trixel_stars.byteswap
-                trixel_stars = self._convert_trixels_stars(trixel_stars)
+                trixel_stars = self._convert_trixels_stars(trixel_stars, bsc_map)
                 self.star_blocks[trixel] = trixel_stars
             else:
                 self.star_blocks[trixel] = []
@@ -242,7 +258,7 @@ class StarCatalogComponent:
                 trixel_stars = np.fromfile(data_file, self._get_data_format(), records)
                 if self.data_reader.byteswap:
                     trixel_stars.byteswap
-                trixel_stars = self._convert_trixels_stars(trixel_stars)
+                trixel_stars = self._convert_trixels_stars(trixel_stars, None)
             else:
                 trixel_stars = []
             self.star_blocks[trixel] = trixel_stars
@@ -258,14 +274,14 @@ class StarCatalogComponent:
 
 class CompositeStarCatalog:
 
-    def __init__(self, data_dir, usno_nomad=None):
+    def __init__(self, data_dir, bsc_map, usno_nomad=None):
         self.sky_mesh = None
         self.star_blocks = None
         self.stars_loaded = False
         self.faint_magnitude = 0.0
         self.deepstar_catalogs = []
-        self._load_static_data(os.path.join(data_dir, 'namedstars.dat'), os.path.join(data_dir, 'starnames.dat'))
-        self._load_deepstar_catalogs(data_dir, usno_nomad)
+        self._load_static_data(os.path.join(data_dir, 'namedstars.dat'), os.path.join(data_dir, 'starnames.dat'), bsc_map)
+        self._load_deepstar_catalogs(data_dir, bsc_map, usno_nomad)
 
 
     def get_sky_mesh(self):
@@ -280,29 +296,28 @@ class CompositeStarCatalog:
         return False
 
 
-    def _load_deepstar_catalogs(self, data_dir, usno_nomad):
-        if not self._add_deepstar_catalog_if_exists(data_dir, 'unnamedstars.dat', -5.0, True):
+    def _load_deepstar_catalogs(self, data_dir, bsc_map, usno_nomad):
+        if not self._add_deepstar_catalog_if_exists(data_dir, 'unnamedstars.dat', -5.0, bsc_map, True):
             return 0
-        if not self._add_deepstar_catalog_if_exists(data_dir, 'tycho2.dat', 8.0):
-            if not self._add_deepstar_catalog_if_exists(data_dir, 'deepstars.dat', 8.0):
-                return 1
+        if not self._add_deepstar_catalog_if_exists(data_dir, 'deepstars.dat', 8.0, None):
+            return 1
         if not usno_nomad:
             usno_nomad = 'USNO-NOMAD-1e8.dat'
-        if not self._add_deepstar_catalog_if_exists(data_dir, usno_nomad, 11.0):
+        if not self._add_deepstar_catalog_if_exists(data_dir, usno_nomad, 11.0, None):
             return 2
         return 3
 
 
-    def _add_deepstar_catalog_if_exists(self, data_dir, file_name, trig_mag, static_stars=False):
+    def _add_deepstar_catalog_if_exists(self, data_dir, file_name, trig_mag, bsc_map, static_stars=False):
         full_path = os.path.join(data_dir, file_name)
         if os.path.isfile(full_path):
-            dsc = StarCatalogComponent(full_path, trig_mag, static_stars)
+            dsc = StarCatalogComponent(full_path, trig_mag, static_stars, bsc_map)
             self.deepstar_catalogs.append(dsc)
             return True
         return False
 
 
-    def _load_static_data(self, namedstars_filename, starnames_filename):
+    def _load_static_data(self, namedstars_filename, starnames_filename, bsc_map):
 
         data_reader = HtmBinFileReader()
         name_reader = HtmBinFileReader()
@@ -364,7 +379,7 @@ class CompositeStarCatalog:
             if byteswap:
                 trixel_stars.byteswap
 
-            trixel_stars = _convert_trixels_stars_helper(trixel_stars, True)
+            trixel_stars = _convert_trixels_stars_helper(trixel_stars, bsc_map)
 
             self.star_blocks[trixel] = trixel_stars
 
