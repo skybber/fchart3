@@ -21,76 +21,48 @@ import numpy as np
 
 from .deepsky_object import *
 from .astrocalc import *
+from .htm.htm import HTM
+
+RAD2DEG = 180.0/np.pi
 
 class DeepskyCatalog:
     def __init__(self, deepsky_list=[], force_messier = False):
         self.deepsky_list = []
-        self.visible_deepsky_list = []
-        self.names = []
         self.force_messier = force_messier
+        self.sky_mesh = HTM(4)
+        self.dso_blocks = [None] * self.sky_mesh.size()
         self.add_objects(deepsky_list)
 
 
     def add_objects(self, objects):
-        # Sort
-        # deepsky_list = []
-        #if type(objects) != type([]):
-        #    deepsky_list = list([objects])
-        #else:
-        #    deepsky_list = list(objects)
-
+        arr_ra, arr_dec, dso_list = ([], [], [])
         for obj in objects:
-            self.deepsky_list.append(obj)
             if obj.visible:
-                self.visible_deepsky_list.append(obj)
-            self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
+                arr_ra.append(obj.ra * RAD2DEG)
+                arr_dec.append(obj.dec * RAD2DEG)
+                dso_list.append(obj)
 
-
-    def add_dso(self, obj):
-        if not obj in self.deepsky_list:
-            self.deepsky_list.append(obj)
-            self.names.append(obj.cat.upper() + ' ' + obj.name.upper())
-            if obj.visible:
-                self.visible_deepsky_list.append(obj)
-
-
-    def compute_names(self):
-        self.names = []
-        for obj in self.deepsky_list:
-            self.names.append(obj.cat.upper()+' '+obj.name.upper())
+        mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
+        indexes = self.sky_mesh.lookup_id(arr_ra, arr_dec)
+        for i in range(len(indexes)):
+            index = indexes[i] ^ mask
+            if self.dso_blocks[index] is None:
+                self.dso_blocks[index] = [dso_list[i]]
+            else:
+                self.dso_blocks[index].append(dso_list[i])
 
 
     def select_deepsky(self, fieldcentre, radius, lm_deepsky):
-        """
-        returns a list of deepsky objects meeting the set requirements.
-        fieldcentre is a tuple (ra, dec) in radians. radius is also in
-        radians
-        """
-        pos_mag_array = np.zeros((len(self.visible_deepsky_list),3),dtype=np.float64)
-        for i in range(len(self.visible_deepsky_list)):
-            pos_mag_array[i,0] = self.visible_deepsky_list[i].ra
-            pos_mag_array[i,1] = self.visible_deepsky_list[i].dec
-            pos_mag_array[i,2] = self.visible_deepsky_list[i].mag
-
-        ra = pos_mag_array[:,0]
-        dec = pos_mag_array[:,1]
-
-        ra_sep = np.abs(ra-fieldcentre[0])
-        toosmall = ra_sep < np.pi
-        norm_ra_sep = toosmall * ra_sep + np.logical_not(toosmall) * (2*np.pi-ra_sep)
-
-        object_in_field = np.logical_and(norm_ra_sep*np.cos(dec) < radius, np.abs(dec-fieldcentre[1]) < radius)
-        indices = np.where(object_in_field == 1)[0]
-
-        selected_list_pos = []
-        for index in indices:
-            selected_list_pos.append(self.visible_deepsky_list[index])
-
-        # select on magnitude
+        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
         selection = []
-        for obj in selected_list_pos:
-            if obj.mag <= lm_deepsky or (obj.messier > 0 and self.force_messier):
-                selection.append(obj)
+        mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
+
+        for trixel in intersecting_trixels:
+            trixel_dsos = self.dso_blocks[trixel ^ mask]
+            if not trixel_dsos is None:
+                for obj in trixel_dsos:
+                    if obj.mag <= lm_deepsky or (obj.messier > 0 and self.force_messier):
+                        selection.append(obj)
 
         return selection
 
