@@ -196,7 +196,7 @@ class StarCatalogComponent:
 
         data_file.read(2) # unused
         self.file_opened = True
-        self.star_blocks = np.empty(self.sky_mesh.size(), dtype=object)
+        self.star_blocks = [None] * self.sky_mesh.size()
 
         return self.file_opened
 
@@ -367,7 +367,7 @@ class CompositeStarCatalog:
             self.faint_magnitude = faintmag / 100.0
 
         self.sky_mesh = _get_htm_mesh(htm_level)
-        self.star_blocks = np.empty(self.sky_mesh.size(), dtype=object)
+        self.star_blocks = [None] * self.sky_mesh.size()
 
         starname_size = struct.calcsize(STARNAME_FMT)
 
