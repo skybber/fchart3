@@ -473,13 +473,15 @@ class SkymapEngine:
         self.graphics.set_linewidth(0)
 
         named_star_list = []
+        x1, y1, x2, y2 = self.get_field_rect_mm()
         for i in range(len(indices)):
             index = indices[i]
             xx, yy, rr = (x[index], y[index], rsorted[i],)
-            self.star(xx, yy, rr, spec_type[index])
-            bsc_star = selection[index]['bsc']
-            if not bsc_star is None:
-                named_star_list.append((xx, yy, rr, bsc_star,))
+            if xx >= x1-rr and xx <= x2+rr and yy >= y1-rr and yy <= y2+rr:
+                self.star(xx, yy, rr, spec_type[index])
+                bsc_star = selection[index]['bsc']
+                if not bsc_star is None:
+                    named_star_list.append((xx, yy, rr, bsc_star,))
 
         self.draw_stars_labels(named_star_list)
 
