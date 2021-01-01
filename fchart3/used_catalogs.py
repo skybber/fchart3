@@ -18,8 +18,9 @@ import os
 
 from .constellation import ConstellationCatalog
 from .composite_star_catalog import CompositeStarCatalog
-from .deepsky import get_deepsky_list, get_hnsky_deepsky_list
 from .deepsky_catalog import DeepskyCatalog
+from .hnsky_deepsky import import_hnsky_deepsky
+from .vic import import_vic
 from . import deepsky_object as deepsky
 
 class UsedCatalogs:
@@ -30,7 +31,7 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
         self._starcatalog    = CompositeStarCatalog(data_dir, self._constellcatalog.bsc_map, usno_nomad=usno_nomad_file)
-        self._deeplist = get_hnsky_deepsky_list(data_dir, show_catalogs)
+        self._deeplist = self._get_deepsky_list(data_dir, show_catalogs)
 
         # Apply magnitude selection to deepsky list, build Messier list
         self._reduced_deeplist = []
@@ -137,3 +138,12 @@ class UsedCatalogs:
                     break
 
         return found_dso, cat, name
+
+    def _get_deepsky_list(self, data_dir, show_catalogs):
+        print('Reading Hnsky...')
+        hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs)
+        print('Reading VIC...')
+        viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
+        deeplist = hnskylist + viclist
+        deeplist.sort(key=deepsky.cmp_to_key(deepsky.cmp_name))
+        return deeplist
