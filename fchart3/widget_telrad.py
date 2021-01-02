@@ -27,7 +27,7 @@ class WidgetTelrad:
         graphics.save()
         for tr in [15, 60, 120]:
             r = tr*np.pi/(180.0*60.0)*self.drawingscale
-            graphics.set_pen_rgb((0.15,0,0))
+            graphics.set_pen_rgb((0.5,0,0))
             graphics.set_linewidth(self.linewidth)
             graphics.circle(0,0,r)
         graphics.restore()
