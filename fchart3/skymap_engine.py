@@ -305,7 +305,12 @@ class SkymapEngine:
     def draw_deepsky_objects(self, deepsky_catalog, showing_dsos):
         # Draw deep sky
         print('Drawing deepsky...')
-        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
+
+        if self.config.show_deepsky:
+            deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
+        else:
+            deepsky_list = []
+
         if showing_dsos:
             for dso in showing_dsos:
                 if not dso in deepsky_list:
@@ -524,8 +529,10 @@ class SkymapEngine:
 
     def draw_constellations(self, constell_catalog):
         print('Drawing constellations...')
-        self.draw_constellation_boundaries(constell_catalog)
-        self.draw_constellation_shapes(constell_catalog)
+        if self.config.show_constellation_borders:
+            self.draw_constellation_boundaries(constell_catalog)
+        if self.config.show_constellation_shapes:
+            self.draw_constellation_shapes(constell_catalog)
 
 
     def in_field(self, ra, dec):

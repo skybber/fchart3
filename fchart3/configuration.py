@@ -45,6 +45,9 @@ class EngineConfiguration:
         self._show_coords_legend = False
         self._show_field_border = False
         self._show_equatorial_grid = False
+        self._show_constellation_shapes = True
+        self._show_constellation_borders = True
+        self._show_deepsky = True
         self._fov_telrad = False
         self._mirror_x = False
         self._mirror_y = False
@@ -150,6 +153,30 @@ class EngineConfiguration:
     @show_equatorial_grid.setter
     def show_equatorial_grid(self, value):
         self._show_equatorial_grid = value
+
+    @property
+    def show_constellation_shapes(self):
+        return self._show_constellation_shapes
+
+    @show_constellation_shapes.setter
+    def show_constellation_shapes(self, value):
+        self._show_constellation_shapes = value
+
+    @property
+    def show_constellation_borders(self):
+        return self._show_constellation_borders
+
+    @show_constellation_borders.setter
+    def show_constellation_borders(self, value):
+        self._show_constellation_borders = value
+
+    @property
+    def show_deepsky(self):
+        return self._show_deepsky
+
+    @show_deepsky.setter
+    def show_deepsky(self, value):
+        self._show_deepsky = value
 
     @property
     def fov_telrad(self):
