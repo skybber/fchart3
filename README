@@ -1,7 +1,5 @@
 This is original README, it is obsolete now.
 
-
-
 Installation
 ------------
 
@@ -16,23 +14,8 @@ Installation
 * Make sure that the fchart module library  resides in a directory
   that is in your PYTHONPATH. The default settings ensure this.
 
-
-* Get the Tycho2 star catalog from:
-
-  http://cdsweb.u-strasbg.fr/viz-bin/ftp-index?/ftp/cats/aliases/T/TYC2
-
-* Unzip all the .dat.gz files
-
-* Concatenate the 'tyc2.dat.??' files using, e.g.
-  $ cat tyc2.dat.?? >tyc2.dat
-
-* Execute the tyc2_to_binary.py script:
-  $ python tyc2_to_binary <TYCHO_DIR> <TARGET_DIR>
-  if TARGET_DIR is not specified, it will be the ..../fchart/catalogs
-  directory. 
-
-* Now run:
-  $ fchart m45
+* Run:
+  $ fchart3 m45
   $ ls
 
   and see what happened
@@ -41,14 +24,14 @@ Installation
   make shure that the directory containing astrocalc.py, revngc.py are
   in your PYTHONPATH environment variable.
 
-  type 
+  type
   $ man `echo $SHELL | sed -e"s/.*\/\(.*\)/\1/g"`
   if you do not know how to set environment variables.
 
 * fchart --help dumps a short manual to your screen.
 
 That's all.  You can view the output using ghostview, gv, or whatever
-postscript viewer you prefer. 
+postscript viewer you prefer.
 
 
 Michiel
@@ -56,63 +39,114 @@ Michiel
 
 *The* manual:
 
-Usage: fchart [options] sourcename1 sourcename2 ...
+usage: fchart3 [-h] [-o [OUTPUT_DIR]] [-f [OUTPUT_FILE]] [-limdso [LIMITING_MAGNITUDE_DEEPSKY]] [-limstar [LIMITING_MAGNITUDE_STARS]] [-usno-nomad [USNO_NOMAD_FILE]] [-width [WIDTH]] [-size [FIELDSIZE]] [-fmessier] [-fasterism] [-funknown] [-lang [LANGUAGE]] [-sc [SHOW_CATALOGS]]
+               [-x [CROSS_MARKS]] [-capt [CAPTION]] [--hide-star-labels] [--hide-flamsteed] [--hide-mag-scale-legend] [--hide-map-scale-legend] [--hide-map-orientation-legend] [--show-dso-legend] [--show-equatorial-grid] [--hide-coords-legend] [--hide-field-border] [--FOV-telrad]
+               [-mx] [-my] [--star-colors] [--color-background BACKGROUND_COLOR] [--color-draw DRAW_COLOR] [--color-label LABEL_COLOR] [--color-constellation-lines CONSTELLATION_LINES_COLOR] [--color-constellation-border CONSTELLATION_BORDER_COLOR] [--color-deepsky DSO_COLOR]
+               [--color-nebula NEBULA_COLOR] [--color-galaxy GALAXY_COLOR] [--color-star-cluster STAR_CLUSTER_COLOR] [--color-grid GRID_COLOR] [--linewidth-constellation [CONSTELLATION_LINEWIDTH]] [--linewidth-open-cluster [OPEN_CLUSTER_LINEWIDTH]]
+               [--linewidth-deepsky [DSO_LINEWIDTH]] [--linewidth-legend [LEGEND_LINEWIDTH]] [--linewidth-grid [GRID_LINEWIDTH]] [--no-margin] [--font FONT] [--font-size FONT_SIZE] [--legend_font_scale LEGEND_FONT_SCALE] [-v]
+               [sourcelist ...]
 
-   Output filenames are "sourcename1.eps", "sourcename2.eps", etcetera.
+fchart3
 
-Options:
-   -h, --help            print help
+positional arguments:
+  sourcelist
 
-   -d, --deep-sky        deepsky limiting magnitude (default: 12.5)
-
-   -s, --stars           stellar limiting magnitude (default: 13.8)
-
-   -p, --paper-width     width of the map in mm (default: 180.0)
-
-   -f, --field-size      diameter of the field of view in degrees
-                         (default: 7.0)
-
-   -m, --force-messier   select all Messier objects, regardless of the
-                         limiting magnitude for deepsky objects
-
-   -o, --output-dir      specify the output directory             (default: .)
-
-   -l, --language        specify language on the maps, either 'en' or 'nl'
-                         (default: en)
-
-   -a, --force-asterisms force plotting of  asterisms in map. By default, only
-                         "Messier" asterisms are plotted. All others are
-                         ignored. The default setting helps cleaning up
-                         especially Virgo cluster maps.
-
-   -u, --force-pg        by default, objects in external galaxies are only
-                         plotted if their magnitude is known and lower than
-                         the limiting magnitude of deepsky objects. If this
-                         option is given, also objects in external galaxies
-                         of which the magnitude is not known are plotted. This
-                         option will clutter some galaxies like M 101 and
-                         NGC 4559.
-
-   -x, --add-cross       add a cross in the map at a specified position. The
-                         format of the argument of this option is:
-                         "rah:ram:ras,+/-decd:decm:decs,label,labelposition"
-                         For example: -x"20:35:25.4,+60:07:17.7,SN,t" for
-                         the supernova sn2004et in NGC 6946. The label position
-                         can be 't' for top, 'b' for bottom, 'l' for left, or
-                         'r' for right. The label and label position may be
-                         omitted.
+optional arguments:
+  -h, --help            show this help message and exit
+  -o [OUTPUT_DIR], --output-dir [OUTPUT_DIR]
+                        Specify the output directory (default: .)
+  -f [OUTPUT_FILE], --output-file [OUTPUT_FILE]
+                        Specify output file name. (default: name of dso object). Image format is defined by extension.Supported format/extensions are pdf, png and svg.
+  -limdso [LIMITING_MAGNITUDE_DEEPSKY]
+                        Deepsky limiting magnitude (default: 12.5)
+  -limstar [LIMITING_MAGNITUDE_STARS]
+                        Stellar limiting magnitude (default: 13.8)
+  -usno-nomad [USNO_NOMAD_FILE]
+                        Path to USNO NOMAD catalog (file USNO-NOMAD-1e8.dat)
+  -width [WIDTH]        Width of the drawing area in mm.
+  -size [FIELDSIZE]     Diameter of the field of view in degrees (default: 7.0)
+  -fmessier, --force-messier
+                        Select all Messier objects, regardless of the limiting magnitude for deepsky objects
+  -fasterism, --force-asterisms
+                        Force plotting of  asterisms in map. By default, only "Messier" asterisms are plotted.All others are ignored. The default setting helps cleaning up especially Virgo cluster maps.
+  -funknown, --force-unknown
+                        By default, objects in external galaxies are plotted only if their magnitude is known and lower than the limiting magnitude of deepsky objects. If this option is given, also objects in external galaxies of which the magnitude is not known are plotted. This option will clutter some galaxies like M 101 and NGC 4559.
+  -lang [LANGUAGE], --language [LANGUAGE]
+                        Specify language on the maps, either 'en' or 'nl' (default: en)
+  -sc [SHOW_CATALOGS], --show-catalogs [SHOW_CATALOGS]
+                        Comma separated list of additional catalogs to be show on the map. (e.g. LBN).
+  -x [CROSS_MARKS], --add-cross [CROSS_MARKS]
+                        Add a cross in the map at a specified position. The format of the argument of this option is: "rah:ram:ras,+/-decd:decm:decs,label,labelposition" For example: -x"20:35:25.4,+60:07:17.7,SN,t" for the supernova sn2004et in NGC 6946. The label position can be 't' for top, 'b' for bottom, 'l' for left, or 'r' for right. The label and label position may be omitted.
+  -capt [CAPTION], --caption [CAPTION]
+                        Force a specific caption for the maps. All maps will get the same caption.
+  --hide-star-labels    Hide star labels.
+  --hide-flamsteed      Hide Flamsteed designation.
+  --hide-mag-scale-legend
+                        Hide magnitude scale legend.
+  --hide-map-scale-legend
+                        Hide map scale legend.
+  --hide-map-orientation-legend
+                        Hide orientation legend.
+  --show-dso-legend     Show deepsky object legend.
+  --show-equatorial-grid
+                        Show equatorial grid.
+  --hide-coords-legend  Hide coordinations legend.
+  --hide-field-border   Hide field border.
+  --FOV-telrad          Show telrad circles at FOV.
+  -mx, --mirror-x       Mirror in x axis.
+  -my, --mirror-y       Mirror in y axis.
+  --star-colors         Colorify stars according spectral type.
+  --color-background BACKGROUND_COLOR
+                        Background color. (default white)
+  --color-draw DRAW_COLOR
+                        Drawing color for stars. (default black)
+  --color-label LABEL_COLOR
+                        Label color. (default black)
+  --color-constellation-lines CONSTELLATION_LINES_COLOR
+                        Constellation border color.
+  --color-constellation-border CONSTELLATION_BORDER_COLOR
+                        Constellation lines color.
+  --color-deepsky DSO_COLOR
+                        Unclassified deepsky color.
+  --color-nebula NEBULA_COLOR
+                        Nebula color.
+  --color-galaxy GALAXY_COLOR
+                        Galaxy color.
+  --color-star-cluster STAR_CLUSTER_COLOR
+                        Star cluster color.
+  --color-grid GRID_COLOR
+                        Star cluster color.
+  --linewidth-constellation [CONSTELLATION_LINEWIDTH]
+                        Constellation line width (default: 0.5)
+  --linewidth-open-cluster [OPEN_CLUSTER_LINEWIDTH]
+                        Line width of open cluster (default: 0.3)
+  --linewidth-deepsky [DSO_LINEWIDTH]
+                        Line width of open cluster (default: 0.2)
+  --linewidth-legend [LEGEND_LINEWIDTH]
+                        Line width of open cluster (default: 0.3)
+  --linewidth-grid [GRID_LINEWIDTH]
+                        Line width of equatorial grid (default: 0.2)
+  --no-margin           Star cluster color.
+  --font FONT           Font (Arial)
+  --font-size FONT_SIZE
+                        Font size
+  --legend_font_scale LEGEND_FONT_SCALE
+                        Scale of font used in legend related to chart font size.
+  -v, --version         display version information and exit.
 
 Sourcenames:
    Valid sourcenames are for example:
    - NGC891, NgC891, n891 or 891 for NGC objects
    - IC1396, i1396, iC1396, I1396 for IC objects
    - m110, M3 for Messier objects
+   - "9:35:00.8,-34:15:33,SomeCaption" for other positions
 
    There is one special sourcename, which is "allmessier". When this name
    is encountered, fchart dumps maps of all messier objects to the output
    directory.
+
 ------------------------------------------------------
-Catalogs included: saguaro astronomy club v.7.2 and revised NGC/IC project
+Catalogs included: HnSky
 
 Preferred names:
 M

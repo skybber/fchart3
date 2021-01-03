@@ -52,6 +52,6 @@ class WidgetCoords:
             decm = 0
 
         text = str(rah).rjust(2) + self.language['h'] + str(ram) + self.language['m'] + str(ras) + self.language['s'] + \
-             ' ' + decsign + str(decd) + '??' + str(decm) + '\'' + str(decs) + '"'
+             ' ' + decsign + str(decd) + '°' + str(decm) + '\'' + str(decs) + '"'
 
         graphics.text_left(left, bottom, text)
