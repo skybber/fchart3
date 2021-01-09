@@ -780,7 +780,7 @@ class SkymapEngine:
             # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
             # tm = time()
 
-            if highlights != []:
+            if highlights and len(highlights) > 0:
                 self.draw_highlights(highlights)
 
             if used_catalogs.constellcatalog != None:
