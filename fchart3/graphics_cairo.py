@@ -33,39 +33,39 @@ class CairoDrawing(GraphicsInterface):
     A CairoDrawing - implement Graphics interface using PyCairo
     """
 
-    def __init__(self, width, height, filename=None, png_fobj=None, pixels=False):
+    def __init__(self, fobj, width, height, format='pdf', pixels=False):
         """
         width (horizontal) and height (vertical) in mm
         """
         GraphicsInterface.__init__(self, (width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
 
+        self.fobj = fobj
+        self.format = format
         self.surface = None
         self.context = None
         self.sfc_width = None
         self.sfc_height = None
-        self.set_filename(filename)
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
-        self.png_fobj = png_fobj
 
 
     def new(self):
-        if self.png_fobj or self.gi_filename.endswith('.png'):
+        if self.format == 'png':
             self.set_point_size(PONT_IMG)
             self.sfc_width = int(self.gi_width * DPMM_IMG)
             self.sfc_height = int(self.gi_height * DPMM_IMG)
             self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM_IMG, DPMM_IMG)
             self.surface.set_device_offset(self.gi_origin_x*DPMM_IMG, self.gi_origin_y*DPMM_IMG)
-        elif self.gi_filename.endswith('.svg'):
+        elif self.format == 'svg':
             self.sfc_width = int(self.gi_width * DPMM)
             self.sfc_height = int(self.gi_height * DPMM)
-            self.surface = cairo.SVGSurface(self.gi_filename, self.sfc_width, self.sfc_height)
+            self.surface = cairo.SVGSurface(self.fobj, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM, DPMM)
             self.surface.set_device_offset(self.gi_origin_x*DPMM, self.gi_origin_y*DPMM)
         else:
             self.sfc_width = A4_WIDTH_POINTS
             self.sfc_height = A4_HEIGHT_POINTS
-            self.surface = cairo.PDFSurface(self.gi_filename, self.sfc_width, self.sfc_height)
+            self.surface = cairo.PDFSurface(self.fobj, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM, DPMM)
             self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 20)
         self.context = cairo.Context(self.surface)
@@ -209,9 +209,10 @@ class CairoDrawing(GraphicsInterface):
 
 
     def finish(self):
-        if self.png_fobj:
-            self.surface.write_to_png(self.png_fobj)
-        elif self.gi_filename.endswith('.png'):
-            self.surface.write_to_png(self.gi_filename)
+        if self.format == 'png':
+            self.surface.write_to_png(self.fobj)
         else:
             self.surface.show_page()
+            self.surface.flush()
+            self.surface.finish()
+

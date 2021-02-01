@@ -74,7 +74,7 @@ class GraphicsInterface:
         self.gi_font      = 'Times-Roman'
         self.set_point_size(POINT)
 
-        self.gi_filename = ''
+        self.gi_fobj = ''
         self.gi_stack = []
         self.gi_background_rgb = None
 
@@ -120,10 +120,6 @@ class GraphicsInterface:
         Erase all graphics, but keep graphics state (font, fontsize,
         linewidth&style , width, height, origin as they are.
         """
-
-
-    def set_filename(self, filename):
-        self.gi_filename = filename
 
 
     def set_dimensions(self, width, height):

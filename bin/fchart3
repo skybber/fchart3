@@ -380,9 +380,7 @@ if __name__ == '__main__':
                 artist = None
                 filename = settings.parser.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
-                artist = CairoDrawing(settings.parser.width,
-                                      settings.parser.width,
-                                      filename=filename)
+                artist = CairoDrawing(filename, settings.parser.width, settings.parser.width, format='pdf')
                 engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration())
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
@@ -452,9 +450,9 @@ if __name__ == '__main__':
                     if filename == '':
                         filename = settings.parser.output_dir + os.sep + source
                     filename += '.pdf'
-                artist = CairoDrawing(settings.parser.width,
+                artist = CairoDrawing(filename,
                                       settings.parser.width,
-                                      filename=filename)
+                                      settings.parser.width)
                 engine = SkymapEngine(artist, settings.language,
                                   lm_stars = settings.parser.limiting_magnitude_stars,
                                   lm_deepsky = settings.parser.limiting_magnitude_deepsky)
