@@ -348,9 +348,10 @@ class SkymapEngine:
                 label = 'M '+str(object.messier)
             elif object.cat == 'NGC':
                 object.all_names.sort()
-                label = '-'.join(object.all_names)
                 if object.mag > self.deepsky_label_limit:
                     label = ''
+                else:
+                    label = '-'.join(object.all_names)
             else :
                 label = object.cat+' '+'-'.join(object.all_names)
                 if (not showing_dsos or not object in showing_dsos) and object.mag > self.deepsky_label_limit:
@@ -400,6 +401,14 @@ class SkymapEngine:
                 self.supernova_remnant(x, y, rlong, label, labelpos)
             else:
                 self.unknown_object(x, y, rlong, label, labelpos)
+
+            if self.visible_objects is not None:
+                xs1, ys1 = x-rlong, y-rlong
+                xs2, ys2 = x+rlong, y+rlong
+                if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
+                    xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
+                    xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
+                    self.visible_objects.extend([label, xp1, yp1, xp2, yp2])
 
 
     def draw_extra_objects(self,extra_positions):
@@ -724,9 +733,11 @@ class SkymapEngine:
         self.graphics.restore()
 
 
-    def make_map(self, used_catalogs, showing_dsos=None, highlights=[], extra_positions=[], trajectory=[] ):
+    def make_map(self, used_catalogs, showing_dsos=None, highlights=[], extra_positions=[], trajectory=[], visible_objects=None):
 
         # tm = time()
+
+        self.visible_objects = visible_objects
 
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)

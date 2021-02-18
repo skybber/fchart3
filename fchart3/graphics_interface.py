@@ -317,3 +317,12 @@ class GraphicsInterface:
         Set if is transparent
         """
         self.gi_background_rgb = background_rgb
+
+    def on_screen(self, x, y):
+        return true
+
+    def to_pixel(self, x, y):
+        """
+        Convert x, y to pixel position
+        """
+        return (x, y)

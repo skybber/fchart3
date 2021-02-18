@@ -216,3 +216,11 @@ class CairoDrawing(GraphicsInterface):
             self.surface.flush()
             self.surface.finish()
 
+
+    def on_screen(self, x, y):
+        return x > -self.gi_width/2.0 and x < self.gi_width/2.0 and y > -self.gi_height/2.0  and y < self.gi_height/2.0
+
+
+    def to_pixel(self, x, y):
+        return (int(x * DPMM_IMG + self.sfc_width/2), int(y * DPMM_IMG + self.sfc_height/2))
+

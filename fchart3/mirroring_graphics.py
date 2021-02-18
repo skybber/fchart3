@@ -83,3 +83,16 @@ class MirroringGraphics:
         Sets gi_pen_rgb. Derived classes should extend, not override this method.
         """
         self.graphics.set_pen_rgb(pen_rgb)
+
+    def to_pixel(self, x):
+        """
+        Convert x to pixel
+        """
+        return self.graphics.to_pixel(x)
+
+
+    def to_pixel_pos(self, x, y):
+        """
+        Convert x, y to pixel position
+        """
+        return self.graphics.to_pixel_pos(x, y)
