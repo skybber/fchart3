@@ -408,7 +408,7 @@ class SkymapEngine:
                 if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                     xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                    self.visible_objects.extend([label, xp1, yp1, xp2, yp2])
+                    self.visible_object_list.append([rlong, label, xp1, yp1, xp2, yp2])
 
 
     def draw_extra_objects(self,extra_positions):
@@ -738,6 +738,7 @@ class SkymapEngine:
         # tm = time()
 
         self.visible_objects = visible_objects
+        self.visible_object_list = [] if visible_objects is not None else None
 
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
@@ -828,6 +829,11 @@ class SkymapEngine:
 
         self.graphics.finish()
         # print("Rest {} ms".format(str(time()-tm)), flush=True)
+
+        if self.visible_object_list is not None:
+            self.visible_object_list.sort(key=lambda x: x[0])
+            for obj in self.visible_object_list:
+                self.visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
 
     def create_widgets(self):
         self.w_mag_scale = WidgetMagnitudeScale(self,
