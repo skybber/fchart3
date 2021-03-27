@@ -408,7 +408,7 @@ class SkymapEngine:
                 if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                     xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                    self.visible_object_list.append([rlong, label, xp1, yp1, xp2, yp2])
+                    self.visible_objects_in_map.append([rlong, label, xp1, yp1, xp2, yp2])
 
 
     def draw_extra_objects(self,extra_positions):
@@ -421,13 +421,27 @@ class SkymapEngine:
                 self.unknown_object(x,y,self.min_radius,label,labelpos)
 
     def draw_highlights(self, highlights):
-        # Draw extra objects
-        print('Drawing highlights...')
-        for hi in highlights:
-            rax, decx = hi
-            if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale)
-                self.highlight_cross(x,y)
+        # Draw highlighted objects
+        print('Drawing highlighted objects...')
+
+        self.graphics.save()
+        r = self.config.font_size
+        self.graphics.set_linewidth(self.config.dso_linewidth * 1.3)
+        for hl_def in highlights:
+            self.graphics.set_pen_rgb(hl_def.color)
+            for rax, decx in hl_def.positions:
+                if angular_distance((rax,decx), self.fieldcentre) < self.fieldsize:
+                    x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale)
+                    if hl_def.style == 'cross':
+                        self.mirroring_graphics.line(x-r, y, x-r/2, y)
+                        self.mirroring_graphics.line(x+r, y, x+r/2, y)
+                        self.mirroring_graphics.line(x, y+r, x, y+r/2)
+                        self.mirroring_graphics.line(x, y-r, x, y-r/2)
+                    elif hl_def.style == 'circle':
+                        self.mirroring_graphics.circle(x,y,r)
+
+        self.graphics.restore()
+
 
     def draw_trajectory(self,trajectory):
         # Draw extra objects
@@ -738,7 +752,7 @@ class SkymapEngine:
         # tm = time()
 
         self.visible_objects = visible_objects
-        self.visible_object_list = [] if visible_objects is not None else None
+        self.visible_objects_in_map = [] if visible_objects is not None else None
 
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
@@ -792,7 +806,7 @@ class SkymapEngine:
             # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
             # tm = time()
 
-            if highlights and len(highlights) > 0:
+            if highlights:
                 self.draw_highlights(highlights)
 
             if used_catalogs.constellcatalog != None:
@@ -830,9 +844,9 @@ class SkymapEngine:
         self.graphics.finish()
         # print("Rest {} ms".format(str(time()-tm)), flush=True)
 
-        if self.visible_object_list is not None:
-            self.visible_object_list.sort(key=lambda x: x[0])
-            for obj in self.visible_object_list:
+        if self.visible_objects_in_map is not None:
+            self.visible_objects_in_map.sort(key=lambda x: x[0])
+            for obj in self.visible_objects_in_map:
                 self.visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
 
     def create_widgets(self):
@@ -980,7 +994,7 @@ class SkymapEngine:
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
-        if self.config.dso_symbol_brightness and (mag is not None) and self.lm_deepsky >= 10.0:
+        if self.config.dso_dynamic_brightness and (mag is not None) and self.lm_deepsky >= 10.0:
             fac = self.lm_deepsky - 8.0
             if fac > 5:
                 fac = 5.0
@@ -1300,22 +1314,6 @@ class SkymapEngine:
         ys = y - r -fh/2.0
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
         return label_pos_list
-
-
-    def highlight_cross(self, x, y):
-        self.graphics.save()
-
-        r = 2 * self.config.font_size
-
-        self.graphics.set_linewidth(self.config.dso_linewidth * 1.5)
-        self.graphics.set_pen_rgb(self.config.highlight_color)
-
-        self.mirroring_graphics.line(x-r, y, x-r/2, y)
-        self.mirroring_graphics.line(x+r, y, x+r/2, y)
-        self.mirroring_graphics.line(x, y+r, x, y+r/2)
-        self.mirroring_graphics.line(x, y-r, x, y-r/2)
-
-        self.graphics.restore()
 
 
 if __name__ == '__main__':
