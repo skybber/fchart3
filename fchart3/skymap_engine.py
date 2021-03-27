@@ -425,7 +425,6 @@ class SkymapEngine:
         print('Drawing highlighted objects...')
 
         self.graphics.save()
-        r = self.config.font_size
         self.graphics.set_linewidth(self.config.dso_linewidth * 1.3)
         for hl_def in highlights:
             self.graphics.set_pen_rgb(hl_def.color)
@@ -433,11 +432,13 @@ class SkymapEngine:
                 if angular_distance((rax,decx), self.fieldcentre) < self.fieldsize:
                     x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale)
                     if hl_def.style == 'cross':
+                        r = self.config.font_size * 2
                         self.mirroring_graphics.line(x-r, y, x-r/2, y)
                         self.mirroring_graphics.line(x+r, y, x+r/2, y)
                         self.mirroring_graphics.line(x, y+r, x, y+r/2)
                         self.mirroring_graphics.line(x, y-r, x, y-r/2)
                     elif hl_def.style == 'circle':
+                        r = self.config.font_size
                         self.mirroring_graphics.circle(x,y,r)
 
         self.graphics.restore()
