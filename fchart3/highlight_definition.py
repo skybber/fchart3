@@ -19,7 +19,13 @@ import numpy as np
 
 class HighlightDefinition:
 
-    def __init__(self, style, color, positions):
+
+    def __init__(self, style, color, data):
+        """
+        style   cross, circle
+        color   (r, g, b)
+        data    list of [ dso_name, ra, dec ]
+        """
         self.style = style
         self.color = color
-        self.positions = positions
+        self.data = data
