@@ -311,13 +311,17 @@ class SkymapEngine:
         else:
             deepsky_list = []
 
+        last_selected = len(deepsky_list)
+        filtered_showing_dsos = []
         if showing_dsos:
             for dso in showing_dsos:
                 if not dso in deepsky_list:
-                    deepsky_list.append(dso)
+                    filtered_showing_dsos.append(dso)
 
         deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
+
+        # calc for deepsky objects from selection
         for object in deepsky_list:
             x, y  =  radec_to_xy(object.ra, object.dec, self.fieldcentre, self.drawingscale)
             rlong  = object.rlong*self.drawingscale
@@ -326,6 +330,17 @@ class SkymapEngine:
             if rlong < self.min_radius:
                 rlong = self.min_radius
             deepsky_list_mm.append((object, x, y, rlong))
+
+        # calc for deepsky objects from showing dsos
+        for object in filtered_showing_dsos:
+            x, y, z  =  radec_to_xyz(object.ra, object.dec, self.fieldcentre, self.drawingscale)
+            if z > 0:
+                rlong  = object.rlong*self.drawingscale
+                if object.type == deepsky.GALCL:
+                    rlong = self.min_radius
+                if rlong < self.min_radius:
+                    rlong = self.min_radius
+                deepsky_list_mm.append((object, x, y, rlong))
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_mm)
 
@@ -425,9 +440,10 @@ class SkymapEngine:
         print('Drawing highlighted objects...')
 
         self.graphics.save()
-        self.graphics.set_linewidth(self.config.dso_linewidth * 1.3)
+
         for hl_def in highlights:
             self.graphics.set_pen_rgb(hl_def.color)
+            self.graphics.set_linewidth(self.config.dso_linewidth * hl_def.line_width)
             for dso_name, rax, decx in hl_def.data:
                 if angular_distance((rax,decx), self.fieldcentre) < self.fieldsize:
                     x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale)
