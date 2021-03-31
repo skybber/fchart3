@@ -486,9 +486,9 @@ class SkymapEngine:
             if i > 0:
                 self.mirroring_graphics.line(x1, y1, x2, y2)
 
-            self.unknown_object(x1, y1, self.min_radius, label2, '')
+            self.unknown_object(x2, y2, self.min_radius, label2, '')
 
-            x1,y1,z1 = (x2, y2,z2)
+            x1,y1,z1 = (x2, y2, z2)
             label1 = label2
 
         self.graphics.restore()
@@ -1286,7 +1286,7 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def unknown_object(self, x, y, radius=-1.0, label='',labelpos=''):
+    def unknown_object(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
@@ -1309,7 +1309,7 @@ class SkymapEngine:
             elif labelpos ==1:
                 self.mirroring_graphics.text_left(x-r-fh/6.0, y-fh/3.0, label)
             elif labelpos == 2:
-                self.mirroring_graphics.text_centred(x, y+ r + fh/2.0, label)
+                self.mirroring_graphics.text_centred(x, y + r + fh/2.0, label)
             else:
                 self.mirroring_graphics.text_centred(x, y - r - fh/2.0, label)
         self.graphics.restore()
