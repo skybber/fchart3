@@ -843,10 +843,10 @@ class SkymapEngine:
                 # print("DSO within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
 
-            if extra_positions != []:
+            if extra_positions:
                 self.draw_extra_objects(extra_positions)
 
-            if trajectory != []:
+            if trajectory:
                 self.draw_trajectory(trajectory)
 
             if used_catalogs.starcatalog != None:
