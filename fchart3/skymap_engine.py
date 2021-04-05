@@ -479,7 +479,7 @@ class SkymapEngine:
         x1 = None
         y1 = None
 
-        for i in range(0, len(trajectory)-1):
+        for i in range(0, len(trajectory)):
             rax2, decx2, label2 = trajectory[i]
             x2,y2,z2 =  radec_to_xyz(rax2,decx2, self.fieldcentre, self.drawingscale)
 
