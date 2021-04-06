@@ -302,7 +302,7 @@ class SkymapEngine:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
 
-    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos):
+    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos):
         # Draw deep sky
         print('Drawing deepsky...')
 
@@ -333,20 +333,25 @@ class SkymapEngine:
 
         # calc for deepsky objects from showing dsos
         for object in filtered_showing_dsos:
-            x, y, z  =  radec_to_xyz(object.ra, object.dec, self.fieldcentre, self.drawingscale)
-            if z > 0:
-                rlong  = object.rlong*self.drawingscale
-                if object.type == deepsky.GALCL:
-                    rlong = self.min_radius
-                if rlong < self.min_radius:
-                    rlong = self.min_radius
-                deepsky_list_mm.append((object, x, y, rlong))
+            if angular_distance((object.ra, object.dec), self.fieldcentre) < self.fieldsize:
+                x, y, z  =  radec_to_xyz(object.ra, object.dec, self.fieldcentre, self.drawingscale)
+                if z > 0:
+                    rlong  = object.rlong*self.drawingscale
+                    if object.type == deepsky.GALCL:
+                        rlong = self.min_radius
+                    if rlong < self.min_radius:
+                        rlong = self.min_radius
+                    deepsky_list_mm.append((object, x, y, rlong))
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_mm)
 
         print('Drawing objects...')
         for i in range(len(deepsky_list_mm)):
             object, x, y, rlong  = deepsky_list_mm[i]
+
+            if hl_showing_dsos and object in showing_dsos:
+                self.draw_dso_hightlight(x, y, rlong, object.name)
+
             rlong  = object.rlong*self.drawingscale
             rshort = object.rshort*self.drawingscale
             posangle=object.position_angle+direction_ddec((object.ra, object.dec), self.fieldcentre)+0.5*np.pi
@@ -463,6 +468,24 @@ class SkymapEngine:
                                 xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                                 xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
                                 self.visible_objects_in_map.append([r, dso_name, xp1, yp1, xp2, yp2])
+
+        self.graphics.restore()
+
+
+    def draw_dso_hightlight(self, x, y, rlong, dso_name):
+        self.graphics.save()
+
+        self.graphics.set_pen_rgb(self.config.dso_highlight_color)
+        self.graphics.set_linewidth(self.config.dso_highlight_linewidth)
+
+        r = self.config.font_size
+        self.mirroring_graphics.circle(x,y,r)
+        xs1, ys1 = x-r, y-r
+        xs2, ys2 = x+r, y+r
+        if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
+            xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
+            xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
+            self.visible_objects_in_map.append([r, dso_name, xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
 
@@ -779,7 +802,7 @@ class SkymapEngine:
         self.graphics.restore()
 
 
-    def make_map(self, used_catalogs, showing_dsos=None, highlights=[], extra_positions=[], trajectory=[], visible_objects=None):
+    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=[], extra_positions=[], trajectory=[], visible_objects=None):
 
         # tm = time()
 
@@ -847,7 +870,7 @@ class SkymapEngine:
                 # tm = time()
 
             if used_catalogs.deepskycatalog != None:
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos)
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos)
                 # print("DSO within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
 
