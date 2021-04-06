@@ -751,7 +751,15 @@ class SkymapEngine:
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
-                self.mirroring_graphics.line(x1[i], y1[i], x2[i], y2[i])
+                if self.config.constellation_linespace > 0:
+                    dx = x2[i] - x1[i]
+                    dy = y2[i] - y1[i]
+                    dr = math.sqrt(dx * dx + dy*dy)
+                    ddx = dx * self.config.constellation_linespace / dr
+                    ddy = dy * self.config.constellation_linespace / dr
+                    self.mirroring_graphics.line(x1[i] + ddx, y1[i] + ddy, x2[i] - ddx, y2[i] - ddy)
+                else:
+                    self.mirroring_graphics.line(x1[i], y1[i], x2[i], y2[i])
 
         self.graphics.restore()
 
@@ -1198,7 +1206,7 @@ class SkymapEngine:
     def diffuse_nebula(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label='',labelpos=''):
         self.graphics.save()
 
-        self.graphics.set_linewidth(self.config.dso_linewidth)
+        self.graphics.set_linewidth(self.config.nebula_linewidth)
         self.graphics.set_pen_rgb(self.config.nebula_color)
 
         d = 0.5*width

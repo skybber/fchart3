@@ -16,7 +16,9 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
+DEFAULT_CONSTELLATION_LINE_SPACE = 3
 DEFAULT_OPEN_CLUSTER_LINEWIDTH = 0.3
+DEFAULT_NEBULA_LINEWIDTH = 0.3
 DEFAULT_DSO_LINEWIDTH = 0.2
 DEFAULT_LEGEND_LINEWIDTH = 0.2
 DEFAULT_GRID_LINEWIDTH = 0.2
@@ -63,7 +65,9 @@ class EngineConfiguration:
         self._star_cluster_color = DEFAULT_DSO_COLOR
         self._grid_color = DEFAULT_GRID_COLOR
         self._constellation_linewidth = DEFAULT_CONSTELLATION_LINEWIDTH
+        self._constellation_linespace = DEFAULT_CONSTELLATION_LINE_SPACE
         self._open_cluster_linewidth = DEFAULT_OPEN_CLUSTER_LINEWIDTH
+        self._nebula_linewidth = DEFAULT_NEBULA_LINEWIDTH
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
         self._grid_linewidth = DEFAULT_GRID_LINEWIDTH
@@ -299,12 +303,28 @@ class EngineConfiguration:
         self._constellation_linewidth = value
 
     @property
+    def constellation_linespace(self):
+        return self._constellation_linespace
+
+    @constellation_linespace.setter
+    def constellation_linespace(self, value):
+        self._constellation_linespace = value
+
+    @property
     def open_cluster_linewidth(self):
         return self._open_cluster_linewidth
 
     @open_cluster_linewidth.setter
     def open_cluster_linewidth(self, value):
         self._open_cluster_linewidth = value
+
+    @property
+    def nebula_linewidth(self):
+        return self._nebula_linewidth
+
+    @nebula_linewidth.setter
+    def nebula_linewidth(self, value):
+        self._nebula_linewidth = value
 
     @property
     def dso_linewidth(self):
