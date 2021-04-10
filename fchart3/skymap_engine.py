@@ -489,7 +489,7 @@ class SkymapEngine:
         self.mirroring_graphics.circle(x,y,r)
         xs1, ys1 = x-r, y-r
         xs2, ys2 = x+r, y+r
-        if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
+        if self.visible_objects_in_map is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
             xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
             xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
             self.visible_objects_in_map.append([r, dso_name, xp1, yp1, xp2, yp2])
