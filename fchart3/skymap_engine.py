@@ -324,11 +324,14 @@ class SkymapEngine:
         # calc for deepsky objects from selection
         for object in deepsky_list:
             x, y  =  radec_to_xy(object.ra, object.dec, self.fieldcentre, self.drawingscale)
-            rlong  = object.rlong*self.drawingscale
             if object.type == deepsky.GALCL:
                 rlong = self.min_radius
-            if rlong < self.min_radius:
+            elif object.rlong is None:
                 rlong = self.min_radius
+            else:
+                rlong  = object.rlong*self.drawingscale
+                if rlong < self.min_radius:
+                    rlong = self.min_radius
             deepsky_list_mm.append((object, x, y, rlong))
 
         # calc for deepsky objects from showing dsos
@@ -352,8 +355,10 @@ class SkymapEngine:
             if hl_showing_dsos and object in showing_dsos:
                 self.draw_dso_hightlight(x, y, rlong, object.name)
 
-            rlong  = object.rlong*self.drawingscale
-            rshort = object.rshort*self.drawingscale
+            rlong = object.rlong if object.rlong is not None else self.min_radius
+            rshort = object.rshort if object.rshort is not None else self.min_radius
+            rlong  = rlong*self.drawingscale
+            rshort = rshort*self.drawingscale
             posangle=object.position_angle+direction_ddec((object.ra, object.dec), self.fieldcentre)+0.5*np.pi
 
             if rlong <= self.min_radius:
