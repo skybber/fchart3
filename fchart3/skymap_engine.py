@@ -499,27 +499,41 @@ class SkymapEngine:
         # Draw extra objects
         print('Drawing trajectory...')
         self.graphics.save()
-        self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.dso_color)
 
         fh = self.graphics.gi_fontsize
         label1 = ''
         x1 = None
         y1 = None
+        r = self.min_radius * 1.2 / 2**0.5
 
         for i in range(0, len(trajectory)):
             rax2, decx2, label2 = trajectory[i]
-            x2,y2,z2 =  radec_to_xyz(rax2,decx2, self.fieldcentre, self.drawingscale)
+            x2, y2, z2 =  radec_to_xyz(rax2,decx2, self.fieldcentre, self.drawingscale)
 
             if i > 0:
+                self.graphics.set_linewidth(self.config.constellation_linewidth)
                 self.mirroring_graphics.line(x1, y1, x2, y2)
+                self.draw_trajectory_tick(x1, y1, x2, y2)
+                if i == 1:
+                    self.draw_trajectory_tick(x2, y2, x1, y1)
 
-            self.unknown_object(x2, y2, self.min_radius, label2, '')
+            self.mirroring_graphics.text_centred(x2, y2 - r - fh/2.0, label2)
 
             x1,y1,z1 = (x2, y2, z2)
             label1 = label2
 
         self.graphics.restore()
+
+    def draw_trajectory_tick(self, x1, y1, x2, y2):
+        dx = x2-x1
+        dy = y2-y1
+        dr = math.sqrt(dx * dx + dy*dy)
+        ddx = dx * 1.0 / dr
+        ddy = dy * 1.0 / dr
+        self.graphics.set_linewidth(1.5*self.config.constellation_linewidth)
+        self.mirroring_graphics.line(x2-ddy, y2+ddx, x2+ddy, y2-ddx)
+
 
 
     def magnitude_to_radius(self, magnitude):
