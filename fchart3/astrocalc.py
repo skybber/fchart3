@@ -189,7 +189,7 @@ def radec_to_lmz(ra, dec, fieldcentre):
     return (l,m,z)
 
 
-def radec_to_xyz(ra, dec, fieldcentre, scale):
+def radec_to_xyz(ra, dec, fieldcentre, scale, fc_sincos_dec):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
     a fieldcentre (alpha0, delta0) to coordinates (x, y, z). All
@@ -203,8 +203,8 @@ def radec_to_xyz(ra, dec, fieldcentre, scale):
 
     sin_dec = np.sin(dec)
     cos_dec = np.cos(dec)
-    cos_dec0 = np.cos(dec0)
-    sin_dec0 = np.sin(dec0)
+    cos_dec0 = fc_sincos_dec[1] # np.cos(dec0)
+    sin_dec0 = fc_sincos_dec[0] # np.sin(dec0)
     cos_delta_ra = np.cos(delta_ra)
 
     z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
@@ -213,7 +213,7 @@ def radec_to_xyz(ra, dec, fieldcentre, scale):
     return (x,y,z)
 
 
-def radec_to_xy(ra, dec, fieldcentre, scale):
+def radec_to_xy(ra, dec, fieldcentre, scale, fc_sincos_dec):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
     a fieldcentre (alpha0, delta0) to coordinates (x, y, z). All
@@ -227,8 +227,8 @@ def radec_to_xy(ra, dec, fieldcentre, scale):
 
     sin_dec = np.sin(dec)
     cos_dec = np.cos(dec)
-    cos_dec0 = np.cos(dec0)
-    sin_dec0 = np.sin(dec0)
+    cos_dec0 = fc_sincos_dec[1] # np.cos(dec0)
+    sin_dec0 = fc_sincos_dec[0] # np.sin(dec0)
     cos_delta_ra = np.cos(delta_ra)
 
     x = -cos_dec*np.sin(delta_ra)*scale
@@ -236,7 +236,7 @@ def radec_to_xy(ra, dec, fieldcentre, scale):
     return (x,y)
 
 
-def direction_ddec(radec, fieldcentre):
+def direction_ddec(radec, fieldcentre, fc_sincos_dec):
     """
     Gives the angle between true north and map north on any
     location in a SIN projection. Positive means that the true north
@@ -248,7 +248,10 @@ def direction_ddec(radec, fieldcentre):
     (ra0, dec0) = fieldcentre
     (ra, dec)   = radec
 
-    angle = np.arctan2(-np.sin(dec)*np.sin(ra -ra0), np.cos(dec)*np.cos(dec0) + np.sin(dec)*np.sin(dec0)*np.cos(ra-ra0))
+    cos_dec0 = fc_sincos_dec[1] # np.cos(dec0)
+    sin_dec0 = fc_sincos_dec[0] # np.sin(dec0)
+
+    angle = np.arctan2(-np.sin(dec)*np.sin(ra-ra0), np.cos(dec)*cos_dec0 + np.sin(dec)*sin_dec0*np.cos(ra-ra0))
     return angle
 
 

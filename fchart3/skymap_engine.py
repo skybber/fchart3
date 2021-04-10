@@ -208,6 +208,8 @@ class SkymapEngine:
         sets a new drawingscale and legend_fontscale
         """
         self.fieldcentre         = (ra,dec)
+        self.fc_sincos_dec       = (np.sin(dec), np.cos(dec))
+
         self.fieldradius         = fieldradius
 
         wh = max(self.drawingwidth, self.drawingheight)
@@ -323,7 +325,7 @@ class SkymapEngine:
 
         # calc for deepsky objects from selection
         for object in deepsky_list:
-            x, y  =  radec_to_xy(object.ra, object.dec, self.fieldcentre, self.drawingscale)
+            x, y  =  radec_to_xy(object.ra, object.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
             if object.type == deepsky.GALCL:
                 rlong = self.min_radius
             elif object.rlong is None:
@@ -337,7 +339,7 @@ class SkymapEngine:
         # calc for deepsky objects from showing dsos
         for object in filtered_showing_dsos:
             if angular_distance((object.ra, object.dec), self.fieldcentre) < self.fieldsize:
-                x, y, z  =  radec_to_xyz(object.ra, object.dec, self.fieldcentre, self.drawingscale)
+                x, y, z  =  radec_to_xyz(object.ra, object.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                 if z > 0:
                     rlong  = object.rlong*self.drawingscale
                     if object.type == deepsky.GALCL:
@@ -359,7 +361,7 @@ class SkymapEngine:
             rshort = object.rshort if object.rshort is not None else self.min_radius
             rlong  = rlong*self.drawingscale
             rshort = rshort*self.drawingscale
-            posangle=object.position_angle+direction_ddec((object.ra, object.dec), self.fieldcentre)+0.5*np.pi
+            posangle=object.position_angle+direction_ddec((object.ra, object.dec), self.fieldcentre, self.fc_sincos_dec)+0.5*np.pi
 
             if rlong <= self.min_radius:
                 rshort *= self.min_radius/rlong
@@ -442,7 +444,7 @@ class SkymapEngine:
         for object in extra_positions:
             rax,decx,label,labelpos = object
             if angular_distance((rax,decx),self.fieldcentre) < self.fieldsize:
-                x, y =  radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale)
+                x, y =  radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                 self.unknown_object(x,y,self.min_radius,label,labelpos)
 
     def draw_highlights(self, highlights):
@@ -456,7 +458,7 @@ class SkymapEngine:
             self.graphics.set_linewidth(self.config.dso_linewidth * hl_def.line_width)
             for dso_name, rax, decx in hl_def.data:
                 if angular_distance((rax,decx), self.fieldcentre) < self.fieldsize:
-                    x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale)
+                    x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                     if hl_def.style == 'cross':
                         r = self.config.font_size * 2
                         self.mirroring_graphics.line(x-r, y, x-r/2, y)
@@ -509,7 +511,7 @@ class SkymapEngine:
 
         for i in range(0, len(trajectory)):
             rax2, decx2, label2 = trajectory[i]
-            x2, y2, z2 =  radec_to_xyz(rax2,decx2, self.fieldcentre, self.drawingscale)
+            x2, y2, z2 =  radec_to_xyz(rax2,decx2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
             if i > 0:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
@@ -551,7 +553,7 @@ class SkymapEngine:
         print(str(selection.shape[0]) + ' stars in map.')
         print('Faintest star: ' + str(int(max(selection['mag'])*100.0 + 0.5)/100.0))
 
-        x, y = radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale)
+        x, y = radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         mag       = selection['mag']
         spec_type = selection['spec_type']
@@ -691,8 +693,8 @@ class SkymapEngine:
         x11, y11, z11 = (None, None, None)
         agg_ra = 0
         while True:
-            x12, y12, z12 = radec_to_xyz(self.fieldcentre[0] + agg_ra, dec, self.fieldcentre, self.drawingscale)
-            x22, y22, z22 = radec_to_xyz(self.fieldcentre[0] - agg_ra, dec, self.fieldcentre, self.drawingscale)
+            x12, y12, z12 = radec_to_xyz(self.fieldcentre[0] + agg_ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x22, y22, z22 = radec_to_xyz(self.fieldcentre[0] - agg_ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
             if not x11 is None and z11 > 0 and z12 > 0:
                 self.mirroring_graphics.line(x11, y11, x12, y12)
                 self.mirroring_graphics.line(x21, y21, x22, y22)
@@ -753,8 +755,8 @@ class SkymapEngine:
         x21, y21, z21 = (None, None, None)
         agg_dec = 0
         while True:
-            x12, y12, z12 = radec_to_xyz(ra, self.fieldcentre[1] + agg_dec, self.fieldcentre, self.drawingscale)
-            x22, y22, z22 = radec_to_xyz(ra, self.fieldcentre[1] - agg_dec, self.fieldcentre, self.drawingscale)
+            x12, y12, z12 = radec_to_xyz(ra, self.fieldcentre[1] + agg_dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x22, y22, z22 = radec_to_xyz(ra, self.fieldcentre[1] - agg_dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
             if not x11 is None:
                 if z11 > 0 and z12 > 0:
                     self.mirroring_graphics.line(x11, y11, x12, y12)
@@ -788,8 +790,8 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
-        x1, y1, z1 = radec_to_xyz(constell_catalog.all_constell_lines[:,0], constell_catalog.all_constell_lines[:,1], self.fieldcentre, self.drawingscale)
-        x2, y2, z2 = radec_to_xyz(constell_catalog.all_constell_lines[:,2], constell_catalog.all_constell_lines[:,3], self.fieldcentre, self.drawingscale)
+        x1, y1, z1 = radec_to_xyz(constell_catalog.all_constell_lines[:,0], constell_catalog.all_constell_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x2, y2, z2 = radec_to_xyz(constell_catalog.all_constell_lines[:,2], constell_catalog.all_constell_lines[:,3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
@@ -812,7 +814,7 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_border_color)
 
-        x, y, z = radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale)
+        x, y, z = radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         for index1, index2 in constell_catalog.boundaries_lines:
             if z[index1] > 0 and z[index2] > 0:
