@@ -375,7 +375,7 @@ class SkymapEngine:
                 label = 'M '+str(object.messier)
             elif object.cat == 'NGC':
                 object.all_names.sort()
-                if object.mag > self.deepsky_label_limit:
+                if (not showing_dsos or not object in showing_dsos) and object.mag > self.deepsky_label_limit:
                     label = ''
                 else:
                     label = '-'.join(object.all_names)
