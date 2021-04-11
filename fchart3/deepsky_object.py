@@ -107,7 +107,21 @@ class DeepskyObject:
         self.messier=-1
         self.master_object = None
         self.visible = True
+        self._label = None
 
+
+    def label(self):
+        if not self._label:
+            if self.messier > 0:
+                self._label = 'M '+str(self.messier)
+            elif self.cat == 'NGC':
+                self.all_names.sort()
+                self._label = '-'.join(self.all_names)
+            elif self.cat == 'Sh2':
+                self._label = self.cat + '-' + '-'.join(self.all_names)
+            else:
+                self._label = self.cat + ' ' + '-'.join(self.all_names)
+        return self._label
 
     def __str__(self):
         s = ''
@@ -165,8 +179,8 @@ def cmp_dec(x,y):
     return r
 
 def cmp_name(x,y):
-    xn = (x.cat+x.name).upper()
-    yn = (y.cat+y.name).upper()
+    xn = x.label()
+    yn = y.label()
     r = 0
     if xn > yn:
         r = 1

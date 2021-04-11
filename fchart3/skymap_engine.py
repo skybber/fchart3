@@ -354,8 +354,12 @@ class SkymapEngine:
         for i in range(len(deepsky_list_mm)):
             object, x, y, rlong  = deepsky_list_mm[i]
 
+            label = object.label()
+            if (not showing_dsos or not object in showing_dsos) and object.mag > self.deepsky_label_limit:
+                label = ''
+
             if hl_showing_dsos and object in showing_dsos:
-                self.draw_dso_hightlight(x, y, rlong, object.name)
+                self.draw_dso_hightlight(x, y, rlong, label)
 
             rlong = object.rlong if object.rlong is not None else self.min_radius
             rshort = object.rshort if object.rshort is not None else self.min_radius
@@ -369,20 +373,6 @@ class SkymapEngine:
 
             if object.type == deepsky.GALCL:
                 rlong /= 3.0
-
-            label = ''
-            if object.messier > 0:
-                label = 'M '+str(object.messier)
-            elif object.cat == 'NGC':
-                object.all_names.sort()
-                if (not showing_dsos or not object in showing_dsos) and object.mag > self.deepsky_label_limit:
-                    label = ''
-                else:
-                    label = '-'.join(object.all_names)
-            else :
-                label = object.cat+' '+'-'.join(object.all_names)
-                if (not showing_dsos or not object in showing_dsos) and object.mag > self.deepsky_label_limit:
-                    label = ''
 
             label_length = self.graphics.text_width(label)
             labelpos = -1
@@ -435,7 +425,7 @@ class SkymapEngine:
                 if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                     xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                    self.visible_objects_in_map.append([rlong, label, xp1, yp1, xp2, yp2])
+                    self.visible_objects_in_map.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
 
 
     def draw_extra_objects(self,extra_positions):
@@ -474,7 +464,7 @@ class SkymapEngine:
                             if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                                 xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                                 xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                                self.visible_objects_in_map.append([r, dso_name, xp1, yp1, xp2, yp2])
+                                self.visible_objects_in_map.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
 
@@ -492,7 +482,7 @@ class SkymapEngine:
         if self.visible_objects_in_map is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
             xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
             xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-            self.visible_objects_in_map.append([r, dso_name, xp1, yp1, xp2, yp2])
+            self.visible_objects_in_map.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
 
