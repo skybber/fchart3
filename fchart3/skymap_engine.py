@@ -162,6 +162,15 @@ SPEC_TYPE_2_RGB = {
     'M7': (255/255, 195/255, 112/255),
     'M8': (255/255, 198/255, 109/255),
     'M9': (255/255, 198/255, 109/255),
+    'C0': (255/255, 244/255, 235/255),
+    'C1': (255/255, 237/255, 222/255),
+    'C2': (255/255, 238/255, 221/255),
+    'C3': (255/255, 227/255, 196/255),
+    'C4': (255/255, 216/255, 181/255),
+    'C5': (255/255, 195/255, 139/255),
+    'C6': (255/255, 196/255, 131/255),
+    'C7': (255/255, 201/255, 127/255),
+    'N9': (255/255, 120/255, 60/255),
 }
 
 STARS_IN_SCALE = 7
@@ -948,7 +957,11 @@ class SkymapEngine:
             subtype = spec_type[1]//10
             if subtype > 9:
                 subtype = 9
-            star_color = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(subtype), (1.0, 1.0, 1.0))
+            star_color = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(subtype), None)
+            if star_color is None:
+                if chr(spec_type[0]) != '?':
+                    print(chr(spec_type[0]) + str(subtype), flush=True)
+                star_color = (1.0, 1.0, 1.0)
             # self.graphics.set_pen_rgb((star_color[0]/3, star_color[1]/3, star_color[2]/3))
             self.graphics.set_fill_rgb(star_color)
 
