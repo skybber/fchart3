@@ -957,11 +957,7 @@ class SkymapEngine:
             subtype = spec_type[1]//10
             if subtype > 9:
                 subtype = 9
-            star_color = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(subtype), None)
-            if star_color is None:
-                if chr(spec_type[0]) != '?':
-                    print(chr(spec_type[0]) + str(subtype), flush=True)
-                star_color = (1.0, 1.0, 1.0)
+            star_color = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(subtype), (1.0, 1.0, 1.0))
             # self.graphics.set_pen_rgb((star_color[0]/3, star_color[1]/3, star_color[2]/3))
             self.graphics.set_fill_rgb(star_color)
 
