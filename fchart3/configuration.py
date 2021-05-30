@@ -29,6 +29,7 @@ DEFAULT_DRAW_COLOR = (0.0, 0.0, 0.0)
 DEFAULT_LABEL_COLOR = (0.0, 0.0, 0.0)
 DEFAULT_CONSTELLATION_LINES_COLOR = (0.2, 0.7, 1.0)
 DEFAULT_CONSTELLATION_BORDER_COLOR = (0.95, 0.90, 0.1)
+DEFAULT_CONSTELLATION_HL_BORDER_COLOR = (1.0, 0.95, 0.5)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DSO_HIGHLIGHT_COLOR = (0.1, 0.2, 0.4)
 DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
@@ -60,6 +61,7 @@ class EngineConfiguration:
         self._label_color = DEFAULT_LABEL_COLOR
         self._constellation_lines_color = DEFAULT_CONSTELLATION_LINES_COLOR
         self._constellation_border_color = DEFAULT_CONSTELLATION_BORDER_COLOR
+        self._constellation_hl_border_color = DEFAULT_CONSTELLATION_HL_BORDER_COLOR
         self._dso_color = DEFAULT_DSO_COLOR
         self._nebula_color = DEFAULT_DSO_COLOR
         self._galaxy_color = DEFAULT_DSO_COLOR
@@ -255,6 +257,14 @@ class EngineConfiguration:
     @constellation_border_color.setter
     def constellation_border_color(self, value):
         self._constellation_border_color = value
+
+    @property
+    def constellation_hl_border_color(self):
+        return self._constellation_hl_border_color
+
+    @constellation_hl_border_color.setter
+    def constellation_hl_border_color(self, value):
+        self._constellation_hl_border_color = value
 
     @property
     def dso_color(self):

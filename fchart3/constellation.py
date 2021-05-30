@@ -193,6 +193,6 @@ class ConstellationCatalog:
                 boundaries_points.append([ra2, dec2])
                 cur_index += 1
 
-            boundaries_lines.append([index1, index2])
+            boundaries_lines.append([index1, index2, cons1, cons2])
 
         return (constellation_list, boundaries_lines, np.array(boundaries_points))

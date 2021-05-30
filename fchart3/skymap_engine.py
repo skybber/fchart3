@@ -617,10 +617,10 @@ class SkymapEngine:
         self.graphics.set_font(self.graphics.gi_font, fn)
 
 
-    def draw_constellations(self, constell_catalog):
+    def draw_constellations(self, constell_catalog, hl_constellation):
         print('Drawing constellations...')
         if self.config.show_constellation_borders:
-            self.draw_constellation_boundaries(constell_catalog)
+            self.draw_constellation_boundaries(constell_catalog, hl_constellation)
         if self.config.show_constellation_shapes:
             self.draw_constellation_shapes(constell_catalog)
 
@@ -807,22 +807,29 @@ class SkymapEngine:
         self.graphics.restore()
 
 
-    def draw_constellation_boundaries(self, constell_catalog):
+    def draw_constellation_boundaries(self, constell_catalog, hl_constellation):
         self.graphics.save()
         self.graphics.set_dashed_line(1.2, 1.2)
-        self.graphics.set_linewidth(self.config.constellation_linewidth)
-        self.graphics.set_pen_rgb(self.config.constellation_border_color)
 
         x, y, z = radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
-        for index1, index2 in constell_catalog.boundaries_lines:
+        hl_constellation = hl_constellation.upper() if hl_constellation else None
+
+        for index1, index2, cons1, cons2 in constell_catalog.boundaries_lines:
             if z[index1] > 0 and z[index2] > 0:
+                if hl_constellation and (hl_constellation == cons1 or hl_constellation == cons2):
+                    self.graphics.set_pen_rgb(self.config.constellation_hl_border_color)
+                    self.graphics.set_linewidth(self.config.constellation_linewidth * 1.75)
+                else:
+                    self.graphics.set_pen_rgb(self.config.constellation_border_color)
+                    self.graphics.set_linewidth(self.config.constellation_linewidth)
+
                 self.mirroring_graphics.line(x[index1], y[index1], x[index2], y[index2])
 
         self.graphics.restore()
 
 
-    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=[], extra_positions=[], trajectory=[], visible_objects=None):
+    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=[], extra_positions=[], trajectory=[], visible_objects=None, hl_constellation=None):
 
         # tm = time()
 
@@ -885,7 +892,7 @@ class SkymapEngine:
                 self.draw_highlights(highlights)
 
             if used_catalogs.constellcatalog != None:
-                self.draw_constellations(used_catalogs.constellcatalog)
+                self.draw_constellations(used_catalogs.constellcatalog, hl_constellation)
                 # print("constellations within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
 
