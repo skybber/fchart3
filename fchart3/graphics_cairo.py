@@ -67,7 +67,7 @@ class CairoDrawing(GraphicsInterface):
             self.sfc_height = A4_HEIGHT_POINTS
             self.surface = cairo.PDFSurface(self.fobj, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM, DPMM)
-            self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 20)
+            self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 15*DPMM)
         self.context = cairo.Context(self.surface)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
