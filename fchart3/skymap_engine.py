@@ -1300,11 +1300,17 @@ class SkymapEngine:
 
         self.graphics.set_linewidth(self.config.nebula_linewidth)
 
-        frac = 7-outl_lev*3
 
-        pen_r = self.config.nebula_color[0] / frac
-        pen_g = self.config.nebula_color[1] / frac
-        pen_b = self.config.nebula_color[2] / frac
+        if self.config.light_mode:
+            frac = 4 - 1.5 * outl_lev # no logic, look nice in light mode
+            pen_r = 1.0 - ((1.0 - self.config.nebula_color[0]) / frac)
+            pen_g = 1.0 - ((1.0 - self.config.nebula_color[1]) / frac)
+            pen_b = 1.0 - ((1.0 - self.config.nebula_color[2]) / frac)
+        else:
+            frac = 7-outl_lev*3 # no logic, look nice in dark mode
+            pen_r = self.config.nebula_color[0] / frac
+            pen_g = self.config.nebula_color[1] / frac
+            pen_b = self.config.nebula_color[2] / frac
 
         self.graphics.set_pen_rgb((pen_r, pen_g, pen_b))
 

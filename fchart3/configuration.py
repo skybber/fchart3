@@ -56,6 +56,7 @@ class EngineConfiguration:
         self._mirror_x = False
         self._mirror_y = False
         self._star_colors = False
+        self._light_mode = False
         self._background_color = DEFAULT_BACKGROUND_COLOR
         self._draw_color = DEFAULT_DRAW_COLOR
         self._label_color = DEFAULT_LABEL_COLOR
@@ -217,6 +218,14 @@ class EngineConfiguration:
     @star_colors.setter
     def star_colors(self, value):
         self._star_colors = value
+
+    @property
+    def light_mode(self):
+        return self._light_mode
+
+    @light_mode.setter
+    def light_mode(self, value):
+        self._light_mode = value
 
     @property
     def background_color(self):
