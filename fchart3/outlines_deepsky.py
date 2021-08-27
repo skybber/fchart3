@@ -19,6 +19,8 @@ import numpy as np
 
 from .deepsky_object import *
 
+FIXING_NAMES = { 'NGC2174': 'NGC2175'}
+
 def import_outlines_catgen(filename):
     outlines_file = open(filename, 'r', encoding='ISO-8859-1')
     lines   = outlines_file.readlines()
@@ -33,6 +35,8 @@ def import_outlines_catgen(filename):
         items = line.split()
         if next_dso:
             dso_name = items[4].split('_')[0]
+            if dso_name in FIXING_NAMES:
+                dso_name = FIXING_NAMES[dso_name]
             points = []
             idx = int(items[3]) - 1
             if not dso_name in outlines[idx]:
