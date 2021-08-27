@@ -416,12 +416,13 @@ class SkymapEngine:
             elif object.type == deepsky.N:
                 has_outlines = False
                 if object.outlines is not None:
-                    outlines_ar = object.outlines[1]
-                    if outlines_ar is not None:
-                        has_outlines = True
-                        for outlines in outlines_ar:
-                            x_outl, y_outl = radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-                            self.diffuse_nebula_outlines(x, y, x_outl, y_outl, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
+                    for outl_lev in range(3):
+                        outlines_ar = object.outlines[outl_lev]
+                        if outlines_ar is not None:
+                            has_outlines = True
+                            for outlines in outlines_ar:
+                                x_outl, y_outl = radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                                self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
                 if not has_outlines:
                     self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
             elif object.type == deepsky.PN:
@@ -1291,11 +1292,16 @@ class SkymapEngine:
                 self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
 
-    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, width=-1.0, height=-1.0, posangle=0.0, label='', labelpos=''):
+    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width=-1.0, height=-1.0, posangle=0.0, label='', labelpos=''):
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.nebula_linewidth)
-        self.graphics.set_pen_rgb(self.config.nebula_color)
+
+        pen_r = self.config.nebula_color[0] / (7-outl_lev*3)
+        pen_g = self.config.nebula_color[1] / (7-outl_lev*3)
+        pen_b = self.config.nebula_color[2] / (7-outl_lev*3)
+
+        self.graphics.set_pen_rgb((pen_r, pen_g, pen_b))
 
         d = 0.5*width
         if width < 0.0:
