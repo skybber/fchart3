@@ -61,6 +61,7 @@ setup(
                 'data/catalogs/starnames.dat',
                 'data/catalogs/unnamedstars.dat',
                 'data/catalogs/deepstars.dat',
+                'data/catalogs/outlines_catgen.dat',
                 'data/label_positions.txt',
                 'data/deep_sky.hnd',
                 'data/constellationship_western.fab',

@@ -414,7 +414,16 @@ class SkymapEngine:
             if object.type == deepsky.G:
                 self.galaxy(x, y, rlong, rshort, posangle, object.mag, label, labelpos)
             elif object.type == deepsky.N:
-                self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
+                has_outlines = False
+                if object.outlines is not None:
+                    outlines_ar = object.outlines[1]
+                    if outlines_ar is not None:
+                        has_outlines = True
+                        for outlines in outlines_ar:
+                            x_outl, y_outl = radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                            self.diffuse_nebula_outlines(x, y, x_outl, y_outl, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
+                if not has_outlines:
+                    self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
             elif object.type == deepsky.PN:
                 self.planetary_nebula(x, y, rlong, label, labelpos)
             elif object.type == deepsky.OC:
@@ -457,7 +466,7 @@ class SkymapEngine:
             self.graphics.set_linewidth(self.config.dso_linewidth * hl_def.line_width)
             for dso_name, rax, decx in hl_def.data:
                 if angular_distance((rax,decx), self.fieldcentre) < self.fieldsize:
-                    x, y =  radec_to_xy(rax,decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                    x, y =  radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                     if hl_def.style == 'cross':
                         r = self.config.font_size * 2
                         self.mirroring_graphics.line(x-r, y, x-r/2, y)
@@ -1282,6 +1291,33 @@ class SkymapEngine:
                 self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
 
+    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, width=-1.0, height=-1.0, posangle=0.0, label='', labelpos=''):
+        self.graphics.save()
+
+        self.graphics.set_linewidth(self.config.nebula_linewidth)
+        self.graphics.set_pen_rgb(self.config.nebula_color)
+
+        d = 0.5*width
+        if width < 0.0:
+            d = self.drawingwidth/40.0
+        d1 = d+self.graphics.gi_linewidth/2.0
+
+        for i in range(len(x_outl)-1):
+            self.mirroring_graphics.line(x_outl[i], y_outl[i], x_outl[i+1], y_outl[i+1])
+        self.mirroring_graphics.line(x_outl[len(x_outl)-1], y_outl[len(x_outl)-1], x_outl[0], y_outl[0])
+
+        fh = self.graphics.gi_fontsize
+        if label != '':
+            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+            if labelpos == 0 or labelpos == -1:
+                self.mirroring_graphics.text_centred(x, y-d-fh/2.0, label)
+            elif labelpos == 1:
+                self.mirroring_graphics.text_centred(x, y+d+fh/2.0, label)
+            elif labelpos == 2:
+                self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
+            elif labelpos == 3:
+                self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+        self.graphics.restore()
 
     def diffuse_nebula_labelpos(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label_length=0.0):
 

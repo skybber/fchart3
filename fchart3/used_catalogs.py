@@ -15,11 +15,13 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import os
+import numpy as np
 
 from .constellation import ConstellationCatalog
 from .composite_star_catalog import CompositeStarCatalog
 from .deepsky_catalog import DeepskyCatalog
 from .hnsky_deepsky import import_hnsky_deepsky
+from .outlines_deepsky import import_outlines_catgen
 from .vic import import_vic
 from . import deepsky_object as deepsky
 
@@ -44,7 +46,7 @@ class UsedCatalogs:
             elif dso.mag <= limiting_magnitude_deepsky \
                    and dso.master_object is None \
                    and dso.type != deepsky.GALCL \
-                   and (dso.type != deepsky.STARS or force_asterisms or (dso.messier > 0 and dso.type == deepsky.STARS))\
+                   and (dso.type != deepsky.STARS or force_asterisms or (dso.messier > 0 and dso.type == deepsky.STARS)) \
                    and (dso.type != deepsky.PG or force_unknown or dso.type == deepsky.PG and dso.mag > -5.0):
                 self._reduced_deeplist.append(dso)
 
@@ -139,6 +141,36 @@ class UsedCatalogs:
 
         return found_dso, cat, name
 
+    def _get_dso_dict(sell, deeplist):
+        dso_dict = {}
+        for dso in deeplist:
+            name = dso.cat + dso.name
+            dso_dict[name] = dso
+            for syn in dso.synonyms:
+                dso_dict[syn[0] + syn[1]] = dso
+        return dso_dict
+
+    def _norm_dso_name(self, dso_name):
+        end_cat, start_num = -1, -1
+        for j, c in enumerate(dso_name):
+            if c.isdigit():
+                if end_cat == -1:
+                    end_cat = j
+                if c != '0':
+                    start_num = j
+                    break
+        if end_cat != -1 and start_num != -1:
+            dso_name = dso_name[:end_cat] + dso_name[start_num:]
+        return dso_name
+
+    def _convert_outlines_to_np_arr(self, outlines):
+        arr_x = []
+        arr_y = []
+        for v in outlines:
+            arr_x.append(v[0])
+            arr_y.append(v[1])
+        return (np.array(arr_x), np.array(arr_y))
+
     def _get_deepsky_list(self, data_dir, show_catalogs):
         print('Reading Hnsky...')
         hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs)
@@ -146,4 +178,23 @@ class UsedCatalogs:
         viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
         deeplist = hnskylist + viclist
         deeplist.sort(key=deepsky.cmp_to_key(deepsky.cmp_name))
+        print('Reading DSO outlines...')
+        dso_dict = self._get_dso_dict(deeplist)
+
+        all_lvl_outlines = import_outlines_catgen(os.path.join(data_dir, 'outlines_catgen.dat'))
+
+        for i in range(3):
+            for dso_name in all_lvl_outlines[i]:
+                dso = dso_dict.get(self._norm_dso_name(dso_name))
+                if dso:
+                    if dso.outlines is None:
+                        dso.outlines = [None, None, None]
+                    if dso.outlines[i] is None:
+                        dso.outlines[i] = []
+                    outlines_ar = all_lvl_outlines[i][dso_name]
+                    for outlines in outlines_ar:
+                        dso.outlines[i].append(self._convert_outlines_to_np_arr(outlines))
+                else:
+                    print('DSO {} not found'.format(dso_name))
+
         return deeplist

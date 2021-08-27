@@ -108,6 +108,7 @@ class DeepskyObject:
         self.master_object = None
         self.visible = True
         self._label = None
+        self.outlines = None
 
 
     def label(self):
