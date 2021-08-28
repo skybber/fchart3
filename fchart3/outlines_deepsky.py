@@ -19,7 +19,7 @@ import numpy as np
 
 from .deepsky_object import *
 
-FIXING_NAMES = { 'NGC2174': 'NGC2175'}
+FIXING_NAMES = { 'NGC2174': 'NGC2175', 'Orion': 'Sh2-276'}
 
 def import_outlines_catgen(filename):
     outlines_file = open(filename, 'r', encoding='ISO-8859-1')

@@ -208,8 +208,6 @@ class SkymapEngine:
         self.set_caption(caption)
         self.set_field(ra,dec,fieldradius)
 
-        self.active_constellation = None
-
 
     def set_field(self, ra, dec, fieldradius):
         """
@@ -260,10 +258,6 @@ class SkymapEngine:
         self.caption = caption
         if caption != '':
             self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
-
-
-    def set_active_constellation(self, active_constellation):
-        self.active_constellation = active_constellation
 
 
     def draw_caption(self):
@@ -843,6 +837,17 @@ class SkymapEngine:
 
 
     def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=[], extra_positions=[], trajectory=[], visible_objects=None, hl_constellation=None):
+        """ Creates map using given graphics, params and config
+
+        used_catalogs - UsedCatalogs data structure
+        showing_dso - DSO forced to be shown even if they don't pass the filter
+        hl_showing_dsos - True if showing dso will be highlighted
+        highlights - list of DSOs that will be marked
+        extra_positons
+        trajectory - defined by list of points (ra, dec) points
+        visible_objects - output array contains list of object visible on the map
+        hl_constellation - constellation name that will be highlighted
+        """
 
         # tm = time()
 
@@ -1307,7 +1312,7 @@ class SkymapEngine:
             pen_g = 1.0 - ((1.0 - self.config.nebula_color[1]) / frac)
             pen_b = 1.0 - ((1.0 - self.config.nebula_color[2]) / frac)
         else:
-            frac = 7-outl_lev*3 # no logic, look nice in dark mode
+            frac = 4 - 1.5 * outl_lev # no logic, look nice in dark mode
             pen_r = self.config.nebula_color[0] / frac
             pen_g = self.config.nebula_color[1] / frac
             pen_b = self.config.nebula_color[2] / frac

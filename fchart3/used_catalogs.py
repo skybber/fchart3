@@ -144,7 +144,10 @@ class UsedCatalogs:
     def _get_dso_dict(sell, deeplist):
         dso_dict = {}
         for dso in deeplist:
-            name = dso.cat + dso.name
+            if dso.cat == 'Sh2':
+                name = dso.cat + '-' + dso.name
+            else:
+                name = dso.cat + dso.name
             dso_dict[name] = dso
             for syn in dso.synonyms:
                 dso_dict[syn[0] + syn[1]] = dso
