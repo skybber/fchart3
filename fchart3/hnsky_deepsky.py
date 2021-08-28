@@ -44,7 +44,7 @@ dso_type_map = {
 
 CATALOG_SPECS0 = { 'Sh2-' }
 CATALOGS_SPEC2 = ['vdB-Ha' ]
-DEFAULT_SHOWING_CATALOGUES = ['M', 'NGC', 'IC', 'Abell', 'HCG', 'Cr', 'PK', 'Stock', 'UGC', 'Mel', 'PGC', 'PNG', "Sh2"]
+DEFAULT_SHOWING_CATALOGUES = ['M', 'NGC', 'IC', 'Abell', 'HCG', 'Cr', 'PK', 'Stock', 'UGC', 'Mel', 'PGC', 'PNG']
 
 
 def _denormalize_pk_name(name):
