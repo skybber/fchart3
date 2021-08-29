@@ -162,6 +162,32 @@ class DeepskyObject:
         return s
 
 
+class UnknownNebula:
+    def __init__(self):
+        """
+        This class represents uncatalogied nubula
+        """
+        self.outlines = [ None, None, None ]
+        self.ra_min, self.ra_max, self.dec_min, self.dec_max = (None, None, None, None)
+
+    def add_outlines(self, level, outlines):
+        for ra in outlines[0]:
+            if self.ra_min is None or ra < self.ra_min:
+                self.ra_min = ra
+            if self.ra_max is None or ra > self.ra_max:
+                self.ra_max = ra
+        for dec in outlines[1]:
+            if self.dec_min is None or dec < self.dec_min:
+                self.dec_min = dec
+            if self.dec_max is None or dec > self.dec_max:
+                self.dec_max = dec
+
+        if self.outlines[level] is None:
+            self.outlines[level] = []
+
+        self.outlines[level].append(outlines)
+
+
 def cmp_ra(x,y):
     r = 0
     if x.ra > y.ra:

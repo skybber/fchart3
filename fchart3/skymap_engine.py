@@ -413,7 +413,7 @@ class SkymapEngine:
                     lev_shift = 0
                     for outl_lev in range(2, -1, -1):
                         outlines_ar = object.outlines[outl_lev]
-                        if outlines_ar is not None:
+                        if outlines_ar:
                             has_outlines = True
                             for outlines in outlines_ar:
                                 x_outl, y_outl = radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
@@ -442,6 +442,23 @@ class SkymapEngine:
                     xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
                     self.visible_objects_in_map.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
+
+
+    def draw_unknown_nebula(self, unknown_nebulas):
+        for uneb in unknown_nebulas:
+            ra = (uneb.ra_min + uneb.ra_max) / 2.0
+            dec = (uneb.dec_min + uneb.dec_max) / 2.0
+            x, y, z = radec_to_xyz(ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            if z <=0:
+                continue
+            for outl_lev in range(3):
+                outlines = uneb.outlines[outl_lev]
+                if not outlines:
+                    continue
+                for outl in outlines:
+                    if z > 0:
+                        x_outl, y_outl = radec_to_xy(outl[0], outl[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                        self.unknown_diffuse_nebula_outlines(x_outl, y_outl, outl_lev)
 
 
     def draw_extra_objects(self,extra_positions):
@@ -513,6 +530,7 @@ class SkymapEngine:
         label1 = ''
         x1 = None
         y1 = None
+        z1 = None
         r = self.min_radius * 1.2 / 2**0.5
 
         for i in range(0, len(trajectory)):
@@ -521,10 +539,11 @@ class SkymapEngine:
 
             if i > 0:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
-                self.mirroring_graphics.line(x1, y1, x2, y2)
-                self.draw_trajectory_tick(x1, y1, x2, y2)
-                if i == 1:
-                    self.draw_trajectory_tick(x2, y2, x1, y1)
+                if z1 > 0 and z2 > 0:
+                    self.mirroring_graphics.line(x1, y1, x2, y2)
+                    self.draw_trajectory_tick(x1, y1, x2, y2)
+                    if i == 1:
+                        self.draw_trajectory_tick(x2, y2, x1, y1)
 
             self.mirroring_graphics.text_centred(x2, y2 - r - fh/2.0, label2)
 
@@ -532,6 +551,7 @@ class SkymapEngine:
             label1 = label2
 
         self.graphics.restore()
+
 
     def draw_trajectory_tick(self, x1, y1, x2, y2):
         dx = x2-x1
@@ -909,12 +929,15 @@ class SkymapEngine:
             if highlights:
                 self.draw_highlights(highlights)
 
-            if used_catalogs.constellcatalog != None:
+            if used_catalogs.constellcatalog is not None:
                 self.draw_constellations(used_catalogs.constellcatalog, hl_constellation)
                 # print("constellations within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
 
-            if used_catalogs.deepskycatalog != None:
+            if used_catalogs.unknown_nebulas is not None:
+                self.draw_unknown_nebula(used_catalogs.unknown_nebulas)
+
+            if used_catalogs.deepskycatalog is not None:
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos)
                 # print("DSO within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
@@ -925,7 +948,7 @@ class SkymapEngine:
             if trajectory:
                 self.draw_trajectory(trajectory)
 
-            if used_catalogs.starcatalog != None:
+            if used_catalogs.starcatalog is not None:
                 self.draw_stars(used_catalogs.starcatalog)
                 # print("Stars within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
@@ -1322,7 +1345,6 @@ class SkymapEngine:
         d = 0.5*width
         if width < 0.0:
             d = self.drawingwidth/40.0
-        d1 = d+self.graphics.gi_linewidth/2.0
 
         for i in range(len(x_outl)-1):
             self.mirroring_graphics.line(x_outl[i], y_outl[i], x_outl[i+1], y_outl[i+1])
@@ -1339,6 +1361,32 @@ class SkymapEngine:
                 self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
             elif labelpos == 3:
                 self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+        self.graphics.restore()
+
+
+    def unknown_diffuse_nebula_outlines(self, x_outl, y_outl, outl_lev):
+        self.graphics.save()
+
+        self.graphics.set_linewidth(self.config.nebula_linewidth)
+
+
+        if self.config.light_mode:
+            frac = 4 - 1.5 * outl_lev # no logic, look nice in light mode
+            pen_r = 1.0 - ((1.0 - self.config.nebula_color[0]) / frac)
+            pen_g = 1.0 - ((1.0 - self.config.nebula_color[1]) / frac)
+            pen_b = 1.0 - ((1.0 - self.config.nebula_color[2]) / frac)
+        else:
+            frac = 4 - 1.5 * outl_lev # no logic, look nice in dark mode
+            pen_r = self.config.nebula_color[0] / frac
+            pen_g = self.config.nebula_color[1] / frac
+            pen_b = self.config.nebula_color[2] / frac
+
+        self.graphics.set_pen_rgb((pen_r, pen_g, pen_b))
+
+        for i in range(len(x_outl)-1):
+            self.mirroring_graphics.line(x_outl[i], y_outl[i], x_outl[i+1], y_outl[i+1])
+        self.mirroring_graphics.line(x_outl[len(x_outl)-1], y_outl[len(x_outl)-1], x_outl[0], y_outl[0])
+
         self.graphics.restore()
 
     def diffuse_nebula_labelpos(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label_length=0.0):

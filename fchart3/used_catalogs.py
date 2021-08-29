@@ -33,7 +33,7 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
         self._starcatalog    = CompositeStarCatalog(data_dir, self._constellcatalog.bsc_map, usno_nomad=usno_nomad_file)
-        self._deeplist = self._get_deepsky_list(data_dir, show_catalogs)
+        self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs)
 
         # Apply magnitude selection to deepsky list, build Messier list
         self._reduced_deeplist = []
@@ -79,6 +79,10 @@ class UsedCatalogs:
     @property
     def reduced_deeplist(self):
         return self._reduced_deeplist
+
+    @property
+    def unknown_nebulas(self):
+        return self._unknown_nebulas
 
     def lookup_dso(self, dso_name):
         index = 0
@@ -186,18 +190,27 @@ class UsedCatalogs:
 
         all_lvl_outlines = import_outlines_catgen(os.path.join(data_dir, 'outlines_catgen.dat'))
 
+        unknown_nebulas = []
+        unknown_nebula_map = {}
+
         for i in range(3):
-            for dso_name in all_lvl_outlines[i]:
-                dso = dso_dict.get(self._norm_dso_name(dso_name))
+            for name in all_lvl_outlines[i]:
+                dso = dso_dict.get(self._norm_dso_name(name))
+                outlines_ar = all_lvl_outlines[i][name]
                 if dso:
                     if dso.outlines is None:
-                        dso.outlines = [None, None, None]
-                    if dso.outlines[i] is None:
-                        dso.outlines[i] = []
-                    outlines_ar = all_lvl_outlines[i][dso_name]
+                        dso.outlines = [[], [], []]
                     for outlines in outlines_ar:
                         dso.outlines[i].append(self._convert_outlines_to_np_arr(outlines))
                 else:
-                    print('DSO {} not found'.format(dso_name))
+                    if name in ['Orion', 'Scorpion']: #Hack
+                        uneb = unknown_nebula_map.get(name)
+                        if not uneb:
+                            uneb = deepsky.UnknownNebula()
+                            unknown_nebula_map[name] = uneb
+                            unknown_nebulas.append(uneb)
+                        for outlines in outlines_ar:
+                            uneb.add_outlines(i, self._convert_outlines_to_np_arr(outlines))
 
-        return deeplist
+
+        return deeplist, unknown_nebulas
