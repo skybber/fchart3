@@ -22,7 +22,8 @@ def angular_distance(position1, position2):
     Compute angular distance between start and end point.
     These points are tuples (ra,dec) in radians. Result is also in radians.
     """
-
+    if position1[0] == position2[0] and position1[0] == position2[0]:
+        return 0.0
     (start_ra, start_dec) = position1
     (end_ra, end_dec)     = position2
     a = start_ra-end_ra
