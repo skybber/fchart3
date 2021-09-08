@@ -203,7 +203,6 @@ class SkymapEngine:
 
         self.lm_stars     = lm_stars
         self.lm_deepsky   = lm_deepsky
-        self.deepsky_label_limit = 15 # deepsky lm for labels
 
         self.set_caption(caption)
         self.set_field(ra,dec,fieldradius)
@@ -358,8 +357,6 @@ class SkymapEngine:
             object, x, y, rlong  = deepsky_list_mm[i]
 
             label = object.label()
-            if (not showing_dsos or not object in showing_dsos) and object.mag > self.deepsky_label_limit:
-                label = ''
 
             if hl_showing_dsos and object in showing_dsos:
                 self.draw_dso_hightlight(x, y, rlong, label)
