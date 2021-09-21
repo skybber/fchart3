@@ -26,7 +26,6 @@ DATA_ELEMT_SIZE = struct.calcsize(DATAELEMENT_FMT)
 def _swap32(i):
     return struct.unpack("<I", struct.pack(">I", i))[0]
 
-
 def _swap16(i):
     return struct.unpack("<H", struct.pack(">H", i))[0]
 
@@ -60,8 +59,8 @@ class HtmBinFileReader:
         self.fd_updated = False
         self.index_updated = False
         self.fields = []
-        self.index_offset = []
-        self.index_count = []
+        self.index_offset = None
+        self.index_count = None
 
 
     @property
@@ -157,10 +156,13 @@ class HtmBinFileReader:
         if self.index_size == 0:
             raise ValueError("Zero index size!")
 
+        self.index_offset = [None] * self.index_size
+        self.index_count = [None] * self.index_size
+
         # We read each 12-byte index entry (ID[4], Offset[4] within file in bytes, nrec[4] # of Records).
         # After reading all the indexes, we are (itable_offset + indexSize * 12) bytes within the file
         # indexSize is usually the size of the HTM level (eg. HTM level 3 --> 512)
-        for j in range(self.index_size):
+        for i in range(self.index_size):
             ID = struct.unpack('I', self._file.read(4))[0]
 
             if self._byteswap:
@@ -169,8 +171,8 @@ class HtmBinFileReader:
             if ID >= self.index_size:
                 raise IndexError("ID {} is greater than the expected number of expected entries ({})".format(ID, self.index_size))
 
-            if ID != j:
-                raise ValueError("Found ID {}, at the location where ID {} was expected".format(ID, j))
+            if ID != i:
+                raise ValueError("Found ID {}, at the location where ID {} was expected".format(ID, i))
 
             offset = struct.unpack('I', self._file.read(4))[0]
 
@@ -189,10 +191,10 @@ class HtmBinFileReader:
                                     prev_offset,
                                     self.record_size,
                                     prev_nrecs,
-                                     j - 1)
+                                     i - 1)
 
-            self.index_offset.append(offset)
-            self.index_count.append(nrecs)
+            self.index_offset[i] = offset
+            self.index_count[i] = nrecs
 
             self._record_count += nrecs
             prev_offset = offset

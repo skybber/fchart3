@@ -18,7 +18,8 @@ import os
 import numpy as np
 
 from .constellation import ConstellationCatalog
-from .composite_star_catalog import CompositeStarCatalog
+from .htm_star_catalog import HtmStarCatalog
+from .geodesic_star_catalog import GeodesicStarCatalog
 from .deepsky_catalog import DeepskyCatalog
 from .hnsky_deepsky import import_hnsky_deepsky
 from .outlines_deepsky import import_outlines_catgen
@@ -32,7 +33,8 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'constellationship_western.fab',
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
-        self._starcatalog    = CompositeStarCatalog(data_dir, self._constellcatalog.bsc_map, usno_nomad=usno_nomad_file)
+        self._starcatalog    = HtmStarCatalog(data_dir, self._constellcatalog.bsc_map, usno_nomad=usno_nomad_file)
+        # self._starcatalog    = GeodesicStarCatalog(data_dir, self._constellcatalog.bsc_map)
         self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs)
 
         # Apply magnitude selection to deepsky list, build Messier list

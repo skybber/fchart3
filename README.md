@@ -1,5 +1,5 @@
 # fchart3
-Michiel Brentjens' fchart - astronomical finder charts now working with numpy and python3.x
+Michiel Brentjens' fchart3 - astronomical finder charts now working with numpy and python3.x
 
 ![star chart](https://github.com/skybber/fchart3/blob/assets/M103.svg)
 

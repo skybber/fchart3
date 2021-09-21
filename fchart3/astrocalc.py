@@ -256,8 +256,27 @@ def direction_ddec(radec, fieldcentre, fc_sincos_dec):
     return angle
 
 
+def sphere_to_rect(ra, dec):
+    """
+    Convert from spherical coordinates to Rectangular direction.
+    """
+    cos_dec = np.cos(dec);
+    return (np.cos(ra) * cos_dec, np.sin(ra) * cos_dec, np.sin(dec));
+
+
+def rect_to_sphere(x1, x2, x3):
+    """
+    Convert from Rectangular direction to spherical coordinate components.
+    """
+    r = np.sqrt(x1*x1 + x2*x2 + x3*x3)
+    ra = np.arctan2(x2, x1);
+    dec = np.arcsin(x3/r);
+    return (ra, dec)
+
+
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
            'rad2dms', 'rad2hms',
            'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm', 'radec_to_lmz',
            'radec_to_xyz', 'radec_to_xy', 'direction_ddec',
+           'sphere_to_rect', 'rect_to_sphere'
            ]

@@ -1,10 +1,10 @@
 Metadata-Version: 1.0
-Name: fchart
-Version: 0.5
+Name: fchart3
+Version: 0.8
 Summary: Collection of Python scripts to make beautiful deepsky
 finder charts in EPS and PDF format
-Home-page: http://www.astro.rug.nl/~brentjen/fchart.html
-Author: Michiel Brentjens
+Home-page: https://github.com/skybber/fchart3
+Author: Michiel Brentjens, Vladimir Dvorak
 Author-email: UNKNOWN
 License: UNKNOWN
 Description: UNKNOWN

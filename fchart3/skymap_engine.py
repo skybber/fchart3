@@ -94,85 +94,6 @@ STAR_LABELS = {
     "ome":"ω"
 }
 
-SPEC_TYPE_2_RGB = {
-    'O5': (155/255, 176/255, 255/255),
-    'O6': (162/255, 184/255, 255/255),
-    'O7': (157/255, 177/255, 255/255),
-    'O8': (157/255, 177/255, 255/255),
-    'O9': (154/255, 178/255, 255/255),
-    'O9.5': (164/255, 186/255, 255/255),
-    'B0': (156/255, 178/255, 255/255),
-    'B0.5': (167/255, 188/255, 255/255),
-    'B1': (160/255, 182/255, 255/255),
-    'B2': (160/255, 180/255, 255/255),
-    'B3': (165/255, 185/255, 255/255),
-    'B4': (164/255, 184/255, 255/255),
-    'B5': (170/255, 191/255, 255/255),
-    'B6': (172/255, 189/255, 255/255),
-    'B7': (173/255, 191/255, 255/255),
-    'B8': (177/255, 195/255, 255/255),
-    'B9': (181/255, 198/255, 255/255),
-    'A0': (185/255, 201/255, 255/255),
-    'A1': (181/255, 199/255, 255/255),
-    'A2': (187/255, 203/255, 255/255),
-    'A3': (191/255, 207/255, 255/255),
-    'A4': (191/255, 207/255, 255/255),
-    'A5': (202/255, 215/255, 255/255),
-    'A6': (199/255, 212/255, 255/255),
-    'A7': (200/255, 213/255, 255/255),
-    'A8': (213/255, 222/255, 255/255),
-    'A9': (219/255, 224/255, 255/255),
-    'F0': (224/255, 229/255, 255/255),
-    'F1': (224/255, 229/255, 255/255),
-    'F2': (236/255, 239/255, 255/255),
-    'F3': (236/255, 239/255, 255/255),
-    'F4': (224/255, 226/255, 255/255),
-    'F5': (248/255, 247/255, 255/255),
-    'F6': (244/255, 241/255, 255/255),
-    'F7': (246/255, 243/255, 255/255),
-    'F8': (255/255, 247/255, 252/255),
-    'F9': (255/255, 247/255, 252/255),
-    'G0': (255/255, 248/255, 252/255),
-    'G1': (255/255, 247/255, 248/255),
-    'G2': (255/255, 245/255, 242/255),
-    'G3': (255/255, 245/255, 242/255),
-    'G4': (255/255, 241/255, 229/255),
-    'G5': (255/255, 244/255, 234/255),
-    'G6': (255/255, 244/255, 235/255),
-    'G7': (255/255, 244/255, 235/255),
-    'G8': (255/255, 237/255, 222/255),
-    'G9': (255/255, 239/255, 221/255),
-    'K0': (255/255, 238/255, 221/255),
-    'K1': (255/255, 224/255, 188/255),
-    'K2': (255/255, 227/255, 196/255),
-    'K3': (255/255, 222/255, 195/255),
-    'K4': (255/255, 216/255, 181/255),
-    'K5': (255/255, 210/255, 161/255),
-    'K6': (255/255, 210/255, 161/255),
-    'K7': (255/255, 199/255, 142/255),
-    'K8': (255/255, 209/255, 174/255),
-    'K9': (255/255, 209/255, 174/255),
-    'M0': (255/255, 195/255, 139/255),
-    'M1': (255/255, 204/255, 142/255),
-    'M2': (255/255, 196/255, 131/255),
-    'M3': (255/255, 206/255, 129/255),
-    'M4': (255/255, 201/255, 127/255),
-    'M5': (255/255, 204/255, 111/255),
-    'M6': (255/255, 195/255, 112/255),
-    'M7': (255/255, 195/255, 112/255),
-    'M8': (255/255, 198/255, 109/255),
-    'M9': (255/255, 198/255, 109/255),
-    'C0': (255/255, 244/255, 235/255),
-    'C1': (255/255, 237/255, 222/255),
-    'C2': (255/255, 238/255, 221/255),
-    'C3': (255/255, 227/255, 196/255),
-    'C4': (255/255, 216/255, 181/255),
-    'C5': (255/255, 195/255, 139/255),
-    'C6': (255/255, 196/255, 131/255),
-    'C7': (255/255, 201/255, 127/255),
-    'N9': (255/255, 120/255, 60/255),
-}
-
 STARS_IN_SCALE = 7
 LEGEND_MARGIN = 0.47
 BASE_SCALE = 0.98
@@ -573,13 +494,16 @@ class SkymapEngine:
         # Select and draw stars
         print('Drawing stars...')
         selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars)
-        print(str(selection.shape[0]) + ' stars in map.')
+        if selection is None or len(selection) == 0:
+            print('No stars found.')
+            return
+
+        print('{} stars in map.'.format(selection.shape[0]))
         print('Faintest star: ' + str(int(max(selection['mag'])*100.0 + 0.5)/100.0))
 
         x, y = radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         mag       = selection['mag']
-        spec_type = selection['spec_type']
 
         indices   = np.argsort(mag)
         magsorted = mag[indices]
@@ -597,7 +521,7 @@ class SkymapEngine:
             index = indices[i]
             xx, yy, rr = (x[index], y[index], rsorted[i],)
             if xx >= x1-rr and xx <= x2+rr and yy >= y1-rr and yy <= y2+rr:
-                self.star(xx, yy, rr, spec_type[index])
+                self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
                 bsc_star = selection[index]['bsc']
                 if not bsc_star is None:
                     named_star_list.append((xx, yy, rr, bsc_star,))
@@ -993,17 +917,12 @@ class SkymapEngine:
         self.w_telrad = WidgetTelrad(self.drawingscale, self.config.constellation_linewidth)
 
 
-    def star(self, x, y, radius, spec_type):
+    def star(self, x, y, radius, star_color):
         """
         Filled circle with boundary. Set fill colour and boundary
         colour in advance using set_pen_rgb and set_fill_rgb
         """
-        if self.config.star_colors:
-            subtype = spec_type[1]//10
-            if subtype > 9:
-                subtype = 9
-            star_color = SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(subtype), (1.0, 1.0, 1.0))
-            # self.graphics.set_pen_rgb((star_color[0]/3, star_color[1]/3, star_color[2]/3))
+        if self.config.star_colors and star_color:
             self.graphics.set_fill_rgb(star_color)
 
         r = int(radius*100.0 + 0.5)/100.0
