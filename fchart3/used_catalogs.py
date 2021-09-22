@@ -33,8 +33,8 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'constellationship_western.fab',
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
-        self._starcatalog    = HtmStarCatalog(data_dir, self._constellcatalog.bsc_map, usno_nomad=usno_nomad_file)
-        # self._starcatalog    = GeodesicStarCatalog(data_dir, self._constellcatalog.bsc_map)
+        self._starcatalog    = HtmStarCatalog(data_dir, self._constellcatalog.bsc_hd_map, usno_nomad=usno_nomad_file)
+        # self._starcatalog    = GeodesicStarCatalog(data_dir, self._constellcatalog.bsc_hip_map)
         self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs)
 
         # Apply magnitude selection to deepsky list, build Messier list

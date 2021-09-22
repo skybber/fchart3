@@ -503,7 +503,7 @@ class SkymapEngine:
 
         x, y = radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
-        mag       = selection['mag']
+        mag = selection['mag']
 
         indices   = np.argsort(mag)
         magsorted = mag[indices]

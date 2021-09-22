@@ -292,7 +292,7 @@ def set_use_precalc_triangle_size(val):
     use_precalc_triangle_size = val
 
 
-def _convert_stars1_helper(stars1, zone_data, mag_table, bsc_map):
+def _convert_stars1_helper(stars1, zone_data, mag_table, bsc_hip_map):
     dim = len(stars1)
 
     rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
@@ -308,11 +308,12 @@ def _convert_stars1_helper(stars1, zone_data, mag_table, bsc_map):
         ], \
         dtype=ZONE_STARDATA_DT)
 
-    if bsc_map:
+    if bsc_hip_map:
+        hip_col = stars1['hip']
         for i in range(dim):
-            hip = stars1[i]['hip'][0] | stars1[i]['hip'][2]<<8  | stars1[i]['hip'][2]<<16
+            hip = hip_col[i][0] | hip_col[i][1].astype(np.uint32)<<8  | hip_col[i][2].astype(np.uint32)<<16
             if hip != 0:
-                bsc_star = bsc_map.get(hip)
+                bsc_star = bsc_hip_map.get(hip)
                 if bsc_star:
                     zone_stars[i]['bsc'] = bsc_star
 
@@ -527,17 +528,22 @@ class GeodesicStarCatalogComponent:
         return STAR3_DT
 
 
-    def _convert_zone_stars(self, zone_stars, zone_data, bsc_map):
+    def _convert_zone_stars(self, zone_stars, zone_data, bsc_hip_map):
         mag_table = self._data_reader.get_mag_table()
         if self._data_reader.file_type == 0:
-            return _convert_stars1_helper(zone_stars, zone_data, mag_table, bsc_map)
+            return _convert_stars1_helper(zone_stars, zone_data, mag_table, bsc_hip_map)
         elif self._data_reader.file_type == 1:
             return _convert_stars2_helper(zone_stars, zone_data, mag_table)
         else:
             return _convert_stars3_helper(zone_stars, zone_data, mag_table)
 
 
-    def get_zone_stars(self, zone, bsc_map=None):
+    def load_static_stars(self, bsc_hip_map):
+        for zone in range(self._nr_of_zones):
+            self.get_zone_stars(zone, bsc_hip_map)
+
+
+    def get_zone_stars(self, zone, bsc_hip_map=None):
         if not self._file_opened:
             return None
         zone_stars = self._star_blocks[zone]
@@ -551,7 +557,7 @@ class GeodesicStarCatalogComponent:
                 if self._data_reader.byteswap:
                     zone_stars.byteswap
 
-                zone_stars = self._convert_zone_stars(zone_stars, self._zone_data_ar[zone], bsc_map)
+                zone_stars = self._convert_zone_stars(zone_stars, self._zone_data_ar[zone], bsc_hip_map)
             else:
                 zone_stars = []
 
@@ -572,7 +578,7 @@ class GeodesicStarCatalog(StarCatalog):
     Star catalog composed of GeodesicStarCatalogComponent. Each component represents
     one level of Geodesic tree.
     """
-    def __init__(self, data_dir, bsc_map):
+    def __init__(self, data_dir, bsc_hip_map):
         self._cat_components = []
         for i in range(9):
             cat_comp = self._load_gsc_component(data_dir, 'stars_{}_*.cat'.format(i))
@@ -594,6 +600,10 @@ class GeodesicStarCatalog(StarCatalog):
             cat_comp.scale_axis()
 
         self.search_result = GeodesicSearchResult(self.max_geodesic_grid_level)
+
+        if len(self._cat_components) > 0:
+            self._cat_components[0].load_static_stars(bsc_hip_map)
+
 
     def _load_gsc_component(self, data_dir, file_regex):
         files = glob.glob(os.path.join(data_dir, file_regex))

@@ -150,7 +150,7 @@ def _get_htm_mesh(level):
         htm_meshes[level] = mesh
     return mesh
 
-def _convert_trixels_stars_helper(trixel_stars, bsc_map):
+def _convert_trixels_stars_helper(trixel_stars, bsc_hd_map):
     dim = len(trixel_stars)
     trixel_star_data = np.core.records.fromarrays( \
         [ \
@@ -162,11 +162,11 @@ def _convert_trixels_stars_helper(trixel_stars, bsc_map):
         ], \
         dtype=TRIXEL_STARDATA_DT)
 
-    if bsc_map:
+    if bsc_hd_map:
         for i in range(dim):
             hd = trixel_stars[i]['HD']
             if hd != 0:
-                bsc_star = bsc_map.get(hd)
+                bsc_star = bsc_hd_map.get(hd)
                 if bsc_star:
                     trixel_star_data[i]['bsc'] = bsc_star
 
@@ -202,7 +202,7 @@ def _convert_trixels_deep_stars_helper(trixel_stars):
 
 class HtmStarCatalogComponent:
 
-    def __init__(self, file_name, trig_mag, static_stars, bsc_map):
+    def __init__(self, file_name, trig_mag, static_stars, bsc_hd_map):
         self._file_name = file_name
         self._file_opened = False
         self._star_blocks = None
@@ -211,7 +211,7 @@ class HtmStarCatalogComponent:
         self._open_data_file()
         self._static_stars = static_stars
         if self._file_opened and static_stars:
-            self._load_static_stars(bsc_map)
+            self._load_static_stars(bsc_hd_map)
 
 
     def _open_data_file(self):
@@ -258,15 +258,15 @@ class HtmStarCatalogComponent:
         return DEEP_STARDATA_DT
 
 
-    def _convert_trixels_stars(self, trixel_stars, bsc_map):
+    def _convert_trixels_stars(self, trixel_stars, bsc_hd_map):
         if self.data_reader.guess_record_size == 32:
-            return _convert_trixels_stars_helper(trixel_stars, bsc_map)
+            return _convert_trixels_stars_helper(trixel_stars, bsc_hd_map)
         return _convert_trixels_deep_stars_helper(trixel_stars)
 
 
-    def _load_static_stars(self, bsc_map):
+    def _load_static_stars(self, bsc_hd_map):
         for trixel in range(self._sky_mesh.size()):
-            self.get_trixel_stars(trixel, bsc_map)
+            self.get_trixel_stars(trixel, bsc_hd_map)
         return True
 
 
@@ -274,7 +274,7 @@ class HtmStarCatalogComponent:
         return self._sky_mesh
 
 
-    def get_trixel_stars(self, trixel, bsc_map=None):
+    def get_trixel_stars(self, trixel, bsc_hd_map=None):
         if not self._file_opened:
             return None
         trixel_stars = self._star_blocks[trixel]
@@ -286,7 +286,7 @@ class HtmStarCatalogComponent:
                 trixel_stars = np.fromfile(data_file, self._get_data_format(), records)
                 if self.data_reader.byteswap:
                     trixel_stars.byteswap
-                trixel_stars = self._convert_trixels_stars(trixel_stars, bsc_map)
+                trixel_stars = self._convert_trixels_stars(trixel_stars, bsc_hd_map)
             else:
                 trixel_stars = []
             self._star_blocks[trixel] = trixel_stars
@@ -308,15 +308,15 @@ class HtmStarCatalog(StarCatalog):
     '''
     Star catalog composed of HtmStarCatalogComponent. Each component represents one level of HTM tree
     '''
-    def __init__(self, data_dir, bsc_map, usno_nomad=None):
+    def __init__(self, data_dir, bsc_hd_map, usno_nomad=None):
         self._deepstar_catalogs = []
-        self._load_deepstar_catalogs(data_dir, bsc_map, usno_nomad)
+        self._load_deepstar_catalogs(data_dir, bsc_hd_map, usno_nomad)
 
 
-    def _load_deepstar_catalogs(self, data_dir, bsc_map, usno_nomad):
-        if not self._add_deepstar_catalog_if_exists(data_dir, 'namedstars.dat', -5.0, bsc_map, static_stars=True):
+    def _load_deepstar_catalogs(self, data_dir, bsc_hd_map, usno_nomad):
+        if not self._add_deepstar_catalog_if_exists(data_dir, 'namedstars.dat', -5.0, bsc_hd_map, static_stars=True):
             return 0
-        if not self._add_deepstar_catalog_if_exists(data_dir, 'unnamedstars.dat', -5.0, bsc_map, static_stars=True):
+        if not self._add_deepstar_catalog_if_exists(data_dir, 'unnamedstars.dat', -5.0, bsc_hd_map, static_stars=True):
             return 1
         if not self._add_deepstar_catalog_if_exists(data_dir, 'deepstars.dat', 8.0, None):
             return 2
@@ -327,10 +327,10 @@ class HtmStarCatalog(StarCatalog):
         return 4
 
 
-    def _add_deepstar_catalog_if_exists(self, data_dir, file_name, trig_mag, bsc_map, static_stars=False):
+    def _add_deepstar_catalog_if_exists(self, data_dir, file_name, trig_mag, bsc_hd_map, static_stars=False):
         full_path = os.path.join(data_dir, file_name)
         if os.path.isfile(full_path):
-            dsc = HtmStarCatalogComponent(full_path, trig_mag, static_stars, bsc_map)
+            dsc = HtmStarCatalogComponent(full_path, trig_mag, static_stars, bsc_hd_map)
             self._deepstar_catalogs.append(dsc)
             return True
         return False

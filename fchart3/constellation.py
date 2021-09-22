@@ -61,14 +61,15 @@ class ConstellationCatalog:
 
     - all_constell_lines  - np array of constellations lines (pair for each line)
     - bright stars        - list of BscStars
-    - bsc_map             - map HD->BscStar
+    - bsc_hd_map          - map HD->BscStar
     - constellations      - list od Constellations
     - boundaries_lines    - list of boundaries lines (pair of index to boundaries_points for each line)
     """
     def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename='', cross_id_file=''):
         self.all_constell_lines = []
-        self.bsc_map, self.bright_stars = self._import_bsc5(bsc5_filename)
-        self.constellations, self.boundaries_lines, self.boundaries_points = self._import_constellation(constell_filename, boundaries_filename, cross_id_file, self)
+        hip2hr_cross_id_map, hd2hip_cross_id_map = self._load_cross_id_file(cross_id_file)
+        self.bsc_hd_map, self.bsc_hip_map, self.bright_stars = self._import_bsc5(bsc5_filename, hd2hip_cross_id_map)
+        self.constellations, self.boundaries_lines, self.boundaries_points = self._import_constellation(constell_filename, boundaries_filename, hip2hr_cross_id_map, self)
         self.all_constell_lines = np.array(self.all_constell_lines)
 
     def _parse_bsc5_line(self, line):
@@ -98,10 +99,11 @@ class ConstellationCatalog:
         return star
 
 
-    def _import_bsc5(self, filename):
+    def _import_bsc5(self, filename, hd2hip_cross_id_map):
         # Import all saguaro objects that are not NGC or IC objects, or M40
         bsc_star_list = []
-        bsc_map = {}
+        bsc_hd_map = {}
+        bsc_hip_map = {}
 
         with open(filename, 'r') as f:
             lines = f.readlines()
@@ -111,11 +113,13 @@ class ConstellationCatalog:
             if bsc_star:
                 bsc_star_list.append(bsc_star)
                 if not bsc_star.HD is None:
-                    bsc_map[bsc_star.HD] = bsc_star
-        return (bsc_map, bsc_star_list,)
+                    bsc_hd_map[bsc_star.HD] = bsc_star
+                    if bsc_star.HD in hd2hip_cross_id_map:
+                        bsc_hip_map[hd2hip_cross_id_map[bsc_star.HD]] = bsc_star
+        return (bsc_hd_map, bsc_hip_map, bsc_star_list,)
 
 
-    def _parse_constellation_line(self, line, const_catalog, cross_id_map):
+    def _parse_constellation_line(self, line, const_catalog, hip2hr_cross_id_map):
         constell = Constellation()
         constell_items = line.split()
         constell.name = constell_items[0].upper()
@@ -123,30 +127,42 @@ class ConstellationCatalog:
         for i in range(2, len(constell_items), 2):
             star_id1 = int(constell_items[i])
             star_id2 = int(constell_items[i+1])
-            if not star_id1 in cross_id_map:
+            if not star_id1 in hip2hr_cross_id_map:
                 print('Skipping constallation={} line. No HR for HIP={}'.format(constell.name, star_id1), flush=True)
                 continue
-            if not star_id2 in cross_id_map:
+            if not star_id2 in hip2hr_cross_id_map:
                 print('Skipping constallation={} line. No HR for HIP={}'.format(constell.name, star_id2), flush=True)
                 continue
-            star1 = self.bright_stars[cross_id_map[star_id1]-1]
-            star2 = self.bright_stars[cross_id_map[star_id2]-1]
+            star1 = self.bright_stars[hip2hr_cross_id_map[star_id1]-1]
+            star2 = self.bright_stars[hip2hr_cross_id_map[star_id2]-1]
             constell.lines.append([star1.ra, star1.dec, star2.ra, star2.dec])
             self.all_constell_lines.append([star1.ra, star1.dec, star2.ra, star2.dec])
         return constell
 
-
-    def _import_constellation(self, filename, boundaries_filename, cross_id_file, const_catalog):
-        # Import all saguaro objects that are not NGC or IC objects, or M40
-        constellation_list = []
-
-        cross_id_map = {}
+    def _load_cross_id_file(self, cross_id_file):
+        hip2hr_cross_id_map = {}
+        hd2hip_cross_id_map = {}
 
         with open(cross_id_file, 'r') as f:
             lines = f.readlines()
             for line in lines[1:]:
-                ids = line.split()
-                cross_id_map[int(ids[0])] = int(ids[-1])
+                ids = line.split('\t')
+
+                hip = int(ids[0].strip())
+                str_hd = ids[3].strip()
+                str_hr = ids[4].strip()
+
+                if str_hr.isdigit():
+                    hip2hr_cross_id_map[hip] = int(str_hr)
+                if str_hd.isdigit():
+                    hd2hip_cross_id_map[int(str_hd)] = hip
+        return hip2hr_cross_id_map, hd2hip_cross_id_map
+
+
+    def _import_constellation(self, filename, boundaries_filename, hip2hr_cross_id_map, const_catalog):
+        # Import all saguaro objects that are not NGC or IC objects, or M40
+        constellation_list = []
+
 
         with open(filename, 'r') as f:
             lines = f.readlines()
@@ -155,7 +171,7 @@ class ConstellationCatalog:
             line = line.strip()
             if line.startswith('#') or line == '':
                 continue
-            constell = self._parse_constellation_line(line, const_catalog, cross_id_map)
+            constell = self._parse_constellation_line(line, const_catalog, hip2hr_cross_id_map)
             constellation_list.append(constell)
 
         bf = open(boundaries_filename, 'r')
