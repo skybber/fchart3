@@ -304,6 +304,7 @@ class HtmStarCatalogComponent:
         for i in range(len(self._star_blocks)):
             self._star_blocks[i] = None
 
+
 class HtmStarCatalog(StarCatalog):
     '''
     Star catalog composed of HtmStarCatalogComponent. Each component represents one level of HTM tree
