@@ -444,98 +444,6 @@ class GeodesicStarCatalog(StarCatalog):
         self._cat_components[lev].init_tringle(index, c0, c1, c2)
 
 
-def get_radec_stars1(stars1, zone_data):
-    dim = len(stars1)
-
-    rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
-    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
-
-    return ra[:,0], dec[:,0], stars1['mag']
-
-
-def get_radec_stars2(stars2, zone_data):
-    dim = len(stars2)
-
-    ix01 = stars2['x01']
-
-    x0 = (ix01[:,0].astype(np.uint32) | ix01[:,1].astype(np.uint32)<<8 | (ix01[:,2] & 0xF).astype(np.uint32)<<16) << 12
-    x0 = x0.astype(np.int32) >> 12
-
-    x1 = (ix01[:,2]>>4 | ix01[:,3].astype(np.uint32)<<4 | ix01[:,4].astype(np.uint32)<<12) << 12
-    x1 = x1.astype(np.int32) >> 12
-
-    rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
-
-    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
-
-    return ra[:,0], dec[:,0], stars2['magbv']>>3
-
-
-def get_radec_stars3(stars3, zone_data):
-    dim = len(stars3)
-
-    ix01 = stars3['x01']
-    ibvx1 = stars3['bvx1']
-
-    x0 = (ix01[:,0] | ix01[:,1].astype(np.uint32)<<8 | (ix01[:,2] & 0x3).astype(np.uint32)<<16) << 14
-    x0 = x0.astype(np.int32) >> 14
-
-    x1 = (ix01[:,2]>>2 | ix01[:,3].astype(np.uint32)<<6 | (ibvx1&0xf).astype(np.uint32)<<14) << 14
-    x1 = x1.astype(np.int32) >> 14
-
-    rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
-    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
-
-    return ra[:,0], dec[:,0], stars3['magbv']>>3
-
-
-def convert_stars1(stars1, zone_data, mag_table, star_position_scale):
-    dim = len(stars1)
-
-    rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
-    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
-
-    mf = (np.pi/180.)*(0.0001/3600.) / star_position_scale
-
-    drectJ2000 = zone_data.get_J2000_pos(stars1['dx0'].reshape(dim, 1) * mf, stars1['dx1'].reshape(dim, 1) * mf)
-    d_ra, d_dec = rect_to_sphere(drectJ2000[:,[1]], drectJ2000[:,[1]], drectJ2000[:,[2]])
-
-    htm_stars1 = np.core.records.fromarrays( \
-        [ \
-            stars1['hip'],
-            stars1['cIds'],
-            ra[:,0] / np.pi * (12.0*1000000.0),
-            dec[:,0] / np.pi * (180.0*100000.0),
-            d_ra[:,0] / (12.0*1000000.0) * np.pi * 10,
-            d_dec[:,0] / (180.0*100000.0) * np.pi * 10,
-            stars1['bv'],
-            mag_table[stars1['mag']]*100,
-            stars1['spInt'],
-            stars1['plx'],
-        ], \
-        dtype=HTM_STARDATA_DT)
-
-    return htm_stars1
-
-
-def progress(count, total, suffix=''):
-    bar_len = 60
-    filled_len = int(round(bar_len * count / float(total)))
-
-    percents = round(100.0 * count / float(total), 1)
-    bar = '=' * filled_len + '-' * (bar_len - filled_len)
-
-    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', suffix))
-    sys.stdout.flush()  # As suggested by Rom Ruben
-
-
-def _get_htm_mesh(level):
-    mesh = htm_meshes.get(level)
-    if not mesh:
-        mesh = HTM(level)
-        htm_meshes[level] = mesh
-    return mesh
-
 class TrixelData:
     def __init__(self):
         self.center = None
@@ -597,6 +505,104 @@ class TrixelLev:
         h = abs(mu1)*f
         if self._star_position_scale < h:
             self._star_position_scale = h
+
+
+def get_radec_stars1(stars1, zone_data):
+    dim = len(stars1)
+
+    rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
+    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
+
+    return ra[:,0], dec[:,0], stars1['mag']
+
+
+def get_radec_stars2(stars2, zone_data):
+    dim = len(stars2)
+
+    ix01 = stars2['x01']
+
+    x0 = (ix01[:,0].astype(np.uint32) | ix01[:,1].astype(np.uint32)<<8 | (ix01[:,2] & 0xF).astype(np.uint32)<<16) << 12
+    x0 = x0.astype(np.int32) >> 12
+
+    x1 = (ix01[:,2]>>4 | ix01[:,3].astype(np.uint32)<<4 | ix01[:,4].astype(np.uint32)<<12) << 12
+    x1 = x1.astype(np.int32) >> 12
+
+    rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
+
+    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
+
+    return ra[:,0], dec[:,0], stars2['magbv']>>3
+
+
+def get_radec_stars3(stars3, zone_data):
+    dim = len(stars3)
+
+    ix01 = stars3['x01']
+    ibvx1 = stars3['bvx1']
+
+    x0 = (ix01[:,0] | ix01[:,1].astype(np.uint32)<<8 | (ix01[:,2] & 0x3).astype(np.uint32)<<16) << 14
+    x0 = x0.astype(np.int32) >> 14
+
+    x1 = (ix01[:,2]>>2 | ix01[:,3].astype(np.uint32)<<6 | (ibvx1&0xf).astype(np.uint32)<<14) << 14
+    x1 = x1.astype(np.int32) >> 14
+
+    rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
+    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
+
+    return ra[:,0], dec[:,0], stars3['magbv']>>3
+
+
+def convert_stars1(stars1, zone_data, mag_table, star_position_scale):
+    dim = len(stars1)
+
+    rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
+    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
+
+    mf = (np.pi/180.)*(0.0001/3600.0) / star_position_scale
+
+    # seems like weird idea to convert stellarium format to equatorial
+    drectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1)+stars1['dx0'].reshape(dim, 1) * mf, stars1['x1'].reshape(dim, 1)+stars1['dx1'].reshape(dim, 1) * mf)
+    year_mov_ra, year_mov_dec = rect_to_sphere(drectJ2000[:,[0]], drectJ2000[:,[1]], drectJ2000[:,[2]])
+
+    d_ra = ra - year_mov_ra
+    d_dec = dec - year_mov_dec
+
+    htm_stars1 = np.core.records.fromarrays( \
+        [ \
+            stars1['hip'],
+            stars1['cIds'],
+            ra[:,0] * 1000000.0,
+            dec[:,0] * 1000000.0,
+            d_ra[:,0] * 1000000.0 * 10,
+            d_dec[:,0] * 100000.0 * 10,
+            stars1['bv'],
+            mag_table[stars1['mag']]*100,
+            stars1['spInt'],
+            stars1['plx'],
+        ], \
+        dtype=HTM_STARDATA_DT)
+
+
+    return htm_stars1
+
+
+def progress(count, total, suffix=''):
+    bar_len = 60
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', suffix))
+    sys.stdout.flush()  # As suggested by Rom Ruben
+
+
+def _get_htm_mesh(level):
+    mesh = htm_meshes.get(level)
+    if not mesh:
+        mesh = HTM(level)
+        htm_meshes[level] = mesh
+    return mesh
 
 def init_trixel_lev(depth, index, v0, v1, v2):
     trixel_levels[depth].init_trixel(index, v0, v1, v2)
@@ -665,17 +671,19 @@ if __name__ == '__main__':
         for zone in range(nr_of_zones):
             zone_stars = cat_comp.get_raw_zone_stars(zone)
             progress(zone, nr_of_zones, suffix=progress_suffix)
-            conv_stars = None
-            if cat_comp.file_type == 0:
-                conv_stars = convert_stars1(zone_stars, zone_data, mag_table, star_position_scale)
-            elif cat_comp.file_type == 1:
-                # conv_stars = convert_stars2(zone_stars, zone_data, mag_table, star_position_scale)
-                pass
-            else:
-                # conv_stars = convert_stars3(zone_stars, zone_data, mag_table, star_position_scale)
-                pass
-            if conv_stars is not None:
-                print(conv_stars)
+            if len(zone_stars)>0:
+                conv_stars = None
+                zone_data = cat_comp.get_zone_data(zone)
+                if cat_comp.file_type == 0:
+                    conv_stars = convert_stars1(zone_stars, zone_data, mag_table, star_position_scale)
+                elif cat_comp.file_type == 1:
+                    # conv_stars = convert_stars2(zone_stars, zone_data, mag_table, star_position_scale)
+                    pass
+                else:
+                    # conv_stars = convert_stars3(zone_stars, zone_data, mag_table, star_position_scale)
+                    pass
+                # if conv_stars is not None:
+                    # print(conv_stars)
 
         sys.stdout.write('\n')
         sys.stdout.flush()
