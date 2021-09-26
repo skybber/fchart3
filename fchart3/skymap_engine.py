@@ -527,7 +527,7 @@ class SkymapEngine:
             index = indices[i]
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
             if xx >= x1-rr and xx <= x2+rr and yy >= y1-rr and yy <= y2+rr:
-                self.star(xx, yy, rr, star_catalog.get_star_color(selection[index].item()))
+                self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
                 bsc_star = selection[index]['bsc']
                 if not bsc_star is None:
                     named_star_list.append((xx, yy, rr, bsc_star,))
