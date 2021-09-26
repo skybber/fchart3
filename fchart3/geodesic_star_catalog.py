@@ -671,13 +671,13 @@ class GeodesicStarCatalog(StarCatalog):
             self._geodesic_grid.search_zones(lev_spherical_caps, self.search_result, max_search_level)
 
             for lev in range(max_search_level + 1):
-                print('Inside iterator')
+                # print('Inside iterator')
                 inside_iterator = GeodesicSearchInsideIterator(self.search_result, lev)
                 stars = self._select_stars_from_zones(inside_iterator, lev, lm_stars)
                 if len(stars) > 0:
                     tmp_arr += stars
 
-                print('Border iterator')
+                # print('Border iterator')
                 border_iterator = GeodesicSearchBorderIterator(self.search_result, lev)
                 stars = self._select_stars_from_zones(border_iterator, lev, lm_stars)
                 if len(stars) > 0:
