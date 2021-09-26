@@ -493,15 +493,21 @@ class SkymapEngine:
     def draw_stars(self, star_catalog):
         # Select and draw stars
         print('Drawing stars...')
+
+        # tm = time()
         selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars)
         if selection is None or len(selection) == 0:
             print('No stars found.')
             return
 
+        # print("Stars selection {} ms".format(str(time()-tm)), flush=True)
         print('{} stars in map.'.format(selection.shape[0]))
         print('Faintest star: ' + str(int(max(selection['mag'])*100.0 + 0.5)/100.0))
 
+        # tm = time()
         x, y = radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+
+        # print("Stars view positioning {} ms".format(str(time()-tm)), flush=True)
 
         mag = selection['mag']
 

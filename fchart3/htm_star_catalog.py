@@ -340,7 +340,7 @@ class HtmStarCatalog(StarCatalog):
     def _select_stars_from_mesh(self, catalog, fieldcentre, radius, lm_stars):
         sky_mesh = catalog.get_sky_mesh()
         intersecting_trixels = sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
-        mesh_stars = None
+        stars = []
         mask = 1 << (sky_mesh.get_depth() * 2 + 3)
 
         for trixel in intersecting_trixels:
@@ -348,14 +348,11 @@ class HtmStarCatalog(StarCatalog):
             if not trixel_stars is None and len(trixel_stars) > 0:
                 mag = trixel_stars['mag']
                 trixel_stars = trixel_stars[mag <= lm_stars]
-                if mesh_stars is None:
-                    mesh_stars= trixel_stars
-                else:
-                    mesh_stars = np.append(mesh_stars, trixel_stars)
-        return mesh_stars
+                stars.append(trixel_stars)
+        return stars
 
 
-    def select_stars(self, fieldcentre, radius, lm_stars):
+    def select_stars(self, fieldcentre, radius, lm_stars, rect_coords=False):
         """
         Return an array containing of items [[ra, dec, mag], [ra, dec, mag]...]
         for all stars in the field centered around fieldcentre with iven radius,
@@ -365,9 +362,9 @@ class HtmStarCatalog(StarCatalog):
 
         for cat in self._deepstar_catalogs:
             if cat.get_trig_mag() < lm_stars:
-                mesh_stars = self._select_stars_from_mesh(cat, fieldcentre, radius, lm_stars)
-                if mesh_stars is not None and mesh_stars.shape[0] > 0:
-                    tmp_arr.append(mesh_stars)
+                stars = self._select_stars_from_mesh(cat, fieldcentre, radius, lm_stars)
+                if len(stars) > 0:
+                    tmp_arr += stars
 
         selected_stars = np.concatenate(tmp_arr, axis=0)
 

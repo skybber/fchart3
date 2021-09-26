@@ -268,9 +268,9 @@ STAR3_DT = np.dtype([('x01', np.uint8, (4,)),
                     ])
 
 
-ZONE_STARDATA_DT = np.dtype([('ra', np.float64),
-                             ('dec', np.float64),
-                             ('mag', np.float64),
+ZONE_STARDATA_DT = np.dtype([('ra', np.float32),
+                             ('dec', np.float32),
+                             ('mag', np.float32),
                              ('bvind', np.uint8),
                              ('bsc', np.dtype(object))
                            ])
@@ -578,23 +578,24 @@ class GeodesicStarCatalog(StarCatalog):
     Star catalog composed of GeodesicStarCatalogComponent. Each component represents
     one level of Geodesic tree.
     """
-    def __init__(self, data_dir, bsc_hip_map):
+    def __init__(self, data_dir, extra_data_dir, bsc_hip_map):
         self._cat_components = []
         max_file_num = 8
         for i in range(max_file_num+1):
-            cat_comp = self._load_gsc_component(data_dir, 'stars_{}_*.cat'.format(i))
+            cat_file_name_regexp = 'stars_{}_*.cat'
+            cat_comp = self._load_gsc_component(data_dir, cat_file_name_regexp.format(i))
             if not cat_comp:
-                break
+                if extra_data_dir:
+                    cat_comp = self._load_gsc_component(extra_data_dir, cat_file_name_regexp.format(i))
+                if not cat_comp:
+                    break
             if cat_comp.level != i:
                 print("File {} has invalid catalog level.".format(self._file_name))
                 break
             print('{} stars readed from {}'.format(cat_comp.nr_of_stars, os.path.split(cat_comp.file_name)[1]))
             self._cat_components.append(cat_comp)
 
-        if i == max_file_num:
-            self._max_geodesic_grid_level = max_file_num
-        else:
-            self._max_geodesic_grid_level = i-1 if i > 0 else 0
+        self._max_geodesic_grid_level = self._cat_components[-1].level
 
         self._geodesic_grid = GeodesicGrid(self._max_geodesic_grid_level)
         self._geodesic_grid.visit_triangles(self._max_geodesic_grid_level, self.init_tringle)
@@ -619,19 +620,16 @@ class GeodesicStarCatalog(StarCatalog):
 
 
     def _select_stars_from_zones(self, iterator, lev, lm_stars):
-        stars = None
+        stars = []
         zone = iterator.next()
         while zone != -1:
             zone_stars = self._cat_components[lev].get_zone_stars(zone)
-            print('Level={} Zone={} Len={}'.format(lev, zone, len(zone_stars)))
+            # print('Level={} Zone={} Len={}'.format(lev, zone, len(zone_stars)))
             if len(zone_stars) > 0:
                 mag = zone_stars['mag']
                 zone_stars = zone_stars[mag <= lm_stars]
                 if len(zone_stars) > 0:
-                    if stars is None:
-                        stars= zone_stars
-                    else:
-                        stars = np.append(stars, zone_stars)
+                    stars.append(zone_stars)
             zone = iterator.next()
         return stars
 
@@ -676,14 +674,14 @@ class GeodesicStarCatalog(StarCatalog):
                 print('Inside iterator')
                 inside_iterator = GeodesicSearchInsideIterator(self.search_result, lev)
                 stars = self._select_stars_from_zones(inside_iterator, lev, lm_stars)
-                if stars is not None and stars.shape[0] > 0:
-                    tmp_arr.append(stars)
+                if len(stars) > 0:
+                    tmp_arr += stars
 
                 print('Border iterator')
                 border_iterator = GeodesicSearchBorderIterator(self.search_result, lev)
                 stars = self._select_stars_from_zones(border_iterator, lev, lm_stars)
-                if stars is not None and stars.shape[0] > 0:
-                    tmp_arr.append(stars)
+                if len(stars) > 0:
+                    tmp_arr += stars
 
         return np.concatenate(tmp_arr, axis=0) if len(tmp_arr) > 0 else None
 

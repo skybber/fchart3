@@ -82,6 +82,9 @@ class RuntimeSettings:
                                     help='Specify output file name. (default: name of dso object). Image format is defined by extension.' +\
                                          'Supported format/extensions are pdf, png and svg.')
 
+        argumentparser.add_argument('--extra-data-dir', dest='extra_data_dir', nargs='?', action='store',
+                                    help='Path to extra data files (stellarium star catalogues)')
+
         argumentparser.add_argument('-limdso', dest='limiting_magnitude_deepsky', nargs='?', action='store', default=12.5, type=float,
                                     help='Deepsky limiting magnitude (default: 12.5)')
         argumentparser.add_argument('-limstar', dest='limiting_magnitude_stars', nargs='?', action='store', default=13.8, type=float,
@@ -337,12 +340,15 @@ if __name__ == '__main__':
 
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
 
-    used_catalogs = UsedCatalogs(data_dir, settings.parser.usno_nomad_file,
+    used_catalogs = UsedCatalogs(data_dir,
+                                 extra_data_dir = settings.parser.extra_data_dir,
                                  limiting_magnitude_deepsky = settings.parser.limiting_magnitude_deepsky,
                                  force_messier = settings.parser.force_messier,
                                  force_asterisms = settings.parser.force_asterisms,
                                  force_unknown = settings.parser.force_unknown,
-                                 show_catalogs = show_catalogs)
+                                 show_catalogs = show_catalogs,
+                                 settings.parser.usno_nomad_file,
+                                 )
 
     print("Chart generated in : " + str(time()-tm) + "ms")
     # Final report before mapmaking
@@ -359,6 +365,8 @@ if __name__ == '__main__':
     print('   Force pg       : '+ str(settings.parser.force_unknown))
     print('   Extra points   : '+ str(len(settings.extra_positions_list)))
     print('   Show dso legend: '+ str(settings.parser.show_dso_legend))
+    if settings.parser.extra_data_dir:
+        print('   Extra data directory: '+ str(settings.parser.extra_data_dir))
     if settings.parser.usno_nomad_file:
         print('   USNO NOMAD catalog: '+ str(settings.parser.usno_nomad_file))
 
