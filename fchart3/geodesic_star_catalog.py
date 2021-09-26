@@ -664,7 +664,9 @@ class GeodesicStarCatalog(StarCatalog):
             print('Radius: {}'.format(radius/np.pi*180.0))
             for lev in range(max_search_level+1):
                 radius_inner = radius
-                radius_outer = TRIANGLE_CENTER_FACTOR * self._cat_components[lev].triangle_size + radius
+                # use asin() since it is chord on sphere
+                triangle_radius = 2 * math.asin(TRIANGLE_CENTER_FACTOR * self._cat_components[lev].triangle_size)
+                radius_outer = triangle_radius + radius
                 lev_spherical_caps.append(SphericalCap(field_rect3, math.cos(radius_inner), math.cos(radius_outer)))
 
             self.search_result.reset()
