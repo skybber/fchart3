@@ -25,6 +25,7 @@ from time import time
 
 from fchart3.htm.htm import HTM
 from fchart3.astrocalc import *
+from fchart3.np_astrocalc import *
 from fchart3.vector_math import *
 from fchart3.star_catalog import *
 from fchart3.geodesic_binfile_reader import *
@@ -511,7 +512,7 @@ def get_radec_stars1(stars1, zone_data):
     dim = len(stars1)
 
     rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
-    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
+    ra, dec = np_rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
 
     return ra[:,0], dec[:,0], stars1['mag']
 
@@ -529,7 +530,7 @@ def get_radec_stars2(stars2, zone_data):
 
     rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
 
-    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
+    ra, dec = np_rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
 
     return ra[:,0], dec[:,0], stars2['magbv']>>3
 
@@ -556,13 +557,13 @@ def convert_stars1(stars1, zone_data, mag_table, star_position_scale):
     dim = len(stars1)
 
     rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
-    ra, dec = rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
+    ra, dec = np_rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
 
     mf = (np.pi/180.)*(0.0001/3600.0) / star_position_scale
 
     # seems like weird idea to convert stellarium format to equatorial
     drectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1)+stars1['dx0'].reshape(dim, 1) * mf, stars1['x1'].reshape(dim, 1)+stars1['dx1'].reshape(dim, 1) * mf)
-    year_mov_ra, year_mov_dec = rect_to_sphere(drectJ2000[:,[0]], drectJ2000[:,[1]], drectJ2000[:,[2]])
+    year_mov_ra, year_mov_dec = np_rect_to_sphere(drectJ2000[:,[0]], drectJ2000[:,[1]], drectJ2000[:,[2]])
 
     d_ra = ra - year_mov_ra
     d_dec = dec - year_mov_dec

@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import numpy as np
+import math
 
 def angular_distance(position1, position2):
     """
@@ -27,8 +27,8 @@ def angular_distance(position1, position2):
     (start_ra, start_dec) = position1
     (end_ra, end_dec)     = position2
     a = start_ra-end_ra
-    arg = np.sin(start_dec)*np.sin(end_dec) + np.cos(start_dec)*np.cos(end_dec)*np.cos(a)
-    return np.arccos(arg)
+    arg = math.sin(start_dec)*math.sin(end_dec) + math.cos(start_dec)*math.cos(end_dec)*math.cos(a)
+    return math.acos(arg)
 
 
 
@@ -57,7 +57,7 @@ def rad2hms_t(angle):
     sign = 1
     if angle < 0:
         sign = -1
-    p2 = 2.0*np.pi
+    p2 = 2.0*math.pi
     h  = (sign*angle/p2)*24.0
     h_int = int(h + 1e-8)
     m  = (h - h_int)*60.0
@@ -75,7 +75,7 @@ def rad2dms_t(angle):
     sign = 1
     if angle < 0:
         sign = -1
-    p2 = 2.0*np.pi
+    p2 = 2.0*math.pi
     d  = (sign*angle/p2)*360.0
     d_int = int(d + 1e-8)
     m  = (d - d_int)*60.0
@@ -91,7 +91,7 @@ def rad2dms_t(angle):
 def rad2hms(angle):
     """
     Converts an angle in radians to a string in a 24-hour, hour,
-    minute, seconds format. 0 <= angle < 2np.pi.
+    minute, seconds format. 0 <= angle < 2math.pi.
 
     Usage:
         rad2hms(0.345) => '1h19m4.09054368322'
@@ -104,7 +104,7 @@ def rad2hms(angle):
 def rad2dms(angle):
     """
     Converts an angle in radians to a string in a 360 degree, degree,
-    minute, seconds format. 0 <= angle < 2np.pi.
+    minute, seconds format. 0 <= angle < 2math.pi.
 
     Usage:
         rad2dms(0.345) => '19d46m1.35815524824'
@@ -119,7 +119,7 @@ def dms2rad(d,m=0,s=0, sign=1):
     radians. The parameters d, m and s MUST be positive. If a negative
     angle needs to be converted, then sign must be set to -1.
     """
-    return sign*(d + m/60.0 + s/3600.0)*np.pi/180.0
+    return sign*(d + m/60.0 + s/3600.0)*math.pi/180.0
 
 
 def hms2rad(h,m=0,s=0, sign=1):
@@ -129,7 +129,7 @@ def hms2rad(h,m=0,s=0, sign=1):
     be set to -1.
 
     """
-    return (sign*(h + m/60.0 + s/3600.0)*np.pi/12.0)
+    return (sign*(h + m/60.0 + s/3600.0)*math.pi/12.0)
 
 
 def lm_to_radec(lm, fieldcentre):
@@ -144,8 +144,8 @@ def lm_to_radec(lm, fieldcentre):
     """
     (l,m) = lm
     (alpha0, delta0) = fieldcentre
-    alpha = alpha0 + np.arctan2(l,(np.cos(delta0)*np.sqrt(1-l*l -m*m) - m*np.sin(delta0)))
-    delta = np.asin((m*np.cos(delta0) + np.sin(delta0)*np.sqrt(1-l*l - m*m)))
+    alpha = alpha0 + math.atan2(l,(math.cos(delta0)*math.sqrt(1-l*l -m*m) - m*math.sin(delta0)))
+    delta = math.asin((m*math.cos(delta0) + math.sin(delta0)*math.sqrt(1-l*l - m*m)))
     return (alpha, delta)
 
 
@@ -161,15 +161,15 @@ def radec_to_lm(radec, fieldcentre):
     (ra, dec) = radec
     (ra0, dec0) = fieldcentre
     delta_ra = ra - ra0
-    l = np.cos(dec)*np.sin(delta_ra)
-    m = np.sin(dec)*np.cos(dec0) - np.cos(dec)*np.cos(delta_ra)*np.sin(dec0)
+    l = math.cos(dec)*math.sin(delta_ra)
+    m = math.sin(dec)*math.cos(dec0) - math.cos(dec)*math.cos(delta_ra)*math.sin(dec0)
     return (l,m)
 
 
 def radec_to_lmz(ra, dec, fieldcentre):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
-    a fieldcentre (alpha0, delta0) to direction cosines (l, m). All
+    a fieldcentre (alpha0, delta0) to direction cosines (l, m, z). All
     units are in radians. radec is a tuple (alpha, delta), Fieldcentre
     is a tuple (alpha0, delta0). The routine returns a tuple (l,m,z).
     The formulae are taken from Greisen 1983: AIPS Memo 27,
@@ -178,15 +178,15 @@ def radec_to_lmz(ra, dec, fieldcentre):
     (ra0, dec0) = fieldcentre
     delta_ra = ra - ra0
 
-    sin_dec = np.sin(dec)
-    cos_dec = np.cos(dec)
-    cos_dec0 = np.cos(dec0)
-    sin_dec0 = np.sin(dec0)
-    cos_delta_ra = np.cos(delta_ra)
+    sin_dec = math.sin(dec)
+    cos_dec = math.cos(dec)
+    cos_dec0 = math.cos(dec0)
+    sin_dec0 = math.sin(dec0)
+    cos_delta_ra = math.cos(delta_ra)
 
     z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-    l = np.where(z>0,cos_dec*np.sin(delta_ra),0)
-    m = np.where(z>0,sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0,0)
+    l = cos_dec*math.sin(delta_ra) if z>0 else 0
+    m = sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0 if z>0 else 0
     return (l,m,z)
 
 
@@ -202,15 +202,15 @@ def radec_to_xyz(ra, dec, fieldcentre, scale, fc_sincos_dec):
     (ra0, dec0) = fieldcentre
     delta_ra = ra - ra0
 
-    sin_dec = np.sin(dec)
-    cos_dec = np.cos(dec)
-    cos_dec0 = fc_sincos_dec[1] # np.cos(dec0)
-    sin_dec0 = fc_sincos_dec[0] # np.sin(dec0)
-    cos_delta_ra = np.cos(delta_ra)
+    sin_dec = math.sin(dec)
+    cos_dec = math.cos(dec)
+    cos_dec0 = fc_sincos_dec[1] # math.cos(dec0)
+    sin_dec0 = fc_sincos_dec[0] # math.sin(dec0)
+    cos_delta_ra = math.cos(delta_ra)
 
     z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-    x = np.where(z>0,-cos_dec*np.sin(delta_ra)*scale,0)
-    y = np.where(z>0,(sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*scale,0)
+    x = -cos_dec*math.sin(delta_ra)*scale if z>0 else 0
+    y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*scale if z>0 else 0
     return (x,y,z)
 
 
@@ -226,13 +226,13 @@ def radec_to_xy(ra, dec, fieldcentre, scale, fc_sincos_dec):
     (ra0, dec0) = fieldcentre
     delta_ra = ra - ra0
 
-    sin_dec = np.sin(dec)
-    cos_dec = np.cos(dec)
-    cos_dec0 = fc_sincos_dec[1] # np.cos(dec0)
-    sin_dec0 = fc_sincos_dec[0] # np.sin(dec0)
-    cos_delta_ra = np.cos(delta_ra)
+    sin_dec = math.sin(dec)
+    cos_dec = math.cos(dec)
+    cos_dec0 = fc_sincos_dec[1] # math.cos(dec0)
+    sin_dec0 = fc_sincos_dec[0] # math.sin(dec0)
+    cos_delta_ra = math.cos(delta_ra)
 
-    x = -cos_dec*np.sin(delta_ra)*scale
+    x = -cos_dec*math.sin(delta_ra)*scale
     y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*scale
     return (x,y)
 
@@ -249,10 +249,10 @@ def direction_ddec(radec, fieldcentre, fc_sincos_dec):
     (ra0, dec0) = fieldcentre
     (ra, dec)   = radec
 
-    cos_dec0 = fc_sincos_dec[1] # np.cos(dec0)
-    sin_dec0 = fc_sincos_dec[0] # np.sin(dec0)
+    cos_dec0 = fc_sincos_dec[1] # math.cos(dec0)
+    sin_dec0 = fc_sincos_dec[0] # math.sin(dec0)
 
-    angle = np.arctan2(-np.sin(dec)*np.sin(ra-ra0), np.cos(dec)*cos_dec0 + np.sin(dec)*sin_dec0*np.cos(ra-ra0))
+    angle = math.atan2(-math.sin(dec)*math.sin(ra-ra0), math.cos(dec)*cos_dec0 + math.sin(dec)*sin_dec0*math.cos(ra-ra0))
     return angle
 
 
@@ -260,17 +260,17 @@ def sphere_to_rect(ra, dec):
     """
     Convert from spherical coordinates to Rectangular direction.
     """
-    cos_dec = np.cos(dec);
-    return (np.cos(ra) * cos_dec, np.sin(ra) * cos_dec, np.sin(dec));
+    cos_dec = math.cos(dec);
+    return (math.cos(ra) * cos_dec, math.sin(ra) * cos_dec, math.sin(dec));
 
 
 def rect_to_sphere(x1, x2, x3):
     """
     Convert from Rectangular direction to spherical coordinate components.
     """
-    r = np.sqrt(x1*x1 + x2*x2 + x3*x3)
-    ra = np.arctan2(x2, x1);
-    dec = np.arcsin(x3/r);
+    r = math.sqrt(x1*x1 + x2*x2 + x3*x3)
+    ra = math.atan2(x2, x1);
+    dec = math.asin(x3/r);
     return (ra, dec)
 
 

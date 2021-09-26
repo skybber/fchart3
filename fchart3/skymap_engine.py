@@ -23,6 +23,7 @@ from time import time
 
 from .label_potential import *
 from .astrocalc import *
+from .np_astrocalc import *
 from .constellation import *
 from .mirroring_graphics import *
 from .configuration import *
@@ -262,7 +263,7 @@ class SkymapEngine:
         # calc for deepsky objects from showing dsos
         for object in filtered_showing_dsos:
             if angular_distance((object.ra, object.dec), self.fieldcentre) < self.fieldsize:
-                x, y, z  =  radec_to_xyz(object.ra, object.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                x, y, z  = radec_to_xyz(object.ra, object.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                 if z > 0:
                     rlong  = object.rlong*self.drawingscale
                     if object.type == deepsky.GALCL:
@@ -334,7 +335,7 @@ class SkymapEngine:
                         if outlines_ar:
                             has_outlines = True
                             for outlines in outlines_ar:
-                                x_outl, y_outl = radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                                x_outl, y_outl = np_radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                                 self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
                         else:
                             lev_shift += 1
@@ -375,7 +376,7 @@ class SkymapEngine:
                     continue
                 for outl in outlines:
                     if z > 0:
-                        x_outl, y_outl = radec_to_xy(outl[0], outl[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                        x_outl, y_outl = np_radec_to_xy(outl[0], outl[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                         self.unknown_diffuse_nebula_outlines(x_outl, y_outl, outl_lev)
 
 
@@ -505,7 +506,7 @@ class SkymapEngine:
         print('Faintest star: ' + str(int(max(selection['mag'])*100.0 + 0.5)/100.0))
 
         # tm = time()
-        x, y = radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x, y = np_radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         # print("Stars view positioning {} ms".format(str(time()-tm)), flush=True)
 
@@ -743,8 +744,8 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
-        x1, y1, z1 = radec_to_xyz(constell_catalog.all_constell_lines[:,0], constell_catalog.all_constell_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-        x2, y2, z2 = radec_to_xyz(constell_catalog.all_constell_lines[:,2], constell_catalog.all_constell_lines[:,3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x1, y1, z1 = np_radec_to_xyz(constell_catalog.all_constell_lines[:,0], constell_catalog.all_constell_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x2, y2, z2 = np_radec_to_xyz(constell_catalog.all_constell_lines[:,2], constell_catalog.all_constell_lines[:,3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
@@ -765,7 +766,7 @@ class SkymapEngine:
         self.graphics.save()
         self.graphics.set_dashed_line(1.2, 1.2)
 
-        x, y, z = radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x, y, z = np_radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
