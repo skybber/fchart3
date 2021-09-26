@@ -295,36 +295,54 @@ class GeodesicGrid:
 
         if corner0_in_inner and corner1_in_inner and corner2_in_inner:
             search_result.add_inside_index(lev, index) # totally inside
+            return True
         else:
-            search_result.add_border_index(lev, index)
 
-            if lev < max_search_level:
-                t = self._triangles[lev][index]
-                lev += 1
-                index <<= 2
+            if lev >= max_search_level:
+                search_result.add_border_index(lev, index)
+                return True
 
-                edge0_in_inner = lev_spherical_caps[lev].inside_inner(t[0])
-                edge1_in_inner = lev_spherical_caps[lev].inside_inner(t[1])
-                edge2_in_inner = lev_spherical_caps[lev].inside_inner(t[2])
+            master_lev = lev
+            master_index = index
 
-                if lev_spherical_caps[lev].inside_outer(self._triangle_centers[lev][index+0]):
-                    self._search_zones(lev, index+0, lev_spherical_caps,
-                                       corner0_in_inner, edge2_in_inner, edge1_in_inner,
-                                       search_result, max_search_level)
+            t = self._triangles[lev][index]
+            lev += 1
+            index <<= 2
 
-                if lev_spherical_caps[lev].inside_outer(self._triangle_centers[lev][index+1]):
-                    self._search_zones(lev, index+1, lev_spherical_caps,
-                                       edge2_in_inner, corner1_in_inner, edge0_in_inner,
-                                       search_result, max_search_level)
+            edge0_in_inner = lev_spherical_caps[lev].inside_inner(t[0])
+            edge1_in_inner = lev_spherical_caps[lev].inside_inner(t[1])
+            edge2_in_inner = lev_spherical_caps[lev].inside_inner(t[2])
 
-                if lev_spherical_caps[lev].inside_outer(self._triangle_centers[lev][index+2]):
-                    self._search_zones(lev, index+2, lev_spherical_caps,
-                                       edge1_in_inner, edge0_in_inner, corner2_in_inner,
-                                       search_result, max_search_level)
+            in1 = False
+            in2 = False
+            in3 = False
+            in4 = False
 
-                self._search_zones(lev, index+3, lev_spherical_caps,
-                                   edge0_in_inner, edge1_in_inner, edge2_in_inner,
-                                   search_result, max_search_level)
+            if lev_spherical_caps[lev].inside_outer(self._triangle_centers[lev][index+0]):
+                in1 = self._search_zones(lev, index+0, lev_spherical_caps,
+                                         corner0_in_inner, edge2_in_inner, edge1_in_inner,
+                                         search_result, max_search_level)
+
+            if lev_spherical_caps[lev].inside_outer(self._triangle_centers[lev][index+1]):
+                in2 = self._search_zones(lev, index+1, lev_spherical_caps,
+                                         edge2_in_inner, corner1_in_inner, edge0_in_inner,
+                                         search_result, max_search_level)
+
+            if lev_spherical_caps[lev].inside_outer(self._triangle_centers[lev][index+2]):
+                in3 = self._search_zones(lev, index+2, lev_spherical_caps,
+                                         edge1_in_inner, edge0_in_inner, corner2_in_inner,
+                                         search_result, max_search_level)
+
+            if lev_spherical_caps[lev].inside_outer(self._triangle_centers[lev][index+3]):
+                in4 = self._search_zones(lev, index+3, lev_spherical_caps,
+                                         edge0_in_inner, edge1_in_inner, edge2_in_inner,
+                                         search_result, max_search_level)
+
+            if in1 or in2 or in3 or in4:
+                search_result.add_border_index(master_lev, master_index)
+                return True
+            return False
+
 
 
     def visit_triangles(self, max_visit_level, visit_func):
