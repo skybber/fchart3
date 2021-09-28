@@ -397,9 +397,7 @@ class SkymapEngine:
 
         self.graphics.set_pen_rgb(self.config.milky_way_color)
         self.graphics.set_fill_rgb(self.config.milky_way_color)
-        self.graphics.set_linewidth(0)
-        # use in mw outline mode
-        # self.graphics.set_linewidth(self.config.milky_way_linewidth)
+        self.graphics.set_linewidth(self.config.milky_way_linewidth)
 
         polygon = None
         for i in range(len(x)-1):
