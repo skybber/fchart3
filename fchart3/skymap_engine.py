@@ -1270,8 +1270,8 @@ class SkymapEngine:
             d = self.drawingwidth/40.0
 
         for i in range(len(x_outl)-1):
-            self.mirroring_graphics.line(x_outl[i], y_outl[i], x_outl[i+1], y_outl[i+1])
-        self.mirroring_graphics.line(x_outl[len(x_outl)-1], y_outl[len(x_outl)-1], x_outl[0], y_outl[0])
+            self.mirroring_graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
+        self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
         fh = self.graphics.gi_fontsize
         if label != '':
@@ -1307,8 +1307,8 @@ class SkymapEngine:
         self.graphics.set_pen_rgb((pen_r, pen_g, pen_b))
 
         for i in range(len(x_outl)-1):
-            self.mirroring_graphics.line(x_outl[i], y_outl[i], x_outl[i+1], y_outl[i+1])
-        self.mirroring_graphics.line(x_outl[len(x_outl)-1], y_outl[len(x_outl)-1], x_outl[0], y_outl[0])
+            self.mirroring_graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
+        self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
         self.graphics.restore()
 
