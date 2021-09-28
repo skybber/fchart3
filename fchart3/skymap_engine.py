@@ -329,21 +329,17 @@ class SkymapEngine:
             elif object.type == deepsky.N:
                 has_outlines = False
                 if object.outlines is not None:
-                    lev_shift = 0
-                    for outl_lev in range(2, -1, -1):
-                        outlines_ar = object.outlines[outl_lev]
-                        if outlines_ar:
-                            has_outlines = True
-                            for outlines in outlines_ar:
-                                x_outl, y_outl = np_radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-                                self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
-                        else:
-                            lev_shift += 1
+                    has_outlines = self.draw_object_outlines(object, x, y, rlong, rshort, posangle, label, labelpos)
                 if not has_outlines:
                     self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
             elif object.type == deepsky.PN:
                 self.planetary_nebula(x, y, rlong, label, labelpos)
             elif object.type == deepsky.OC:
+                has_outlines = False
+                if object.outlines is not None:
+                    has_outlines = self.draw_object_outlines(object, x, y, rlong, rshort)
+                    if has_outlines:
+                        print('Outlines {}'.format(object.name))
                 self.open_cluster(x, y, rlong, label, labelpos)
             elif object.type == deepsky.GC:
                 self.globular_cluster(x, y, rlong, label, labelpos)
@@ -362,6 +358,18 @@ class SkymapEngine:
                     xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
                     self.visible_objects_in_map.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
 
+    def draw_object_outlines(self, object, x, y, rlong, rshort, posangle=None, label=None, labelpos=None):
+        lev_shift = 0
+        for outl_lev in range(2, -1, -1):
+            outlines_ar = object.outlines[outl_lev]
+            if outlines_ar:
+                has_outlines = True
+                for outlines in outlines_ar:
+                    x_outl, y_outl = np_radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                    self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
+            else:
+                lev_shift += 1
+        return has_outlines
 
     def draw_unknown_nebula(self, unknown_nebulas):
         for uneb in unknown_nebulas:
