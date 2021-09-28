@@ -403,7 +403,7 @@ class SkymapEngine:
         for i in range(len(x)-1):
             if milky_way_lines[i][2] == 0:
                 if polygon is not None and len(polygon) > 2:
-                    self.graphics.polygon(polygon, DrawMode.FILL)
+                    self.graphics.polygon(polygon, DrawMode.BOTH)
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
                 polygon = None
                 if z1 > 0:
