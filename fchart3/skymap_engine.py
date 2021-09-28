@@ -384,13 +384,13 @@ class SkymapEngine:
 
         self.graphics.save()
 
+        tm = time()
         x, y, z = np_radec_to_xyz(milky_way_lines[:,0], milky_way_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         self.graphics.set_pen_rgb(self.config.milky_way_color)
         self.graphics.set_fill_rgb(self.config.milky_way_color)
         self.graphics.set_linewidth(self.config.milky_way_linewidth)
 
-        x1, y1, z1 = None, None, None
         polygon = None
         for i in range(len(x)-1):
             if milky_way_lines[i][2] == 0:
@@ -401,16 +401,16 @@ class SkymapEngine:
                 if z1 > 0:
                     polygon = [[x1, y1]]
             else:
-                x2, y2, z2 = x[i].item(), y[i].item(), z[i].item()
-                if z2 > 0:
+                x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
+                if z1 > 0:
                     if polygon is None:
                         polygon = []
-                    polygon.append([x2, y2])
-                x1, y1, z1 = x2, y2, z2
+                    polygon.append([x1, y1])
 
         if polygon is not None and len(polygon) > 2:
             self.graphics.polygon(polygon, DrawMode.FILL)
 
+        print("MW within {} ms".format(str(time()-tm)), flush=True)
         self.graphics.restore()
 
 
