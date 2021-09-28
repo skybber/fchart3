@@ -23,6 +23,7 @@ DEFAULT_DSO_LINEWIDTH = 0.2
 DEFAULT_LEGEND_LINEWIDTH = 0.2
 DEFAULT_GRID_LINEWIDTH = 0.2
 DEFAULT_DSO_HIGHLIGHT_LINEWIDTH = 0.3
+DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
 
 DEFAULT_BACKGROUND_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DRAW_COLOR = (0.0, 0.0, 0.0)
@@ -30,6 +31,7 @@ DEFAULT_LABEL_COLOR = (0.0, 0.0, 0.0)
 DEFAULT_CONSTELLATION_LINES_COLOR = (0.2, 0.7, 1.0)
 DEFAULT_CONSTELLATION_BORDER_COLOR = (0.95, 0.90, 0.1)
 DEFAULT_CONSTELLATION_HL_BORDER_COLOR = (1.0, 0.95, 0.5)
+DEFAULT_MILKY_WAY_COLOR = (0.2, 0.2, 0.2)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DSO_HIGHLIGHT_COLOR = (0.1, 0.2, 0.4)
 DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
@@ -52,6 +54,7 @@ class EngineConfiguration:
         self._show_constellation_shapes = True
         self._show_constellation_borders = True
         self._show_deepsky = True
+        self._show_milky_way = True
         self._fov_telrad = False
         self._mirror_x = False
         self._mirror_y = False
@@ -82,6 +85,8 @@ class EngineConfiguration:
         self._dso_highlight_linewidth = DEFAULT_DSO_HIGHLIGHT_LINEWIDTH
         self._dso_dynamic_brightness = False
         self._legend_font_scale = DEFAULT_LEGEND_FONT_SCALE
+        self._milky_way_color = DEFAULT_MILKY_WAY_COLOR
+        self._milky_way_linewidth = DEFAULT_MILKY_WAY_LINEWIDTH
 
     @property
     def legend_only(self):
@@ -186,6 +191,14 @@ class EngineConfiguration:
     @show_deepsky.setter
     def show_deepsky(self, value):
         self._show_deepsky = value
+
+    @property
+    def show_milky_way(self):
+        return self._show_milky_way
+
+    @show_milky_way.setter
+    def show_milky_way(self, value):
+        self._show_milky_way = value
 
     @property
     def fov_telrad(self):
@@ -427,4 +440,19 @@ class EngineConfiguration:
     def legend_font_scale(self, value):
         self._legend_font_scale = value
 
+    @property
+    def milky_way_color(self):
+        return self._milky_way_color
+
+    @milky_way_color.setter
+    def milky_way_color(self, value):
+        self._milky_way_color = value
+
+    @property
+    def milky_way_linewidth(self):
+        return self._milky_way_linewidth
+
+    @milky_way_linewidth.setter
+    def milky_way_linewidth(self, value):
+        self._milky_way_linewidth = value
 

@@ -380,6 +380,30 @@ class SkymapEngine:
                         self.unknown_diffuse_nebula_outlines(x_outl, y_outl, outl_lev)
 
 
+    def draw_milky_way(self, milky_way_lines):
+
+        self.graphics.save()
+
+        x, y, z = np_radec_to_xyz(milky_way_lines[:,0], milky_way_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+
+        self.graphics.set_pen_rgb(self.config.milky_way_color)
+        self.graphics.set_linewidth(self.config.milky_way_linewidth)
+
+        x1, y1, z1 = None, None, None
+        for i in range(len(x)-1):
+            if milky_way_lines[i][2] == 0:
+                x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
+            elif milky_way_lines[i][2] == 1:
+                x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
+            else:
+                x2, y2, z2 = x[i].item(), y[i].item(), z[i].item()
+                if z1 > 0 and z2 > 0:
+                    self.mirroring_graphics.line(x1, y1, x2, y2)
+                x1, y1, z1 = x2, y2, z2
+
+        self.graphics.restore()
+
+
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
         print('Drawing extra objects...')
@@ -827,6 +851,9 @@ class SkymapEngine:
         w_maps_width, w_maps_height = self.w_map_scale.get_size()
 
         if not self.config.legend_only:
+
+            if self.config.show_milky_way:
+                self.draw_milky_way(used_catalogs.milky_way_lines)
 
             if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
                 clip_path = [(x2,y2)]

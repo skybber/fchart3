@@ -23,6 +23,7 @@ from .geodesic_star_catalog import GeodesicStarCatalog
 from .deepsky_catalog import DeepskyCatalog
 from .hnsky_deepsky import import_hnsky_deepsky
 from .outlines_deepsky import import_outlines_catgen
+from .milkyway import import_milkyway
 from .vic import import_vic
 from . import deepsky_object as deepsky
 
@@ -54,6 +55,8 @@ class UsedCatalogs:
 
         self._messierlist.sort(key = lambda x: x.messier)
         self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
+        self._milky_way_lines = import_milkyway(os.path.join(data_dir, 'milkyway.dat'))
+
 
     def free_mem(self):
         self._starcatalog.free_mem()
@@ -85,6 +88,10 @@ class UsedCatalogs:
     @property
     def unknown_nebulas(self):
         return self._unknown_nebulas
+
+    @property
+    def milky_way_lines(self):
+        return self._milky_way_lines
 
     def lookup_dso(self, dso_name):
         index = 0
