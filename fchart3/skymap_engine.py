@@ -387,19 +387,29 @@ class SkymapEngine:
         x, y, z = np_radec_to_xyz(milky_way_lines[:,0], milky_way_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         self.graphics.set_pen_rgb(self.config.milky_way_color)
+        self.graphics.set_fill_rgb(self.config.milky_way_color)
         self.graphics.set_linewidth(self.config.milky_way_linewidth)
 
         x1, y1, z1 = None, None, None
+        polygon = None
         for i in range(len(x)-1):
             if milky_way_lines[i][2] == 0:
+                if polygon is not None and len(polygon) > 2:
+                    self.graphics.polygon(polygon, DrawMode.BOTH)
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
-            elif milky_way_lines[i][2] == 1:
-                x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
+                polygon = None
+                if z1 > 0:
+                    polygon = [[x1, y1]]
             else:
                 x2, y2, z2 = x[i].item(), y[i].item(), z[i].item()
-                if z1 > 0 and z2 > 0:
-                    self.mirroring_graphics.line(x1, y1, x2, y2)
+                if z2 > 0:
+                    if polygon is None:
+                        polygon = []
+                    polygon.append([x2, y2])
                 x1, y1, z1 = x2, y2, z2
+
+        if polygon is not None and len(polygon) > 2:
+            self.graphics.polygon(polygon, DrawMode.FILL)
 
         self.graphics.restore()
 

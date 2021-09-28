@@ -123,13 +123,23 @@ class CairoDrawing(GraphicsInterface):
         self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
         self.context.stroke()
 
+
     def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
         self.context.rectangle(x, -y, width, height)
         self._draw_element(mode)
 
-    def circle(self, x,y,r, mode=DrawMode.BORDER):
+
+    def circle(self, x, y, r, mode=DrawMode.BORDER):
         self._moveto(x+r, y)
         self.context.arc(x, -y, r, 0, 2.0*pi)
+        self._draw_element(mode)
+
+
+    def polygon(self, vertices, mode=DrawMode.BORDER):
+        self.context.move_to(vertices[0][0], -vertices[0][1])
+        for i in range(1, len(vertices)):
+            self.context.line_to(vertices[i][0], -vertices[i][1])
+        self.context.close_path()
         self._draw_element(mode)
 
 

@@ -239,6 +239,12 @@ class GraphicsInterface:
         print('GraphicsInterface.circle()')
 
 
+    def polygon(self, vertices, mode=DrawMode.BORDER):
+        """
+        Draw a circle with specified vertices
+        """
+        print('GraphicsInterface.circle()')
+
     def ellipse(self, x, y, rlong, rshort, position_angle, mode=DrawMode.BORDER):
         """
         Draw an ellipse with centre at (x,y) and long radius rlong and
