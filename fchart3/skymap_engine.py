@@ -228,7 +228,7 @@ class SkymapEngine:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
 
-    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos):
+    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos, dso_hide_filter):
         # Draw deep sky
         print('Drawing deepsky...')
 
@@ -239,10 +239,18 @@ class SkymapEngine:
 
         last_selected = len(deepsky_list)
         filtered_showing_dsos = []
+
+        if dso_hide_filter:
+            dso_hide_filter_set = { dso for dso in dso_hide_filter }
+        else:
+            dso_hide_filter_set = {}
+
         if showing_dsos:
             for dso in showing_dsos:
                 if not dso in deepsky_list:
                     filtered_showing_dsos.append(dso)
+                if dso in dso_hide_filter_set:
+                    dso_hide_filter_set.remove(dso)
 
         deepsky_list.sort(key = lambda x: x.mag)
         deepsky_list_mm = []
@@ -277,6 +285,9 @@ class SkymapEngine:
         print('Drawing objects...')
         for i in range(len(deepsky_list_mm)):
             object, x, y, rlong  = deepsky_list_mm[i]
+
+            if object in dso_hide_filter_set:
+                continue
 
             label = object.label()
 
@@ -826,17 +837,19 @@ class SkymapEngine:
         self.graphics.restore()
 
 
-    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=[], extra_positions=[], trajectory=[], visible_objects=None, hl_constellation=None):
+    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None, extra_positions=None, hl_constellation=None,
+                 trajectory=[], visible_objects=None):
         """ Creates map using given graphics, params and config
 
         used_catalogs - UsedCatalogs data structure
         showing_dso - DSO forced to be shown even if they don't pass the filter
         hl_showing_dsos - True if showing dso will be highlighted
         highlights - list of DSOs that will be marked
+        dso_hide_filter - list of DSO to be hidden, except showing_dso
         extra_positons
-        trajectory - defined by list of points (ra, dec) points
-        visible_objects - output array contains list of object visible on the map
         hl_constellation - constellation name that will be highlighted
+        trajectory - defined by list of points (ra, dec) points
+        visible_objects - output array containing list of object visible on the map
         """
 
         # tm = time()
@@ -911,7 +924,7 @@ class SkymapEngine:
                 self.draw_unknown_nebula(used_catalogs.unknown_nebulas)
 
             if used_catalogs.deepskycatalog is not None:
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos)
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos, dso_hide_filter)
                 # print("DSO within {} ms".format(str(time()-tm)), flush=True)
                 # tm = time()
 
