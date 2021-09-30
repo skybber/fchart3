@@ -403,7 +403,7 @@ class SkymapEngine:
 
         self.graphics.save()
 
-        tm = time()
+        # tm = time()
         x, y, z = np_radec_to_xyz(milky_way_lines[:,0], milky_way_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         self.graphics.set_pen_rgb(self.config.milky_way_color)
@@ -429,7 +429,7 @@ class SkymapEngine:
         if polygon is not None and len(polygon) > 2:
             self.graphics.polygon(polygon, DrawMode.FILL)
 
-        print("MW within {} ms".format(str(time()-tm)), flush=True)
+        # print("MW within {} ms".format(str(time()-tm)), flush=True)
         self.graphics.restore()
 
 
