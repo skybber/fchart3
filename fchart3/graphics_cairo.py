@@ -33,7 +33,7 @@ class CairoDrawing(GraphicsInterface):
     A CairoDrawing - implement Graphics interface using PyCairo
     """
 
-    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False):
+    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None):
         """
         width (horizontal) and height (vertical) in mm
         """
@@ -46,6 +46,7 @@ class CairoDrawing(GraphicsInterface):
         self.context = None
         self.sfc_width = None
         self.sfc_height = None
+        self.tolerance = tolerance
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
 
 
@@ -77,6 +78,8 @@ class CairoDrawing(GraphicsInterface):
                 self.surface.set_device_scale(DPMM, DPMM)
                 self.surface.set_device_offset(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 15*DPMM)
         self.context = cairo.Context(self.surface)
+        if self.tolerance is not None:
+            self.context.set_tolerance(self.tolerance)
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
 
