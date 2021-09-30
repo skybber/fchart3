@@ -127,7 +127,7 @@ class SkymapEngine:
         self.lm_deepsky   = lm_deepsky
 
         self.set_caption(caption)
-        self.set_field(ra,dec,fieldradius)
+        self.set_field(ra, dec, fieldradius)
 
 
     def set_field(self, ra, dec, fieldradius):
@@ -136,20 +136,20 @@ class SkymapEngine:
         sets a new drawingscale and legend_fontscale
         """
         self.fieldcentre         = (ra,dec)
-        self.fc_sincos_dec       = (np.sin(dec), np.cos(dec))
+        self.fc_sincos_dec       = (math.sin(dec), math.cos(dec))
 
         self.fieldradius         = fieldradius
 
         wh = max(self.drawingwidth, self.drawingheight)
 
-        self.fieldsize           = fieldradius * np.sqrt(self.drawingwidth**2 + self.drawingheight**2) / wh
+        self.fieldsize           = fieldradius * math.sqrt(self.drawingwidth**2 + self.drawingheight**2) / wh
 
         if self.config.no_margin:
             self.scene_scale = (wh - self.config.legend_linewidth) / wh
         else:
             self.scene_scale = BASE_SCALE
 
-        self.drawingscale    = self.scene_scale*wh/2.0/np.sin(fieldradius)
+        self.drawingscale    = self.scene_scale*wh/2.0/math.sin(fieldradius)
 
         self.legend_fontscale    = min(self.config.legend_font_scale, wh/100.0)
 
@@ -161,7 +161,7 @@ class SkymapEngine:
 
 
     def get_field_radius_mm(self):
-        return self.drawingscale * np.sin(self.fieldradius)
+        return self.drawingscale * math.sin(self.fieldradius)
 
     def get_field_rect_mm(self):
         x = self.scene_scale * self.drawingwidth / 2.0
@@ -633,14 +633,6 @@ class SkymapEngine:
             self.draw_constellation_shapes(constell_catalog)
 
 
-    def in_field(self, ra, dec):
-        ra_sep = abs(ra-self.fieldcentre[0])
-        if ra_sep > np.pi:
-            ra_sep = 2*np.pi-ra_sep
-
-        return ra_sep * np.cos(dec) < self.fieldsize and abs(dec-self.fieldcentre[1]) < self.fieldsize
-
-
     def draw_grid_equatorial(self):
         print('Drawing equatorial grid...')
         self.graphics.save()
@@ -713,7 +705,7 @@ class SkymapEngine:
                 label = self.grid_dec_label(dec_minutes, label_fmt)
                 self.graphics.save()
                 self.mirroring_graphics.translate(-self.drawingwidth/2,y)
-                text_ang = np.arctan2(y11-y12, x11-x12)
+                text_ang = math.atan2(y11-y12, x11-x12)
                 self.mirroring_graphics.rotate(text_ang)
                 fh =  self.graphics.gi_fontsize
                 if dec >= 0:
@@ -728,8 +720,9 @@ class SkymapEngine:
 
     def draw_grid_dec(self):
         prev_steps, prev_grid_minutes = (None, None)
+        fc_cos = math.cos(self.fieldcentre[1])
         for grid_minutes in RA_GRID_SCALE:
-            steps = self.fieldradius / (np.cos(self.fieldcentre[1]) * (np.pi * grid_minutes / (12 * 60)))
+            steps = self.fieldradius / (fc_cos * (np.pi * grid_minutes / (12 * 60)))
             if steps < GRID_DENSITY:
                 if not prev_steps is None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
@@ -741,7 +734,7 @@ class SkymapEngine:
         if max_visible_dec >= np.pi/2 or max_visible_dec <= -np.pi/2:
             ra_size = 2*np.pi
         else:
-            ra_size = self.fieldradius / np.cos(max_visible_dec)
+            ra_size = self.fieldradius / math.cos(max_visible_dec)
             if ra_size > 2*np.pi:
                 ra_size = 2*np.pi
 
@@ -778,11 +771,11 @@ class SkymapEngine:
                 if self.fieldcentre[1] <= 0:
                     x = (x12-x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
                     self.mirroring_graphics.translate(x, self.drawingheight/2)
-                    text_ang = np.arctan2(y11-y12, x11-x12)
+                    text_ang = math.atan2(y11-y12, x11-x12)
                 else:
                     x = (x22-x21) * (-self.drawingheight/2 - y21) / (y22 - y21) + x21
                     self.mirroring_graphics.translate(x, -self.drawingheight/2)
-                    text_ang = np.arctan2(y21-y22, x21-x22)
+                    text_ang = math.atan2(y21-y22, x21-x22)
                 self.mirroring_graphics.rotate(text_ang)
                 fh =  self.graphics.gi_fontsize
                 self.graphics.text_right(2*fh/3, fh/3, label)
@@ -1164,8 +1157,8 @@ class SkymapEngine:
         fh = self.graphics.gi_fontsize
         label_pos_list = []
 
-        sp = np.sin(p)
-        cp = np.cos(p)
+        sp = math.sin(p)
+        cp = math.cos(p)
 
         hl = label_length/2.0
 
@@ -1212,17 +1205,17 @@ class SkymapEngine:
             self.mirroring_graphics.set_pen_rgb(self.config.label_color)
             arg = 1.0-2*fh/(3.0*r)
             if arg < 1.0 and arg > -1.0:
-                a = np.arccos(arg)
+                a = math.acos(arg)
             else:
                 a = 0.5*np.pi
             if labelpos == 0 or labelpos == -1:
-                self.mirroring_graphics.text_right(x+np.sin(a)*r+fh/6.0, y-r, label)
+                self.mirroring_graphics.text_right(x+math.sin(a)*r+fh/6.0, y-r, label)
             elif labelpos == 1:
-                self.mirroring_graphics.text_left(x-np.sin(a)*r-fh/6.0, y-r, label)
+                self.mirroring_graphics.text_left(x-math.sin(a)*r-fh/6.0, y-r, label)
             elif labelpos == 2:
-                self.mirroring_graphics.text_right(x+np.sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
+                self.mirroring_graphics.text_right(x+math.sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
             elif labelpos == 3:
-                self.mirroring_graphics.text_left(x-np.sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
+                self.mirroring_graphics.text_left(x-math.sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
 
 
     def circular_object_labelpos(self, x, y, radius=-1.0, label_length=0.0):
@@ -1235,22 +1228,22 @@ class SkymapEngine:
         arg = 1.0-2*fh/(3.0*r)
 
         if arg < 1.0 and arg > -1.0:
-            a = np.arccos(arg)
+            a = math.acos(arg)
         else:
             a = 0.5*np.pi
 
         label_pos_list = []
-        xs = x+np.sin(a)*r+fh/6.0
+        xs = x+math.sin(a)*r+fh/6.0
         ys = y-r+fh/3.0
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
-        xs = x-np.sin(a)*r-fh/6.0 - label_length
+        xs = x-math.sin(a)*r-fh/6.0 - label_length
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
 
-        xs = x+np.sin(a)*r+fh/6.0
+        xs = x+math.sin(a)*r+fh/6.0
         ys = y+r-fh/3.0
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
 
-        xs = x+np.sin(a)*r+fh/6.0
+        xs = x+math.sin(a)*r+fh/6.0
         ys = y+r-fh/3.0
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
         return label_pos_list
