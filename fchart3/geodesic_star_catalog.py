@@ -269,12 +269,21 @@ STAR3_DT = np.dtype([('x01', np.uint8, (4,)),
                     ])
 
 
-ZONE_STARDATA_DT = np.dtype([('ra', np.float32),
-                             ('dec', np.float32),
-                             ('mag', np.float32),
-                             ('bvind', np.uint8),
-                             ('bsc', np.dtype(object))
-                           ])
+RECT_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
+                                  ('y', np.float32),
+                                  ('z', np.float32),
+                                  ('mag', np.float32),
+                                  ('bvind', np.uint8),
+                                  ('bsc', np.dtype(object))
+                                  ])
+
+
+EQ_ZONE_STARDATA_DT = np.dtype([('ra', np.float32),
+                                ('dec', np.float32),
+                                ('mag', np.float32),
+                                ('bvind', np.uint8),
+                                ('bsc', np.dtype(object))
+                                ])
 
 EQUILATERAL_TRIANGLE_CENTER_SIDE_DIST = math.sqrt(3)/6
 TRIANGLE_CENTER_FACTOR = math.sqrt(0.5**2 + EQUILATERAL_TRIANGLE_CENTER_SIDE_DIST**2)
@@ -297,17 +306,17 @@ def _convert_stars1_helper(stars1, zone_data, mag_table, bsc_hip_map):
     dim = len(stars1)
 
     rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
-    ra, dec = np_rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
 
     zone_stars = np.core.records.fromarrays( \
         [ \
-            ra[:,0],
-            dec[:,0],
+            rectJ2000[:,0],
+            rectJ2000[:,1],
+            rectJ2000[:,2],
             mag_table[stars1['mag']],
             stars1['bv'],
             np.empty(dim, np.dtype(object)),
         ], \
-        dtype=ZONE_STARDATA_DT)
+        dtype=RECT_ZONE_STARDATA_DT)
 
     if bsc_hip_map:
         hip_col = stars1['hip']
@@ -334,17 +343,16 @@ def _convert_stars2_helper(stars2, zone_data, mag_table):
 
     rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
 
-    ra, dec = np_rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
-
     zone_stars = np.core.records.fromarrays( \
         [ \
-            ra[:,0],
-            dec[:,0],
+            rectJ2000[:,0],
+            rectJ2000[:,1],
+            rectJ2000[:,2],
             mag_table[stars2['magbv']>>3],
             stars2['bvdx1']>>4 | (stars2['magbv']&0x7)<<4,
             np.empty(dim, np.dtype(object)),
         ], \
-        dtype=ZONE_STARDATA_DT)
+        dtype=RECT_ZONE_STARDATA_DT)
 
     return zone_stars
 
@@ -362,17 +370,17 @@ def _convert_stars3_helper(stars3, zone_data, mag_table):
     x1 = x1.astype(np.int32) >> 14
 
     rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
-    ra, dec = np_rect_to_sphere(rectJ2000[:,[0]], rectJ2000[:,[1]], rectJ2000[:,[2]])
 
     zone_stars = np.core.records.fromarrays( \
         [ \
-            ra[:,0],
-            dec[:,0],
+            rectJ2000[:,0],
+            rectJ2000[:,1],
+            rectJ2000[:,2],
             mag_table[stars3['magbv']>>3],
             (stars3['magbv']&0x7)<<4 | stars3['bvx1']>>4,
             np.empty(dim, np.dtype(object)),
         ], \
-        dtype=ZONE_STARDATA_DT)
+        dtype=RECT_ZONE_STARDATA_DT)
 
     return zone_stars
 
@@ -620,7 +628,7 @@ class GeodesicStarCatalog(StarCatalog):
         return None
 
 
-    def _select_stars_from_zones(self, iterator, lev, lm_stars):
+    def _select_stars_from_zones(self, iterator, lev, lm_stars, field_rect3, cos_radius):
         stars = []
         zone = iterator.next()
         while zone != -1:
@@ -628,7 +636,8 @@ class GeodesicStarCatalog(StarCatalog):
             # print('Level={} Zone={} Len={}'.format(lev, zone, len(zone_stars)))
             if len(zone_stars) > 0:
                 mag = zone_stars['mag']
-                zone_stars = zone_stars[mag <= lm_stars]
+                scal_dot = zone_stars['x']*field_rect3[0] + zone_stars['y']*field_rect3[1] + zone_stars['z']*field_rect3[2]
+                zone_stars = zone_stars[np.logical_and(mag <= lm_stars, scal_dot>cos_radius)]
                 if len(zone_stars) > 0:
                     stars.append(zone_stars)
             zone = iterator.next()
@@ -663,6 +672,7 @@ class GeodesicStarCatalog(StarCatalog):
 
             lev_spherical_caps = []
             print('Radius: {}'.format(radius/np.pi*180.0))
+            cos_radius = math.cos(radius)
             for lev in range(max_search_level+1):
                 radius_inner = radius
                 # use asin() since it is chord on sphere
@@ -676,17 +686,35 @@ class GeodesicStarCatalog(StarCatalog):
             for lev in range(max_search_level + 1):
                 # print('Inside iterator')
                 inside_iterator = GeodesicSearchInsideIterator(self.search_result, lev)
-                stars = self._select_stars_from_zones(inside_iterator, lev, lm_stars)
+                stars = self._select_stars_from_zones(inside_iterator, lev, lm_stars, field_rect3, cos_radius)
                 if len(stars) > 0:
                     tmp_arr += stars
 
                 # print('Border iterator')
                 border_iterator = GeodesicSearchBorderIterator(self.search_result, lev)
-                stars = self._select_stars_from_zones(border_iterator, lev, lm_stars)
+                stars = self._select_stars_from_zones(border_iterator, lev, lm_stars, field_rect3, cos_radius)
                 if len(stars) > 0:
                     tmp_arr += stars
 
-        return np.concatenate(tmp_arr, axis=0) if len(tmp_arr) > 0 else None
+        rect_stars = np.concatenate(tmp_arr, axis=0) if len(tmp_arr) > 0 else None
+
+        if rect_stars is None or len(rect_stars) == 0:
+            return None
+
+        dim = len(rect_stars)
+        ra, dec = np_rect_to_sphere(rect_stars['x'].reshape(dim, 1), rect_stars['y'].reshape(dim, 1), rect_stars['z'].reshape(dim, 1))
+
+        eq_stars = np.core.records.fromarrays( \
+            [ \
+                ra[:,0],
+                dec[:,0],
+                rect_stars['mag'],
+                rect_stars['bvind'],
+                rect_stars['bsc'],
+            ], \
+            dtype=EQ_ZONE_STARDATA_DT)
+
+        return eq_stars
 
 
     def free_mem(self):
