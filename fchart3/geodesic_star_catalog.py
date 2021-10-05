@@ -719,7 +719,8 @@ class GeodesicStarCatalog(StarCatalog):
 
     def free_mem(self):
         for cat_comp in self._cat_components:
-            cat_comp.free_mem()
+            if cat_comp.level > 0:
+                cat_comp.free_mem()
 
 
     def get_star_color(self, star):
