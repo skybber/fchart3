@@ -47,8 +47,8 @@ NL = {
     'OCL':'Open sterrenhoop',
     'GCL':'Bolhoop',
     'AST':'Groepje sterren',
-    'PN': 'Planetaire nevel',
-    'N': 'Diffuse emissienevel',
+    'PN':'Planetaire nevel',
+    'N':'Diffuse emissienevel',
     'SNR':'Supernovarest',
     'PG':'Deel van sterrenstelsel'
 }
@@ -108,6 +108,7 @@ MAG_SCALE_Y = [0, 1.8, 3.3, 4.7, 6,  7.2,  18.0]
 
 #====================>>>  SkymapEngine  <<<====================
 
+
 class SkymapEngine:
 
     def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
@@ -128,7 +129,6 @@ class SkymapEngine:
 
         self.set_caption(caption)
         self.set_field(ra, dec, fieldradius)
-
 
     def set_field(self, ra, dec, fieldradius):
         """
@@ -155,10 +155,8 @@ class SkymapEngine:
 
         self.set_caption(self.caption)
 
-
     def set_configuration(self, config):
         self.config = config
-
 
     def get_field_radius_mm(self):
         return self.drawingscale * math.sin(self.fieldradius)
@@ -174,12 +172,10 @@ class SkymapEngine:
         """
         self.language = language
 
-
     def set_caption(self, caption):
         self.caption = caption
         if caption != '':
             self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
-
 
     def draw_caption(self):
         if self.caption != '':
@@ -188,7 +184,6 @@ class SkymapEngine:
             self.graphics.set_font(self.graphics.gi_font, 2.0*font_size)
             self.graphics.text_centred(0, self.drawingwidth/2.0*BASE_SCALE + font_size, self.caption)
             self.graphics.set_font(self.graphics.gi_font, old_size)
-
 
     def draw_field_border(self):
         """
@@ -202,10 +197,8 @@ class SkymapEngine:
             self.graphics.line(x2, y2, x2, y1)
             self.graphics.line(x2, y1, x1, y1)
 
-
     def get_legend_font_size(self):
         return self.config.font_size * self.legend_fontscale
-
 
     def draw_widgets(self):
         # Set the fontsize for the entire legend
@@ -226,7 +219,6 @@ class SkymapEngine:
             self.w_coords.draw(self.graphics, left=x2-fontsize/2, bottom=y2-fontsize, ra=self.fieldcentre[0], dec=self.fieldcentre[1], legend_only=self.config.legend_only)
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
-
 
     def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos, dso_hide_filter):
         # Draw deep sky
@@ -398,7 +390,6 @@ class SkymapEngine:
                         x_outl, y_outl = np_radec_to_xy(outl[0], outl[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                         self.unknown_diffuse_nebula_outlines(x_outl, y_outl, outl_lev)
 
-
     def draw_milky_way(self, milky_way_lines):
 
         self.graphics.save()
@@ -429,7 +420,6 @@ class SkymapEngine:
             self.graphics.polygon(polygon, DrawMode.FILL)
 
         self.graphics.restore()
-
 
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
@@ -471,7 +461,6 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-
     def draw_dso_hightlight(self, x, y, rlong, dso_name):
         self.graphics.save()
 
@@ -488,7 +477,6 @@ class SkymapEngine:
             self.visible_objects_in_map.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
-
 
     def draw_trajectory(self,trajectory):
         # Draw extra objects
@@ -522,7 +510,6 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-
     def draw_trajectory_tick(self, x1, y1, x2, y2):
         dx = x2-x1
         dy = y2-y1
@@ -532,15 +519,12 @@ class SkymapEngine:
         self.graphics.set_linewidth(1.5*self.config.constellation_linewidth)
         self.mirroring_graphics.line(x2-ddy, y2+ddx, x2+ddy, y2-ddx)
 
-
-
     def magnitude_to_radius(self, magnitude):
         #radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
         mag_d = self.lm_stars - np.clip(magnitude, a_min=None, a_max=self.lm_stars)
         mag_s = np.interp(mag_d, MAG_SCALE_X, MAG_SCALE_Y)
         radius = 0.1 * 1.33 ** (mag_s)
         return radius
-
 
     def draw_stars(self, star_catalog):
         # Select and draw stars
@@ -586,7 +570,6 @@ class SkymapEngine:
 
         self.draw_stars_labels(named_star_list)
 
-
     def draw_stars_labels(self, star_list):
         if not self.config.show_star_labels:
             return
@@ -622,14 +605,12 @@ class SkymapEngine:
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
-
     def draw_constellations(self, constell_catalog, hl_constellation):
         print('Drawing constellations...')
         if self.config.show_constellation_borders:
             self.draw_constellation_boundaries(constell_catalog, hl_constellation)
         if self.config.show_constellation_shapes:
             self.draw_constellation_shapes(constell_catalog)
-
 
     def draw_grid_equatorial(self):
         print('Drawing equatorial grid...')
@@ -642,7 +623,6 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-
     def grid_dec_label(self, dec_minutes, label_fmt):
         deg = abs(int(dec_minutes/60))
         minutes = abs(dec_minutes) - deg * 60
@@ -654,10 +634,8 @@ class SkymapEngine:
             prefix = ''
         return  prefix + label_fmt.format(deg, minutes)
 
-
     def grid_ra_label(self, ra_minutes, label_fmt):
         return label_fmt.format(ra_minutes//60, ra_minutes % 60)
-
 
     def draw_grid_ra(self):
         prev_steps, prev_grid_minutes = (None, None)
@@ -682,8 +660,6 @@ class SkymapEngine:
             if dec > dec_min and dec < dec_max:
                 self.draw_grid_ra_line(dec, dec_minutes, label_fmt)
             dec_minutes += grid_minutes
-
-
 
     def draw_grid_ra_line(self, dec, dec_minutes, label_fmt):
         dra = self.fieldradius / 10
@@ -715,7 +691,6 @@ class SkymapEngine:
             x11,y11,z11 = (x12, y12, z12)
             x21,y21,z21 = (x22, y22, z22)
 
-
     def draw_grid_dec(self):
         prev_steps, prev_grid_minutes = (None, None)
         fc_cos = math.cos(self.fieldcentre[1])
@@ -745,7 +720,6 @@ class SkymapEngine:
             if abs(self.fieldcentre[0]-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
                 self.draw_grid_dec_line(ra, ra_minutes, label_fmt)
             ra_minutes += grid_minutes
-
 
     def draw_grid_dec_line(self, ra, ra_minutes, label_fmt):
         ddec = self.fieldradius / 10
@@ -782,7 +756,6 @@ class SkymapEngine:
             x11,y11,z11 = (x12, y12, z12)
             x21,y21,z21 = (x22, y22, z22)
 
-
     def draw_constellation_shapes(self, constell_catalog):
         self.graphics.save()
         self.graphics.set_linewidth(self.config.constellation_linewidth)
@@ -805,7 +778,6 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-
     def draw_constellation_boundaries(self, constell_catalog, hl_constellation):
         self.graphics.save()
         self.graphics.set_dashed_line(1.2, 1.2)
@@ -826,7 +798,6 @@ class SkymapEngine:
                 self.mirroring_graphics.line(x[index1], y[index1], x[index2], y[index2])
 
         self.graphics.restore()
-
 
     def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None, extra_positions=None, hl_constellation=None,
                  trajectory=[], visible_objects=None):
@@ -973,7 +944,6 @@ class SkymapEngine:
 
         self.w_telrad = WidgetTelrad(self.drawingscale, self.config.constellation_linewidth)
 
-
     def star(self, x, y, radius, star_color):
         """
         Filled circle with boundary. Set fill colour and boundary
@@ -985,7 +955,6 @@ class SkymapEngine:
         r = round(radius, 2)
         self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
 
-
     def no_mirror_star(self, x, y, radius):
         """
         Filled circle with boundary. Set fill colour and boundary
@@ -993,7 +962,6 @@ class SkymapEngine:
         """
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         self.graphics.circle(x, y, r,DrawMode.BOTH)
-
 
     def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius
@@ -1011,7 +979,6 @@ class SkymapEngine:
         self.draw_circular_object_label(x,y,r,label,labelpos)
 
         self.graphics.restore()
-
 
     def asterism(self,x,y,radius=-1, label='', labelpos=-1):
         r = radius
@@ -1046,7 +1013,6 @@ class SkymapEngine:
                 self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
 
-
     def asterism_labelpos(self,x,y,radius=-1,label_length=0.0):
         """
         x,y,radius, label_length in mm
@@ -1070,7 +1036,6 @@ class SkymapEngine:
         yy = y
         label_pos_list.append([[xx,yy],[xx+label_length/2.0,yy],[xx+label_length,yy]])
         return label_pos_list
-
 
     def galaxy(self, x, y, rlong=-1, rshort=-1, posangle=0.0, mag=None, label='', labelpos=-1):
         """
@@ -1136,7 +1101,6 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-
     def galaxy_labelpos(self,x,y,rlong=-1,rshort=-1,posangle=0.0,label_length=0.0):
         rl = rlong
         rs = rshort
@@ -1197,7 +1161,6 @@ class SkymapEngine:
 
         return label_pos_list
 
-
     def draw_circular_object_label(self, x, y, r, label, labelpos=-1):
         fh = self.graphics.gi_fontsize
         if label:
@@ -1215,7 +1178,6 @@ class SkymapEngine:
                 self.mirroring_graphics.text_right(x+math.sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
             elif labelpos == 3:
                 self.mirroring_graphics.text_left(x-math.sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
-
 
     def circular_object_labelpos(self, x, y, radius=-1.0, label_length=0.0):
         fh = self.graphics.gi_fontsize
@@ -1247,8 +1209,6 @@ class SkymapEngine:
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
         return label_pos_list
 
-
-
     def globular_cluster(self, x,y,radius=-1.0, label='', labelpos=''):
         r = radius
         if radius <= 0.0:
@@ -1265,7 +1225,6 @@ class SkymapEngine:
         self.draw_circular_object_label(x,y,r,label,labelpos)
 
         self.graphics.restore()
-
 
     def diffuse_nebula(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label='',labelpos=''):
         self.graphics.save()
@@ -1336,7 +1295,6 @@ class SkymapEngine:
                 self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
 
-
     def unknown_diffuse_nebula_outlines(self, x_outl, y_outl, outl_lev):
         self.graphics.save()
 
@@ -1363,7 +1321,6 @@ class SkymapEngine:
         self.graphics.restore()
 
     def diffuse_nebula_labelpos(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label_length=0.0):
-
         d = 0.5*width
         if width < 0.0:
             d = self.drawingwidth/40.0
@@ -1386,7 +1343,6 @@ class SkymapEngine:
         label_pos_list.append([[xs,ys],[xs+label_length/2.0,ys],[xs+label_length,ys]])
         return label_pos_list
 
-
     def planetary_nebula(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius
         if radius <= 0.0:
@@ -1405,7 +1361,6 @@ class SkymapEngine:
         self.draw_circular_object_label(x,y,r,label,labelpos)
 
         self.graphics.restore()
-
 
     def supernova_remnant(self, x, y, radius=-1.0, label='', labelpos=''):
         r = radius
@@ -1451,7 +1406,6 @@ class SkymapEngine:
                 self.mirroring_graphics.text_centred(x, y - r - fh/2.0, label)
         self.graphics.restore()
 
-
     def unknown_object_labelpos(self, x, y, radius=-1, label_length=0.0):
         r = radius
         if radius <= 0.0:
@@ -1493,4 +1447,3 @@ if __name__ == '__main__':
     sm.set_field(1.5,1, 0.05)
     sm.make_map(stars)
     cairo.close()
-
