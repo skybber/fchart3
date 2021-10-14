@@ -49,6 +49,7 @@ class StarObject:
         elif name2:
             lname = name2
 
+
 class StarCatalog():
     def select_stars(self, fieldcentre, radius, lm_stars):
         pass

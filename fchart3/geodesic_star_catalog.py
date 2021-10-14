@@ -384,6 +384,7 @@ def _convert_stars3_helper(stars3, zone_data, mag_table):
 
     return zone_stars
 
+
 STAR3_DT = np.dtype([('x01', np.uint8, (4,)),
                      ('bvx1', np.uint8),
                      ('magbv', np.uint8),
@@ -397,7 +398,6 @@ class ZoneData:
         self.center = None
         self.axis0 = None
         self.axis1 = None
-
 
     def get_J2000_pos(self, star_X0, star_X1):
         return (self.axis0 * star_X0) + (star_X1 * self.axis1) + self.center
@@ -415,21 +415,17 @@ class GeodesicStarCatalogComponent:
         self._star_position_scale = 0.0
         self._triangle_size = 0.0
 
-
     @property
     def file_name(self):
         return self._file_name
-
 
     @property
     def mag_min_mag(self):
         return self._data_reader.mag_min_mag
 
-
     @property
     def level(self):
         return self._data_reader.level
-
 
     @property
     def nr_of_stars(self):
@@ -439,11 +435,9 @@ class GeodesicStarCatalogComponent:
     def star_position_scale(self):
         return self._star_position_scale
 
-
     @property
     def triangle_size(self):
         return self._triangle_size
-
 
     def load_data_file(self):
         self._data_reader = GeodesicBinFileReader()
@@ -462,7 +456,6 @@ class GeodesicStarCatalogComponent:
         self._zone_data_ar = [ZoneData() for _ in range(self._nr_of_zones)]
         self._file_opened = True
         return self._file_opened
-
 
     def init_tringle(self, index, c0, c1, c2):
         global use_precalc_star_position_scale
@@ -513,7 +506,6 @@ class GeodesicStarCatalogComponent:
             if self._star_position_scale < h:
                 self._star_position_scale = h
 
-
     def scale_axis(self):
         if self._data_reader.file_type == 0:
             star_max_pos_val = 0x7FFFFFFF
@@ -528,14 +520,12 @@ class GeodesicStarCatalogComponent:
             z.axis0 = np.array(vector_scal_dot(self._star_position_scale, z.axis0))
             z.axis1 = np.array(vector_scal_dot(self._star_position_scale, z.axis1))
 
-
     def _get_data_format(self):
         if self._data_reader.file_type == 0:
             return STAR1_DT
         if self._data_reader.file_type == 1:
             return STAR2_DT
         return STAR3_DT
-
 
     def _convert_zone_stars(self, zone_stars, zone_data, bsc_hip_map):
         mag_table = self._data_reader.get_mag_table()
@@ -546,11 +536,9 @@ class GeodesicStarCatalogComponent:
         else:
             return _convert_stars3_helper(zone_stars, zone_data, mag_table)
 
-
     def load_static_stars(self, bsc_hip_map):
         for zone in range(self._nr_of_zones):
             self.get_zone_stars(zone, bsc_hip_map=bsc_hip_map)
-
 
     def get_zone_stars(self, zone, bsc_hip_map=None):
         if not self._file_opened:
@@ -573,7 +561,6 @@ class GeodesicStarCatalogComponent:
             self._star_blocks[zone] = zone_stars
 
         return zone_stars
-
 
     def free_mem(self):
         if not self._file_opened:
@@ -618,7 +605,6 @@ class GeodesicStarCatalog(StarCatalog):
         if len(self._cat_components) > 0:
             self._cat_components[0].load_static_stars(bsc_hip_map)
 
-
     def _load_gsc_component(self, data_dir, file_regex):
         files = glob.glob(os.path.join(data_dir, file_regex))
         if len(files) > 0:
@@ -626,7 +612,6 @@ class GeodesicStarCatalog(StarCatalog):
             if cat_comp.load_data_file():
                 return cat_comp
         return None
-
 
     def _select_stars_from_zones(self, iterator, lev, lm_stars, field_rect3, cos_radius):
         stars = []
@@ -643,15 +628,12 @@ class GeodesicStarCatalog(StarCatalog):
             zone = iterator.next()
         return stars
 
-
     @property
     def max_geodesic_grid_level(self):
         return self._max_geodesic_grid_level
 
-
     def init_tringle(self, lev, index, c0, c1, c2):
         self._cat_components[lev].init_tringle(index, c0, c1, c2)
-
 
     def select_stars(self, fieldcentre, radius, lm_stars):
         """
@@ -716,12 +698,10 @@ class GeodesicStarCatalog(StarCatalog):
 
         return eq_stars
 
-
     def free_mem(self):
         for cat_comp in self._cat_components:
             if cat_comp.level > 0:
                 cat_comp.free_mem()
-
 
     def get_star_color(self, star):
         return COLOR_TABLE[star['bvind']]

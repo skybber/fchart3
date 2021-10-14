@@ -26,11 +26,14 @@ FILE_MAGIC_OTHER_ENDIAN = 0x0a045f83
 FILE_MAGIC = 0x835f040a
 FILE_MAGIC_NATIVE = 0x835f040b
 
+
 def _swap32(i):
     return struct.unpack("<I", struct.pack(">I", i))[0]
 
+
 def _swap16(i):
     return struct.unpack("<H", struct.pack(">H", i))[0]
+
 
 class GeodesicBinFileReader:
     """
@@ -52,36 +55,29 @@ class GeodesicBinFileReader:
         self._index_count = None
         self._nr_of_stars = 0
 
-
     @property
     def file(self):
         return self._file
-
 
     @property
     def file_type(self):
         return self._file_type
 
-
     @property
     def level(self):
         return self._level
-
 
     @property
     def mag_min_mag(self):
         return self._mag_min / 1000.0
 
-
     @property
     def nr_of_stars(self):
         return self._nr_of_stars
 
-
     @property
     def byteswap(self):
         return self._byteswap
-
 
     def get_star_rec_size(self):
         if self._file_type == 2:
@@ -90,27 +86,22 @@ class GeodesicBinFileReader:
             return 10   # Star1
         return 28       # Star0
 
-
     def open_file(self, file_name):
         self._file = None
         if os.path.isfile(file_name):
             self._file = open(file_name, 'rb')
         return self._file
 
-
     def close_file(self):
         if self._file:
             self._file.close()
             self._file = None
 
-
     def get_record_count(self, index):
         return self._index_count[index]
 
-
     def get_offset(self, index):
         return self._index_offset[index]
-
 
     def get_mag_table(self):
         if self._mag_table is None:
@@ -121,7 +112,6 @@ class GeodesicBinFileReader:
                 mag_table.append(mag_min+k*i)
             self._mag_table = np.array(mag_table)
         return self._mag_table
-
 
     def read_header(self):
         self._magic = struct.unpack('I', self._file.read(4))[0]

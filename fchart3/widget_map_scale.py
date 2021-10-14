@@ -19,6 +19,7 @@ import numpy as np
 
 from .graphics_interface import DrawMode
 
+
 class WidgetMapScale:
 
     def __init__(self, drawingscale, maxlength, legend_fontsize, legend_linewidth):
@@ -48,7 +49,6 @@ class WidgetMapScale:
 
     def get_size(self):
         return (self.width, self.height)
-
 
     def draw(self, graphics, right, bottom, legend_only):
         """
@@ -84,4 +84,3 @@ class WidgetMapScale:
 
         graphics.line(right-self.width, bottom+self.height, right, bottom+self.height)
         graphics.line(right-self.width, bottom+self.height, right-self.width, bottom)
-

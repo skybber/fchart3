@@ -17,6 +17,7 @@
 
 import numpy as np
 
+
 class WidgetCoords:
 
     def __init__(self, language):

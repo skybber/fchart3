@@ -17,6 +17,7 @@
 
 import numpy as np
 
+
 class WidgetTelrad:
 
     def __init__(self, drawingscale, linewidth):

@@ -143,12 +143,14 @@ RAD2DEG = 180.0/np.pi
 
 htm_meshes = {}
 
+
 def _get_htm_mesh(level):
     mesh = htm_meshes.get(level)
     if not mesh:
         mesh = HTM(level)
         htm_meshes[level] = mesh
     return mesh
+
 
 def _convert_trixels_stars_helper(trixel_stars, bsc_hd_map):
     dim = len(trixel_stars)
@@ -171,6 +173,7 @@ def _convert_trixels_stars_helper(trixel_stars, bsc_hd_map):
                     trixel_star_data[i]['bsc'] = bsc_star
 
     return trixel_star_data
+
 
 
 def _convert_trixels_deep_stars_helper(trixel_stars):
@@ -213,7 +216,6 @@ class HtmStarCatalogComponent:
         if self._file_opened and static_stars:
             self._load_static_stars(bsc_hd_map)
 
-
     def _open_data_file(self):
         self.data_reader = HtmBinFileReader()
         self.data_reader.open_file(self._file_name)
@@ -247,32 +249,26 @@ class HtmStarCatalogComponent:
         self._file_opened = True
         return self._file_opened
 
-
     def is_deepstar_format(self):
         return self.data_reader.guess_record_size == 16
-
 
     def _get_data_format(self):
         if self.data_reader.guess_record_size == 32:
             return STARDATA_DT
         return DEEP_STARDATA_DT
 
-
     def _convert_trixels_stars(self, trixel_stars, bsc_hd_map):
         if self.data_reader.guess_record_size == 32:
             return _convert_trixels_stars_helper(trixel_stars, bsc_hd_map)
         return _convert_trixels_deep_stars_helper(trixel_stars)
-
 
     def _load_static_stars(self, bsc_hd_map):
         for trixel in range(self._sky_mesh.size()):
             self.get_trixel_stars(trixel, bsc_hd_map)
         return True
 
-
     def get_sky_mesh(self):
         return self._sky_mesh
-
 
     def get_trixel_stars(self, trixel, bsc_hd_map=None):
         if not self._file_opened:
@@ -293,10 +289,8 @@ class HtmStarCatalogComponent:
 
         return trixel_stars
 
-
     def get_trig_mag(self):
         return self._trig_mag
-
 
     def free_mem(self):
         if not self._file_opened or self._static_stars:
@@ -313,7 +307,6 @@ class HtmStarCatalog(StarCatalog):
         self._deepstar_catalogs = []
         self._load_deepstar_catalogs(data_dir, bsc_hd_map, usno_nomad)
 
-
     def _load_deepstar_catalogs(self, data_dir, bsc_hd_map, usno_nomad):
         if not self._add_deepstar_catalog_if_exists(data_dir, 'namedstars.dat', -5.0, bsc_hd_map, static_stars=True):
             return 0
@@ -327,7 +320,6 @@ class HtmStarCatalog(StarCatalog):
             return 3
         return 4
 
-
     def _add_deepstar_catalog_if_exists(self, data_dir, file_name, trig_mag, bsc_hd_map, static_stars=False):
         full_path = os.path.join(data_dir, file_name)
         if os.path.isfile(full_path):
@@ -335,7 +327,6 @@ class HtmStarCatalog(StarCatalog):
             self._deepstar_catalogs.append(dsc)
             return True
         return False
-
 
     def _select_stars_from_mesh(self, catalog, fieldcentre, radius, lm_stars):
         sky_mesh = catalog.get_sky_mesh()
@@ -350,7 +341,6 @@ class HtmStarCatalog(StarCatalog):
                 trixel_stars = trixel_stars[mag <= lm_stars]
                 stars.append(trixel_stars)
         return stars
-
 
     def select_stars(self, fieldcentre, radius, lm_stars, rect_coords=False):
         """
@@ -376,7 +366,6 @@ class HtmStarCatalog(StarCatalog):
         if subtype > 9:
             subtype = 9
         return SPEC_TYPE_2_RGB.get(chr(spec_type[0]) + str(subtype), (1.0, 1.0, 1.0))
-
 
     def free_mem(self):
         for dsc in self._deepstar_catalogs:

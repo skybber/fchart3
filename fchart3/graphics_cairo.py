@@ -21,18 +21,18 @@ import cairo
 
 from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode
 
-DPI_IMG    = 100.0
-DPMM_IMG   = DPI_IMG/INCH
-PONT_IMG  = 1.0/DPMM_IMG
+DPI_IMG = 100.0
+DPMM_IMG = DPI_IMG/INCH
+PONT_IMG = 1.0/DPMM_IMG
 
 A4_WIDTH_POINTS = 594
 A4_HEIGHT_POINTS = 842
+
 
 class CairoDrawing(GraphicsInterface):
     """
     A CairoDrawing - implement Graphics interface using PyCairo
     """
-
     def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None):
         """
         width (horizontal) and height (vertical) in mm
@@ -48,7 +48,6 @@ class CairoDrawing(GraphicsInterface):
         self.sfc_height = None
         self.tolerance = tolerance
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
-
 
     def new(self):
         if self.format == 'png':
@@ -83,7 +82,6 @@ class CairoDrawing(GraphicsInterface):
         self.set_font('Times-Roman', 12*POINT)
         self.set_linewidth(10)
 
-
     def clear(self):
         if self.gi_background_rgb:
             self.context.set_source_rgb(self.gi_background_rgb[0], self.gi_background_rgb[1], self.gi_background_rgb[2])
@@ -94,30 +92,24 @@ class CairoDrawing(GraphicsInterface):
         GraphicsInterface.save(self)
         self.context.save()
 
-
     def restore(self):
         GraphicsInterface.restore(self)
         self.context.restore()
-
 
     def set_font(self, font='Arial', fontsize=12*POINT):
         GraphicsInterface.set_font(self, font, fontsize)
         self.context.set_font_size(self.gi_fontsize)
         self.context.select_font_face(self.gi_font, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 
-
     def set_linewidth(self, linewidth):
         GraphicsInterface.set_linewidth(self,linewidth)
         self.context.set_line_width(linewidth)
 
-
     def set_solid_line(self):
         GraphicsInterface.set_solid_line(self)
 
-
     def set_dashed_line(self, on, off, start=0.0):
         GraphicsInterface.set_dashed_line(self, on, off, start)
-
 
     def line(self, x1,y1,x2,y2):
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
@@ -126,17 +118,14 @@ class CairoDrawing(GraphicsInterface):
         self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
         self.context.stroke()
 
-
     def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
         self.context.rectangle(x, -y, width, height)
         self._draw_element(mode)
-
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         self._moveto(x+r, y)
         self.context.arc(x, -y, r, 0, 2.0*pi)
         self._draw_element(mode)
-
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
         self.context.move_to(vertices[0][0], -vertices[0][1])
@@ -144,7 +133,6 @@ class CairoDrawing(GraphicsInterface):
             self.context.line_to(vertices[i][0], -vertices[i][1])
         self.context.close_path()
         self._draw_element(mode)
-
 
     def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):
         self.context.save()
@@ -156,7 +144,6 @@ class CairoDrawing(GraphicsInterface):
         self.context.arc(0, 0, rlong, 0, 2.0*pi)
         self.context.restore()
         self._draw_element(mode)
-
 
     def _draw_element(self, mode):
         if mode == DrawMode.BORDER:
@@ -172,16 +159,13 @@ class CairoDrawing(GraphicsInterface):
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.stroke()
 
-
     def text(self, text):
         self.context.show_text(text)
-
 
     def text_right(self, x, y, text):
         self._moveto(x, y)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
-
 
     def text_left(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
@@ -189,32 +173,24 @@ class CairoDrawing(GraphicsInterface):
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
-
     def text_centred(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
         self._moveto(x-width/2, y - height/2)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
-
     def text_width(self, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
         return width
 
-
     def _moveto(self, x, y):
         self.context.move_to(x,-y)
 
-
     def translate(self, dx, dy):
         self.context.translate(dx, -dy)
-        pass
-
 
     def rotate(self, angle):
         self.context.rotate(-angle)
-        pass
-
 
     def clip_path(self, path):
         (x,y) = path[0]
@@ -224,10 +200,8 @@ class CairoDrawing(GraphicsInterface):
         self.context.close_path()
         self.context.clip()
 
-
     def reset_clip(self):
         self.context.reset_clip()
-
 
     def finish(self):
         if self.format == 'png':
@@ -237,11 +211,8 @@ class CairoDrawing(GraphicsInterface):
             self.surface.flush()
             self.surface.finish()
 
-
     def on_screen(self, x, y):
         return x > -self.gi_width/2.0 and x < self.gi_width/2.0 and y > -self.gi_height/2.0  and y < self.gi_height/2.0
 
-
     def to_pixel(self, x, y):
         return (int(x * DPMM_IMG + self.sfc_width/2), int(y * DPMM_IMG + self.sfc_height/2))
-

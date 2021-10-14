@@ -27,6 +27,7 @@ from .milkyway import import_milkyway
 from .vic import import_vic
 from . import deepsky_object as deepsky
 
+
 class UsedCatalogs:
     def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limiting_magnitude_deepsky=10.0, force_messier=False, force_asterisms=False, force_unknown=False, show_catalogs=None):
         # Read basic catalogs
@@ -56,7 +57,6 @@ class UsedCatalogs:
         self._messierlist.sort(key = lambda x: x.messier)
         self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
         self._milky_way_lines = import_milkyway(os.path.join(data_dir, 'milkyway.dat'))
-
 
     def free_mem(self):
         self._starcatalog.free_mem()
@@ -220,6 +220,5 @@ class UsedCatalogs:
                             unknown_nebulas.append(uneb)
                         for outlines in outlines_ar:
                             uneb.add_outlines(i, self._convert_outlines_to_np_arr(outlines))
-
 
         return deeplist, unknown_nebulas

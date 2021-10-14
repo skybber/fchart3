@@ -17,10 +17,11 @@
 
 from enum import Enum
 
-INCH   = 25.4
-DPI    = 72.0
-DPMM   = DPI/INCH
-POINT  = 1.0/DPMM
+INCH = 25.4
+DPI = 72.0
+DPMM = DPI/INCH
+POINT = 1.0/DPMM
+
 
 class DrawMode(Enum):
     """
@@ -78,15 +79,12 @@ class GraphicsInterface:
         self.gi_stack = []
         self.gi_background_rgb = None
 
-
     def set_point_size(self, pointsize):
         self.pointsize = pointsize
         self.gi_fontsize  = 12*self.pointsize
 
-
     def get_default_fontsize(self):
         return 12*self.pointsize
-
 
     def save(self):
         """
@@ -100,13 +98,11 @@ class GraphicsInterface:
                               self.gi_fill_rgb,
                               self.gi_pen_rgb))
 
-
     def restore(self):
         """
         Save graphics state to stack. This method should be extended,
         not overriden.
         """
-
         (self.gi_linewidth,
          self.gi_dash_style,
          self.gi_font,
@@ -114,13 +110,12 @@ class GraphicsInterface:
          self.gi_fill_rgb,
          self.gi_pen_rgb) = self.gi_stack.pop()
 
-
     def new(self):
         """
         Erase all graphics, but keep graphics state (font, fontsize,
         linewidth&style , width, height, origin as they are.
         """
-
+        pass
 
     def set_dimensions(self, width, height):
         """
@@ -141,13 +136,11 @@ class GraphicsInterface:
         if abs(self.gi_origin_y) < 1e-5:
             self.gi_origin_y = 0.0
 
-
     def set_linewidth(self, linewidth):
         """
         Sets gi_linewidth. Derived classes should extend, not override this method.
         """
         self.gi_linewidth = linewidth
-
 
     def set_pen_rgb(self, pen_rgb):
         """
@@ -155,13 +148,11 @@ class GraphicsInterface:
         """
         self.gi_pen_rgb = pen_rgb
 
-
     def set_fill_rgb(self, fill_rgb):
         """
         Sets gi_fill_rgb. Derived classes should extend, not override this method.
         """
         self.gi_fill_rgb = fill_rgb
-
 
     def set_fill_background(self):
         """
@@ -169,13 +160,11 @@ class GraphicsInterface:
         """
         self.gi_fill_rgb = self.gi_background_rgb
 
-
     def set_solid_line(self):
         """
         From now on, all lines should be drawn solid. Extend this method.
         """
         self.gi_dash_style = ([],0.0)
-
 
     def set_dashed_line(self, on, off, start=0.0):
         """
@@ -184,7 +173,6 @@ class GraphicsInterface:
         the \"on\" pattern. Extend this method
         """
         self.gi_dash_style = ([on, off], start)
-
 
     def set_font(self, font='Times-Roman', fontsize=None):
         """
@@ -200,7 +188,6 @@ class GraphicsInterface:
         self.gi_font     = font
         self.gi_fontsize = fontsize
 
-
     def translate(self, dx, dy):
         """
         Shift origin of coordinate system (dx,dy) mm with respect to
@@ -208,13 +195,11 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.translate())')
 
-
     def rotate(self, angle):
         """
         Rotate coordinates angle radians around current origin.
         """
         print('GraphicsInterface.rotate()')
-
 
     def line(self, x1, y1, x2, y2):
         """
@@ -223,7 +208,6 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.line()')
 
-
     def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
         """
         Draw a rectangle with left upper corner in (x,y) and widt/height
@@ -231,13 +215,11 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.rectangle()')
 
-
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         """
         Draw a circle with centre at (x,y) and radius r.
         """
         print('GraphicsInterface.circle()')
-
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
         """
@@ -253,7 +235,6 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.ellipse()')
 
-
     def text(self, text):
         """
         Draw 'text' at the current position. The current position is
@@ -261,13 +242,11 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.text()')
 
-
     def text_right(self, x, y, text):
         """
         x, y is the bottom left corner of text
         """
         print('GraphicsInterface.text_right()')
-
 
     def text_left(self, x, y, text):
         """
@@ -275,13 +254,11 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.text_left()')
 
-
     def text_centred(self, x, y, text):
         """
         Draw text centred at (x,y)
         """
         print('GraphicsInterface.text_centred()')
-
 
     def text_width(self, text):
         """
@@ -289,13 +266,11 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.text_width()')
 
-
     def finish(self):
         """
         Finalize the drawing (Store to disk, memory, whatever).
         """
         print('GraphicsInterface.finish()')
-
 
     def clip_path(self, path):
         """
@@ -303,20 +278,17 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.clip_rectangle()')
 
-
     def reset_clip(self):
         """
         Clip rectangle
         """
         print('GraphicsInterface.reset_clip()')
 
-
     def clear(self):
         """
         Fill by background color
         """
         print('GraphicsInterface.clwar()')
-
 
     def set_background_rgb(self, background_rgb):
         """

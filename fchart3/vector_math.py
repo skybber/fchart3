@@ -23,7 +23,7 @@ def vector_norm_add(a, b):
     v1 = a[1] + b[1]
     v2 = a[2] + b[2]
     n = math.sqrt(v0**2 + v1**2 + v2**2)
-    return (v0/n, v1/n, v2/n)
+    return v0/n, v1/n, v2/n
 
 
 def vector_norm_add3(a, b, c):
@@ -31,21 +31,21 @@ def vector_norm_add3(a, b, c):
     v1 = a[1] + b[1] + c[1]
     v2 = a[2] + b[2] + c[2]
     n = math.sqrt(v0**2 + v1**2 + v2**2)
-    return (v0/n, v1/n, v2/n)
+    return v0/n, v1/n, v2/n
 
 
 def vector_sub(a, b):
     v0 = a[0] - b[0]
     v1 = a[1] - b[1]
     v2 = a[2] - b[2]
-    return (v0, v1, v2)
+    return v0, v1, v2
 
 
 def vector_sub(a, b):
     v0 = a[0] - b[0]
     v1 = a[1] - b[1]
     v2 = a[2] - b[2]
-    return (v0, v1, v2)
+    return v0, v1, v2
 
 
 def vector_dot(a, b):
@@ -56,7 +56,7 @@ def vector_cross(a, b):
     v0 = a[1]*b[2] - a[2]*b[1]
     v1 = a[2]*b[0] - a[0]*b[2]
     v2 = a[0]*b[1] - a[1]*b[0]
-    return (v0, v1, v2)
+    return v0, v1, v2
 
 
 def vector_norm_cross(a, b):
@@ -64,11 +64,11 @@ def vector_norm_cross(a, b):
     v1 = a[2]*b[0] - a[0]*b[2]
     v2 = a[0]*b[1] - a[1]*b[0]
     n = math.sqrt(v0*v0 + v1*v1 + v2*v2)
-    return (v0/n, v1/n, v2/n)
+    return v0/n, v1/n, v2/n
 
 
 def vector_scal_dot(x, a):
-    return (x*a[0], x*a[1], x*a[2])
+    return x*a[0], x*a[1], x*a[2]
 
 
 def vector_length(v):

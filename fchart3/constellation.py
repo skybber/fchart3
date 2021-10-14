@@ -17,6 +17,7 @@
 
 import numpy as np
 
+
 class BscStar:
     def __init__(self):
         """
@@ -54,6 +55,7 @@ class Constellation:
         self.name = ''
         self.lines = []
         self.stars = []
+
 
 class ConstellationCatalog:
     """
@@ -98,7 +100,6 @@ class ConstellationCatalog:
 
         return star
 
-
     def _import_bsc5(self, filename, hd2hip_cross_id_map):
         # Import all saguaro objects that are not NGC or IC objects, or M40
         bsc_star_list = []
@@ -117,7 +118,6 @@ class ConstellationCatalog:
                     if bsc_star.HD in hd2hip_cross_id_map:
                         bsc_hip_map[hd2hip_cross_id_map[bsc_star.HD]] = bsc_star
         return (bsc_hd_map, bsc_hip_map, bsc_star_list,)
-
 
     def _parse_constellation_line(self, line, const_catalog, hip2hr_cross_id_map):
         constell = Constellation()
@@ -158,11 +158,9 @@ class ConstellationCatalog:
                     hd2hip_cross_id_map[int(str_hd)] = hip
         return hip2hr_cross_id_map, hd2hip_cross_id_map
 
-
     def _import_constellation(self, filename, boundaries_filename, hip2hr_cross_id_map, const_catalog):
         # Import all saguaro objects that are not NGC or IC objects, or M40
         constellation_list = []
-
 
         with open(filename, 'r') as f:
             lines = f.readlines()

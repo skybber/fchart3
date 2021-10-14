@@ -17,6 +17,7 @@
 
 import numpy as np
 
+
 def import_milkyway(filename):
     milkyway_file = open(filename, 'r')
     lines   = milkyway_file.readlines()

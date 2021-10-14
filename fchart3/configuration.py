@@ -39,6 +39,7 @@ DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
 DEFAULT_LEGEND_FONT_SCALE=1.75
 
+
 class EngineConfiguration:
     def __init__(self):
         self._legend_only = False
@@ -455,4 +456,3 @@ class EngineConfiguration:
     @milky_way_linewidth.setter
     def milky_way_linewidth(self, value):
         self._milky_way_linewidth = value
-

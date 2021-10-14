@@ -19,6 +19,7 @@ import numpy as np
 
 from .graphics_interface import DrawMode
 
+
 class WidgetMagnitudeScale:
 
     def __init__(self, sky_map_engine, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth):
@@ -35,7 +36,6 @@ class WidgetMagnitudeScale:
 
     def get_size(self):
         return (self.width, self.height)
-
 
     def draw(self, graphics, left, bottom, legend_only):
         """
@@ -63,4 +63,3 @@ class WidgetMagnitudeScale:
         graphics.set_linewidth(self.legend_linewidth)
         graphics.line(left, bottom+self.height, left+self.width, bottom+self.height)
         graphics.line(left+self.width, bottom+self.height, left+self.width, bottom)
-

@@ -51,6 +51,7 @@ GALCL=13
 TYPENAME=['Unknown',
           'G', 'N', 'PN', 'OC', 'GC', 'PG', 'xxx', 'xxx', 'AST', 'xxx', 'SNR', 'QSO', 'GALCL']
 
+
 class DeepskyObject:
     def __init__(self, catalog='NGC'):
         """
@@ -109,7 +110,6 @@ class DeepskyObject:
         self.visible = True
         self._label = None
         self.outlines = None
-
 
     def label(self):
         if not self._label:
@@ -204,6 +204,7 @@ def cmp_dec(x,y):
     if x.dec < y.dec:
         r = -1
     return r
+
 
 def cmp_name(x,y):
     xn = x.label()

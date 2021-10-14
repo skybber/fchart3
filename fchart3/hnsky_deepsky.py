@@ -103,6 +103,7 @@ def _parse_catalog_name(dso_name):
         return None, dso_name
     return dso_name[:i], dso_name[i:]
 
+
 def _parse_hnsky_line(line, show_catalogs):
     object = DeepskyObject()
     items = line.split(',')
@@ -211,6 +212,7 @@ def import_hnsky_deepsky(filename, show_catalogs):# or 'IC'
         dso_list.append(_parse_hnsky_line(line, all_show_catalogs))
 
     return dso_list
+
 
 if __name__=='__main__':
     print(__file__)

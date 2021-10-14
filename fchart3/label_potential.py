@@ -36,7 +36,6 @@ class LabelPotential:
             self.positions[i,0] = x
             self.positions[i,1] = y
 
-
     def add_position(self,x,y,size):
         N = len(self.sizes)
         newpos = np.zeros((N+1,2))*0.0
@@ -49,7 +48,6 @@ class LabelPotential:
 
         self.positions = newpos
         self.sizes = newsize
-
 
     def compute_potential(self,x,y):
         """

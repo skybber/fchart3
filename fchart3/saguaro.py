@@ -22,6 +22,7 @@ import copy
 
 from .deepsky_object import *
 
+
 def parse_catalog_name(cnstr, ignore_err):
     if cnstr.startswith('Sh2-'):
         cnsplit = cnstr.split('-')
@@ -45,6 +46,7 @@ def parse_catalog_name(cnstr, ignore_err):
             sys.exit(1)
         cat, name = None, None
     return (cat, name)
+
 
 def parse_saguaro_line(line):
     object = DeepskyObject()

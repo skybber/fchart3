@@ -30,11 +30,14 @@ import os
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
+
 def get_data(path):
     return os.path.join(_ROOT, 'data', path)
 
+
 def get_catalogs_dir():
     return os.path.join(get_data('catalogs'))
+
 
 from fchart3.skymap_engine import *
 from fchart3.configuration import *

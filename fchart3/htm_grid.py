@@ -39,6 +39,7 @@ octahedron_triangles = (
     ( 2, 0, 1),  #  N3
 )
 
+
 class HtmGrid:
     '''
     HtmGrid: keeps HTM structure
@@ -63,7 +64,6 @@ class HtmGrid:
         else:
             self._triangles = None
 
-
     def _init_triangle(self, depth, index, v0, v1, v2, center=None):
         t = (vector_norm_add(v1, v2), vector_norm_add(v2, v0), vector_norm_add(v0, v1))
         self._triangles[depth][index] = t
@@ -78,7 +78,6 @@ class HtmGrid:
             self._init_triangle(depth, index+2, v2, t[1], t[0])
             self._init_triangle(depth, index+3, t[0], t[1], t[2], center)
 
-
     def visit_triangles(self, max_visit_depth, visit_func):
         if visit_func and max_visit_depth >= 0:
             if max_visit_depth > self.max_depth:
@@ -90,7 +89,6 @@ class HtmGrid:
                                       octahedron_corners[corners[1]],
                                       octahedron_corners[corners[2]],
                                       max_visit_depth, visit_func)
-
 
     def _visit_triangles(self, depth, index, v0, v1, v2, max_visit_depth, func):
         func(depth, index, v0, v1, v2)

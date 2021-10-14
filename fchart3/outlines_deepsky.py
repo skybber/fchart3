@@ -21,9 +21,10 @@ from .deepsky_object import *
 
 FIXING_NAMES = { 'NGC2174': 'NGC2175', 'NGC1893' : 'IC410' }
 
+
 def import_outlines_catgen(filename):
     outlines_file = open(filename, 'r', encoding='ISO-8859-1')
-    lines   = outlines_file.readlines()
+    lines = outlines_file.readlines()
     outlines_file.close()
 
     outlines = ({},{},{})

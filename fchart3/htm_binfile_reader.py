@@ -23,8 +23,10 @@ DataElement = namedtuple('DataElement' , 'name size type scale')
 DATAELEMENT_FMT = '10sbBi'
 DATA_ELEMT_SIZE = struct.calcsize(DATAELEMENT_FMT)
 
+
 def _swap32(i):
     return struct.unpack("<I", struct.pack(">I", i))[0]
+
 
 def _swap16(i):
     return struct.unpack("<H", struct.pack(">H", i))[0]
@@ -62,39 +64,31 @@ class HtmBinFileReader:
         self.index_offset = None
         self.index_count = None
 
-
     @property
     def data_offset(self):
         return self._data_offset
-
 
     @property
     def byteswap(self):
         return self._byteswap
 
-
     @property
     def record_count(self):
         return self._record_count
-
 
     @property
     def file(self):
         return self._file
 
-
     @property
     def guess_record_size(self):
         return self.record_size if self.record_size else None
 
-
     def get_record_count(self, index):
         return self.index_count[index]
 
-
     def get_offset(self, index):
         return self.index_offset[index]
-
 
     def open_file(self, file_name):
         self._file = None
@@ -102,12 +96,10 @@ class HtmBinFileReader:
             self._file = open(file_name, 'rb')
         return self._file
 
-
     def close_file(self):
         if self._file:
             self._file.close()
             self._file = None
-
 
     def read_header(self):
         # Read the first 124 bytes of the binary file which contains a general text about the binary data.

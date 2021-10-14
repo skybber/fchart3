@@ -19,6 +19,7 @@ from numpy import *
 
 from . import deepsky_object as deepsky
 
+
 def _parse_rev_ngcic_line(line, catalog='NGC'):
     object = deepsky.DeepskyObject()
     object.cat = catalog

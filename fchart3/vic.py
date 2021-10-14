@@ -19,11 +19,13 @@ from .deepsky_object import *
 from numpy import *
 import csv
 
+
 def _vic2int(s):
     s.lstrip('0')
     if len(s) == 0:
         return 0
     return int(s)
+
 
 def import_vic(filename):
     # Import all saguaro objects that are not NGC or IC objects, or M40

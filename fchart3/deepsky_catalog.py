@@ -25,6 +25,7 @@ from .htm.htm import HTM
 
 RAD2DEG = 180.0/np.pi
 
+
 class DeepskyCatalog:
     def __init__(self, deepsky_list=[], force_messier = False):
         self.deepsky_list = []
@@ -32,7 +33,6 @@ class DeepskyCatalog:
         self.sky_mesh = HTM(4)
         self.dso_blocks = [None] * self.sky_mesh.size()
         self.add_objects(deepsky_list)
-
 
     def add_objects(self, objects):
         arr_ra, arr_dec, dso_list = ([], [], [])
@@ -51,7 +51,6 @@ class DeepskyCatalog:
             else:
                 self.dso_blocks[index].append(dso_list[i])
 
-
     def select_deepsky(self, fieldcentre, radius, lm_deepsky):
         intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
         selection = []
@@ -66,7 +65,6 @@ class DeepskyCatalog:
 
         return selection
 
-
     def select_type(self, typelist=[]):
         selection = []
         if typelist == []:
@@ -77,12 +75,10 @@ class DeepskyCatalog:
                     selection.append(obj)
         return DeepskyCatalog(selection)
 
-
     def sort(self,cmp_func=cmp_ra):
         lst = list(self.deepsky_list)
         lst.sort(cmp_func)
         return DeepskyCatalog(lst)
-
 
     def __str__(self):
         s = StringIO()

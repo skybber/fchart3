@@ -19,6 +19,7 @@ import numpy as np
 
 from . import deepsky_object as deepsky
 
+
 class WidgetDsoLegend:
 
     def __init__(self, language, drawingwidth, legend_margin):

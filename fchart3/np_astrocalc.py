@@ -17,6 +17,7 @@
 
 import numpy as np
 
+
 def np_angular_distance(position1, position2):
     """
     Compute angular distance between start and end point.
@@ -29,7 +30,6 @@ def np_angular_distance(position1, position2):
     a = start_ra-end_ra
     arg = np.sin(start_dec)*np.sin(end_dec) + np.cos(start_dec)*np.cos(end_dec)*np.cos(a)
     return np.arccos(arg)
-
 
 
 def np_lm_to_radec(lm, fieldcentre):

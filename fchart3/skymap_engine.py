@@ -403,7 +403,6 @@ class SkymapEngine:
 
         self.graphics.save()
 
-        # tm = time()
         x, y, z = np_radec_to_xyz(milky_way_lines[:,0], milky_way_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         self.graphics.set_pen_rgb(self.config.milky_way_color)
@@ -429,7 +428,6 @@ class SkymapEngine:
         if polygon is not None and len(polygon) > 2:
             self.graphics.polygon(polygon, DrawMode.FILL)
 
-        # print("MW within {} ms".format(str(time()-tm)), flush=True)
         self.graphics.restore()
 
 
@@ -556,7 +554,7 @@ class SkymapEngine:
 
         # print("Stars selection {} ms".format(str(time()-tm)), flush=True)
         print('{} stars in map.'.format(selection.shape[0]))
-        print('Faintest star: ' + str(int(max(selection['mag'])*100.0 + 0.5)/100.0))
+        print('Faintest star: ' + str(round(max(selection['mag']), 2)))
 
         # tm = time()
         x, y = np_radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
@@ -845,8 +843,6 @@ class SkymapEngine:
         visible_objects - output array containing list of object visible on the map
         """
 
-        # tm = time()
-
         self.visible_objects = visible_objects
         self.visible_objects_in_map = [] if visible_objects is not None else None
 
@@ -877,7 +873,9 @@ class SkymapEngine:
         if not self.config.legend_only:
 
             if self.config.show_milky_way:
+                # tm = time()
                 self.draw_milky_way(used_catalogs.milky_way_lines)
+                # print("Milky way within {} ms".format(str(time()-tm)), flush=True)
 
             if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
                 clip_path = [(x2,y2)]
@@ -901,25 +899,25 @@ class SkymapEngine:
                 self.graphics.clip_path(clip_path)
 
             if self.config.show_equatorial_grid:
+                # tm = time()
                 self.draw_grid_equatorial()
-            # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
-            # tm = time()
+                # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
 
             if highlights:
                 self.draw_highlights(highlights)
 
             if used_catalogs.constellcatalog is not None:
+                # tm = time()
                 self.draw_constellations(used_catalogs.constellcatalog, hl_constellation)
                 # print("constellations within {} ms".format(str(time()-tm)), flush=True)
-                # tm = time()
 
             if used_catalogs.unknown_nebulas is not None:
                 self.draw_unknown_nebula(used_catalogs.unknown_nebulas)
 
             if used_catalogs.deepskycatalog is not None:
+                # tm = time()
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos, dso_hide_filter)
                 # print("DSO within {} ms".format(str(time()-tm)), flush=True)
-                # tm = time()
 
             if extra_positions:
                 self.draw_extra_objects(extra_positions)
@@ -928,9 +926,9 @@ class SkymapEngine:
                 self.draw_trajectory(trajectory)
 
             if used_catalogs.starcatalog is not None:
+                # tm = time()
                 self.draw_stars(used_catalogs.starcatalog)
                 # print("Stars within {} ms".format(str(time()-tm)), flush=True)
-                # tm = time()
 
             self.graphics.reset_clip()
 
@@ -943,6 +941,7 @@ class SkymapEngine:
         # Draw border of field-of-view
         self.draw_field_border()
 
+        # tm = time()
         self.graphics.finish()
         # print("Rest {} ms".format(str(time()-tm)), flush=True)
 
@@ -983,7 +982,7 @@ class SkymapEngine:
         if self.config.star_colors and star_color:
             self.graphics.set_fill_rgb(star_color)
 
-        r = int(radius*100.0 + 0.5)/100.0
+        r = round(radius, 2)
         self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
 
 

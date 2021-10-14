@@ -17,6 +17,7 @@
 
 import math
 
+
 def angular_distance(position1, position2):
     """
     Compute angular distance between start and end point.
@@ -29,7 +30,6 @@ def angular_distance(position1, position2):
     a = start_ra-end_ra
     arg = math.sin(start_dec)*math.sin(end_dec) + math.cos(start_dec)*math.cos(end_dec)*math.cos(a)
     return math.acos(arg)
-
 
 
 def justify_angle(angle, lower_bound, upper_bound):
