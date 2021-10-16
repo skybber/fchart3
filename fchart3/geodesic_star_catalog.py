@@ -407,48 +407,36 @@ class GeodesicStarCatalogComponent:
 
     def __init__(self, file_name):
         self._data_reader = None
-        self._file_name = file_name
+        self.file_name = file_name
         self._file_opened = False
         self._nr_of_zones = 0
         self._star_blocks = None
         self._zone_data_ar = None
-        self._star_position_scale = 0.0
-        self._triangle_size = 0.0
-
-    @property
-    def file_name(self):
-        return self._file_name
-
-    @property
-    def mag_min_mag(self):
-        return self._data_reader.mag_min_mag
+        self.star_position_scale = 0.0
+        self.triangle_size = 0.0
 
     @property
     def level(self):
         return self._data_reader.level
 
     @property
+    def mag_min_mag(self):
+        return self._data_reader.mag_min_mag
+
+    @property
     def nr_of_stars(self):
         return self._data_reader.nr_of_stars
 
-    @property
-    def star_position_scale(self):
-        return self._star_position_scale
-
-    @property
-    def triangle_size(self):
-        return self._triangle_size
-
     def load_data_file(self):
         self._data_reader = GeodesicBinFileReader()
-        self._data_reader.open_file(self._file_name)
+        self._data_reader.open_file(self.file_name)
         if not self._data_reader.file:
-            print("Failed to open star catalog {}, disabling it.".format(self._file_name))
+            print("Failed to open star catalog {}, disabling it.".format(self.file_name))
             return False
         try:
             self._data_reader.read_header()
         except Exception as e:
-            print("Header read error for deep star catalog {}, disabling it!".format(self._file_name))
+            print("Header read error for deep star catalog {}, disabling it!".format(self.file_name))
             return False
 
         self._nr_of_zones = GeodesicGrid.nr_of_zones(self._data_reader.level)
@@ -457,7 +445,7 @@ class GeodesicStarCatalogComponent:
         self._file_opened = True
         return self._file_opened
 
-    def init_tringle(self, index, c0, c1, c2):
+    def init_triangle(self, index, c0, c1, c2):
         global use_precalc_star_position_scale
         z = self._zone_data_ar[index]
         z.center = vector_norm_add3(c0, c1, c2)
@@ -469,8 +457,8 @@ class GeodesicStarCatalogComponent:
             d2 = vector_length(vector_sub(c1, c2))
             d3 = vector_length(vector_sub(c2, c0))
             dmax = max(d1, d2, d3)
-            if dmax > self._triangle_size:
-                self._triangle_size = dmax
+            if dmax > self.triangle_size:
+                self.triangle_size = dmax
 
         if not use_precalc_star_position_scale:
             # Initialize star_position_scale. This scale is used to multiply stars position
@@ -480,45 +468,45 @@ class GeodesicStarCatalogComponent:
             mu1 = vector_dot(vector_sub(c0,z.center), z.axis1)
             f = 1.0/math.sqrt(1.0-mu0*mu0-mu1*mu1)
             h = abs(mu0)*f
-            if self._star_position_scale < h:
-                self._star_position_scale = h
+            if self.star_position_scale < h:
+                self.star_position_scale = h
             h = abs(mu1)*f
-            if self._star_position_scale < h:
-                self._star_position_scale = h
+            if self.star_position_scale < h:
+                self.star_position_scale = h
 
             mu0 = vector_dot(vector_sub(c1,z.center), z.axis0)
             mu1 = vector_dot(vector_sub(c1,z.center), z.axis1)
             f = 1.0/math.sqrt(1.0-mu0*mu0-mu1*mu1)
             h = abs(mu0)*f
-            if self._star_position_scale < h:
-                self._star_position_scale = h
+            if self.star_position_scale < h:
+                self.star_position_scale = h
             h = abs(mu1)*f
-            if self._star_position_scale < h:
-                self._star_position_scale = h
+            if self.star_position_scale < h:
+                self.star_position_scale = h
 
-            mu0 = vector_dot(vector_sub(c2,z.center), z.axis0)
-            mu1 = vector_dot(vector_sub(c2,z.center), z.axis1)
+            mu0 = vector_dot(vector_sub(c2, z.center), z.axis0)
+            mu1 = vector_dot(vector_sub(c2, z.center), z.axis1)
             f = 1.0/math.sqrt(1.0-mu0*mu0-mu1*mu1)
             h = abs(mu0)*f
-            if self._star_position_scale < h:
-                self._star_position_scale = h
+            if self.star_position_scale < h:
+                self.star_position_scale = h
             h = abs(mu1)*f
-            if self._star_position_scale < h:
-                self._star_position_scale = h
+            if self.star_position_scale < h:
+                self.star_position_scale = h
 
     def scale_axis(self):
         if self._data_reader.file_type == 0:
             star_max_pos_val = 0x7FFFFFFF
         elif self._data_reader.file_type == 1:
-            star_max_pos_val = (1<<19)-1
+            star_max_pos_val = (1 << 19)-1
         else:
-            star_max_pos_val = (1<<17)-1
+            star_max_pos_val = (1 << 17)-1
 
-        self._star_position_scale /= star_max_pos_val
+        self.star_position_scale /= star_max_pos_val
 
         for z in self._zone_data_ar:
-            z.axis0 = np.array(vector_scal_dot(self._star_position_scale, z.axis0))
-            z.axis1 = np.array(vector_scal_dot(self._star_position_scale, z.axis1))
+            z.axis0 = np.array(vector_scal_dot(self.star_position_scale, z.axis0))
+            z.axis1 = np.array(vector_scal_dot(self.star_position_scale, z.axis1))
 
     def _get_data_format(self):
         if self._data_reader.file_type == 0:
@@ -571,8 +559,7 @@ class GeodesicStarCatalogComponent:
 
 class GeodesicStarCatalog(StarCatalog):
     """
-    Star catalog composed of GeodesicStarCatalogComponent. Each component represents
-    one level of Geodesic tree.
+    Star catalog composed of GeodesicStarCatalogComponent. Each component represents one level of Geodesic tree.
     """
     def __init__(self, data_dir, extra_data_dir, bsc_hip_map):
         self._cat_components = []
@@ -586,15 +573,14 @@ class GeodesicStarCatalog(StarCatalog):
                 if not cat_comp:
                     break
             if cat_comp.level != i:
-                print("File {} has invalid catalog level.".format(self._file_name))
+                print("File {} has invalid catalog level.".format(self.file_name))
                 break
-            print('{} stars readed from {}'.format(cat_comp.nr_of_stars, os.path.split(cat_comp.file_name)[1]))
+            print('{} stars read from {}'.format(cat_comp.nr_of_stars, os.path.split(cat_comp.file_name)[1]))
             self._cat_components.append(cat_comp)
 
         self._max_geodesic_grid_level = self._cat_components[-1].level
-
         self._geodesic_grid = GeodesicGrid(self._max_geodesic_grid_level)
-        self._geodesic_grid.visit_triangles(self._max_geodesic_grid_level, self.init_tringle)
+        self._geodesic_grid.visit_triangles(self._max_geodesic_grid_level, self.init_triangle)
 
         for cat_comp in self._cat_components:
             print('Level={} scale={} triangle_size={}'.format(cat_comp.level, cat_comp.star_position_scale, cat_comp.triangle_size))
@@ -632,14 +618,14 @@ class GeodesicStarCatalog(StarCatalog):
     def max_geodesic_grid_level(self):
         return self._max_geodesic_grid_level
 
-    def init_tringle(self, lev, index, c0, c1, c2):
-        self._cat_components[lev].init_tringle(index, c0, c1, c2)
+    def init_triangle(self, lev, index, c0, c1, c2):
+        self._cat_components[lev].init_triangle(index, c0, c1, c2)
 
     def select_stars(self, fieldcentre, radius, lm_stars):
         """
         Return an array containing of items [[ra, dec, mag], [ra, dec, mag]...]
-        for all stars in the field centered around fieldcentre with iven radius,
-        fieldcentre and radius.
+        for all stars in the field centered around field centre with given radius,
+        field centre and radius.
         """
         tmp_arr = []
 

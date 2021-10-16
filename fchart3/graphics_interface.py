@@ -64,16 +64,18 @@ class GraphicsInterface:
         width and height in mm
         """
         # length of point in mm
-        self.gi_width     = float(width)
-        self.gi_height    = float(height)
-        self.gi_pen_rgb  = (0.0, 0.0, 0.0)
+        self.gi_width = float(width)
+        self.gi_height = float(height)
+        self.gi_pen_rgb = (0.0, 0.0, 0.0)
         self.gi_fill_rgb = (0.0, 0.0, 0.0)
         self.gi_linewidth = 0.1
         self.gi_dash_style = ([], 0.0)
-        self.gi_origin_x  = self.gi_width/2.0
-        self.gi_origin_y  = self.gi_height/2.0
-        self.gi_font      = 'Times-Roman'
+        self.gi_origin_x = self.gi_width/2.0
+        self.gi_origin_y = self.gi_height/2.0
+        self.gi_font = 'Times-Roman'
         self.set_point_size(POINT)
+        self.pointsize = None
+        self.gi_fontsize = None
 
         self.gi_fobj = ''
         self.gi_stack = []
@@ -81,15 +83,14 @@ class GraphicsInterface:
 
     def set_point_size(self, pointsize):
         self.pointsize = pointsize
-        self.gi_fontsize  = 12*self.pointsize
+        self.gi_fontsize = 12*self.pointsize
 
     def get_default_fontsize(self):
         return 12*self.pointsize
 
     def save(self):
         """
-        Save graphics state to stack. This method should be extended,
-        not overriden.
+        Save graphics state to stack. This method should be extended, not overriden.
         """
         self.gi_stack.append((self.gi_linewidth,
                               self.gi_dash_style,
@@ -100,8 +101,7 @@ class GraphicsInterface:
 
     def restore(self):
         """
-        Save graphics state to stack. This method should be extended,
-        not overriden.
+        Save graphics state to stack. This method should be extended, not overriden.
         """
         (self.gi_linewidth,
          self.gi_dash_style,
@@ -112,8 +112,7 @@ class GraphicsInterface:
 
     def new(self):
         """
-        Erase all graphics, but keep graphics state (font, fontsize,
-        linewidth&style , width, height, origin as they are.
+        Erase all graphics, but keep graphics state (font, fontsize, linewidth&style , width, height, origin as they are.
         """
         pass
 
@@ -185,7 +184,7 @@ class GraphicsInterface:
         """
         if fontsize is None:
             fontsize = self.get_default_fontsize()
-        self.gi_font     = font
+        self.gi_font = font
         self.gi_fontsize = fontsize
 
     def translate(self, dx, dy):
@@ -208,7 +207,7 @@ class GraphicsInterface:
         """
         print('GraphicsInterface.line()')
 
-    def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
+    def rectangle(self, x, y, width, height, mode=DrawMode.BORDER):
         """
         Draw a rectangle with left upper corner in (x,y) and widt/height
         pen gray value
@@ -297,10 +296,13 @@ class GraphicsInterface:
         self.gi_background_rgb = background_rgb
 
     def on_screen(self, x, y):
-        return true
+        """
+        True if point is on screen
+        """
+        return True
 
     def to_pixel(self, x, y):
         """
         Convert x, y to pixel position
         """
-        return (x, y)
+        return x, y

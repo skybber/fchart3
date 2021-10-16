@@ -35,7 +35,13 @@ class CairoDrawing(GraphicsInterface):
     """
     def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None):
         """
-        width (horizontal) and height (vertical) in mm
+        :param fobj: file object
+        :param width: width in mm
+        :param height: height in mm
+        :param format: format png/svg
+        :param pixels: True if units of width/height are pixels
+        :param landscape: True if orientation of page is landscape
+        :param tolerance: Cairo context drawing tolerance, use it for speedup of graphics operations
         """
         GraphicsInterface.__init__(self, (width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
 

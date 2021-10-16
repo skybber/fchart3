@@ -37,65 +37,45 @@ def _swap16(i):
 
 class GeodesicBinFileReader:
     """
-    Read Stellarium Geodesic bin file header.
+    Stellarium bin file reader. Reads data organized into geodesic grid.
     """
     def __init__(self):
-        self._file = None
-        self._file_type = None
+        self.byteswap = False
+        self.level = None
+        self.file = None
+        self.file_type = None
+        self.nr_of_stars = 0
         self._magic = None
         self._major = None
         self._minor = None
-        self._level = None
         self._mag_min = None
         self._mag_range = None
         self._mag_steps = None
-        self._byteswap = False
         self._mag_table = None
         self._index_offset = None
         self._index_count = None
-        self._nr_of_stars = 0
-
-    @property
-    def file(self):
-        return self._file
-
-    @property
-    def file_type(self):
-        return self._file_type
-
-    @property
-    def level(self):
-        return self._level
 
     @property
     def mag_min_mag(self):
         return self._mag_min / 1000.0
 
-    @property
-    def nr_of_stars(self):
-        return self._nr_of_stars
-
-    @property
-    def byteswap(self):
-        return self._byteswap
-
     def get_star_rec_size(self):
-        if self._file_type == 2:
+        if self.file_type == 2:
             return 6    # Star2
-        if self._file_type == 1:
+        if self.file_type == 1:
             return 10   # Star1
         return 28       # Star0
 
     def open_file(self, file_name):
-        self._file = None
+        self.file = None
         if os.path.isfile(file_name):
-            self._file = open(file_name, 'rb')
-        return self._file
+            self.file = open(file_name, 'rb')
+        return self.file
 
     def close_file(self):
-        if self._file:
-            self._file.close()
-            self._file = None
+        if self.file:
+            self.file.close()
+            self.file = None
 
     def get_record_count(self, index):
         return self._index_count[index]
@@ -114,36 +94,36 @@ class GeodesicBinFileReader:
         return self._mag_table
 
     def read_header(self):
-        self._magic = struct.unpack('I', self._file.read(4))[0]
-        self._file_type = struct.unpack('I', self._file.read(4))[0]
-        self._major = struct.unpack('I', self._file.read(4))[0]
-        self._minor = struct.unpack('I', self._file.read(4))[0]
-        self._level = struct.unpack('I', self._file.read(4))[0]
-        self._mag_min = struct.unpack('i', self._file.read(4))[0]
-        self._mag_range = struct.unpack('I', self._file.read(4))[0]
-        self._mag_steps = struct.unpack('I', self._file.read(4))[0]
+        self._magic = struct.unpack('I', self.file.read(4))[0]
+        self.file_type = struct.unpack('I', self.file.read(4))[0]
+        self._major = struct.unpack('I', self.file.read(4))[0]
+        self._minor = struct.unpack('I', self.file.read(4))[0]
+        self.level = struct.unpack('I', self.file.read(4))[0]
+        self._mag_min = struct.unpack('i', self.file.read(4))[0]
+        self._mag_range = struct.unpack('I', self.file.read(4))[0]
+        self._mag_steps = struct.unpack('I', self.file.read(4))[0]
 
         self._byte_swap = (self._magic == FILE_MAGIC_OTHER_ENDIAN)
 
         if (self._byte_swap):
-            self._file_type = _swap32(self._file_type)
+            self.file_type = _swap32(self.file_type)
             self._major = _swap32(self._major)
             self._minor = _swap32(self._minor)
-            self._level = _swap32(self._level)
+            self.level = _swap32(self.level)
             self._mag_min = _swap32(self._mag_min)
             self._mag_range = _swap32(self._mag_range)
             self._mag_steps = _swap32(self._mag_steps)
         elif self._magic != FILE_MAGIC and self._magic != FILE_MAGIC_NATIVE:
             raise ValueError("Invalid file magic=0x{:02X}!".format(self._magic))
 
-        if self._file_type not in range(3):
-            raise ValueError("Invalid file type={}!".format(hex(self._file_type)))
+        if self.file_type not in range(3):
+            raise ValueError("Invalid file type={}!".format(hex(self.file_type)))
 
-        nr_of_zones = GeodesicGrid.nr_of_zones(self._level)
+        nr_of_zones = GeodesicGrid.nr_of_zones(self.level)
 
-        self._nr_of_stars = 0
+        self.nr_of_stars = 0
 
-        index_offset_start = self._file.tell() + nr_of_zones * 4
+        index_offset_start = self.file.tell() + nr_of_zones * 4
 
         self._index_count = [None] * nr_of_zones
         self._index_offset = [None] * nr_of_zones
@@ -151,14 +131,14 @@ class GeodesicBinFileReader:
         star_rec_size = self.get_star_rec_size()
 
         for i in range(nr_of_zones):
-            nrecs = struct.unpack('I', self._file.read(4))[0]
+            nrecs = struct.unpack('I', self.file.read(4))[0]
 
-            if self._byteswap:
+            if self.byteswap:
                 nrecs = _swap32(nrecs)
 
             self._index_count[i] = nrecs
-            self._index_offset[i] = index_offset_start + self._nr_of_stars * star_rec_size
-            self._nr_of_stars += nrecs
+            self._index_offset[i] = index_offset_start + self.nr_of_stars * star_rec_size
+            self.nr_of_stars += nrecs
 
 
 if __name__ == '__main__':
