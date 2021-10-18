@@ -24,8 +24,8 @@ icosahedron_b = 1.0/math.sqrt(1.0+icosahedron_G*icosahedron_G)
 icosahedron_a = icosahedron_b*icosahedron_G
 
 icosahedron_corners = (
-    ( icosahedron_a, -icosahedron_b,            0.0),
-    ( icosahedron_a,  icosahedron_b,            0.0),
+    (icosahedron_a,  -icosahedron_b,            0.0),
+    (icosahedron_a,   icosahedron_b,            0.0),
     (-icosahedron_a,  icosahedron_b,            0.0),
     (-icosahedron_a, -icosahedron_b,            0.0),
     (           0.0,  icosahedron_a, -icosahedron_b),
@@ -33,43 +33,43 @@ icosahedron_corners = (
     (           0.0, -icosahedron_a,  icosahedron_b),
     (           0.0, -icosahedron_a, -icosahedron_b),
     (-icosahedron_b,            0.0,  icosahedron_a),
-    ( icosahedron_b,            0.0,  icosahedron_a),
-    ( icosahedron_b,            0.0, -icosahedron_a),
+    (icosahedron_b,            0.0,   icosahedron_a),
+    (icosahedron_b,            0.0,  -icosahedron_a),
     (-icosahedron_b,            0.0, -icosahedron_a),
 )
 
 icosahedron_triangles = (
-    ( 1, 0,10), #  1
-    ( 0, 1, 9),  #  0
-    ( 0, 9, 6),  # 12
-    ( 9, 8, 6),  #  9
-    ( 0, 7,10),  # 16
-    ( 6, 7, 0),  #  6
-    ( 7, 6, 3),  #  7
-    ( 6, 8, 3),  # 14
-    (11,10, 7),  # 11
-    ( 7, 3,11),  # 18
-    ( 3, 2,11),  #  3
-    ( 2, 3, 8),  #  2
-    (10,11, 4),  # 10
-    ( 2, 4,11),  # 19
-    ( 5, 4, 2),  #  5
-    ( 2, 8, 5),  # 15
-    ( 4, 1,10),  # 17
-    ( 4, 5, 1),  #  4
-    ( 5, 9, 1),  # 13
-    ( 8, 9, 5)   #  8
+    (1,  0,  10),  # 1
+    (0,  1,  9),   # 0
+    (0,  9,  6),   # 12
+    (9,  8,  6),   # 9
+    (0,  7,  10),  # 16
+    (6,  7,  0),   # 6
+    (7,  6,  3),   # 7
+    (6,  8,  3),   # 14
+    (11, 10, 7),   # 11
+    (7,  3,  11),  # 18
+    (3,  2,  11),  # 3
+    (2,  3,  8),   # 2
+    (10, 11, 4),   # 10
+    (2,  4,  11),  # 19
+    (5,  4,  2),   # 5
+    (2,  8,  5),   # 15
+    (4,  1,  10),  # 17
+    (4,  5,  1),   # 4
+    (5,  9,  1),   # 13
+    (8,  9,  5)    # 8
 )
 
 
 class SphericalCap:
     def __init__(self, view_dir, inner_view_cos, outer_view_cos):
-        '''
+        """
         Construct a SphericalCap from its direction and aperture.
         - view_dir a unit vector indicating the direction.
         - inner_view_cos cosinus of the aperture.
         - inner_view_cos cosinus of the aperture + max angular size of triangle in level
-        '''
+        """
         self._view_dir = view_dir
         self._inner_view_cos = inner_view_cos
         self._outer_view_cos = outer_view_cos
@@ -134,7 +134,7 @@ class GeodesicSearchInsideIterator:
         self._search_result = search_result
         self._level = 0
         self._max_level = max_level
-        self._max_count = 1<<(max_level<<1) # 4^maxLevel
+        self._max_count = 1 << (max_level << 1)  # 4^maxLevel
         self._lev_zones = search_result.zone_lists[0]
         self._cur_index = 0
         self._end_index = search_result.inside_indexes[0]
@@ -169,11 +169,10 @@ class GeodesicSearchInsideIterator:
 
 
 class GeodesicGrid:
-    '''
-    GeodesicGrid: a library for dividing the sphere into triangle zones
-    by subdividing the icosahedron
+    """
+    GeodesicGrid: a library for dividing the sphere into triangle zones by subdividing the icosahedron
     Based on work of Johannes Gajdosik, 2006
-    '''
+    """
     @staticmethod
     def nr_of_zones(level):
         return 20 << (level << 1)
@@ -208,44 +207,44 @@ class GeodesicGrid:
             i = index >> 2
             t = self._triangles[lev][i]
             x = index & 3
-            if x==0:
+            if x == 0:
                 c0, c1, c2 = self.get_triangle_corners(lev, i)
                 h0 = c0
                 h1 = t[2]
                 h2 = t[1]
-            elif x==1:
+            elif x == 1:
                 c0, c1, c2 = self.get_triangle_corners(lev, i)
                 h0 = t[2]
                 h1 = c1
                 h2 = t[0]
-            elif x==2:
+            elif x == 2:
                 c0, c1, c2 = self.get_triangle_corners(lev, i)
                 h0 = t[1]
                 h1 = t[0]
                 h2 = c2
-            elif x==3:
+            elif x == 3:
                 h0 = t[0]
                 h1 = t[1]
                 h2 = t[2]
         return h0, h1, h2
 
     def get_partner_triangle(self, lev, index):
-        if lev==0:
+        if lev == 0:
             return index+1 if (index&1) == 1 else index-1
 
         x = index&7
-        if x==2 or x==6:
+        if x == 2 or x == 6:
             return index+1
-        if x==3 or x==7:
+        if x == 3 or x == 7:
             return index-1
-        if x==0:
-            return index+5 if lev==1 else (self.get_partner_triangle(lev-1, index>>2)<<2)+1
-        if x==1:
-            return index+3  if lev==1 else (self.get_partner_triangle(lev-1, index>>2)<<2)+0
-        if x==4:
-            return index-3  if lev==1 else (self.get_partner_triangle(lev-1, index>>2)<<2)+1
-        if x==5:
-            return index-5  if lev==1 else (self.get_partner_triangle(lev-1, index>>2)<<2)+0
+        if x == 0:
+            return index+5 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+1
+        if x == 1:
+            return index+3 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+0
+        if x == 4:
+            return index-3 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+1
+        if x == 5:
+            return index-5 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+0
         return 0
 
     def _init_triangle(self, lev, index, c0, c1, c2, center=None):
@@ -264,9 +263,9 @@ class GeodesicGrid:
 
     def search_zones(self, lev_spherical_caps, search_result, max_search_level):
         if max_search_level < 0:
-                max_search_level = 0
+            max_search_level = 0
         elif max_search_level > self.max_level:
-                max_search_level = self.max_level
+            max_search_level = self.max_level
 
         corner_in_inner = []
 
@@ -288,7 +287,6 @@ class GeodesicGrid:
             search_result.add_inside_index(lev, index) # totally inside
             return True
         else:
-
             if lev >= max_search_level:
                 search_result.add_border_index(lev, index)
                 return True
