@@ -35,6 +35,7 @@ This repository also contains following catalogs in the data/catalogs directory:
 - `deepstars.dat` - tycho2 catalog from [kstars](https://edu.kde.org/kstars/)
 - `namedstars.dat` - catalog of named stars from [kstars](https://edu.kde.org/kstars/)
 - `starnames.dat` - star names from [kstars](https://edu.kde.org/kstars/)
+- `stars_0_0v*.cat` - UsnoNomad catalogs from [stellarium](https://github.com/Stellarium)
 - `unamedstars.dat` - catalog of unamed stars from [kstars](https://edu.kde.org/kstars/)
 
 DSO catalogs replaced now by catalog from hnsky:
