@@ -1,10 +1,8 @@
 # fchart3
 
-Astronomical finder charts now working with numpy and python3.x, available also in interactive form.
+Fchart3 is a project designed to create hight quality astronomical charts. It is written in Python using data from Stellarium, Kstars and HnSky, including 300 million stars. It can be used to create both offline charts with output to PDF or online interactive charts as can be seen in case of project **CzSky**.
 
 ![star chart](https://github.com/skybber/fchart3/blob/assets/Orion.png)
-
-fchart3 is a set of python3 scripts and a command line utility to create star maps/finder charts.
 
 Online interactive version avalable on project **CzSky**:
 
