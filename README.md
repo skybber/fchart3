@@ -4,7 +4,7 @@ Fchart3 is a project designed to create high quality astronomical charts. It is 
 
 ![star chart](https://github.com/skybber/fchart3/blob/assets/Orion.png)
 
-Online interactive version avalable on project **CzSky**:
+Online interactive version is available on project **CzSky**:
 
 * https://www.czsky.eu/chart?ra=1.532197702857378&dec=0.06961660554646551&fsz=100&splitview=true
 
