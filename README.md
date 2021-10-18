@@ -16,12 +16,12 @@ Download this project and
 
 Run: `fchart3 --help` to show commandline options.
 
-The original source of this code can be found here:
+The sources of original project fcharts can be found at:
 * https://www.astro.rug.nl/~brentjen/fchart.html
 
 However it relies on numarray which has been deprecated in favor of numpy.
 
-Previous fchart sources for python2.7 can be found here:
+Previous fchart sources for python2.7 can be found at:
 * https://github.com/Fingel/fchart
 
 This repository contains updated sourcecode so that the code may run with numpy.
