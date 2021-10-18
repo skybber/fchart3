@@ -177,6 +177,9 @@ class SkymapEngine:
         if caption != '':
             self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_fontsize*2.0)
 
+    def set_active_constellation(self, active_constellation):
+        self.active_constellation = active_constellation
+
     def draw_caption(self):
         if self.caption != '':
             old_size = self.graphics.gi_fontsize

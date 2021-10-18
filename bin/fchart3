@@ -300,6 +300,7 @@ def _create_engine_configuration():
     config.show_coords_legend = settings.parser.show_coords_legend
     config.show_field_border = settings.parser.show_field_border
     config.show_equatorial_grid = settings.parser.show_equatorial_grid
+    config.show_milky_way = False
     config.fov_telrad = settings.parser.fov_telrad
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
@@ -353,7 +354,6 @@ if __name__ == '__main__':
                                  force_asterisms = settings.parser.force_asterisms,
                                  force_unknown = settings.parser.force_unknown,
                                  show_catalogs = show_catalogs,
-                                 settings.parser.usno_nomad_file,
                                  )
 
     print("Chart generated in : " + str(time()-tm) + "ms")
