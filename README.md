@@ -5,6 +5,10 @@ Michiel Brentjens' fchart3 - astronomical finder charts now working with numpy a
 
 fchart3 is a set of python3 scripts and a command line utility to create star maps/finder charts.
 
+Online interactive version avalable on project **CzSky**:
+
+* https://www.czsky.eu/chart?ra=1.532197702857378&dec=0.06961660554646551&fsz=100&splitview=true
+
 Install:
 
 Download this project and
