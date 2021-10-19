@@ -42,7 +42,7 @@ from fchart3.graphics_cairo import CairoDrawing
 
 
 def print_version():
-    print('fchart3 version 0.5.2 (c) fchart3 authors 2005-2020')
+    print('fchart3 version 0.8.0 (c) fchart3 authors 2005-2021')
     print("""
 fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE

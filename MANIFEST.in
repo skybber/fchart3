@@ -2,6 +2,8 @@ include README.md
 include README
 include *.txt
 include *.dat
+include *.cat
+include *.fab
 recursive-include fchart3 *
 global-exclude *.pyo
 global-exclude *.pyc
