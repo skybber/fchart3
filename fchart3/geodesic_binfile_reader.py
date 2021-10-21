@@ -105,7 +105,7 @@ class GeodesicBinFileReader:
 
         self._byte_swap = (self._magic == FILE_MAGIC_OTHER_ENDIAN)
 
-        if (self._byte_swap):
+        if self._byte_swap:
             self.file_type = _swap32(self.file_type)
             self._major = _swap32(self._major)
             self._minor = _swap32(self._minor)

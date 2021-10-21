@@ -656,7 +656,7 @@ class SkymapEngine:
         for grid_minutes in DEC_GRID_SCALE:
             steps = self.fieldradius / (np.pi * grid_minutes / (180 * 60))
             if steps < GRID_DENSITY:
-                if not prev_steps is None:
+                if prev_steps is not None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
                         grid_minutes = prev_grid_minutes
                 break
@@ -682,7 +682,7 @@ class SkymapEngine:
         while True:
             x12, y12, z12 = radec_to_xyz(self.fieldcentre[0] + agg_ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
             x22, y22, z22 = radec_to_xyz(self.fieldcentre[0] - agg_ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            if not x11 is None and z11 > 0 and z12 > 0:
+            if x11 is not None and z11 > 0 and z12 > 0:
                 self.mirroring_graphics.line(x11, y11, x12, y12)
                 self.mirroring_graphics.line(x21, y21, x22, y22)
             agg_ra = agg_ra + dra
@@ -717,7 +717,7 @@ class SkymapEngine:
                 break
             prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
-        max_visible_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1]>0 else self.fieldcentre[1]-self.fieldradius;
+        max_visible_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1] > 0 else self.fieldcentre[1]-self.fieldradius;
         if max_visible_dec >= np.pi/2 or max_visible_dec <= -np.pi/2:
             ra_size = 2*np.pi
         else:
@@ -731,7 +731,7 @@ class SkymapEngine:
 
         while ra_minutes <= 24*60:
             ra = np.pi * ra_minutes / (12*60)
-            if abs(self.fieldcentre[0]-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
+            if abs(self.fieldcentre[0]-ra) < ra_size or abs(self.fieldcentre[0]-2*np.pi-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
                 self.draw_grid_dec_line(ra, ra_minutes, label_fmt)
             ra_minutes += grid_minutes
 
