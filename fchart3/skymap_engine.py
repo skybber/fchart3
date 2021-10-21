@@ -145,6 +145,7 @@ class SkymapEngine:
         self.w_coords = None
         self.w_dso_legend = None
         self.w_telrad = None
+        self.mirroring_graphics = None
 
     def set_field(self, ra, dec, fieldradius):
         """
@@ -562,7 +563,7 @@ class SkymapEngine:
 
         mag = selection['mag']
 
-        indices   = np.argsort(mag)
+        indices = np.argsort(mag)
         magsorted = mag[indices]
         rsorted = self.magnitude_to_radius(magsorted)
 
@@ -599,23 +600,17 @@ class SkymapEngine:
             if not slabel:
                 continue
 
-            printed_labels = printed.get(star.constellation)
+            printed_labels = printed.setdefault(star.constellation, set())
+            if slabel not in printed_labels:
+                printed_labels.add(slabel)
 
-            if printed_labels is None:
-                printed_labels = set()
-                printed[star.constellation] = printed_labels
-            elif slabel in printed_labels:
-                continue
+                if slabel in STAR_LABELS:
+                    self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
+                    slabel = STAR_LABELS.get(slabel)
+                else:
+                    self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
 
-            printed_labels.add(slabel)
-
-            if slabel in STAR_LABELS:
-                self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
-                slabel = STAR_LABELS.get(slabel)
-            else:
-                self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-
-            self.draw_circular_object_label(x, y, r, slabel)
+                self.draw_circular_object_label(x, y, r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
@@ -646,7 +641,7 @@ class SkymapEngine:
             prefix = '-'
         else:
             prefix = ''
-        return  prefix + label_fmt.format(deg, minutes)
+        return prefix + label_fmt.format(deg, minutes)
 
     def grid_ra_label(self, ra_minutes, label_fmt):
         return label_fmt.format(ra_minutes//60, ra_minutes % 60)
@@ -775,8 +770,8 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
-        x1, y1, z1 = np_radec_to_xyz(constell_catalog.all_constell_lines[:,0], constell_catalog.all_constell_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-        x2, y2, z2 = np_radec_to_xyz(constell_catalog.all_constell_lines[:,2], constell_catalog.all_constell_lines[:,3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x1, y1, z1 = np_radec_to_xyz(constell_catalog.all_constell_lines[:, 0], constell_catalog.all_constell_lines[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x2, y2, z2 = np_radec_to_xyz(constell_catalog.all_constell_lines[:, 2], constell_catalog.all_constell_lines[:, 3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
@@ -1144,7 +1139,7 @@ class SkymapEngine:
         ys = yc - hl*sp
         xe = xc + hl*cp
         ye = yc + hl*sp
-        label_pos_list.append([[xs,ys],[xc,yc],[xe,ye]])
+        label_pos_list.append([[xs, ys], [xc, yc], [xe, ye]])
 
         xc = x - d*sp
         yc = y + d*cp
@@ -1152,7 +1147,7 @@ class SkymapEngine:
         ys = yc - hl*sp
         xe = xc + hl*cp
         ye = yc + hl*sp
-        label_pos_list.append([[xs,ys],[xc,yc],[xe,ye]])
+        label_pos_list.append([[xs, ys], [xc, yc], [xe, ye]])
 
         d = rlong+fh/6.0
         xs = x + d*cp
@@ -1161,7 +1156,7 @@ class SkymapEngine:
         yc = ys + hl*sp
         xe = xc + hl*cp
         ye = yc + hl*sp
-        label_pos_list.append([[xs,ys],[xc,yc],[xe,ye]])
+        label_pos_list.append([[xs, ys], [xc, yc], [xe, ye]])
 
         xe = x - d*cp
         ye = y - d*sp
@@ -1169,8 +1164,7 @@ class SkymapEngine:
         yc = ye - hl*sp
         xs = xc - hl*cp
         ys = yc - hl*sp
-        label_pos_list.append([[xs,ys],[xc,yc],[xe,ye]])
-
+        label_pos_list.append([[xs, ys], [xc, yc], [xe, ye]])
         return label_pos_list
 
     def draw_circular_object_label(self, x, y, r, label, labelpos=-1):
