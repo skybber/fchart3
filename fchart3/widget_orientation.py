@@ -26,10 +26,10 @@ class WidgetOrientation:
         # Draw orientation indication
         dl = self.legend_fontsize
         x = left + dl + 0.2*self.legend_fontsize
-        y =  top - dl - self.legend_fontsize*1.3
+        y = top - dl - self.legend_fontsize*1.3
         y_axis_caption = 'S' if self.mirror_y else 'N'
         graphics.text_centred(x, y + dl + 0.65*self.legend_fontsize, y_axis_caption)
         x_axis_caption = 'E' if self.mirror_x else 'W'
         graphics.text_right(x+dl+self.legend_fontsize/6.0, y-self.legend_fontsize/3.0, x_axis_caption)
-        graphics.line(x-dl, y, x+dl,y)
-        graphics.line(x,y-dl, x,y+dl)
+        graphics.line(x-dl, y, x+dl, y)
+        graphics.line(x, y-dl, x, y+dl)

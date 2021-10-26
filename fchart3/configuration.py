@@ -24,6 +24,8 @@ DEFAULT_LEGEND_LINEWIDTH = 0.2
 DEFAULT_GRID_LINEWIDTH = 0.2
 DEFAULT_DSO_HIGHLIGHT_LINEWIDTH = 0.3
 DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
+DEFAULT_TELRAD_LINEWIDTH = 0.3
+DEFAULT_PICKER_LINEWIDTH = 0.2
 
 DEFAULT_BACKGROUND_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DRAW_COLOR = (0.0, 0.0, 0.0)
@@ -35,6 +37,8 @@ DEFAULT_MILKY_WAY_COLOR = (0.1, 0.1, 0.1)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DSO_HIGHLIGHT_COLOR = (0.1, 0.2, 0.4)
 DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
+DEFAULT_TELRAD_COLOR = (0.5, 0.0, 0.0)
+DEFAULT_PICKER_COLOR = (0.5, 0.5, 0.0)
 DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
 DEFAULT_LEGEND_FONT_SCALE=1.75
@@ -56,6 +60,7 @@ class EngineConfiguration:
         self._show_constellation_borders = True
         self._show_deepsky = True
         self._show_milky_way = True
+        self._show_picker = False
         self._fov_telrad = False
         self._mirror_x = False
         self._mirror_y = False
@@ -88,6 +93,11 @@ class EngineConfiguration:
         self._legend_font_scale = DEFAULT_LEGEND_FONT_SCALE
         self._milky_way_color = DEFAULT_MILKY_WAY_COLOR
         self._milky_way_linewidth = DEFAULT_MILKY_WAY_LINEWIDTH
+        self._telrad_linewidth = DEFAULT_TELRAD_LINEWIDTH
+        self._telrad_color = DEFAULT_TELRAD_COLOR
+        self._picker_radius = -1 # < 0 means picker is not active
+        self._picker_linewidth = DEFAULT_PICKER_LINEWIDTH
+        self._picker_color = DEFAULT_PICKER_COLOR
 
     @property
     def legend_only(self):
@@ -200,6 +210,14 @@ class EngineConfiguration:
     @show_milky_way.setter
     def show_milky_way(self, value):
         self._show_milky_way = value
+
+    @property
+    def show_picker(self):
+        return self._show_picker
+
+    @show_picker.setter
+    def show_picker(self, value):
+        self._show_picker = value
 
     @property
     def fov_telrad(self):
@@ -456,3 +474,43 @@ class EngineConfiguration:
     @milky_way_linewidth.setter
     def milky_way_linewidth(self, value):
         self._milky_way_linewidth = value
+
+    @property
+    def telrad_linewidth(self):
+        return self._telrad_linewidth
+
+    @telrad_linewidth.setter
+    def telrad_linewidth(self, value):
+        self._telrad_linewidth = value
+
+    @property
+    def telrad_color(self):
+        return self._telrad_color
+
+    @telrad_color.setter
+    def telrad_color(self, value):
+        self._telrad_color = value
+
+    @property
+    def picker_radius(self):
+        return self._picker_radius
+
+    @picker_radius.setter
+    def picker_radius(self, value):
+        self._picker_radius = value
+
+    @property
+    def picker_color(self):
+        return self._picker_color
+
+    @picker_color.setter
+    def picker_color(self, value):
+        self._picker_color = value
+
+    @property
+    def picker_linewidth(self):
+        return self._picker_linewidth
+
+    @picker_linewidth.setter
+    def picker_linewidth(self, value):
+        self._picker_linewidth = value

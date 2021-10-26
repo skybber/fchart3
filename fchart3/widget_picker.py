@@ -18,18 +18,25 @@
 import numpy as np
 
 
-class WidgetTelrad:
+class WidgetPicker:
 
-    def __init__(self, drawingscale, linewidth, telrad_color=(0.5, 0, 0)):
-        self.drawingscale = drawingscale
-        self.linewidth = linewidth
-        self.telrad_color = telrad_color
+    def __init__(self, picker_radius, picker_linewidth, picker_color):
+        self.picker_radius = picker_radius
+        self.picker_linewidth = picker_linewidth
+        self.picker_color = picker_color
 
     def draw(self, graphics):
         graphics.save()
-        for tr in [15, 60, 120]:
-            r = tr*np.pi/(180.0*60.0)*self.drawingscale
-            graphics.set_pen_rgb((0.5, 0, 0))
-            graphics.set_linewidth(self.linewidth)
-            graphics.circle(0,0,r)
+        graphics.set_pen_rgb(self.picker_color)
+        graphics.set_linewidth(self.picker_linewidth)
+        r = self.picker_radius
+        x = r / 3.0
+        graphics.line(-r, -r, -r+x, -r)
+        graphics.line(-r, -r, -r, -r+x)
+        graphics.line(r, -r, r-x, -r)
+        graphics.line(r, -r, r, -r+x)
+        graphics.line(-r, r, -r+x, r)
+        graphics.line(-r, r, -r, r-x)
+        graphics.line(r, r, r-x, r)
+        graphics.line(r, r, r, r-x)
         graphics.restore()

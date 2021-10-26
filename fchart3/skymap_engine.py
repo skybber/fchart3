@@ -37,6 +37,7 @@ from .widget_orientation import WidgetOrientation
 from .widget_coords import WidgetCoords
 from .widget_dso_legend import WidgetDsoLegend
 from .widget_telrad import WidgetTelrad
+from .widget_picker import WidgetPicker
 
 
 NL = {
@@ -145,6 +146,7 @@ class SkymapEngine:
         self.w_coords = None
         self.w_dso_legend = None
         self.w_telrad = None
+        self.w_picker = None
         self.mirroring_graphics = None
 
     def set_field(self, ra, dec, fieldradius):
@@ -226,6 +228,8 @@ class SkymapEngine:
 
         if self.config.fov_telrad:
             self.w_telrad.draw(self.graphics)
+        if self.config.show_picker and self.config.picker_radius > 0:
+            self.w_picker.draw(self.graphics)
         if self.config.show_mag_scale_legend:
             self.w_mag_scale.draw(self.graphics, x1, y1, self.config.legend_only)
         if self.config.show_map_scale_legend:
@@ -546,6 +550,8 @@ class SkymapEngine:
         # Select and draw stars
         print('Drawing stars...')
 
+        pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
+
         # tm = time()
         selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars)
         if selection is None or len(selection) == 0:
@@ -580,37 +586,41 @@ class SkymapEngine:
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
             if xx >= x1-rr and xx <= x2+rr and yy >= y1-rr and yy <= y2+rr:
                 self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
-                bsc_star = selection[index]['bsc']
-                if not bsc_star is None:
-                    named_star_list.append((xx, yy, rr, bsc_star,))
+                mag_label = False
+                if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
+                    named_star_list.append((xx, yy, rr, str(magsorted[i])))
+                else:
+                    if self.config.show_star_labels:
+                        bsc_star = selection[index]['bsc']
+                        if bsc_star is not None:
+                            named_star_list.append((xx, yy, rr, bsc_star,))
 
-        self.draw_stars_labels(named_star_list)
+        if len(named_star_list)>0:
+            self.draw_stars_labels(named_star_list)
 
     def draw_stars_labels(self, star_list):
-        if not self.config.show_star_labels:
-            return
-
         fn = self.graphics.gi_fontsize
-
         printed = {}
         for x, y, r, star in star_list:
-            slabel = star.greek
-            if not slabel and self.config.show_flamsteed:
-                slabel = star.flamsteed
-            if not slabel:
-                continue
-
-            printed_labels = printed.setdefault(star.constellation, set())
-            if slabel not in printed_labels:
+            if isinstance(star, str):
+                self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
+                self.draw_circular_object_label(x, y, r, star)
+            else:
+                slabel = star.greek
+                if not slabel and self.config.show_flamsteed:
+                    slabel = star.flamsteed
+                if not slabel:
+                    continue
+                printed_labels = printed.setdefault(star.constellation, set())
+                if slabel in printed_labels:
+                    continue
                 printed_labels.add(slabel)
-
                 if slabel in STAR_LABELS:
                     self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
                     slabel = STAR_LABELS.get(slabel)
                 else:
                     self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-
-                self.draw_circular_object_label(x, y, r, slabel)
+                    self.draw_circular_object_label(x, y, r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
@@ -946,10 +956,9 @@ class SkymapEngine:
                                                )
 
         self.w_coords = WidgetCoords(self.language)
-
         self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN)
-
-        self.w_telrad = WidgetTelrad(self.drawingscale, self.config.constellation_linewidth)
+        self.w_telrad = WidgetTelrad(self.drawingscale, self.config.telrad_linewidth, self.config.telrad_color)
+        self.w_picker = WidgetPicker(self.config.picker_radius, self.config.picker_linewidth, self.config.picker_color)
 
     def star(self, x, y, radius, star_color):
         """

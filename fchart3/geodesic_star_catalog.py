@@ -583,7 +583,6 @@ class GeodesicStarCatalog(StarCatalog):
         self._geodesic_grid.visit_triangles(self._max_geodesic_grid_level, self.init_triangle)
 
         for cat_comp in self._cat_components:
-            print('Level={} scale={} triangle_size={}'.format(cat_comp.level, cat_comp.star_position_scale, cat_comp.triangle_size))
             cat_comp.scale_axis()
 
         self.search_result = GeodesicSearchResult(self._max_geodesic_grid_level)
