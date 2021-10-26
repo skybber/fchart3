@@ -595,7 +595,7 @@ class SkymapEngine:
                         if bsc_star is not None:
                             named_star_list.append((xx, yy, rr, bsc_star,))
 
-        if len(named_star_list)>0:
+        if len(named_star_list)>0 and len(named_star_list)<10:
             self.draw_stars_labels(named_star_list)
 
     def draw_stars_labels(self, star_list):
