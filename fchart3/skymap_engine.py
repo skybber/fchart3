@@ -579,29 +579,32 @@ class SkymapEngine:
 
         self.graphics.set_linewidth(0)
 
-        named_star_list = []
+        star_labels = []
+        pick_labels = []
         x1, y1, x2, y2 = self.get_field_rect_mm()
         for i in range(len(indices)):
             index = indices[i]
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
             if xx >= x1-rr and xx <= x2+rr and yy >= y1-rr and yy <= y2+rr:
                 self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
-                mag_label = False
                 if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
-                    named_star_list.append((xx, yy, rr, str(magsorted[i])))
+                    pick_labels.append((xx, yy, rr, magsorted[i]))
                 else:
                     if self.config.show_star_labels:
                         bsc_star = selection[index]['bsc']
                         if bsc_star is not None:
-                            named_star_list.append((xx, yy, rr, bsc_star,))
+                            star_labels.append((xx, yy, rr, bsc_star))
 
-        if len(named_star_list)>0 and len(named_star_list)<10:
-            self.draw_stars_labels(named_star_list)
+        if len(star_labels) > 0:
+            self.draw_stars_labels(star_labels)
+        if len(pick_labels) > 0:
+            pick_labels = sorted(pick_labels, key=lambda a: a[3])[:3]
+            self.draw_pick_labels(pick_labels)
 
-    def draw_stars_labels(self, star_list):
+    def draw_stars_labels(self, star_labels):
         fn = self.graphics.gi_fontsize
         printed = {}
-        for x, y, r, star in star_list:
+        for x, y, r, star in star_labels:
             if isinstance(star, str):
                 self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
                 self.draw_circular_object_label(x, y, r, star)
@@ -609,18 +612,25 @@ class SkymapEngine:
                 slabel = star.greek
                 if not slabel and self.config.show_flamsteed:
                     slabel = star.flamsteed
-                if not slabel:
-                    continue
-                printed_labels = printed.setdefault(star.constellation, set())
-                if slabel in printed_labels:
-                    continue
-                printed_labels.add(slabel)
-                if slabel in STAR_LABELS:
-                    self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
-                    slabel = STAR_LABELS.get(slabel)
-                else:
-                    self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-                    self.draw_circular_object_label(x, y, r, slabel)
+                if slabel:
+                    printed_labels = printed.setdefault(star.constellation, set())
+                    if slabel not in printed_labels:
+                        printed_labels.add(slabel)
+                        if slabel in STAR_LABELS:
+                            self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
+                            slabel = STAR_LABELS.get(slabel)
+                        else:
+                            self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
+                        self.draw_circular_object_label(x, y, r, slabel)
+
+        self.graphics.set_font(self.graphics.gi_font, fn)
+
+    def draw_pick_labels(self, pick_labels):
+        fn = self.graphics.gi_fontsize
+        printed = {}
+        for x, y, r, mag in pick_labels:
+            self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
+            self.draw_circular_object_label(x, y, r, str(mag))
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
