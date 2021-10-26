@@ -580,7 +580,8 @@ class SkymapEngine:
         self.graphics.set_linewidth(0)
 
         star_labels = []
-        pick_labels = []
+        pick = None
+        pick_min_r = pick_r**2
         x1, y1, x2, y2 = self.get_field_rect_mm()
         for i in range(len(indices)):
             index = indices[i]
@@ -588,7 +589,10 @@ class SkymapEngine:
             if xx >= x1-rr and xx <= x2+rr and yy >= y1-rr and yy <= y2+rr:
                 self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
                 if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
-                    pick_labels.append((xx, yy, rr, magsorted[i]))
+                    r = xx*xx + yy*yy
+                    if r < pick_min_r:
+                        pick = (xx, yy, rr, magsorted[i])
+                        pick_min_r = r
                 else:
                     if self.config.show_star_labels:
                         bsc_star = selection[index]['bsc']
@@ -597,9 +601,13 @@ class SkymapEngine:
 
         if len(star_labels) > 0:
             self.draw_stars_labels(star_labels)
-        if len(pick_labels) > 0:
-            pick_labels = sorted(pick_labels, key=lambda a: a[3])[:3]
-            self.draw_pick_labels(pick_labels)
+
+        if pick is not None:
+            fn = self.graphics.gi_fontsize
+            x, y, r, mag = pick
+            self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
+            self.draw_circular_object_label(x, y, r, str(mag))
+            self.graphics.set_font(self.graphics.gi_font, fn)
 
     def draw_stars_labels(self, star_labels):
         fn = self.graphics.gi_fontsize
@@ -622,15 +630,6 @@ class SkymapEngine:
                         else:
                             self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
                         self.draw_circular_object_label(x, y, r, slabel)
-
-        self.graphics.set_font(self.graphics.gi_font, fn)
-
-    def draw_pick_labels(self, pick_labels):
-        fn = self.graphics.gi_fontsize
-        printed = {}
-        for x, y, r, mag in pick_labels:
-            self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-            self.draw_circular_object_label(x, y, r, str(mag))
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
