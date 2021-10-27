@@ -47,11 +47,11 @@ class UsedCatalogs:
                 self._messierlist.append(dso)
             if force_messier and dso.messier > 0:
                 self._reduced_deeplist.append(dso)
-            elif dso.mag <= limiting_magnitude_deepsky \
-                   and dso.master_object is None \
-                   and dso.type != deepsky.GALCL \
-                   and (dso.type != deepsky.STARS or force_asterisms or (dso.messier > 0 and dso.type == deepsky.STARS)) \
-                   and (dso.type != deepsky.PG or force_unknown or dso.type == deepsky.PG and dso.mag > -5.0):
+            elif dso.mag <= limiting_magnitude_deepsky and \
+                    dso.master_object is None and \
+                    dso.type != deepsky.GALCL and \
+                    (dso.type != deepsky.STARS or force_asterisms or (dso.messier > 0 and dso.type == deepsky.STARS)) and \
+                    (dso.type != deepsky.PG or force_unknown or dso.type == deepsky.PG and dso.mag > -5.0):
                 self._reduced_deeplist.append(dso)
 
         self._messierlist.sort(key = lambda x: x.messier)

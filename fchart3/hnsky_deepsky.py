@@ -191,13 +191,13 @@ def _parse_hnsky_line(line, show_catalogs):
     return object
 
 
-def import_hnsky_deepsky(filename, show_catalogs):# or 'IC'
+def import_hnsky_deepsky(filename, show_catalogs):
     """
     Reads data from HNKSKY's deep_sky.hnd. Returns a list
     of DeepskyObjects()
     """
     hnd_file = open(filename, 'r', encoding='ISO-8859-1')
-    lines   = hnd_file.readlines()[2:]
+    lines = hnd_file.readlines()[2:]
     hnd_file.close()
 
     all_show_catalogs = set()
@@ -206,8 +206,6 @@ def import_hnsky_deepsky(filename, show_catalogs):# or 'IC'
         all_show_catalogs.update(show_catalogs)
 
     dso_list = []
-    if not show_catalogs:
-        show_catalogs = []
     for line in lines:
         dso_list.append(_parse_hnsky_line(line, all_show_catalogs))
 

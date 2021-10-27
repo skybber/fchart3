@@ -58,7 +58,7 @@ class DeepskyCatalog:
 
         for trixel in intersecting_trixels:
             trixel_dsos = self.dso_blocks[trixel ^ mask]
-            if not trixel_dsos is None:
+            if trixel_dsos is not None:
                 for obj in trixel_dsos:
                     if obj.mag <= lm_deepsky or (obj.messier > 0 and self.force_messier):
                         selection.append(obj)
@@ -67,7 +67,7 @@ class DeepskyCatalog:
 
     def select_type(self, typelist=[]):
         selection = []
-        if typelist == []:
+        if len(typelist) == 0:
             selection = list(self.deepsky_list)
         else:
             for obj in self.deepsky_list:
@@ -75,7 +75,7 @@ class DeepskyCatalog:
                     selection.append(obj)
         return DeepskyCatalog(selection)
 
-    def sort(self,cmp_func=cmp_ra):
+    def sort(self, cmp_func=cmp_ra):
         lst = list(self.deepsky_list)
         lst.sort(cmp_func)
         return DeepskyCatalog(lst)

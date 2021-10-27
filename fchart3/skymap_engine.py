@@ -137,9 +137,6 @@ class SkymapEngine:
         self.legend_fontscale = None
         self.active_constellation = None
 
-        self.visible_objects = None
-        self.visible_objects_in_map = None
-
         self.w_mag_scale = None
         self.w_map_scale = None
         self.w_orientation = None
@@ -241,7 +238,15 @@ class SkymapEngine:
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
-    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos, dso_hide_filter):
+    def format_angular_size(self, ang):
+        arc_sec_ang = ang * 600.0 / np.pi * 180.0 * 2.0 * 6
+        if arc_sec_ang >= 600.0:
+            return "{}'".format(round(arc_sec_ang / 60.0))
+        elif arc_sec_ang >= 100.0:
+            return "{:.1f}'".format(arc_sec_ang / 60.0)
+        return '{}'.format(round(arc_sec_ang)) + "''"
+
+    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos, dso_hide_filter, visible_dso_collector, picked_object):
         # Draw deep sky
         print('Drawing deepsky...')
 
@@ -250,54 +255,64 @@ class SkymapEngine:
         else:
             deepsky_list = []
 
-        last_selected = len(deepsky_list)
         filtered_showing_dsos = []
 
         if dso_hide_filter:
-            dso_hide_filter_set = { dso for dso in dso_hide_filter }
+            dso_hide_filter_set = {dso for dso in dso_hide_filter}
         else:
             dso_hide_filter_set = {}
 
         if showing_dsos:
             for dso in showing_dsos:
-                if not dso in deepsky_list:
+                if dso not in deepsky_list:
                     filtered_showing_dsos.append(dso)
                 if dso in dso_hide_filter_set:
                     dso_hide_filter_set.remove(dso)
 
-        deepsky_list.sort(key = lambda x: x.mag)
-        deepsky_list_mm = []
+        deepsky_list.sort(key=lambda x: x.mag)
+        deepsky_list_ext = []
 
         # calc for deepsky objects from selection
         for dso in deepsky_list:
             x, y = radec_to_xy(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            if dso.type == deepsky.GALCL:
-                rlong = self.min_radius
-            elif dso.rlong is None:
+            if dso.rlong is None or dso.type == deepsky.GALCL:
                 rlong = self.min_radius
             else:
                 rlong = dso.rlong*self.drawingscale
                 if rlong < self.min_radius:
                     rlong = self.min_radius
-            deepsky_list_mm.append((dso, x, y, rlong))
+            deepsky_list_ext.append((dso, x, y, rlong))
 
         # calc for deepsky objects from showing dsos
         for dso in filtered_showing_dsos:
             if angular_distance((dso.ra, dso.dec), self.fieldcentre) < self.fieldsize:
                 x, y, z = radec_to_xyz(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                 if z > 0:
-                    rlong = dso.rlong*self.drawingscale
                     if dso.type == deepsky.GALCL:
                         rlong = self.min_radius
-                    if rlong < self.min_radius:
-                        rlong = self.min_radius
-                    deepsky_list_mm.append((dso, x, y, rlong))
+                    else:
+                        rlong = dso.rlong*self.drawingscale
+                        if rlong < self.min_radius:
+                            rlong = self.min_radius
+                    deepsky_list_ext.append((dso, x, y, rlong))
 
-        label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_mm)
+        label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_ext)
 
         print('Drawing objects...')
-        for i in range(len(deepsky_list_mm)):
-            dso, x, y, rlong = deepsky_list_mm[i]
+        picked_dso = None
+        if picked_object is not None:
+            pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
+            pick_min_r = pick_r**2
+            for dso, x, y, rlong in deepsky_list_ext:
+                if pick_r > 0 and abs(x) < pick_r and abs(y) < pick_r:
+                    r = x*x + y*y
+                    if r < pick_min_r:
+                        picked_dso = dso
+                        pick_min_r = r
+            if picked_dso is not None:
+                picked_object.append(picked_dso)
+
+        for dso, x, y, rlong in deepsky_list_ext:
 
             if dso in dso_hide_filter_set:
                 continue
@@ -305,7 +320,7 @@ class SkymapEngine:
             label = dso.label()
 
             if hl_showing_dsos and dso in showing_dsos:
-                self.draw_dso_hightlight(x, y, rlong, label)
+                self.draw_dso_hightlight(x, y, rlong, label, visible_dso_collector)
 
             rlong = dso.rlong if dso.rlong is not None else self.min_radius
             rshort = dso.rshort if dso.rshort is not None else self.min_radius
@@ -319,6 +334,14 @@ class SkymapEngine:
 
             if dso.type == deepsky.GALCL:
                 rlong /= 3.0
+
+            label_ext = None
+            if dso == picked_dso:
+                ang_size = self.format_angular_size(dso.rlong)
+                if dso.rshort is not None and dso.rlong != dso.rshort:
+                    ang_size += ' / ' + self.format_angular_size(dso.rshort)
+                # label_ext = ' [ {}, {:.2f}m ]  '.format(ang_size, dso.mag )
+                label_ext = '{:.2f}m'.format(dso.mag)
 
             label_length = self.graphics.text_width(label)
             labelpos = -1
@@ -339,8 +362,8 @@ class SkymapEngine:
             for labelpos_index in range(len(labelpos_list)):
                 [[x1,y1],[x2,y2],[x3,y3]] = labelpos_list[labelpos_index]
                 pot1 = label_potential.compute_potential(x2,y2)
-                #label_potential.compute_potential(x1,y1),
-                #label_potential.compute_potential(x3,y3)])
+                # label_potential.compute_potential(x1,y1),
+                # label_potential.compute_potential(x3,y3)])
                 if pot1 < pot:
                     pot = pot1
                     labelpos = labelpos_index
@@ -349,48 +372,48 @@ class SkymapEngine:
             label_potential.add_position(xx, yy, label_length)
 
             if dso.type == deepsky.G:
-                self.galaxy(x, y, rlong, rshort, posangle, dso.mag, label, labelpos)
+                self.galaxy(x, y, rlong, rshort, posangle, dso.mag, label, label_ext, labelpos)
             elif dso.type == deepsky.N:
                 has_outlines = False
                 if dso.outlines is not None and rlong > self.min_radius:
-                    has_outlines = self.draw_object_outlines(dso, x, y, rlong, rshort, posangle, label, labelpos)
+                    has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort, posangle, label, label_ext, labelpos)
                 if not has_outlines:
-                    self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
+                    self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, label_ext, labelpos)
             elif dso.type == deepsky.PN:
-                self.planetary_nebula(x, y, rlong, label, labelpos)
+                self.planetary_nebula(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.OC:
                 has_outlines = False
                 if dso.outlines is not None:
-                    has_outlines = self.draw_object_outlines(dso, x, y, rlong, rshort)
+                    has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort)
                     if has_outlines:
                         print('Outlines {}'.format(dso.name))
-                self.open_cluster(x, y, rlong, label, labelpos)
+                self.open_cluster(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.GC:
-                self.globular_cluster(x, y, rlong, label, labelpos)
+                self.globular_cluster(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.STARS:
-                self.asterism(x, y, rlong, label, labelpos)
+                self.asterism(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.SNR:
-                self.supernova_remnant(x, y, rlong, label, labelpos)
+                self.supernova_remnant(x, y, rlong, label, label_ext, labelpos)
             else:
-                self.unknown_object(x, y, rlong, label, labelpos)
+                self.unknown_object(x, y, rlong, label, label_ext, labelpos)
 
-            if self.visible_objects is not None:
+            if visible_dso_collector is not None:
                 xs1, ys1 = x-rlong, y-rlong
                 xs2, ys2 = x+rlong, y+rlong
                 if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                     xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                    self.visible_objects_in_map.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
+                    visible_dso_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
 
-    def draw_object_outlines(self, object, x, y, rlong, rshort, posangle=None, label=None, labelpos=None):
+    def draw_dso_outlines(self, dso, x, y, rlong, rshort, posangle=None, label=None, label_ext=None,  labelpos=None):
         lev_shift = 0
         for outl_lev in range(2, -1, -1):
-            outlines_ar = object.outlines[outl_lev]
+            outlines_ar = dso.outlines[outl_lev]
             if outlines_ar:
                 has_outlines = True
                 for outlines in outlines_ar:
                     x_outl, y_outl = np_radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-                    self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle, label, labelpos)
+                    self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle, label, label_ext, labelpos)
             else:
                 lev_shift += 1
         return has_outlines
@@ -444,13 +467,12 @@ class SkymapEngine:
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
         print('Drawing extra objects...')
-        for object in extra_positions:
-            rax, decx, label, labelpos = object
+        for rax, decx, label, labelpos in extra_positions:
             if angular_distance((rax, decx), self.fieldcentre) < self.fieldsize:
                 x, y = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-                self.unknown_object(x, y, self.min_radius,label,labelpos)
+                self.unknown_object(x, y, self.min_radius, label, labelpos)
 
-    def draw_highlights(self, highlights):
+    def draw_highlights(self, highlights, visible_dso_collector):
         # Draw highlighted objects
         print('Drawing highlighted objects...')
 
@@ -471,17 +493,17 @@ class SkymapEngine:
                     elif hl_def.style == 'circle':
                         r = self.config.font_size
                         self.mirroring_graphics.circle(x,y,r)
-                        if dso_name and self.visible_objects is not None:
+                        if dso_name and visible_dso_collector is not None:
                             xs1, ys1 = x-r, y-r
                             xs2, ys2 = x+r, y+r
                             if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                                 xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                                 xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                                self.visible_objects_in_map.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
+                                visible_dso_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
 
-    def draw_dso_hightlight(self, x, y, rlong, dso_name):
+    def draw_dso_hightlight(self, x, y, rlong, dso_name, visible_dso_collector):
         self.graphics.save()
 
         self.graphics.set_pen_rgb(self.config.dso_highlight_color)
@@ -491,10 +513,10 @@ class SkymapEngine:
         self.mirroring_graphics.circle(x,y,r)
         xs1, ys1 = x-r, y-r
         xs2, ys2 = x+r, y+r
-        if self.visible_objects_in_map is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
+        if visible_dso_collector is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
             xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
             xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-            self.visible_objects_in_map.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
+            visible_dso_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
 
@@ -505,7 +527,6 @@ class SkymapEngine:
         self.graphics.set_pen_rgb(self.config.dso_color)
 
         fh = self.graphics.gi_fontsize
-        label1 = ''
         x1 = None
         y1 = None
         z1 = None
@@ -513,7 +534,7 @@ class SkymapEngine:
 
         for i in range(0, len(trajectory)):
             rax2, decx2, label2 = trajectory[i]
-            x2, y2, z2 =  radec_to_xyz(rax2,decx2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x2, y2, z2 = radec_to_xyz(rax2, decx2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
             if i > 0:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
@@ -525,8 +546,7 @@ class SkymapEngine:
 
             self.mirroring_graphics.text_centred(x2, y2 - r - fh/2.0, label2)
 
-            x1,y1,z1 = (x2, y2, z2)
-            label1 = label2
+            x1, y1, z1 = (x2, y2, z2)
 
         self.graphics.restore()
 
@@ -546,11 +566,14 @@ class SkymapEngine:
         radius = 0.1 * 1.33 ** (mag_s)
         return radius
 
-    def draw_stars(self, star_catalog):
+    def draw_stars(self, star_catalog, allow_star_pick):
         # Select and draw stars
         print('Drawing stars...')
 
-        pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
+        if allow_star_pick:
+            pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
+        else:
+            pick_r = 0
 
         # tm = time()
         selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars)
@@ -828,7 +851,7 @@ class SkymapEngine:
         self.graphics.restore()
 
     def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None, extra_positions=None, hl_constellation=None,
-                 trajectory=[], visible_objects=None):
+                 trajectory=[], visible_objects=None, picked_object=None):
         """ Creates map using given graphics, params and config
         used_catalogs - UsedCatalogs data structure
         showing_dso - DSO forced to be shown even if they don't pass the filter
@@ -840,8 +863,7 @@ class SkymapEngine:
         trajectory - defined by list of points (ra, dec) points
         visible_objects - output array containing list of object visible on the map
         """
-        self.visible_objects = visible_objects
-        self.visible_objects_in_map = [] if visible_objects is not None else None
+        visible_dso_collector = [] if visible_objects is not None else None
 
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
@@ -901,7 +923,7 @@ class SkymapEngine:
                 # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
 
             if highlights:
-                self.draw_highlights(highlights)
+                self.draw_highlights(highlights, visible_dso_collector)
 
             if used_catalogs.constellcatalog is not None:
                 # tm = time()
@@ -913,7 +935,7 @@ class SkymapEngine:
 
             if used_catalogs.deepskycatalog is not None:
                 # tm = time()
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos, dso_hide_filter)
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos, dso_hide_filter, visible_dso_collector, picked_object)
                 # print("DSO within {} ms".format(str(time()-tm)), flush=True)
 
             if extra_positions:
@@ -924,7 +946,7 @@ class SkymapEngine:
 
             if used_catalogs.starcatalog is not None:
                 # tm = time()
-                self.draw_stars(used_catalogs.starcatalog)
+                self.draw_stars(used_catalogs.starcatalog, (picked_object is None or len(picked_object) == 0))
                 # print("Stars within {} ms".format(str(time()-tm)), flush=True)
 
             self.graphics.reset_clip()
@@ -942,27 +964,26 @@ class SkymapEngine:
         self.graphics.finish()
         # print("Rest {} ms".format(str(time()-tm)), flush=True)
 
-        if self.visible_objects_in_map is not None:
-            self.visible_objects_in_map.sort(key=lambda x: x[0])
-            for obj in self.visible_objects_in_map:
-                self.visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
+        if visible_dso_collector is not None:
+            visible_dso_collector.sort(key=lambda x: x[0])
+            for obj in visible_dso_collector:
+                visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
 
     def create_widgets(self):
         self.w_mag_scale = WidgetMagnitudeScale(self,
-                                          legend_fontsize=self.get_legend_font_size(),
-                                          stars_in_scale=STARS_IN_SCALE,
-                                          lm_stars=self.lm_stars,
-                                          legend_linewidth=self.config.legend_linewidth)
+                                                legend_fontsize=self.get_legend_font_size(),
+                                                stars_in_scale=STARS_IN_SCALE,
+                                                lm_stars=self.lm_stars,
+                                                legend_linewidth=self.config.legend_linewidth)
 
         self.w_map_scale = WidgetMapScale(drawingscale=self.drawingscale,
-                                    maxlength=self.drawingwidth/3.0,
-                                    legend_fontsize=self.get_legend_font_size(),
-                                    legend_linewidth=self.config.legend_linewidth)
+                                          maxlength=self.drawingwidth/3.0,
+                                          legend_fontsize=self.get_legend_font_size(),
+                                          legend_linewidth=self.config.legend_linewidth)
 
         self.w_orientation = WidgetOrientation(legend_fontsize=self.get_legend_font_size(),
                                                mirror_x=self.config.mirror_x,
-                                               mirror_y=self.config.mirror_y
-                                               )
+                                               mirror_y=self.config.mirror_y)
 
         self.w_coords = WidgetCoords(self.language)
         self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN)
@@ -988,7 +1009,7 @@ class SkymapEngine:
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         self.graphics.circle(x, y, r, DrawMode.BOTH)
 
-    def open_cluster(self, x, y, radius=-1.0, label='', labelpos=''):
+    def open_cluster(self, x, y, radius, label, label_ext, labelpos):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
@@ -999,13 +1020,23 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.open_cluster_linewidth)
         self.graphics.set_dashed_line(0.6, 0.4)
 
-        self.mirroring_graphics.circle(x,y,r)
-
-        self.draw_circular_object_label(x,y,r,label,labelpos)
-
+        self.mirroring_graphics.circle(x, y, r)
+        self.draw_circular_object_label(x, y, r, label, labelpos)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
         self.graphics.restore()
 
-    def asterism(self, x, y, radius=-1, label='', labelpos=-1):
+    def draw_asterism_label(self, x, y, label, labelpos, d, fh):
+        if labelpos == 0 or labelpos == -1:
+            self.mirroring_graphics.text_centred(x, y-d-2*fh/3.0, label)
+        elif labelpos == 1:
+            self.mirroring_graphics.text_centred(x, y+d+fh/3.0, label)
+        elif labelpos == 2:
+            self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
+        elif labelpos == 3:
+            self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+
+    def asterism(self, x, y, radius, label, label_ext, labelpos):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
@@ -1026,16 +1057,14 @@ class SkymapEngine:
         self.mirroring_graphics.line(x-d, y, x, y+d)
 
         fh = self.graphics.gi_fontsize
-        if label != '':
+        if label:
             self.mirroring_graphics.set_pen_rgb(self.config.label_color)
-            if labelpos == 0 or labelpos == -1:
-                self.mirroring_graphics.text_centred(x, y-d-2*fh/3.0, label)
-            elif labelpos == 1:
-                self.mirroring_graphics.text_centred(x, y+d+fh/3.0, label)
-            elif labelpos == 2:
-                self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
-            elif labelpos == 3:
-                self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+            self.draw_asterism_label(x, y, label, labelpos, d, fh)
+
+        if label_ext:
+            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+            self.draw_asterism_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, fh)
+
         self.graphics.restore()
 
     def asterism_labelpos(self, x, y, radius=-1, label_length=0.0):
@@ -1062,7 +1091,17 @@ class SkymapEngine:
         label_pos_list.append([[xx, yy], [xx+label_length/2.0, yy], [xx+label_length, yy]])
         return label_pos_list
 
-    def galaxy(self, x, y, rlong=-1, rshort=-1, posangle=0.0, mag=None, label='', labelpos=-1):
+    def draw_galaxy_label(self, x, y, label, labelpos, rlong, rshort, fh):
+        if labelpos == 0 or labelpos == -1:
+            self.graphics.text_centred(0, -rshort-0.5*fh, label)
+        elif labelpos == 1:
+            self.graphics.text_centred(0, +rshort+0.5*fh, label)
+        elif labelpos == 2:
+            self.graphics.text_right(rlong+fh/6.0, -fh/3.0, label)
+        elif labelpos == 3:
+            self.graphics.text_left(-rlong-fh/6.0, -fh/3.0, label)
+
+    def galaxy(self, x, y, rlong, rshort, posangle, mag, label, label_ext, labelpos):
         """
         If rlong != -1 and rshort == -1 =>   rshort <- rlong
         if rlong < 0.0 => standard galaxy
@@ -1104,25 +1143,19 @@ class SkymapEngine:
             p -= np.pi
 
         fh = self.graphics.gi_fontsize
-        self.mirroring_graphics.ellipse(x,y,rl, rs, p)
+        self.mirroring_graphics.ellipse(x, y, rl, rs, p)
 
-        if label != '':
-            self.graphics.save()
-            self.mirroring_graphics.translate(x,y)
+        if label or label_ext:
+            self.mirroring_graphics.translate(x, y)
             self.mirroring_graphics.rotate(p)
             self.mirroring_graphics.set_pen_rgb((self.config.label_color[0]*dso_intensity,
                                                  self.config.label_color[1]*dso_intensity,
                                                  self.config.label_color[2]*dso_intensity))
+            if label:
+                self.draw_galaxy_label(x, y, label, labelpos, rlong, rshort, fh)
 
-            if labelpos == 0 or labelpos == -1:
-                self.graphics.text_centred(0, -rshort-0.5*fh, label)
-            elif labelpos == 1:
-                self.graphics.text_centred(0, +rshort+0.5*fh, label)
-            elif labelpos == 2:
-                self.graphics.text_right(rlong+fh/6.0, -fh/3.0, label)
-            elif labelpos == 3:
-                self.graphics.text_left(-rlong-fh/6.0, -fh/3.0, label)
-            self.graphics.restore()
+            if label_ext:
+                self.draw_galaxy_label(x, y, label_ext, self.to_ext_labelpos(labelpos), rlong, rshort, fh)
 
         self.graphics.restore()
 
@@ -1185,6 +1218,17 @@ class SkymapEngine:
         label_pos_list.append([[xs, ys], [xc, yc], [xe, ye]])
         return label_pos_list
 
+    def to_ext_labelpos(self, labelpos):
+        if labelpos == 0:
+            return 1
+        elif labelpos == 1:
+            return 0
+        elif labelpos == 2:
+            return 3
+        elif labelpos == 3:
+            return 2
+        return 1
+
     def draw_circular_object_label(self, x, y, r, label, labelpos=-1):
         fh = self.graphics.gi_fontsize
         if label:
@@ -1233,7 +1277,7 @@ class SkymapEngine:
         label_pos_list.append([ [xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys] ])
         return label_pos_list
 
-    def globular_cluster(self, x, y, radius=-1.0, label='', labelpos=''):
+    def globular_cluster(self, x, y, radius, label, label_ext, labelpos):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
@@ -1247,10 +1291,12 @@ class SkymapEngine:
         self.mirroring_graphics.line(x, y-r, x, y+r)
 
         self.draw_circular_object_label(x, y, r, label, labelpos)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
 
         self.graphics.restore()
 
-    def diffuse_nebula(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label='',labelpos=''):
+    def diffuse_nebula(self, x, y, width, height, posangle, label, label_ext, labelpos):
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.nebula_linewidth)
@@ -1279,7 +1325,7 @@ class SkymapEngine:
                 self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
 
-    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width=-1.0, height=-1.0, posangle=0.0, label='', labelpos=''):
+    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width=-1.0, height=-1.0, posangle=0.0, label='', label_ext='', labelpos=''):
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.nebula_linewidth)
@@ -1365,7 +1411,7 @@ class SkymapEngine:
         label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
         return label_pos_list
 
-    def planetary_nebula(self, x, y, radius=-1.0, label='', labelpos=''):
+    def planetary_nebula(self, x, y, radius, label, label_ext, labelpos):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/60.0
@@ -1381,10 +1427,12 @@ class SkymapEngine:
         self.mirroring_graphics.line(x, y-0.75*r, x, y-1.5*r)
 
         self.draw_circular_object_label(x, y, r, label, labelpos)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
 
         self.graphics.restore()
 
-    def supernova_remnant(self, x, y, radius=-1.0, label='', labelpos=''):
+    def supernova_remnant(self, x, y, radius, label, label_ext, labelpos):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
@@ -1393,14 +1441,16 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.dso_linewidth)
         self.graphics.set_pen_rgb(self.config.nebula_color)
 
-        self.mirroring_graphics.circle(x,y,r-self.graphics.gi_linewidth/2.0)
+        self.mirroring_graphics.circle(x, y, r-self.graphics.gi_linewidth/2.0)
         # self.graphics.circle(x,y,r*0.85)
         # self.graphics.circle(x,y,r*0.7)
-        self.draw_circular_object_label(x,y,r,label,labelpos)
+        self.draw_circular_object_label(x, y, r, label, labelpos)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
 
         self.graphics.restore()
 
-    def unknown_object(self, x, y, radius=-1.0, label='', labelpos=''):
+    def unknown_object(self, x, y, radius, label, label_ext, labelpos):
         r = radius
         if radius <= 0.0:
             r = self.drawingwidth/40.0
