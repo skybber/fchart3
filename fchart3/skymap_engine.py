@@ -107,6 +107,7 @@ DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*6
 MAG_SCALE_X = [0, 1,   2,   3,   4,    5,    25]
 MAG_SCALE_Y = [0, 1.8, 3.3, 4.7, 6,  7.2,  18.0]
 
+EXT_LABEL_SIZE_FAC = 1.2
 
 class SkymapEngine:
     def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
@@ -238,14 +239,6 @@ class SkymapEngine:
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
-    def format_angular_size(self, ang):
-        arc_sec_ang = ang * 600.0 / np.pi * 180.0 * 2.0 * 6
-        if arc_sec_ang >= 600.0:
-            return "{}'".format(round(arc_sec_ang / 60.0))
-        elif arc_sec_ang >= 100.0:
-            return "{:.1f}'".format(arc_sec_ang / 60.0)
-        return '{}'.format(round(arc_sec_ang)) + "''"
-
     def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos, dso_hide_filter, visible_dso_collector, picked_object):
         # Draw deep sky
         print('Drawing deepsky...')
@@ -302,18 +295,18 @@ class SkymapEngine:
         picked_dso = None
         if picked_object is not None:
             pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
-            pick_min_r = pick_r**2
-            for dso, x, y, rlong in deepsky_list_ext:
-                if pick_r > 0 and abs(x) < pick_r and abs(y) < pick_r:
-                    r = x*x + y*y
-                    if r < pick_min_r:
-                        picked_dso = dso
-                        pick_min_r = r
-            if picked_dso is not None:
-                picked_object.append(picked_dso)
+            if pick_r > 0:
+                pick_min_r = pick_r**2
+                for dso, x, y, rlong in deepsky_list_ext:
+                    if pick_r > 0 and abs(x) < pick_r and abs(y) < pick_r:
+                        r = x*x + y*y
+                        if r < pick_min_r:
+                            picked_dso = dso
+                            pick_min_r = r
+                if picked_dso is not None:
+                    picked_object.append(picked_dso)
 
         for dso, x, y, rlong in deepsky_list_ext:
-
             if dso in dso_hide_filter_set:
                 continue
 
@@ -337,16 +330,12 @@ class SkymapEngine:
 
             label_ext = None
             if dso == picked_dso:
-                ang_size = self.format_angular_size(dso.rlong)
-                if dso.rshort is not None and dso.rlong != dso.rshort:
-                    ang_size += ' / ' + self.format_angular_size(dso.rshort)
-                # label_ext = ' [ {}, {:.2f}m ]  '.format(ang_size, dso.mag )
                 label_ext = '{:.2f}m'.format(dso.mag)
 
             label_length = self.graphics.text_width(label)
             labelpos = -1
 
-            labelpos_list =[]
+            labelpos_list = []
             if dso.type == deepsky.G:
                 labelpos_list = self.galaxy_labelpos(x, y, rlong, rshort, posangle, label_length)
             elif dso.type == deepsky.N:
@@ -360,7 +349,7 @@ class SkymapEngine:
 
             pot = 1e+30
             for labelpos_index in range(len(labelpos_list)):
-                [[x1,y1],[x2,y2],[x3,y3]] = labelpos_list[labelpos_index]
+                [[x1, y1], [x2, y2], [x3, y3]] = labelpos_list[labelpos_index]
                 pot1 = label_potential.compute_potential(x2,y2)
                 # label_potential.compute_potential(x1,y1),
                 # label_potential.compute_potential(x3,y3)])
@@ -382,7 +371,6 @@ class SkymapEngine:
             elif dso.type == deepsky.PN:
                 self.planetary_nebula(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.OC:
-                has_outlines = False
                 if dso.outlines is not None:
                     has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort)
                     if has_outlines:
@@ -1021,9 +1009,14 @@ class SkymapEngine:
         self.graphics.set_dashed_line(0.6, 0.4)
 
         self.mirroring_graphics.circle(x, y, r)
-        self.draw_circular_object_label(x, y, r, label, labelpos)
         if label_ext:
-            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
+            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            self.graphics.set_font(self.graphics.gi_font, label_fh)
+        else:
+            label_fh = None
+        self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
         self.graphics.restore()
 
     def draw_asterism_label(self, x, y, label, labelpos, d, fh):
@@ -1056,14 +1049,19 @@ class SkymapEngine:
         self.mirroring_graphics.line(x+diff, y-d-diff, x-d-diff, y+diff)
         self.mirroring_graphics.line(x-d, y, x, y+d)
 
-        fh = self.graphics.gi_fontsize
+        if label_ext:
+            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            self.graphics.set_font(self.graphics.gi_font, label_fh)
+        else:
+            label_fh = self.graphics.gi_fontsize
+
         if label:
             self.mirroring_graphics.set_pen_rgb(self.config.label_color)
-            self.draw_asterism_label(x, y, label, labelpos, d, fh)
+            self.draw_asterism_label(x, y, label, labelpos, d, label_fh)
 
         if label_ext:
             self.mirroring_graphics.set_pen_rgb(self.config.label_color)
-            self.draw_asterism_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, fh)
+            self.draw_asterism_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
 
         self.graphics.restore()
 
@@ -1142,7 +1140,6 @@ class SkymapEngine:
         if posangle < -0.5*np.pi:
             p -= np.pi
 
-        fh = self.graphics.gi_fontsize
         self.mirroring_graphics.ellipse(x, y, rl, rs, p)
 
         if label or label_ext:
@@ -1151,11 +1148,17 @@ class SkymapEngine:
             self.mirroring_graphics.set_pen_rgb((self.config.label_color[0]*dso_intensity,
                                                  self.config.label_color[1]*dso_intensity,
                                                  self.config.label_color[2]*dso_intensity))
-            if label:
-                self.draw_galaxy_label(x, y, label, labelpos, rlong, rshort, fh)
-
             if label_ext:
-                self.draw_galaxy_label(x, y, label_ext, self.to_ext_labelpos(labelpos), rlong, rshort, fh)
+                label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            else:
+                label_fh = self.graphics.gi_fontsize
+
+            self.graphics.set_font(self.graphics.gi_font, label_fh)
+
+            if label:
+                self.draw_galaxy_label(x, y, label, labelpos, rlong, rshort, label_fh)
+            if label_ext:
+                self.draw_galaxy_label(x, y, label_ext, self.to_ext_labelpos(labelpos), rlong, rshort, label_fh)
 
         self.graphics.restore()
 
@@ -1229,8 +1232,9 @@ class SkymapEngine:
             return 2
         return 1
 
-    def draw_circular_object_label(self, x, y, r, label, labelpos=-1):
-        fh = self.graphics.gi_fontsize
+    def draw_circular_object_label(self, x, y, r, label, labelpos=-1, fh=None):
+        if fh is None:
+            fh = self.graphics.gi_fontsize
         if label:
             self.mirroring_graphics.set_pen_rgb(self.config.label_color)
             arg = 1.0-2*fh/(3.0*r)
@@ -1290,9 +1294,14 @@ class SkymapEngine:
         self.mirroring_graphics.line(x-r, y, x+r, y)
         self.mirroring_graphics.line(x, y-r, x, y+r)
 
-        self.draw_circular_object_label(x, y, r, label, labelpos)
         if label_ext:
-            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
+            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            self.graphics.set_font(self.graphics.gi_font, label_fh)
+        else:
+            label_fh = None
+        self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
 
         self.graphics.restore()
 
@@ -1325,7 +1334,17 @@ class SkymapEngine:
                 self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
         self.graphics.restore()
 
-    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width=-1.0, height=-1.0, posangle=0.0, label='', label_ext='', labelpos=''):
+    def draw_diffuse_nebula_label(self, x, y, label, labelpos, d, fh):
+        if labelpos == 0 or labelpos == -1:
+            self.mirroring_graphics.text_centred(x, y-d-fh/2.0, label)
+        elif labelpos == 1:
+            self.mirroring_graphics.text_centred(x, y+d+fh/2.0, label)
+        elif labelpos == 2:
+            self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
+        elif labelpos == 3:
+            self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+
+    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width, height, posangle, label, label_ext, labelpos=''):
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.nebula_linewidth)
@@ -1351,17 +1370,19 @@ class SkymapEngine:
             self.mirroring_graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
         self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
-        fh = self.graphics.gi_fontsize
-        if label != '':
-            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
-            if labelpos == 0 or labelpos == -1:
-                self.mirroring_graphics.text_centred(x, y-d-fh/2.0, label)
-            elif labelpos == 1:
-                self.mirroring_graphics.text_centred(x, y+d+fh/2.0, label)
-            elif labelpos == 2:
-                self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
-            elif labelpos == 3:
-                self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+        if label_ext:
+            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+        else:
+            label_fh = self.graphics.gi_fontsize
+
+        self.graphics.set_font(self.graphics.gi_font, label_fh)
+
+        self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+        if label:
+            self.draw_diffuse_nebula_label(x, y, label, labelpos, d, label_fh)
+        if label_ext:
+            self.draw_diffuse_nebula_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
+
         self.graphics.restore()
 
     def unknown_diffuse_nebula_outlines(self, x_outl, y_outl, outl_lev):
@@ -1426,9 +1447,16 @@ class SkymapEngine:
         self.mirroring_graphics.line(x, y+0.75*r, x, y+1.5*r)
         self.mirroring_graphics.line(x, y-0.75*r, x, y-1.5*r)
 
-        self.draw_circular_object_label(x, y, r, label, labelpos)
         if label_ext:
-            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
+            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            self.graphics.set_font(self.graphics.gi_font, label_fh)
+        else:
+            label_fh = self.graphics.gi_fontsize
+
+        self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
+
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
 
         self.graphics.restore()
 
@@ -1442,11 +1470,16 @@ class SkymapEngine:
         self.graphics.set_pen_rgb(self.config.nebula_color)
 
         self.mirroring_graphics.circle(x, y, r-self.graphics.gi_linewidth/2.0)
-        # self.graphics.circle(x,y,r*0.85)
-        # self.graphics.circle(x,y,r*0.7)
-        self.draw_circular_object_label(x, y, r, label, labelpos)
+
         if label_ext:
-            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos))
+            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            self.graphics.set_font(self.graphics.gi_font, label_fh)
+        else:
+            label_fh = self.graphics.gi_fontsize
+
+        self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
 
         self.graphics.restore()
 
