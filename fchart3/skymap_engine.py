@@ -107,7 +107,6 @@ DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*6
 MAG_SCALE_X = [0, 1,   2,   3,   4,    5,    25]
 MAG_SCALE_Y = [0, 1.8, 3.3, 4.7, 6,  7.2,  18.0]
 
-EXT_LABEL_SIZE_FAC = 1.2
 
 class SkymapEngine:
     def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
@@ -1012,10 +1011,11 @@ class SkymapEngine:
 
         self.mirroring_graphics.circle(x, y, r)
         if label_ext:
-            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = None
+
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
@@ -1052,7 +1052,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x-d, y, x, y+d)
 
         if label_ext:
-            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = self.graphics.gi_fontsize
@@ -1151,7 +1151,7 @@ class SkymapEngine:
                                                  self.config.label_color[1]*dso_intensity,
                                                  self.config.label_color[2]*dso_intensity))
             if label_ext:
-                label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+                label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             else:
                 label_fh = self.graphics.gi_fontsize
 
@@ -1226,11 +1226,11 @@ class SkymapEngine:
     def to_ext_labelpos(self, labelpos):
         if labelpos == 0:
             return 1
-        elif labelpos == 1:
+        if labelpos == 1:
             return 0
-        elif labelpos == 2:
+        if labelpos == 2:
             return 3
-        elif labelpos == 3:
+        if labelpos == 3:
             return 2
         return 1
 
@@ -1270,17 +1270,17 @@ class SkymapEngine:
         label_pos_list = []
         xs = x+math.sin(a)*r+fh/6.0
         ys = y-r+fh/3.0
-        label_pos_list.append([ [xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys] ])
+        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
         xs = x-math.sin(a)*r-fh/6.0 - label_length
-        label_pos_list.append([ [xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys] ])
+        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
 
         xs = x+math.sin(a)*r+fh/6.0
         ys = y+r-fh/3.0
-        label_pos_list.append([ [xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys] ])
+        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
 
         xs = x+math.sin(a)*r+fh/6.0
         ys = y+r-fh/3.0
-        label_pos_list.append([ [xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys] ])
+        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
         return label_pos_list
 
     def globular_cluster(self, x, y, radius, label, label_ext, labelpos):
@@ -1297,10 +1297,11 @@ class SkymapEngine:
         self.mirroring_graphics.line(x, y-r, x, y+r)
 
         if label_ext:
-            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = None
+
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
@@ -1324,7 +1325,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x-d, y-d, x-d, y+d)
 
         if label_ext:
-            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = self.graphics.gi_fontsize
@@ -1374,7 +1375,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
         if label_ext:
-            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = self.graphics.gi_fontsize
@@ -1450,10 +1451,10 @@ class SkymapEngine:
         self.mirroring_graphics.line(x, y-0.75*r, x, y-1.5*r)
 
         if label_ext:
-            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
-            label_fh = self.graphics.gi_fontsize
+            label_fh = None
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
 
@@ -1474,10 +1475,10 @@ class SkymapEngine:
         self.mirroring_graphics.circle(x, y, r-self.graphics.gi_linewidth/2.0)
 
         if label_ext:
-            label_fh = EXT_LABEL_SIZE_FAC * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
-            label_fh = self.graphics.gi_fontsize
+            label_fh = None
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:

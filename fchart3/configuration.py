@@ -41,7 +41,8 @@ DEFAULT_TELRAD_COLOR = (0.5, 0.0, 0.0)
 DEFAULT_PICKER_COLOR = (0.5, 0.5, 0.0)
 DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
-DEFAULT_LEGEND_FONT_SCALE=1.75
+DEFAULT_LEGEND_FONT_SCALE = 1.75
+DEFAULT_EXT_LABEL_FONT_SCALE = 1.2
 
 
 class EngineConfiguration:
@@ -98,6 +99,7 @@ class EngineConfiguration:
         self._picker_radius = -1 # < 0 means picker is not active
         self._picker_linewidth = DEFAULT_PICKER_LINEWIDTH
         self._picker_color = DEFAULT_PICKER_COLOR
+        self._ext_label_font_scale = DEFAULT_EXT_LABEL_FONT_SCALE
 
     @property
     def legend_only(self):
@@ -514,3 +516,11 @@ class EngineConfiguration:
     @picker_linewidth.setter
     def picker_linewidth(self, value):
         self._picker_linewidth = value
+
+    @property
+    def ext_label_font_scale(self):
+        return self._ext_label_font_scale
+
+    @ext_label_font_scale.setter
+    def ext_label_font_scale(self, value):
+        self._ext_label_font_scale = value
