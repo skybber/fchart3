@@ -579,6 +579,7 @@ class SkymapEngine:
         # print("Stars view positioning {} ms".format(str(time()-tm)), flush=True)
 
         mag = selection['mag']
+        bsc = selection['bsc']
 
         indices = np.argsort(mag)
         magsorted = mag[indices]
@@ -602,7 +603,7 @@ class SkymapEngine:
                 if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
                     r = xx*xx + yy*yy
                     if r < pick_min_r:
-                        pick = (xx, yy, rr, magsorted[i])
+                        pick = (xx, yy, rr, mag[index], bsc[index])
                         pick_min_r = r
                 else:
                     if self.config.show_star_labels:
@@ -615,9 +616,17 @@ class SkymapEngine:
 
         if pick is not None:
             fn = self.graphics.gi_fontsize
-            x, y, r, mag = pick
+            x, y, r, mag, bsc = pick
             self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-            self.draw_circular_object_label(x, y, r, str(mag))
+            label =str(mag)
+            if bsc is not None:
+                if bsc.greek:
+                    label += '(' + STAR_LABELS[bsc.greek] + ' ' + bsc.constellation.capitalize() + ')'
+                elif bsc.flamsteed:
+                    label += '(' + str(bsc.flamsteed) + ')'
+                elif bsc.HD is not None:
+                    label += '(HD' + str(bsc.HD) + ')'
+            self.draw_circular_object_label(x, y, r, label)
             self.graphics.set_font(self.graphics.gi_font, fn)
 
     def draw_stars_labels(self, star_labels):
