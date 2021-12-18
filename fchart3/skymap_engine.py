@@ -325,7 +325,7 @@ class SkymapEngine:
                 rlong /= 3.0
 
             label_ext = None
-            if dso == self.picked_dso:
+            if dso == self.picked_dso and dso.mag < 100.0:
                 label_ext = '{:.2f}m'.format(dso.mag)
 
             label_length = self.graphics.text_width(label)
