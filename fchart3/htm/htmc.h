@@ -20,6 +20,8 @@ struct PAIR_INFO_ORDERING {
 	}
 };
 
+// ignore in C++17 
+#define throw(t)
 
 // called HTMC because we will have another python-only class that
 // inherits from this one.
