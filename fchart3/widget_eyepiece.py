@@ -18,18 +18,18 @@
 import numpy as np
 
 
-class WidgetTelrad:
+class WidgetEyepiece:
 
-    def __init__(self, drawingscale, linewidth, color=(0.5, 0, 0)):
+    def __init__(self, drawingscale, fov, linewidth, color=(0.5, 0.3, 0)):
         self.drawingscale = drawingscale
         self.linewidth = linewidth
+        self.fov = fov
         self.color = color
 
     def draw(self, graphics):
         graphics.save()
-        for tr in [15, 60, 120]:
-            r = tr*np.pi/(180.0*60.0)*self.drawingscale
-            graphics.set_pen_rgb(self.color)
-            graphics.set_linewidth(self.linewidth)
-            graphics.circle(0, 0, r)
+        r = self.fov*np.pi/(2.0*180.0)*self.drawingscale
+        graphics.set_pen_rgb(self.color)
+        graphics.set_linewidth(self.linewidth)
+        graphics.circle(0, 0, r)
         graphics.restore()

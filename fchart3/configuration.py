@@ -26,6 +26,7 @@ DEFAULT_DSO_HIGHLIGHT_LINEWIDTH = 0.3
 DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
 DEFAULT_TELRAD_LINEWIDTH = 0.3
 DEFAULT_PICKER_LINEWIDTH = 0.4
+DEFAULT_EYEPIECE_LINEWIDTH = 0.3
 
 DEFAULT_BACKGROUND_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DRAW_COLOR = (0.0, 0.0, 0.0)
@@ -38,6 +39,7 @@ DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DSO_HIGHLIGHT_COLOR = (0.1, 0.2, 0.4)
 DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
 DEFAULT_TELRAD_COLOR = (0.5, 0.0, 0.0)
+DEFAULT_EYEPIECE_COLOR = (0.5, 0.3, 0.0)
 DEFAULT_PICKER_COLOR = (0.5, 0.5, 0.0)
 DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
@@ -63,6 +65,7 @@ class EngineConfiguration:
         self._show_milky_way = True
         self._show_picker = False
         self._fov_telrad = False
+        self._eyepiece_fov = None
         self._mirror_x = False
         self._mirror_y = False
         self._star_colors = False
@@ -96,6 +99,8 @@ class EngineConfiguration:
         self._milky_way_linewidth = DEFAULT_MILKY_WAY_LINEWIDTH
         self._telrad_linewidth = DEFAULT_TELRAD_LINEWIDTH
         self._telrad_color = DEFAULT_TELRAD_COLOR
+        self._eyepiece_linewidth = DEFAULT_EYEPIECE_LINEWIDTH
+        self._eyepiece_color = DEFAULT_EYEPIECE_COLOR
         self._picker_radius = -1 # < 0 means picker is not active
         self._picker_linewidth = DEFAULT_PICKER_LINEWIDTH
         self._picker_color = DEFAULT_PICKER_COLOR
@@ -228,6 +233,14 @@ class EngineConfiguration:
     @fov_telrad.setter
     def fov_telrad(self, value):
         self._fov_telrad = value
+
+    @property
+    def eyepiece_fov(self):
+        return self._eyepiece_fov
+
+    @eyepiece_fov.setter
+    def eyepiece_fov(self, value):
+        self._eyepiece_fov = value
 
     @property
     def mirror_x(self):
@@ -492,6 +505,22 @@ class EngineConfiguration:
     @telrad_color.setter
     def telrad_color(self, value):
         self._telrad_color = value
+
+    @property
+    def eyepiece_linewidth(self):
+        return self._eyepiece_linewidth
+
+    @eyepiece_linewidth.setter
+    def eyepiece_linewidth(self, value):
+        self._eyepiece_linewidth = value
+
+    @property
+    def eyepiece_color(self):
+        return self._eyepiece_color
+
+    @eyepiece_color.setter
+    def eyepiece_color(self, value):
+        self._eyepiece_color = value
 
     @property
     def picker_radius(self):

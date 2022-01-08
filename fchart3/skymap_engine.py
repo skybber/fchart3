@@ -37,6 +37,7 @@ from .widget_orientation import WidgetOrientation
 from .widget_coords import WidgetCoords
 from .widget_dso_legend import WidgetDsoLegend
 from .widget_telrad import WidgetTelrad
+from .widget_eyepiece import WidgetEyepiece
 from .widget_picker import WidgetPicker
 
 
@@ -143,6 +144,7 @@ class SkymapEngine:
         self.w_coords = None
         self.w_dso_legend = None
         self.w_telrad = None
+        self.w_eyepiece = None
         self.w_picker = None
         self.mirroring_graphics = None
         self.picked_dso = None
@@ -226,6 +228,8 @@ class SkymapEngine:
 
         if self.config.fov_telrad:
             self.w_telrad.draw(self.graphics)
+        if self.config.eyepiece_fov is not None:
+            self.w_eyepiece.draw(self.graphics)
         if self.config.show_picker and self.config.picker_radius > 0:
             self.w_picker.draw(self.graphics)
         if self.config.show_mag_scale_legend:
@@ -986,6 +990,7 @@ class SkymapEngine:
         self.w_coords = WidgetCoords(self.language)
         self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN)
         self.w_telrad = WidgetTelrad(self.drawingscale, self.config.telrad_linewidth, self.config.telrad_color)
+        self.w_eyepiece = WidgetEyepiece(self.drawingscale, self.config.eyepiece_fov, self.config.eyepiece_linewidth, self.config.eyepiece_color)
         self.w_picker = WidgetPicker(self.config.picker_radius, self.config.picker_linewidth, self.config.picker_color)
 
     def star(self, x, y, radius, star_color):
