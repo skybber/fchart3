@@ -473,7 +473,7 @@ class SkymapEngine:
         for hl_def in highlights:
             self.graphics.set_pen_rgb(hl_def.color)
             self.graphics.set_linewidth(hl_def.line_width)
-            for rax, decx, dso_name in hl_def.data:
+            for rax, decx, object_name in hl_def.data:
                 if angular_distance((rax, decx), self.fieldcentre) < self.fieldsize:
                     x, y = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                     if hl_def.style == 'cross':
@@ -485,13 +485,13 @@ class SkymapEngine:
                     elif hl_def.style == 'circle':
                         r = self.config.font_size
                         self.mirroring_graphics.circle(x, y, r)
-                        if dso_name and visible_dso_collector is not None:
+                        if object_name and visible_dso_collector is not None:
                             xs1, ys1 = x-r, y-r
                             xs2, ys2 = x+r, y+r
                             if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                                 xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                                 xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                                visible_dso_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
+                                visible_dso_collector.append([r, object_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
 
