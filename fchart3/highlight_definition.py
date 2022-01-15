@@ -20,9 +20,9 @@ class HighlightDefinition:
     def __init__(self, style, line_width, color, data):
         """
         style        cross, circle
-        line_width   multiplier of base line width
+        line_width   line width
         color        (r, g, b)
-        data         list of [ dso_name, ra, dec ]
+        data         list of ( ra, dec, dso_name )
         """
         self.style = style
         self.line_width = line_width

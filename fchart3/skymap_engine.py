@@ -472,9 +472,9 @@ class SkymapEngine:
 
         for hl_def in highlights:
             self.graphics.set_pen_rgb(hl_def.color)
-            self.graphics.set_linewidth(self.config.dso_linewidth * hl_def.line_width)
-            for dso_name, rax, decx in hl_def.data:
-                if angular_distance((rax,decx), self.fieldcentre) < self.fieldsize:
+            self.graphics.set_linewidth(hl_def.line_width)
+            for rax, decx, dso_name in hl_def.data:
+                if angular_distance((rax, decx), self.fieldcentre) < self.fieldsize:
                     x, y = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                     if hl_def.style == 'cross':
                         r = self.config.font_size * 2
@@ -484,7 +484,7 @@ class SkymapEngine:
                         self.mirroring_graphics.line(x, y-r, x, y-r/2)
                     elif hl_def.style == 'circle':
                         r = self.config.font_size
-                        self.mirroring_graphics.circle(x,y,r)
+                        self.mirroring_graphics.circle(x, y, r)
                         if dso_name and visible_dso_collector is not None:
                             xs1, ys1 = x-r, y-r
                             xs2, ys2 = x+r, y+r
@@ -851,15 +851,15 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None, extra_positions=None, hl_constellation=None,
-                 trajectory=[], visible_objects=None):
+    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None,
+                 extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None):
         """ Creates map using given graphics, params and config
         used_catalogs - UsedCatalogs data structure
         showing_dso - DSO forced to be shown even if they don't pass the filter
         hl_showing_dsos - True if showing dso will be highlighted
-        highlights - list of DSOs that will be marked
+        highlights - list of HighlightDefinitions that will be marked
         dso_hide_filter - list of DSO to be hidden, except showing_dso
-        extra_positons
+        extra_positions - extra positions to be drawn
         hl_constellation - constellation name that will be highlighted
         trajectory - defined by list of points (ra, dec) points
         visible_objects - output array containing list of object visible on the map
