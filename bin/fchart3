@@ -51,14 +51,14 @@ welcome to redistribute it under certain conditions as specified in the
 LICENSE file.
 """)
 
+
 class RuntimeSettings:
     def __init__(self):
-        self.extra_positions_list       = []
-        self.fieldcentre                = (-1,-1)
+        self.extra_positions_list = []
+        self.fieldcentre = (-1, -1)
         self.parse_commandline()
 
     def parse_commandline(self):
-
         argumentparser = argparse.ArgumentParser(description='fchart',
               formatter_class=argparse.RawTextHelpFormatter,
               epilog=textwrap.dedent('''\
@@ -326,11 +326,12 @@ def _create_engine_configuration():
 
     return config
 
+
 if __name__ == '__main__':
 
     tm = time()
 
-    data_dir    = os.path.join(fchart3.get_catalogs_dir())
+    data_dir = os.path.join(fchart3.get_catalogs_dir())
 
     # Create default settings and parse commandline
     settings = RuntimeSettings()
@@ -459,9 +460,11 @@ if __name__ == '__main__':
                     if filename == '':
                         filename = settings.parser.output_dir + os.sep + source
                     filename += '.pdf'
+                output_format = 'png' if filename.endswith('.png') else 'pdf'
                 artist = CairoDrawing(filename,
                                       settings.parser.width,
-                                      settings.parser.width)
+                                      settings.parser.width,
+                                      output_format)
                 engine = SkymapEngine(artist, settings.language,
                                       lm_stars=settings.parser.limiting_magnitude_stars,
                                       lm_deepsky=settings.parser.limiting_magnitude_deepsky)
