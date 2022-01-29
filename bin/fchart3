@@ -460,7 +460,12 @@ if __name__ == '__main__':
                     if filename == '':
                         filename = settings.parser.output_dir + os.sep + source
                     filename += '.pdf'
-                output_format = 'png' if filename.endswith('.png') else 'pdf'
+                if filename.endswith('.png'):
+                    output_format = 'png'
+                elif filename.endswith('.svg'):
+                    output_format = 'svg'
+                else:
+                    output_format = 'pdf'
                 artist = CairoDrawing(filename,
                                       settings.parser.width,
                                       settings.parser.width,
