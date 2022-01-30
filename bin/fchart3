@@ -33,7 +33,7 @@ import numpy as np
 import fchart3
 
 from fchart3.astrocalc import hms2rad, dms2rad
-from fchart3.skymap_engine import SkymapEngine, EN, NL
+from fchart3.skymap_engine import SkymapEngine, EN, NL, ES
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics_cairo import CairoDrawing
@@ -107,7 +107,7 @@ class RuntimeSettings:
                                          'NGC 4559.')
 
         argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
-                                    help='Specify language on the maps, either \'en\' or \'nl\' (default: en)')
+                                    help='Specify language on the maps, either \'en\' or \'nl\' or \'es\' (default: en)')
 
         argumentparser.add_argument('-sc', '--show-catalogs', dest='show_catalogs', nargs='?', action='store',
                                     help='Comma separated list of additional catalogs to be show on the map. (e.g. LBN).')
@@ -220,8 +220,10 @@ class RuntimeSettings:
             self.language = NL
         elif self.parser.language.upper() == 'EN':
             self.language = EN
+        elif self.parser.language.upper() == 'ES':
+            self.language = ES
         else:
-            print('Unsupported language '+ self.parser.language)
+            print('Unsupported language {}'.format(self.parser.language))
             sys.exit(-1)
 
         if self.parser.version:
@@ -346,12 +348,12 @@ if __name__ == '__main__':
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
 
     used_catalogs = UsedCatalogs(data_dir,
-                                 extra_data_dir = settings.parser.extra_data_dir,
-                                 limiting_magnitude_deepsky = settings.parser.limiting_magnitude_deepsky,
-                                 force_messier = settings.parser.force_messier,
-                                 force_asterisms = settings.parser.force_asterisms,
-                                 force_unknown = settings.parser.force_unknown,
-                                 show_catalogs = show_catalogs,
+                                 extra_data_dir=settings.parser.extra_data_dir,
+                                 limiting_magnitude_deepsky=settings.parser.limiting_magnitude_deepsky,
+                                 force_messier=settings.parser.force_messier,
+                                 force_asterisms=settings.parser.force_asterisms,
+                                 force_unknown=settings.parser.force_unknown,
+                                 show_catalogs=show_catalogs,
                                  )
 
     print("Chart generated in : " + str(time()-tm) + "ms")

@@ -70,6 +70,20 @@ EN = {
     'PG':'Part of galaxy'
 }
 
+ES = {
+    'h':'h',
+    'm':'m',
+    's':'s',
+    'G':'Galaxia',
+    'OCL':'Cúmulo abierto',
+    'GCL':'Cúmulo globular',
+    'AST':'Asterismo',
+    'PN': 'Nebulosa planetaria',
+    'N': 'Nebulosa difusa',
+    'SNR':'Remanente de supernova',
+    'PG':'Parte de galaxia'
+}
+
 STAR_LABELS = {
     "alp":"α",
     "bet":"β",
