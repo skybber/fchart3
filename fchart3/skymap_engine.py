@@ -258,13 +258,13 @@ class SkymapEngine:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
     def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos, dso_hide_filter, visible_dso_collector):
+        if not self.config.show_deepsky:
+            return
+
         # Draw deep sky
         print('Drawing deepsky...')
 
-        if self.config.show_deepsky:
-            deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
-        else:
-            deepsky_list = []
+        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
 
         filtered_showing_dsos = []
 
