@@ -354,7 +354,7 @@ class SkymapEngine:
                 labelpos_list = self.galaxy_labelpos(x, y, rlong, rshort, posangle, label_length)
             elif dso.type == deepsky.N:
                 labelpos_list = self.diffuse_nebula_labelpos(x, y, 2.0*rlong, 2.0*rshort, posangle, label_length)
-            elif dso.type in [deepsky.PN,deepsky.OC,deepsky.GC,deepsky.SNR]:
+            elif dso.type in [deepsky.PN, deepsky.OC, deepsky.GC, deepsky.SNR]:
                 labelpos_list = self.circular_object_labelpos(x, y, rlong, label_length)
             elif dso.type == deepsky.STARS:
                 labelpos_list = self.asterism_labelpos(x, y, rlong, label_length)
@@ -364,7 +364,7 @@ class SkymapEngine:
             pot = 1e+30
             for labelpos_index in range(len(labelpos_list)):
                 [[x1, y1], [x2, y2], [x3, y3]] = labelpos_list[labelpos_index]
-                pot1 = label_potential.compute_potential(x2,y2)
+                pot1 = label_potential.compute_potential(x2, y2)
                 # label_potential.compute_potential(x1,y1),
                 # label_potential.compute_potential(x3,y3)])
                 if pot1 < pot:
@@ -444,7 +444,8 @@ class SkymapEngine:
         self.graphics.save()
 
         x, y, z = np_radec_to_xyz(milky_way_lines[:,0], milky_way_lines[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-
+        mulx = -1 if self.config.mirror_x else 1
+        muly = -1 if self.config.mirror_y else 1
         self.graphics.set_pen_rgb(self.config.milky_way_color)
         self.graphics.set_fill_rgb(self.config.milky_way_color)
         self.graphics.set_linewidth(self.config.milky_way_linewidth)
@@ -457,13 +458,13 @@ class SkymapEngine:
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
                 polygon = None
                 if z1 > 0:
-                    polygon = [[x1, y1]]
+                    polygon = [[mulx*x1, muly*y1]]
             else:
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
                 if z1 > 0:
                     if polygon is None:
                         polygon = []
-                    polygon.append([x1, y1])
+                    polygon.append([mulx*x1, muly*y1])
 
         if polygon is not None and len(polygon) > 2:
             self.graphics.polygon(polygon, DrawMode.FILL)
@@ -516,7 +517,7 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.dso_highlight_linewidth)
 
         r = self.config.font_size
-        self.mirroring_graphics.circle(x,y,r)
+        self.mirroring_graphics.circle(x, y, r)
         xs1, ys1 = x-r, y-r
         xs2, ys2 = x+r, y+r
         if visible_dso_collector is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
@@ -1086,11 +1087,11 @@ class SkymapEngine:
             label_fh = self.graphics.gi_fontsize
 
         if label:
-            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+            self.graphics.set_pen_rgb(self.config.label_color)
             self.draw_asterism_label(x, y, label, labelpos, d, label_fh)
 
         if label_ext:
-            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+            self.graphics.set_pen_rgb(self.config.label_color)
             self.draw_asterism_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
 
         self.graphics.restore()
@@ -1175,9 +1176,9 @@ class SkymapEngine:
         if label or label_ext:
             self.mirroring_graphics.translate(x, y)
             self.mirroring_graphics.rotate(p)
-            self.mirroring_graphics.set_pen_rgb((self.config.label_color[0]*dso_intensity,
-                                                 self.config.label_color[1]*dso_intensity,
-                                                 self.config.label_color[2]*dso_intensity))
+            self.graphics.set_pen_rgb((self.config.label_color[0]*dso_intensity,
+                                       self.config.label_color[1]*dso_intensity,
+                                       self.config.label_color[2]*dso_intensity))
             if label_ext:
                 label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
             else:
@@ -1266,7 +1267,7 @@ class SkymapEngine:
         if fh is None:
             fh = self.graphics.gi_fontsize
         if label:
-            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+            self.graphics.set_pen_rgb(self.config.label_color)
             arg = 1.0-2*fh/(3.0*r)
             if arg < 1.0 and arg > -1.0:
                 a = math.acos(arg)
@@ -1358,7 +1359,7 @@ class SkymapEngine:
         else:
             label_fh = self.graphics.gi_fontsize
 
-        self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+        self.graphics.set_pen_rgb(self.config.label_color)
         if label:
             self.draw_diffuse_nebula_label(x, y, label, labelpos, d, label_fh)
         if label_ext:
@@ -1408,7 +1409,7 @@ class SkymapEngine:
         else:
             label_fh = self.graphics.gi_fontsize
 
-        self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+        self.graphics.set_pen_rgb(self.config.label_color)
         if label:
             self.draw_diffuse_nebula_label(x, y, label, labelpos, d, label_fh)
         if label_ext:
@@ -1531,7 +1532,7 @@ class SkymapEngine:
         fh = self.graphics.gi_fontsize
 
         if label != '':
-            self.mirroring_graphics.set_pen_rgb(self.config.label_color)
+            self.graphics.set_pen_rgb(self.config.label_color)
             if labelpos == 0:
                 self.mirroring_graphics.text_right(x+r+fh/6.0, y-fh/3.0, label)
             elif labelpos ==1:

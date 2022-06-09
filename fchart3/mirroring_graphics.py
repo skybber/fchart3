@@ -17,6 +17,8 @@
 
 from math import pi
 
+from .graphics_interface import DrawMode
+
 
 class MirroringGraphics:
     """
@@ -42,10 +44,10 @@ class MirroringGraphics:
     def line(self, x1, y1, x2, y2):
         self.graphics.line(self.mul_x*x1, self.mul_y*y1, self.mul_x*x2, self.mul_y*y2)
 
-    def circle(self, x, y, r, mode='P'):
+    def circle(self, x, y, r, mode=DrawMode.BORDER):
         self.graphics.circle(self.mul_x*x, self.mul_y*y, r, mode)
 
-    def ellipse(self, x, y, rlong, rshort, position_angle, mode='P'):
+    def ellipse(self, x, y, rlong, rshort, position_angle, mode=DrawMode.BORDER):
         if self.mirror_x:
             position_angle += pi
         if self.mirror_y:
