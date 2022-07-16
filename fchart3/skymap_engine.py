@@ -116,7 +116,7 @@ LEGEND_MARGIN = 0.47
 BASE_SCALE = 0.98
 GRID_DENSITY = 4
 
-RA_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
+RA_GRID_SCALE = [0.25, 0.5, 1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
 DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*60, 30*60, 45*60, 60*60]
 
 MAG_SCALE_X = [0, 1,   2,   3,   4,    5,    25]
@@ -702,7 +702,10 @@ class SkymapEngine:
         return prefix + label_fmt.format(deg, minutes)
 
     def grid_ra_label(self, ra_minutes, label_fmt):
-        return label_fmt.format(ra_minutes//60, ra_minutes % 60)
+        hrs = int(ra_minutes/60)
+        mins = int(ra_minutes) % 60
+        secs = int(ra_minutes % 1 * 60)
+        return label_fmt.format(hrs, mins, secs)
 
     def draw_grid_ra(self):
         prev_steps, prev_grid_minutes = (None, None)
@@ -778,7 +781,12 @@ class SkymapEngine:
             if ra_size > 2*np.pi:
                 ra_size = 2*np.pi
 
-        label_fmt = '{}h' if grid_minutes >= 60 else '{}h{:02d}m'
+        if grid_minutes >= 60:
+            label_fmt = '{}h'
+        elif grid_minutes >= 1:
+            label_fmt = '{}h{:02d}m'
+        else:
+            label_fmt = '{}h{:02d}m{:02d}s'
 
         ra_minutes = 0
 
