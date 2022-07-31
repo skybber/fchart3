@@ -26,7 +26,7 @@ def angular_distance(position1, position2):
     if position1[0] == position2[0] and position1[0] == position2[0]:
         return 0.0
     (start_ra, start_dec) = position1
-    (end_ra, end_dec)     = position2
+    (end_ra, end_dec) = position2
     a = start_ra-end_ra
     arg = math.sin(start_dec)*math.sin(end_dec) + math.cos(start_dec)*math.cos(end_dec)*math.cos(a)
     return math.acos(arg)
@@ -58,17 +58,17 @@ def rad2hms_t(angle):
     if angle < 0:
         sign = -1
     p2 = 2.0*math.pi
-    h  = (sign*angle/p2)*24.0
+    h = (sign*angle/p2)*24.0
     h_int = int(h + 1e-8)
-    m  = (h - h_int)*60.0
+    m = (h - h_int)*60.0
     m_int = int(m + 1e-8)
-    s  = (m - m_int)*60.0
+    s = (m - m_int)*60.0
 
     if s <= 1e-6:
         s = 0
         #if fabs(s*100 - int(s*100)) < 1e-4:
     s = int(100*s + 0.5)/100.0
-    return(h_int, m_int, s, sign)
+    return h_int, m_int, s, sign
 
 
 def rad2dms_t(angle):
@@ -76,16 +76,16 @@ def rad2dms_t(angle):
     if angle < 0:
         sign = -1
     p2 = 2.0*math.pi
-    d  = (sign*angle/p2)*360.0
+    d = (sign*angle/p2)*360.0
     d_int = int(d + 1e-8)
-    m  = (d - d_int)*60.0
+    m = (d - d_int)*60.0
     m_int = int(m + 1e-8)
-    s  = (m - m_int)*60.0
+    s = (m - m_int)*60.0
 
     if s <= 1e-6:
         s = 0
     s = int(100*s + 0.5)/100.0
-    return (d_int, m_int, s, sign)
+    return d_int, m_int, s, sign
 
 
 def rad2hms(angle):
@@ -96,7 +96,7 @@ def rad2hms(angle):
     Usage:
         rad2hms(0.345) => '1h19m4.09054368322'
     """
-    h_int,m_int,s,sign = rad2hms_t(angle)
+    h_int, m_int, s, sign = rad2hms_t(angle)
 
     return str(sign*h_int) + 'h' + str(m_int) + 'm' + str(s)
 
@@ -109,11 +109,11 @@ def rad2dms(angle):
     Usage:
         rad2dms(0.345) => '19d46m1.35815524824'
     """
-    d_int, m_int,s,sign = rad2dms_t(angle)
+    d_int, m_int, s, sign = rad2dms_t(angle)
     return str(sign*d_int)+'d'+str(m_int)+'m'+str(s)
 
 
-def dms2rad(d,m=0,s=0, sign=1):
+def dms2rad(d, m=0, s=0, sign=1):
     """
     Converts an angle in degrees(d), minutes(m) and seconds(s) into
     radians. The parameters d, m and s MUST be positive. If a negative
@@ -122,14 +122,14 @@ def dms2rad(d,m=0,s=0, sign=1):
     return sign*(d + m/60.0 + s/3600.0)*math.pi/180.0
 
 
-def hms2rad(h,m=0,s=0, sign=1):
+def hms2rad(h, m=0, s=0, sign=1):
     """
     Converts an angle in hours(h), minutes(m) and seconds(s) into
     radians. If a negative angle needs to be converted, then sign must
     be set to -1.
 
     """
-    return (sign*(h + m/60.0 + s/3600.0)*math.pi/12.0)
+    return sign*(h + m/60.0 + s/3600.0)*math.pi/12.0
 
 
 def lm_to_radec(lm, fieldcentre):
@@ -142,11 +142,11 @@ def lm_to_radec(lm, fieldcentre):
     Greisen 1983: AIPS Memo 27, 'Non-linear Coordinate Systems in
     AIPS'
     """
-    (l,m) = lm
+    (l, m) = lm
     (alpha0, delta0) = fieldcentre
     alpha = alpha0 + math.atan2(l,(math.cos(delta0)*math.sqrt(1-l*l -m*m) - m*math.sin(delta0)))
     delta = math.asin((m*math.cos(delta0) + math.sin(delta0)*math.sqrt(1-l*l - m*m)))
-    return (alpha, delta)
+    return alpha, delta
 
 
 def radec_to_lm(radec, fieldcentre):
@@ -163,7 +163,7 @@ def radec_to_lm(radec, fieldcentre):
     delta_ra = ra - ra0
     l = math.cos(dec)*math.sin(delta_ra)
     m = math.sin(dec)*math.cos(dec0) - math.cos(dec)*math.cos(delta_ra)*math.sin(dec0)
-    return (l,m)
+    return l, m
 
 
 def radec_to_lmz(ra, dec, fieldcentre):
@@ -187,7 +187,7 @@ def radec_to_lmz(ra, dec, fieldcentre):
     z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
     l = cos_dec*math.sin(delta_ra) if z>0 else 0
     m = sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0 if z>0 else 0
-    return (l,m,z)
+    return l, m, z
 
 
 def radec_to_xyz(ra, dec, fieldcentre, scale, fc_sincos_dec):
@@ -211,7 +211,7 @@ def radec_to_xyz(ra, dec, fieldcentre, scale, fc_sincos_dec):
     z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
     x = -cos_dec*math.sin(delta_ra)*scale if z>0 else 0
     y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*scale if z>0 else 0
-    return (x,y,z)
+    return x, y, z
 
 
 def radec_to_xy(ra, dec, fieldcentre, scale, fc_sincos_dec):
@@ -234,7 +234,7 @@ def radec_to_xy(ra, dec, fieldcentre, scale, fc_sincos_dec):
 
     x = -cos_dec*math.sin(delta_ra)*scale
     y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*scale
-    return (x,y)
+    return x, y
 
 
 def direction_ddec(radec, fieldcentre, fc_sincos_dec):
@@ -247,10 +247,10 @@ def direction_ddec(radec, fieldcentre, fc_sincos_dec):
     """
 
     (ra0, dec0) = fieldcentre
-    (ra, dec)   = radec
+    (ra, dec) = radec
 
-    cos_dec0 = fc_sincos_dec[1] # math.cos(dec0)
-    sin_dec0 = fc_sincos_dec[0] # math.sin(dec0)
+    cos_dec0 = fc_sincos_dec[1]  # math.cos(dec0)
+    sin_dec0 = fc_sincos_dec[0]  # math.sin(dec0)
 
     angle = math.atan2(-math.sin(dec)*math.sin(ra-ra0), math.cos(dec)*cos_dec0 + math.sin(dec)*sin_dec0*math.cos(ra-ra0))
     return angle
@@ -260,8 +260,8 @@ def sphere_to_rect(ra, dec):
     """
     Convert from spherical coordinates to Rectangular direction.
     """
-    cos_dec = math.cos(dec);
-    return (math.cos(ra) * cos_dec, math.sin(ra) * cos_dec, math.sin(dec));
+    cos_dec = math.cos(dec)
+    return (math.cos(ra) * cos_dec, math.sin(ra) * cos_dec, math.sin(dec))
 
 
 def rect_to_sphere(x1, x2, x3):
@@ -269,9 +269,9 @@ def rect_to_sphere(x1, x2, x3):
     Convert from Rectangular direction to spherical coordinate components.
     """
     r = math.sqrt(x1*x1 + x2*x2 + x3*x3)
-    ra = math.atan2(x2, x1);
-    dec = math.asin(x3/r);
-    return (ra, dec)
+    ra = math.atan2(x2, x1)
+    dec = math.asin(x3/r)
+    return ra, dec
 
 
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',

@@ -617,7 +617,7 @@ class SkymapEngine:
         for i in range(len(indices)):
             index = indices[i]
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
-            if xx >= x1-rr and xx <= x2+rr and yy >= y1-rr and yy <= y2+rr:
+            if (xx >= x1-rr) and (xx <= x2+rr) and (yy >= y1-rr) and (yy <= y2+rr):
                 self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
                 if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
                     r = xx*xx + yy*yy
@@ -727,7 +727,7 @@ class SkymapEngine:
 
         while dec_minutes < 90*60:
             dec = np.pi * dec_minutes / (180*60)
-            if dec > dec_min and dec < dec_max:
+            if (dec > dec_min) and (dec < dec_max):
                 self.draw_grid_ra_line(dec, dec_minutes, label_fmt)
             dec_minutes += grid_minutes
 
@@ -1149,7 +1149,7 @@ class SkymapEngine:
         if rlong <= 0.0:
             rl = self.drawingwidth/40.0
             rs = rl/2.0
-        if rlong > 0.0 and rshort < 0.0:
+        if (rlong > 0.0) and (rshort < 0.0):
             rl = rlong
             rs = rlong/2.0
 
@@ -1207,7 +1207,7 @@ class SkymapEngine:
         if rlong <= 0.0:
             rl = self.drawingwidth/40.0
             rs = rl/2.0
-        if rlong > 0.0 and rshort < 0.0:
+        if (rlong > 0.0) and (rshort < 0.0):
             rl = rlong
             rs = rlong/2.0
 
@@ -1277,7 +1277,7 @@ class SkymapEngine:
         if label:
             self.graphics.set_pen_rgb(self.config.label_color)
             arg = 1.0-2*fh/(3.0*r)
-            if arg < 1.0 and arg > -1.0:
+            if (arg < 1.0) and (arg > -1.0):
                 a = math.acos(arg)
             else:
                 a = 0.5*np.pi
@@ -1299,7 +1299,7 @@ class SkymapEngine:
 
         arg = 1.0-2*fh/(3.0*r)
 
-        if arg < 1.0 and arg > -1.0:
+        if (arg < 1.0) and (arg > -1.0):
             a = math.acos(arg)
         else:
             a = 0.5*np.pi
