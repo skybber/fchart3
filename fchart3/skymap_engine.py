@@ -506,7 +506,7 @@ class SkymapEngine:
                             if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                                 xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                                 xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                                visible_dso_collector.append([r, object_name.replace(' ', ''), xp1, yp1, xp2, yp2])
+                                visible_dso_collector.append([r, object_name, xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
 
