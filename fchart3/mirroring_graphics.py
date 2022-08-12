@@ -78,14 +78,8 @@ class MirroringGraphics:
         """
         self.graphics.set_pen_rgb(pen_rgb)
 
-    def to_pixel(self, x):
+    def to_pixel(self, x, y):
         """
-        Convert x to pixel
+        Convert x,y to pixel
         """
-        return self.graphics.to_pixel(x)
-
-    def to_pixel_pos(self, x, y):
-        """
-        Convert x, y to pixel position
-        """
-        return self.graphics.to_pixel_pos(x, y)
+        return self.graphics.to_pixel(self.mul_x*x, self.mul_y*y)

@@ -403,12 +403,14 @@ class SkymapEngine:
                 xs1, ys1 = x-rlong, y-rlong
                 xs2, ys2 = x+rlong, y+rlong
                 if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
-                    xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
-                    xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
+                    xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
+                    xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
+                    xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
                     visible_dso_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
                     if self.picked_dso == dso:
-                        pick_xp1, pick_yp1 = self.graphics.to_pixel(-pick_r, -pick_r)
-                        pick_xp2, pick_yp2 = self.graphics.to_pixel(pick_r, pick_r)
+                        pick_xp1, pick_yp1 = self.mirroring_graphics.to_pixel(-pick_r, -pick_r)
+                        pick_xp2, pick_yp2 = self.mirroring_graphics.to_pixel(pick_r, pick_r)
+                        pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
                         visible_dso_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
 
     def draw_dso_outlines(self, dso, x, y, rlong, rshort, posangle=None, label=None, label_ext=None,  labelpos=None):
@@ -504,8 +506,9 @@ class SkymapEngine:
                             xs1, ys1 = x-r, y-r
                             xs2, ys2 = x+r, y+r
                             if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
-                                xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
-                                xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
+                                xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
+                                xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
+                                xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
                                 visible_dso_collector.append([r, object_name, xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
@@ -521,8 +524,9 @@ class SkymapEngine:
         xs1, ys1 = x-r, y-r
         xs2, ys2 = x+r, y+r
         if visible_dso_collector is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
-            xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
-            xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
+            xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
+            xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
+            xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
             visible_dso_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
         self.graphics.restore()
@@ -1574,6 +1578,13 @@ class SkymapEngine:
         ys = y - r - fh/2.0
         label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
         return label_pos_list
+
+    def align_rect_coords(self, x1, y1, x2, y2):
+        if x1 > x2:
+            x1, x2 = x2, x1
+        if y1 > y2:
+            y1, y2 = y2, y1
+        return x1, y1, x2, y2
 
 
 if __name__ == '__main__':
