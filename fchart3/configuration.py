@@ -105,6 +105,7 @@ class EngineConfiguration:
         self._picker_linewidth = DEFAULT_PICKER_LINEWIDTH
         self._picker_color = DEFAULT_PICKER_COLOR
         self._ext_label_font_scale = DEFAULT_EXT_LABEL_FONT_SCALE
+        self._star_mag_shift = 0
 
     @property
     def legend_only(self):
@@ -553,3 +554,12 @@ class EngineConfiguration:
     @ext_label_font_scale.setter
     def ext_label_font_scale(self, value):
         self._ext_label_font_scale = value
+
+    @property
+    def star_mag_shift(self):
+        return self._star_mag_shift
+
+    @star_mag_shift.setter
+    def star_mag_shift(self, value):
+        self._star_mag_shift = value
+
