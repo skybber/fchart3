@@ -138,7 +138,7 @@ def _parse_hnsky_line(line, show_catalogs):
     for n in names:
         cat, name = _parse_catalog_name(n)
         if cat:
-            visible =  visible or cat in show_catalogs
+            visible = visible or cat in show_catalogs
             if not has_cat:
                 object.cat = cat
                 object.name = name
