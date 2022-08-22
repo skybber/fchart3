@@ -92,12 +92,12 @@ class DeepskyObject:
         - messier        number in messier list (default: -1)
         - visible        True if object is visible on the map
         """
-        self.cat    = catalog.upper().rstrip().lstrip()
+        self.cat = catalog.upper().rstrip().lstrip()
         self.name = ''
         self.all_names = []
         self.synonyms = []
         self.component = 0
-        self.type   = UNKNOWN
+        self.type = UNKNOWN
         self.constellation=''
         self.ra=-1.0
         self.dec=0.0

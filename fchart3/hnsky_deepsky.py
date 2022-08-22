@@ -67,7 +67,7 @@ def _denormalize_pk_name(name):
     return denorm
 
 
-def _parse_catalog_name(dso_name):
+def parse_catalog_name(dso_name):
     if dso_name.startswith('PN_'):
         dso_name = dso_name[3:]
 
@@ -89,7 +89,7 @@ def _parse_catalog_name(dso_name):
     if dso_name[i].isdigit(): # handle catalog names in format X[0..9][-_]*+
         if i < name_len - 1:
             if dso_name[i+1] == '-' or dso_name[i+1] == '_':
-                if i==1 and dso_name[0] == 'M': # special handling for minkowski
+                if i == 1 and dso_name[0] == 'M': # special handling for minkowski
                     return 'Mi', dso_name[1:]
                 for prefix in CATALOG_SPECS0:
                     if dso_name.startswith(prefix):
@@ -104,7 +104,7 @@ def _parse_catalog_name(dso_name):
     return dso_name[:i], dso_name[i:]
 
 
-def _parse_hnsky_line(line, show_catalogs):
+def _parse_hnsky_line(line, show_catalogs, all_dsos):
     object = DeepskyObject()
     items = line.split(',')
 
@@ -136,9 +136,12 @@ def _parse_hnsky_line(line, show_catalogs):
     has_cat = False
     visible = False
     for n in names:
-        cat, name = _parse_catalog_name(n)
+        cat, name = parse_catalog_name(n)
         if cat:
             visible = visible or cat in show_catalogs
+            if n == 'PGC5818':
+                print(n, flush=True)
+            all_dsos[n] = object
             if not has_cat:
                 object.cat = cat
                 object.name = name
@@ -147,13 +150,9 @@ def _parse_hnsky_line(line, show_catalogs):
             else:
                 if cat == 'Abell' and (object.cat == 'PK' or object.cat == 'Sh2-') or \
                    cat == 'UGC' and object.cat == 'PGC':
-                    name_swap = object.name
-                    cat_swap = object.cat
-                    object.cat = cat
-                    object.name = name
                     object.all_names = [name]
-                    name = name_swap
-                    cat = cat_swap
+                    object.name, name = name, object.name
+                    object.cat, cat = cat, object.cat
 
                 object.synonyms.append((cat, name))
 
@@ -191,7 +190,7 @@ def _parse_hnsky_line(line, show_catalogs):
     return object
 
 
-def import_hnsky_deepsky(filename, show_catalogs):
+def import_hnsky_deepsky(filename, show_catalogs, all_dsos):
     """
     Reads data from HNKSKY's deep_sky.hnd. Returns a list
     of DeepskyObjects()
@@ -207,16 +206,7 @@ def import_hnsky_deepsky(filename, show_catalogs):
 
     dso_list = []
     for line in lines:
-        dso_list.append(_parse_hnsky_line(line, all_show_catalogs))
+        dso_list.append(_parse_hnsky_line(line, all_show_catalogs, all_dsos))
 
     return dso_list
 
-
-if __name__=='__main__':
-    print(__file__)
-
-    dso_list_single = import_hnsky_deepsky('data/catalogs/deep_sky.hnd')
-
-    print(len(dso_list_single))
-
-    deeplist = dso_list_single

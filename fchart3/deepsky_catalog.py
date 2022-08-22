@@ -27,7 +27,7 @@ RAD2DEG = 180.0/np.pi
 
 
 class DeepskyCatalog:
-    def __init__(self, deepsky_list=[], force_messier = False):
+    def __init__(self, deepsky_list=[], force_messier=False):
         self.deepsky_list = []
         self.force_messier = force_messier
         self.sky_mesh = HTM(4)

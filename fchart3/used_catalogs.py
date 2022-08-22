@@ -18,10 +18,10 @@ import os
 import numpy as np
 
 from .constellation import ConstellationCatalog
-from .htm_star_catalog import HtmStarCatalog
 from .geodesic_star_catalog import GeodesicStarCatalog
 from .deepsky_catalog import DeepskyCatalog
 from .hnsky_deepsky import import_hnsky_deepsky
+from .pgc_deepsky import import_pgc_deepsky
 from .outlines_deepsky import import_outlines_catgen
 from .milkyway import import_milkyway
 from .vic import import_vic
@@ -29,7 +29,7 @@ from . import deepsky_object as deepsky
 
 
 class UsedCatalogs:
-    def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limiting_magnitude_deepsky=10.0, force_messier=False, force_asterisms=False, force_unknown=False, show_catalogs=None):
+    def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limiting_magnitude_deepsky=10.0, force_messier=False, force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False):
         # Read basic catalogs
         self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'constellationship_western.fab',
@@ -37,7 +37,7 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'cross-id.dat')
         # self._starcatalog    = HtmStarCatalog(data_dir, self._constellcatalog.bsc_hd_map, usno_nomad=usno_nomad_file)
         self._starcatalog    = GeodesicStarCatalog(data_dir, extra_data_dir, self._constellcatalog.bsc_hip_map)
-        self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs)
+        self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog)
 
         # Apply magnitude selection to deepsky list, build Messier list
         self._reduced_deeplist = []
@@ -54,7 +54,7 @@ class UsedCatalogs:
                     (dso.type != deepsky.PG or force_unknown or dso.type == deepsky.PG and dso.mag > -5.0):
                 self._reduced_deeplist.append(dso)
 
-        self._messierlist.sort(key = lambda x: x.messier)
+        self._messierlist.sort(key=lambda x: x.messier)
         self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
         self._milky_way_lines = import_milkyway(os.path.join(data_dir, 'milkyway.dat'))
 
@@ -187,12 +187,18 @@ class UsedCatalogs:
             arr_y.append(v[1])
         return (np.array(arr_x), np.array(arr_y))
 
-    def _get_deepsky_list(self, data_dir, show_catalogs):
+    def _get_deepsky_list(self, data_dir, show_catalogs, use_pgc_catalog):
+        all_dsos = {}
         print('Reading Hnsky...')
-        hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs)
+        hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs, all_dsos)
+        if use_pgc_catalog:
+            print('Reading PGC/UGC...')
+            pgclist = import_pgc_deepsky(os.path.join(data_dir, 'PGC.dat'), show_catalogs, all_dsos)
+        else:
+            pgclist = []
         print('Reading VIC...')
         viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
-        deeplist = hnskylist + viclist
+        deeplist = hnskylist + pgclist + viclist
         deeplist.sort(key=deepsky.cmp_to_key(deepsky.cmp_name))
         print('Reading DSO outlines...')
         dso_dict = self._get_dso_dict(deeplist)
