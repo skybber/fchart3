@@ -62,6 +62,7 @@ setup(
                               'data/catalogs/milkyway.dat',
                               'data/catalogs/namedstars.dat',
                               'data/catalogs/outlines_catgen.dat',
+                              'data/catalogs/PGC.dat',
                               'data/catalogs/revic.txt',
                               'data/catalogs/revngc.txt',
                               'data/catalogs/sac.txt',
