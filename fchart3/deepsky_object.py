@@ -32,20 +32,20 @@ import numpy as np
 #  12: QSO, quasar
 #  13: GALCL, galaxy cluster
 
-UNKNOWN=0
-G=1
-N=2
-PN=3
-OC=4
-GC=5
-PG=6
-ALREADY_LISTED_1=7
-ALREADY_LISTED_2=8
-STARS=9
-NOTFOUND=10
-SNR=11
-QSO=12
-GALCL=13
+UNKNOWN = 0
+G = 1
+N = 2
+PN = 3
+OC = 4
+GC = 5
+PG = 6
+ALREADY_LISTED_1 = 7
+ALREADY_LISTED_2 = 8
+STARS = 9
+NOTFOUND = 10
+SNR = 11
+QSO = 12
+GALCL = 13
 
 
 TYPENAME=['Unknown',

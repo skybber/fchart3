@@ -18,6 +18,7 @@
 DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_CONSTELLATION_LINE_SPACE = 3
 DEFAULT_OPEN_CLUSTER_LINEWIDTH = 0.3
+DEFAULT_GALAXY_CLUSTER_LINEWIDTH = 0.2
 DEFAULT_NEBULA_LINEWIDTH = 0.3
 DEFAULT_DSO_LINEWIDTH = 0.2
 DEFAULT_LEGEND_LINEWIDTH = 0.2
@@ -80,10 +81,12 @@ class EngineConfiguration:
         self._nebula_color = DEFAULT_DSO_COLOR
         self._galaxy_color = DEFAULT_DSO_COLOR
         self._star_cluster_color = DEFAULT_DSO_COLOR
+        self._galaxy_cluster_color = DEFAULT_DSO_COLOR
         self._grid_color = DEFAULT_GRID_COLOR
         self._constellation_linewidth = DEFAULT_CONSTELLATION_LINEWIDTH
         self._constellation_linespace = DEFAULT_CONSTELLATION_LINE_SPACE
         self._open_cluster_linewidth = DEFAULT_OPEN_CLUSTER_LINEWIDTH
+        self._galaxy_cluster_linewidth = DEFAULT_GALAXY_CLUSTER_LINEWIDTH
         self._nebula_linewidth = DEFAULT_NEBULA_LINEWIDTH
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
@@ -356,6 +359,14 @@ class EngineConfiguration:
         self._star_cluster_color = value
 
     @property
+    def galaxy_cluster_color(self):
+        return self._galaxy_cluster_color
+
+    @galaxy_cluster_color.setter
+    def galaxy_cluster_color(self, value):
+        self._galaxy_cluster_color = value
+
+    @property
     def grid_color(self):
         return self._grid_color
 
@@ -386,6 +397,14 @@ class EngineConfiguration:
     @open_cluster_linewidth.setter
     def open_cluster_linewidth(self, value):
         self._open_cluster_linewidth = value
+
+    @property
+    def galaxy_cluster_linewidth(self):
+        return self._galaxy_cluster_linewidth
+
+    @galaxy_cluster_linewidth.setter
+    def galaxy_cluster_linewidth(self, value):
+        self._galaxy_cluster_linewidth = value
 
     @property
     def nebula_linewidth(self):

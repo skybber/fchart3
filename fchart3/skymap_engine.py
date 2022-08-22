@@ -290,7 +290,7 @@ class SkymapEngine:
         # calc for deepsky objects from selection
         for dso in deepsky_list:
             x, y = radec_to_xy(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            if dso.rlong is None or dso.type == deepsky.GALCL:
+            if dso.rlong is None:
                 rlong = self.min_radius
             else:
                 rlong = dso.rlong*self.drawingscale
@@ -303,12 +303,9 @@ class SkymapEngine:
             if angular_distance((dso.ra, dso.dec), self.fieldcentre) < self.fieldsize:
                 x, y, z = radec_to_xyz(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                 if z > 0:
-                    if dso.type == deepsky.GALCL:
+                    rlong = dso.rlong*self.drawingscale
+                    if rlong < self.min_radius:
                         rlong = self.min_radius
-                    else:
-                        rlong = dso.rlong*self.drawingscale
-                        if rlong < self.min_radius:
-                            rlong = self.min_radius
                     deepsky_list_ext.append((dso, x, y, rlong))
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_ext)
@@ -343,9 +340,6 @@ class SkymapEngine:
                 rshort *= self.min_radius/rlong
                 rlong = self.min_radius
 
-            if dso.type == deepsky.GALCL:
-                rlong /= 3.0
-
             label_ext = None
             if dso == self.picked_dso and dso.mag < 100.0:
                 label_ext = '{:.2f}m'.format(dso.mag)
@@ -358,7 +352,7 @@ class SkymapEngine:
                 labelpos_list = self.galaxy_labelpos(x, y, rlong, rshort, posangle, label_length)
             elif dso.type == deepsky.N:
                 labelpos_list = self.diffuse_nebula_labelpos(x, y, 2.0*rlong, 2.0*rshort, posangle, label_length)
-            elif dso.type in [deepsky.PN, deepsky.OC, deepsky.GC, deepsky.SNR]:
+            elif dso.type in [deepsky.PN, deepsky.OC, deepsky.GC, deepsky.SNR, deepsky.GALCL]:
                 labelpos_list = self.circular_object_labelpos(x, y, rlong, label_length)
             elif dso.type == deepsky.STARS:
                 labelpos_list = self.asterism_labelpos(x, y, rlong, label_length)
@@ -391,8 +385,6 @@ class SkymapEngine:
             elif dso.type == deepsky.OC:
                 if dso.outlines is not None:
                     has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort)
-                    if has_outlines:
-                        print('Outlines {}'.format(dso.name))
                 self.open_cluster(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.GC:
                 self.globular_cluster(x, y, rlong, label, label_ext, labelpos)
@@ -400,6 +392,8 @@ class SkymapEngine:
                 self.asterism(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.SNR:
                 self.supernova_remnant(x, y, rlong, label, label_ext, labelpos)
+            elif dso.type == deepsky.GALCL:
+                self.galaxy_cluster(x, y, rlong, label, label_ext, labelpos)
             else:
                 self.unknown_object(x, y, rlong, label, label_ext, labelpos)
 
@@ -1053,6 +1047,29 @@ class SkymapEngine:
         self.graphics.set_pen_rgb(self.config.star_cluster_color)
         self.graphics.set_linewidth(self.config.open_cluster_linewidth)
         self.graphics.set_dashed_line(0.6, 0.4)
+
+        self.mirroring_graphics.circle(x, y, r)
+        if label_ext:
+            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            self.graphics.set_font(self.graphics.gi_font, label_fh)
+        else:
+            label_fh = None
+
+        self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
+        if label_ext:
+            self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
+        self.graphics.restore()
+
+    def galaxy_cluster(self, x, y, radius, label, label_ext, labelpos):
+        r = radius
+        if radius <= 0.0:
+            r = self.drawingwidth/40.0
+
+        self.graphics.save()
+
+        self.graphics.set_pen_rgb(self.config.galaxy_cluster_color)
+        self.graphics.set_linewidth(self.config.galaxy_cluster_linewidth)
+        self.graphics.set_dashed_line(0.5, 2.0)
 
         self.mirroring_graphics.circle(x, y, r)
         if label_ext:
