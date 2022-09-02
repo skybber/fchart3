@@ -266,7 +266,7 @@ class SkymapEngine:
             return
 
         # Draw deep sky
-        print('Drawing deepsky...')
+        # print('Drawing deepsky...')
 
         deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
 
@@ -310,7 +310,7 @@ class SkymapEngine:
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_ext)
 
-        print('Drawing objects...')
+        # print('Drawing objects...')
         pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
         if pick_r > 0:
             pick_min_r = pick_r**2
@@ -473,7 +473,7 @@ class SkymapEngine:
 
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
-        print('Drawing extra objects...')
+        # print('Drawing extra objects...')
         for rax, decx, label, labelpos in extra_positions:
             if angular_distance((rax, decx), self.fieldcentre) < self.fieldsize:
                 x, y = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
@@ -481,7 +481,7 @@ class SkymapEngine:
 
     def draw_highlights(self, highlights, visible_dso_collector):
         # Draw highlighted objects
-        print('Drawing highlighted objects...')
+        # print('Drawing highlighted objects...')
 
         self.graphics.save()
 
@@ -531,7 +531,7 @@ class SkymapEngine:
 
     def draw_trajectory(self,trajectory):
         # Draw extra objects
-        print('Drawing trajectory...')
+        # print('Drawing trajectory...')
         self.graphics.save()
         self.graphics.set_pen_rgb(self.config.dso_color)
 
@@ -577,7 +577,7 @@ class SkymapEngine:
 
     def draw_stars(self, star_catalog, allow_star_pick):
         # Select and draw stars
-        print('Drawing stars...')
+        # print('Drawing stars...')
 
         if allow_star_pick:
             pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
@@ -675,14 +675,14 @@ class SkymapEngine:
         self.graphics.set_font(self.graphics.gi_font, fn)
 
     def draw_constellations(self, constell_catalog, hl_constellation):
-        print('Drawing constellations...')
+        # print('Drawing constellations...')
         if self.config.show_constellation_borders:
             self.draw_constellation_boundaries(constell_catalog, hl_constellation)
         if self.config.show_constellation_shapes:
             self.draw_constellation_shapes(constell_catalog)
 
     def draw_grid_equatorial(self):
-        print('Drawing equatorial grid...')
+        # print('Drawing equatorial grid...')
         self.graphics.save()
         self.graphics.set_linewidth(self.config.grid_linewidth)
         self.graphics.set_pen_rgb(self.config.grid_color)
@@ -978,10 +978,10 @@ class SkymapEngine:
 
             self.graphics.reset_clip()
 
-        print('Drawing legend')
+        # print('Drawing legend')
         self.draw_caption()
 
-        print('Drawing widgets')
+        # print('Drawing widgets')
         self.draw_widgets()
 
         # Draw border of field-of-view
