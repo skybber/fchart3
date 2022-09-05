@@ -190,7 +190,7 @@ class SkymapEngine:
         self.config = config
         self.star_mag_r_shift = 0
         if self.config.star_mag_shift > 0:
-            self.star_mag_r_shift = self.magnitude_to_radius(self.lm_stars)
+            self.star_mag_r_shift = self.magnitude_to_radius(self.lm_stars-self.config.star_mag_shift) - self.magnitude_to_radius(self.lm_stars)
 
     def get_field_radius_mm(self):
         return self.drawingscale * math.sin(self.fieldradius)
@@ -921,7 +921,7 @@ class SkymapEngine:
             if self.config.show_milky_way:
                 # tm = time()
                 self.draw_milky_way(used_catalogs.milky_way_lines)
-                # print("Milky way within {} ms".format(str(time()-tm)), flush=True)
+                # print("Milky way within {} s".format(str(time()-tm)), flush=True)
 
             if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
                 clip_path = [(x2, y2)]
@@ -947,7 +947,7 @@ class SkymapEngine:
             if self.config.show_equatorial_grid:
                 # tm = time()
                 self.draw_grid_equatorial()
-                # print("Equatorial grid within {} ms".format(str(time()-tm)), flush=True)
+                # print("Equatorial grid within {} s".format(str(time()-tm)), flush=True)
 
             if highlights:
                 self.draw_highlights(highlights, visible_dso_collector)
@@ -955,7 +955,7 @@ class SkymapEngine:
             if used_catalogs.constellcatalog is not None:
                 # tm = time()
                 self.draw_constellations(used_catalogs.constellcatalog, hl_constellation)
-                # print("constellations within {} ms".format(str(time()-tm)), flush=True)
+                # print("constellations within {} s".format(str(time()-tm)), flush=True)
 
             if used_catalogs.unknown_nebulas is not None:
                 self.draw_unknown_nebula(used_catalogs.unknown_nebulas)
@@ -963,7 +963,7 @@ class SkymapEngine:
             if used_catalogs.deepskycatalog is not None:
                 # tm = time()
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos, dso_hide_filter, visible_dso_collector)
-                # print("DSO within {} ms".format(str(time()-tm)), flush=True)
+                # print("DSO within {} s".format(str(time()-tm)), flush=True)
 
             if extra_positions:
                 self.draw_extra_objects(extra_positions)
@@ -974,7 +974,7 @@ class SkymapEngine:
             if used_catalogs.starcatalog is not None:
                 # tm = time()
                 self.draw_stars(used_catalogs.starcatalog, self.picked_dso is None)
-                # print("Stars within {} ms".format(str(time()-tm)), flush=True)
+                # print("Stars within {} s".format(str(time()-tm)), flush=True)
 
             self.graphics.reset_clip()
 
