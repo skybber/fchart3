@@ -105,7 +105,10 @@ class CairoDrawing(GraphicsInterface):
     def set_font(self, font='Arial', fontsize=12*POINT):
         GraphicsInterface.set_font(self, font, fontsize)
         self.context.set_font_size(self.gi_fontsize)
-        self.context.select_font_face(self.gi_font, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+        if isinstance(font, cairo.FontFace):
+            self.context.set_font_face(font)
+        else:
+            self.context.select_font_face(self.gi_font, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
 
     def set_linewidth(self, linewidth):
         GraphicsInterface.set_linewidth(self,linewidth)
