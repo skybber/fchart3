@@ -178,7 +178,7 @@ class CairoDrawing(GraphicsInterface):
 
     def text_left(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
-        self._moveto(x-width, y)
+        self._moveto(x-width-xbearing, y)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
