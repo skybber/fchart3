@@ -93,13 +93,12 @@ def parse_catalog_name(dso_name):
                     return 'Mi', dso_name[1:]
                 for prefix in CATALOG_SPECS0:
                     if dso_name.startswith(prefix):
-                        return dso_name[:len(prefix)-1],dso_name[len(prefix):]
-                return dso_name[:i],dso_name[i:]
+                        return dso_name[:len(prefix)-1], dso_name[len(prefix):]
+                return dso_name[:i], dso_name[i:]
     if not dso_name[i].isdigit():
         for prefix in CATALOGS_SPEC2:
             if dso_name.startswith(prefix):
-                return dso_name[:len(prefix)],dso_name[len(prefix):]
-        # print('Unknown {}'.format(dso_name))
+                return dso_name[:len(prefix)], dso_name[len(prefix):]
         return None, dso_name
     return dso_name[:i], dso_name[i:]
 
@@ -139,8 +138,6 @@ def _parse_hnsky_line(line, show_catalogs, all_dsos):
         cat, name = parse_catalog_name(n)
         if cat:
             visible = visible or cat in show_catalogs
-            if n == 'PGC5818':
-                print(n, flush=True)
             all_dsos[n] = object
             if not has_cat:
                 object.cat = cat

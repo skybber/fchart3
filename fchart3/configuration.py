@@ -45,7 +45,8 @@ DEFAULT_PICKER_COLOR = (0.5, 0.5, 0.0)
 DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
 DEFAULT_LEGEND_FONT_SCALE = 1.75
-DEFAULT_EXT_LABEL_FONT_SCALE = 1.2
+DEFAULT_EXT_LABEL_FONT_FACTOR = 1.2
+DEFAULT_BAYER_LABEL_FONT_FACTOR = 1.2
 
 
 class EngineConfiguration:
@@ -107,7 +108,8 @@ class EngineConfiguration:
         self._picker_radius = -1 # < 0 means picker is not active
         self._picker_linewidth = DEFAULT_PICKER_LINEWIDTH
         self._picker_color = DEFAULT_PICKER_COLOR
-        self._ext_label_font_scale = DEFAULT_EXT_LABEL_FONT_SCALE
+        self._ext_label_font_fac = DEFAULT_EXT_LABEL_FONT_FACTOR
+        self._bayer_label_font_fac = DEFAULT_BAYER_LABEL_FONT_FACTOR
         self._star_mag_shift = 0
 
     @property
@@ -567,12 +569,12 @@ class EngineConfiguration:
         self._picker_linewidth = value
 
     @property
-    def ext_label_font_scale(self):
-        return self._ext_label_font_scale
+    def ext_label_font_fac(self):
+        return self._ext_label_font_fac
 
-    @ext_label_font_scale.setter
-    def ext_label_font_scale(self, value):
-        self._ext_label_font_scale = value
+    @ext_label_font_fac.setter
+    def ext_label_font_fac(self, value):
+        self._ext_label_font_fac = value
 
     @property
     def star_mag_shift(self):
@@ -582,3 +584,10 @@ class EngineConfiguration:
     def star_mag_shift(self, value):
         self._star_mag_shift = value
 
+    @property
+    def bayer_label_font_fac(self):
+        return self._bayer_label_font_fac
+
+    @bayer_label_font_fac.setter
+    def bayer_label_font_fac(self, value):
+        self._bayer_label_font_fac = value

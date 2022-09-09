@@ -653,6 +653,7 @@ class SkymapEngine:
     def draw_stars_labels(self, star_labels):
         fn = self.graphics.gi_fontsize
         printed = {}
+        bayer_fn = self.config.bayer_label_font_fac * fn
         for x, y, r, star in star_labels:
             if isinstance(star, str):
                 self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
@@ -666,10 +667,10 @@ class SkymapEngine:
                     if slabel not in printed_labels:
                         printed_labels.add(slabel)
                         if slabel in STAR_LABELS:
-                            self.graphics.set_font(self.graphics.gi_font, 1.3*fn)
+                            self.graphics.set_font(self.graphics.gi_font, bayer_fn)
                             slabel = STAR_LABELS.get(slabel)
                         else:
-                            self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
+                            self.graphics.set_font(self.graphics.gi_font, fn)
                         self.draw_circular_object_label(x, y, r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, fn)
@@ -1050,7 +1051,7 @@ class SkymapEngine:
 
         self.mirroring_graphics.circle(x, y, r)
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = None
@@ -1073,7 +1074,7 @@ class SkymapEngine:
 
         self.mirroring_graphics.circle(x, y, r)
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = None
@@ -1114,7 +1115,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x-d, y, x, y+d)
 
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = self.graphics.gi_fontsize
@@ -1213,7 +1214,7 @@ class SkymapEngine:
                                        self.config.label_color[1]*dso_intensity,
                                        self.config.label_color[2]*dso_intensity))
             if label_ext:
-                label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+                label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             else:
                 label_fh = self.graphics.gi_fontsize
 
@@ -1359,7 +1360,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x, y-r, x, y+r)
 
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = None
@@ -1387,7 +1388,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x-d, y-d, x-d, y+d)
 
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = self.graphics.gi_fontsize
@@ -1437,7 +1438,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = self.graphics.gi_fontsize
@@ -1513,7 +1514,7 @@ class SkymapEngine:
         self.mirroring_graphics.line(x, y-0.75*r, x, y-1.5*r)
 
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = None
@@ -1537,7 +1538,7 @@ class SkymapEngine:
         self.mirroring_graphics.circle(x, y, r-self.graphics.gi_linewidth/2.0)
 
         if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_fontsize
+            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
             label_fh = None
