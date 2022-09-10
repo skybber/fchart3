@@ -413,13 +413,17 @@ class SkymapEngine:
 
     def draw_dso_outlines(self, dso, x, y, rlong, rshort, posangle=None, label=None, label_ext=None,  labelpos=None):
         lev_shift = 0
+        has_outlines = False
+        draw_label = True
         for outl_lev in range(2, -1, -1):
             outlines_ar = dso.outlines[outl_lev]
             if outlines_ar:
                 has_outlines = True
                 for outlines in outlines_ar:
                     x_outl, y_outl = np_radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-                    self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle, label, label_ext, labelpos)
+                    self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle,
+                                                 label, label_ext, draw_label, labelpos)
+                    draw_label = False
             else:
                 lev_shift += 1
         return has_outlines
@@ -654,6 +658,7 @@ class SkymapEngine:
         fn = self.graphics.gi_fontsize
         printed = {}
         bayer_fn = self.config.bayer_label_font_fac * fn
+        flamsteed_fn = self.config.flamsteed_label_font_fac * fn
         for x, y, r, star in star_labels:
             if isinstance(star, str):
                 self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
@@ -670,7 +675,7 @@ class SkymapEngine:
                             self.graphics.set_font(self.graphics.gi_font, bayer_fn)
                             slabel = STAR_LABELS.get(slabel)
                         else:
-                            self.graphics.set_font(self.graphics.gi_font, fn)
+                            self.graphics.set_font(self.graphics.gi_font, flamsteed_fn)
                         self.draw_circular_object_label(x, y, r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, fn)
@@ -1411,18 +1416,19 @@ class SkymapEngine:
         elif labelpos == 3:
             self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
 
-    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width, height, posangle, label, label_ext, labelpos=''):
+    def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width, height, posangle, label, label_ext,
+                                draw_label, labelpos=''):
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.nebula_linewidth)
 
         if self.config.light_mode:
-            frac = 4 - 1.5 * outl_lev # no logic, look nice in light mode
+            frac = 4 - 1.5 * outl_lev  # no logic, look nice in light mode
             pen_r = 1.0 - ((1.0 - self.config.nebula_color[0]) / frac)
             pen_g = 1.0 - ((1.0 - self.config.nebula_color[1]) / frac)
             pen_b = 1.0 - ((1.0 - self.config.nebula_color[2]) / frac)
         else:
-            frac = 4 - 1.5 * outl_lev # no logic, look nice in dark mode
+            frac = 4 - 1.5 * outl_lev  # no logic, look nice in dark mode
             pen_r = self.config.nebula_color[0] / frac
             pen_g = self.config.nebula_color[1] / frac
             pen_b = self.config.nebula_color[2] / frac
@@ -1437,17 +1443,17 @@ class SkymapEngine:
             self.mirroring_graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
         self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
-        if label_ext:
-            label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
+        if draw_label:
+            if label_ext:
+                label_fh = self.config.ext_label_font_fac * self.graphics.gi_fontsize
+            else:
+                label_fh = self.graphics.gi_fontsize * self.config.outlined_dso_label_font_fac
             self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = self.graphics.gi_fontsize
-
-        self.graphics.set_pen_rgb(self.config.label_color)
-        if label:
-            self.draw_diffuse_nebula_label(x, y, label, labelpos, d, label_fh)
-        if label_ext:
-            self.draw_diffuse_nebula_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
+            self.graphics.set_pen_rgb(self.config.label_color)
+            if label:
+                self.draw_diffuse_nebula_label(x, y, label, labelpos, d, label_fh)
+            if label_ext:
+                self.draw_diffuse_nebula_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
 
         self.graphics.restore()
 

@@ -47,6 +47,8 @@ DEFAULT_FONT = 'Arial'
 DEFAULT_LEGEND_FONT_SCALE = 1.75
 DEFAULT_EXT_LABEL_FONT_FACTOR = 1.2
 DEFAULT_BAYER_LABEL_FONT_FACTOR = 1.2
+DEFAULT_FLAMSTEED_LABEL_FONT_FACTOR = 0.9
+DEFAULT_OUTLINED_DSO_LABEL_FONT_FACTOR = 1.1
 
 
 class EngineConfiguration:
@@ -110,6 +112,8 @@ class EngineConfiguration:
         self._picker_color = DEFAULT_PICKER_COLOR
         self._ext_label_font_fac = DEFAULT_EXT_LABEL_FONT_FACTOR
         self._bayer_label_font_fac = DEFAULT_BAYER_LABEL_FONT_FACTOR
+        self._flamsteed_label_font_fac = DEFAULT_FLAMSTEED_LABEL_FONT_FACTOR
+        self._outlined_dso_label_font_fac = DEFAULT_OUTLINED_DSO_LABEL_FONT_FACTOR
         self._star_mag_shift = 0
 
     @property
@@ -591,3 +595,19 @@ class EngineConfiguration:
     @bayer_label_font_fac.setter
     def bayer_label_font_fac(self, value):
         self._bayer_label_font_fac = value
+
+    @property
+    def flamsteed_label_font_fac(self):
+        return self._flamsteed_label_font_fac
+
+    @flamsteed_label_font_fac.setter
+    def flamsteed_label_font_fac(self, value):
+        self._flamsteed_label_font_fac = value
+
+    @property
+    def outlined_dso_label_font_fac(self):
+        return self._outlined_dso_label_font_fac
+
+    @outlined_dso_label_font_fac.setter
+    def outlined_dso_label_font_fac(self, value):
+        self._outlined_dso_label_font_fac = value
