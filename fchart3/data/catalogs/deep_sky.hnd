@@ -50,7 +50,7 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 551138,7500,57,M5/NGC5904,GC/[V]/!!/vB/L/eCM/eRi;st_mags_11...;superb_cluster,123,230
 56319,110369,57,M33/NGC598/Pinwheel_Galaxy,GX/[Sc]/eB/eL/R/vgbMN;Local_Group;HV17,141,687,416,23
 70550,136200,57,NGC752,OC/[III1m]/Cl/vvL/Ri/*L_&_S/C;HVII32;Best_in_RFT_or_binocs;Ir_scattered_cl_70*_mags_8...,,750
-601015,131259,58,M13/NGC6205/Hercules_Cluster,GC/[V]/!!/eB/vRi/vgeCM/*11…,121,200
+601015,131259,58,M13/NGC6205/Hercules_Cluster,GC/[V]/!!/eB/vRi/vgeCM/*11ï¿½,121,200
 296231,-20702,58,M48/NGC2548,OC/[I2m]/Cl/vL/pRi/pmC/*_9..13;50*_9-13mag;HVI22,130,300
 678650,-22572,58,M11/NGC6705/Wild_Duck_Cluster,OC/[I2r]/!!Cl/vB/L/iR/Ri/*9..;500_stars_to_14tHmag,90,110
 283300,-138708,58,NGC2477,OC/[I3r]/!Cl/B/Ri/L/lC/*12;300_*_to_12_mag;Shapley--richest_of_OPNCL,,200
@@ -3778,7 +3778,6 @@ RA[0..864000], DEC[-324000..324000], magn*10, name(s), type(s), brightness*10, l
 319613,120312,98,NGC2683/PGC24930,GX/[Sb]/vB/vL/vmE39/gmbM;HI200;peanut-shaped_bulge;many_filam;arm_w_dk_lanes_1_side,128,93,21,44
 370970,149124,98,NGC3184/PGC30087,GX/[SBc]/pB/vL/R/vgbM;HI168;svBN;smooth_lens_w_spiral_pattern_of_dark_markings,138,74,69,135
 450361,149914,98,NGC4490/PGC41333,GX/[SBcd]/vB/vL/mE130/r/sf_of_2;HI198;disrupted;P_w_NGC4485_@_3.5',128,64,32,125
-36093,-121352,99,PGC3589,GX/[E],101,11,9,100
 36093,-121352,99,PGC3589/SculptorDwarf,GX/[E]/vvL/eeF/lE;ESO_351-G030;Member_of_Local_Group;large_and_dim,101,11,9,100
 439439,105040,99,HCG61/The_Box,GALCL/[E3]/3xGX/alt_name(s)_ROSE10_N4169_U7202/brightest_mag_11.1,999,49
 650141,-108120,99,NGC6522,GC/[VI]/B/pL/R/gvmBM/rrr;HI49,145,94
