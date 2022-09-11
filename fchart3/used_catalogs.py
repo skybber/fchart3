@@ -29,7 +29,8 @@ from . import deepsky_object as deepsky
 
 
 class UsedCatalogs:
-    def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limiting_magnitude_deepsky=10.0, force_messier=False, force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False):
+    def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limiting_magnitude_deepsky=10.0, force_messier=False,
+                 force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False):
         # Read basic catalogs
         self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'constellationship_western.fab',

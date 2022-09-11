@@ -1160,6 +1160,9 @@ class SkymapEngine:
         return label_pos_list
 
     def draw_galaxy_label(self, x, y, label, labelpos, rlong, rshort, fh):
+        if label == 'PGC 3589':
+            print('####################### {}'.format(label))
+
         if labelpos == 0 or labelpos == -1:
             self.graphics.text_centred(0, -rshort-0.5*fh, label)
         elif labelpos == 1:

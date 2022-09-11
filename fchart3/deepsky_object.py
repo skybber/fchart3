@@ -17,6 +17,8 @@
 
 import numpy as np
 
+from .astrocalc import rad2hms_t, rad2dms_t
+
 #   0: unknown
 #   1: galaxy
 #   2: Galactic nebula
@@ -126,8 +128,8 @@ class DeepskyObject:
 
     def __str__(self):
         s = ''
-        rah, ram, ras,sign = rad2hms_t(self.ra)
-        decd, decm, decs,sign = rad2dms_t(self.dec)
+        rah, ram, ras, sign = rad2hms_t(self.ra)
+        decd, decm, decs, sign = rad2dms_t(self.dec)
 
         cat  = self.cat
         name = self.name
