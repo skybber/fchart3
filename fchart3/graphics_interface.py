@@ -306,3 +306,9 @@ class GraphicsInterface:
         Convert x, y to pixel position
         """
         return x, y
+
+    def antialias_on(self):
+        pass
+
+    def antialias_oof(self):
+        pass

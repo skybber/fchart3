@@ -28,6 +28,7 @@ DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
 DEFAULT_TELRAD_LINEWIDTH = 0.3
 DEFAULT_PICKER_LINEWIDTH = 0.4
 DEFAULT_EYEPIECE_LINEWIDTH = 0.3
+DEFAULT_ENHANCED_MILKY_WAY_FADE = (0.0, 0.4, 0.0, 0.4, 0.0, 0.4)
 
 DEFAULT_BACKGROUND_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DRAW_COLOR = (0.0, 0.0, 0.0)
@@ -67,6 +68,7 @@ class EngineConfiguration:
         self._show_constellation_borders = True
         self._show_deepsky = True
         self._show_milky_way = True
+        self._show_enhanced_milky_way = False
         self._show_picker = False
         self._fov_telrad = False
         self._eyepiece_fov = None
@@ -103,6 +105,7 @@ class EngineConfiguration:
         self._legend_font_scale = DEFAULT_LEGEND_FONT_SCALE
         self._milky_way_color = DEFAULT_MILKY_WAY_COLOR
         self._milky_way_linewidth = DEFAULT_MILKY_WAY_LINEWIDTH
+        self._enhanced_milky_way_fade = DEFAULT_ENHANCED_MILKY_WAY_FADE
         self._telrad_linewidth = DEFAULT_TELRAD_LINEWIDTH
         self._telrad_color = DEFAULT_TELRAD_COLOR
         self._eyepiece_linewidth = DEFAULT_EYEPIECE_LINEWIDTH
@@ -227,6 +230,14 @@ class EngineConfiguration:
     @show_milky_way.setter
     def show_milky_way(self, value):
         self._show_milky_way = value
+
+    @property
+    def show_enhanced_milky_way(self):
+        return self._show_enhanced_milky_way
+
+    @show_enhanced_milky_way.setter
+    def show_enhanced_milky_way(self, value):
+        self._show_enhanced_milky_way = value
 
     @property
     def show_picker(self):
@@ -515,6 +526,14 @@ class EngineConfiguration:
     @milky_way_linewidth.setter
     def milky_way_linewidth(self, value):
         self._milky_way_linewidth = value
+
+    @property
+    def enhanced_milky_way_fade(self):
+        return self._enhanced_milky_way_fade
+
+    @enhanced_milky_way_fade.setter
+    def enhanced_milky_way_fade(self, value):
+        self._enhanced_milky_way_fade = value
 
     @property
     def telrad_linewidth(self):

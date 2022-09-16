@@ -60,6 +60,7 @@ setup(
                               'data/catalogs/deepstars.dat',
                               'data/catalogs/index.dat',
                               'data/catalogs/milkyway.dat',
+                              'data/catalogs/milkyway_enhanced.dat',
                               'data/catalogs/namedstars.dat',
                               'data/catalogs/outlines_catgen.dat',
                               'data/catalogs/PGC.dat',

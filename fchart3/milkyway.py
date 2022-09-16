@@ -18,28 +18,26 @@
 import numpy as np
 
 
-def import_milkyway(filename):
+def import_milky_way(filename):
     milkyway_file = open(filename, 'r')
-    lines   = milkyway_file.readlines()
+    lines = milkyway_file.readlines()
     milkyway_file.close()
 
     mw_lines = None
-    next_dso = True
-    dso_name = None
 
     for line in lines:
         items = line.split()
         ra = np.pi * float(items[1]) / 12.0
         dec = np.pi * float(items[2]) / 180
 
-        if next_dso:
-            if items[0] == 'M':
-                if mw_lines is None:
-                    mw_lines = np.array([[ra, dec, 0]])
-                else:
-                    mw_lines = np.append(mw_lines, [[ra, dec, 0]], axis=0)
-            elif items[0] == 'S':
-                mw_lines = np.append(mw_lines, [[ra, dec, 1]], axis=0)
+        if items[0] == 'M':
+            if mw_lines is None:
+                mw_lines = np.array([[ra, dec, 0]])
             else:
-                mw_lines = np.append(mw_lines, [[ra, dec, 2]], axis=0)
+                mw_lines = np.append(mw_lines, [[ra, dec, 0]], axis=0)
+        elif items[0] == 'S':
+            mw_lines = np.append(mw_lines, [[ra, dec, 1]], axis=0)
+        else:
+            mw_lines = np.append(mw_lines, [[ra, dec, 2]], axis=0)
+
     return mw_lines

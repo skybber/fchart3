@@ -23,7 +23,8 @@ from .deepsky_catalog import DeepskyCatalog
 from .hnsky_deepsky import import_hnsky_deepsky
 from .pgc_deepsky import import_pgc_deepsky
 from .outlines_deepsky import import_outlines_catgen
-from .milkyway import import_milkyway
+from .milkyway import import_milky_way
+from .milkyway_enhanced import import_enhanced_milky_way
 from .vic import import_vic
 from . import deepsky_object as deepsky
 
@@ -36,8 +37,8 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'constellationship_western.fab',
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
-        # self._starcatalog    = HtmStarCatalog(data_dir, self._constellcatalog.bsc_hd_map, usno_nomad=usno_nomad_file)
-        self._starcatalog    = GeodesicStarCatalog(data_dir, extra_data_dir, self._constellcatalog.bsc_hip_map)
+        # self._starcatalog = HtmStarCatalog(data_dir, self._constellcatalog.bsc_hd_map, usno_nomad=usno_nomad_file)
+        self._starcatalog = GeodesicStarCatalog(data_dir, extra_data_dir, self._constellcatalog.bsc_hip_map)
         self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog)
 
         # Apply magnitude selection to deepsky list, build Messier list
@@ -57,7 +58,8 @@ class UsedCatalogs:
 
         self._messierlist.sort(key=lambda x: x.messier)
         self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
-        self._milky_way_lines = import_milkyway(os.path.join(data_dir, 'milkyway.dat'))
+        self._milky_way= import_milky_way(os.path.join(data_dir, 'milkyway.dat'))
+        self._enhanced_milky_way = import_enhanced_milky_way(os.path.join(data_dir, 'milkyway_enhanced.dat'))
 
     def free_mem(self):
         self._starcatalog.free_mem()
@@ -91,8 +93,13 @@ class UsedCatalogs:
         return self._unknown_nebulas
 
     @property
-    def milky_way_lines(self):
-        return self._milky_way_lines
+    def milky_way(self):
+        return self._milky_way
+
+    @property
+    def enhanced_milky_way(self):
+        return self._enhanced_milky_way
+
 
     def lookup_dso(self, dso_name):
         index = 0

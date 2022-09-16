@@ -225,3 +225,9 @@ class CairoDrawing(GraphicsInterface):
 
     def to_pixel(self, x, y):
         return int(x * DPMM_IMG + self.sfc_width/2), int(y * DPMM_IMG + self.sfc_height/2)
+
+    def antialias_on(self):
+        self.context.set_antialias(cairo.Antialias.DEFAULT)
+
+    def antialias_off(self):
+        self.context.set_antialias(cairo.Antialias.NONE)
