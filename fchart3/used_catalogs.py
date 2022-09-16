@@ -24,7 +24,7 @@ from .hnsky_deepsky import import_hnsky_deepsky
 from .pgc_deepsky import import_pgc_deepsky
 from .outlines_deepsky import import_outlines_catgen
 from .milkyway import import_milky_way
-from .milkyway_enhanced import import_enhanced_milky_way
+from .milkyway_enhanced import import_enhanced_milky_way, import_enhanced_milky_way_poly
 from .vic import import_vic
 from . import deepsky_object as deepsky
 
@@ -58,8 +58,8 @@ class UsedCatalogs:
 
         self._messierlist.sort(key=lambda x: x.messier)
         self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
-        self._milky_way= import_milky_way(os.path.join(data_dir, 'milkyway.dat'))
-        self._enhanced_milky_way = import_enhanced_milky_way(os.path.join(data_dir, 'milkyway_enhanced.dat'))
+        self._milky_way = import_milky_way(os.path.join(data_dir, 'milkyway.dat'))
+        self._enhanced_milky_way = import_enhanced_milky_way_poly(os.path.join(data_dir, 'milkyway_enhanced_poly.dat'))
 
     def free_mem(self):
         self._starcatalog.free_mem()

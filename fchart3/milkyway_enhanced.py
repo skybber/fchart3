@@ -72,3 +72,40 @@ def import_enhanced_milky_way(filename):
         mw_triangles.append([index1, index2, index3, (r, g, b)])
 
     return mw_points, mw_triangles
+
+
+def import_enhanced_milky_way_poly(filename):
+    milkyway_file = open(filename, 'r')
+    lines = milkyway_file.readlines()
+    milkyway_file.close()
+
+    mw_polygons = []
+    index_map = {}
+    mw_points = None
+
+    index = 0
+
+    for line in lines:
+        items = line.split()
+        if items[-1] == 'rgb(0,0,0)':
+            continue
+
+        polygon = []
+
+        for i in range(len(items)-1):
+            point_index = index_map.get(items[i])
+            if point_index is None:
+                mw_points = _radec_from_img(mw_points, items[i])
+                index_map[items[i]] = index
+                point_index = index
+                index += 1
+            polygon.append(point_index)
+
+        r, g, b = items[-1][4:-1].split(',')
+        r = int(r) / 255.0
+        g = int(g) / 255.0
+        b = int(b) / 255.0
+
+        mw_polygons.append([polygon, (r, g, b)])
+
+    return mw_points, mw_polygons

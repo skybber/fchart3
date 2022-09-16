@@ -503,6 +503,33 @@ class SkymapEngine:
         print("Milky way draw within {} s".format(str(time()-tm)), flush=True)
         self.graphics.restore()
 
+    def draw_enhanced_milky_way_poly(self, mw_points, mw_polygons):
+        self.graphics.save()
+        self.graphics.antialias_off()
+
+        x, y, z = np_radec_to_xyz(mw_points[:, 0], mw_points[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        mulx = -1 if self.config.mirror_x else 1
+        muly = -1 if self.config.mirror_y else 1
+
+        self.graphics.set_linewidth(self.config.milky_way_linewidth)
+        fd = self.config.enhanced_milky_way_fade
+
+        tm = time()
+        for polygon, rgb in mw_polygons:
+            for i in polygon:
+                if z[i].item() < 0:
+                    break
+            else:
+                xy_polygon = [(x[i].item() * mulx, y[i].item() * muly) for i in polygon]
+                frgb = (fd[0] + rgb[0] * fd[1], fd[2] + rgb[1] * fd[3], fd[4] + rgb[2] * fd[5])
+                self.graphics.set_pen_rgb(frgb)
+                self.graphics.set_fill_rgb(frgb)
+                self.graphics.polygon(xy_polygon, DrawMode.BOTH)
+
+        self.graphics.antialias_on()
+        print("Milky way draw within {} s".format(str(time()-tm)), flush=True)
+        self.graphics.restore()
+
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
         # print('Drawing extra objects...')
@@ -955,7 +982,7 @@ class SkymapEngine:
             if self.config.show_milky_way:
                 # tm = time()
                 if self.config.show_enhanced_milky_way:
-                    self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way[0], used_catalogs.enhanced_milky_way[1])
+                    self.draw_enhanced_milky_way_poly(used_catalogs.enhanced_milky_way[0], used_catalogs.enhanced_milky_way[1])
                 else:
                     self.draw_milky_way(used_catalogs.milky_way)
                 # print("Milky way within {} s".format(str(time()-tm)), flush=True)
