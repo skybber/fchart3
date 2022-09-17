@@ -2,7 +2,8 @@
 
 Fchart3 is a project designed to create high quality astronomical charts. It is written in Python using data from Stellarium, Kstars and HnSky, including 300 million stars. It can be used to create both offline charts with output to PDF or online interactive charts as can be seen in the case of project **CzSky**.
 
-![star chart](https://github.com/skybber/fchart3/blob/assets/Orion.png)
+![Cygnus](https://user-images.githubusercontent.com/2523097/190871573-8e1746cb-2e02-460f-9017-e3788c36089f.png)
+
 
 Online interactive version is available on project **CzSky**:
 
