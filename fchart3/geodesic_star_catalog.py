@@ -607,7 +607,7 @@ class GeodesicStarCatalog(StarCatalog):
             if len(zone_stars) > 0:
                 mag = zone_stars['mag']
                 scal_dot = zone_stars['x']*field_rect3[0] + zone_stars['y']*field_rect3[1] + zone_stars['z']*field_rect3[2]
-                zone_stars = zone_stars[np.logical_and(mag <= lm_stars, scal_dot>cos_radius)]
+                zone_stars = zone_stars[np.logical_and(mag <= lm_stars, scal_dot > cos_radius)]
                 if len(zone_stars) > 0:
                     stars.append(zone_stars)
             zone = iterator.next()
@@ -638,7 +638,7 @@ class GeodesicStarCatalog(StarCatalog):
             field_rect3 = sphere_to_rect(fieldcentre[0], fieldcentre[1])
 
             lev_spherical_caps = []
-            print('Radius: {}'.format(radius/np.pi*180.0))
+            # print('Radius: {}'.format(radius/np.pi*180.0))
             cos_radius = math.cos(radius)
             for lev in range(max_search_level+1):
                 radius_inner = radius
@@ -671,14 +671,14 @@ class GeodesicStarCatalog(StarCatalog):
         dim = len(rect_stars)
         ra, dec = np_rect_to_sphere(rect_stars['x'].reshape(dim, 1), rect_stars['y'].reshape(dim, 1), rect_stars['z'].reshape(dim, 1))
 
-        eq_stars = np.core.records.fromarrays( \
-            [ \
-                ra[:,0],
-                dec[:,0],
+        eq_stars = np.core.records.fromarrays(
+            [
+                ra[:, 0],
+                dec[:, 0],
                 rect_stars['mag'],
                 rect_stars['bvind'],
                 rect_stars['bsc'],
-            ], \
+            ],
             dtype=EQ_ZONE_STARDATA_DT)
 
         return eq_stars
