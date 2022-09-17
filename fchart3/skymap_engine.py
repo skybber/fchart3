@@ -918,7 +918,7 @@ class SkymapEngine:
 
     def draw_constellation_boundaries(self, constell_catalog, hl_constellation):
         self.graphics.save()
-        self.graphics.set_dashed_line(1.2, 1.2)
+        self.graphics.set_dashed_line(0.6, 1.2)
 
         x, y, z = np_radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
