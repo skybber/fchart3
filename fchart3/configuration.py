@@ -17,6 +17,7 @@
 
 DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_CONSTELLATION_LINE_SPACE = 3
+DEFAULT_CONSTELLATION_BORDER_LINEWIDTH = 0.2
 DEFAULT_OPEN_CLUSTER_LINEWIDTH = 0.3
 DEFAULT_GALAXY_CLUSTER_LINEWIDTH = 0.2
 DEFAULT_NEBULA_LINEWIDTH = 0.3
@@ -81,6 +82,7 @@ class EngineConfiguration:
         self._label_color = DEFAULT_LABEL_COLOR
         self._constellation_lines_color = DEFAULT_CONSTELLATION_LINES_COLOR
         self._constellation_border_color = DEFAULT_CONSTELLATION_BORDER_COLOR
+        self._constellation_border_linewidth = DEFAULT_CONSTELLATION_BORDER_LINEWIDTH
         self._constellation_hl_border_color = DEFAULT_CONSTELLATION_HL_BORDER_COLOR
         self._dso_color = DEFAULT_DSO_COLOR
         self._nebula_color = DEFAULT_DSO_COLOR
@@ -334,6 +336,14 @@ class EngineConfiguration:
     @constellation_border_color.setter
     def constellation_border_color(self, value):
         self._constellation_border_color = value
+
+    @property
+    def constellation_border_linewidth(self):
+        return self._constellation_border_linewidth
+
+    @constellation_border_linewidth.setter
+    def constellation_border_linewidth(self, value):
+        self._constellation_border_linewidth = value
 
     @property
     def constellation_hl_border_color(self):

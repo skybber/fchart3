@@ -904,7 +904,7 @@ class SkymapEngine:
                     self.graphics.set_linewidth(self.config.constellation_linewidth * 1.75)
                 else:
                     self.graphics.set_pen_rgb(self.config.constellation_border_color)
-                    self.graphics.set_linewidth(self.config.constellation_linewidth)
+                    self.graphics.set_linewidth(self.config.constellation_border_linewidth)
 
                 self.mirroring_graphics.line(x[index1], y[index1], x[index2], y[index2])
 
