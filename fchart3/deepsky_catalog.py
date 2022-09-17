@@ -85,4 +85,3 @@ class DeepskyCatalog:
         for obj in self.deepsky_list:
             s.write(str(obj)+'\n')
         return s.getvalue()[:-1]
-

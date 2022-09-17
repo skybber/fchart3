@@ -15,97 +15,96 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import numpy as np
+from .deepsky_object import *
+from .htm.htm import HTM
+
+RAD2DEG = 180.0/np.pi
 
 
-def _radec_from_img(mw_points, point):
-    x, y = point.split(',')
-    x, y = int(x), int(y)
-    ra = 2.5 * np.pi - 2.0*np.pi * x / 2048
-    dec = - np.pi * (y-512) / 1024
-    if mw_points is None:
-        mw_points = np.array([[ra, dec]])
-    else:
-        mw_points = np.append(mw_points, [[ra, dec]], axis=0)
-    return mw_points
+class EnhancedMilkyWay:
+    def __init__(self, milkyway_filename):
+        self.sky_mesh = HTM(4)
+        self.polygon_center_blocks = [None] * self.sky_mesh.size()
+        self.mw_points = None
+        self.mw_polygons = []
+        self.add_polygons(milkyway_filename)
 
+    def _radec_from_img(self, point):
+        x, y = point.split(',')
+        x, y = int(x), int(y)
+        ra = 2.5 * np.pi - 2.0*np.pi * x / 2048
+        dec = - np.pi * (y-512) / 1024
+        return ra, dec
 
-def import_enhanced_milky_way(filename):
-    milkyway_file = open(filename, 'r')
-    lines = milkyway_file.readlines()
-    milkyway_file.close()
+    def add_polygons(self, milkyway_filename):
+        milkyway_file = open(milkyway_filename, 'r')
+        lines = milkyway_file.readlines()
+        milkyway_file.close()
 
-    mw_triangles = []
-    index_map = {}
-    mw_points = None
+        mw_radec = []
+        arr_ra, arr_dec, poly_index = ([], [], [])
+        index_map = {}
 
-    index = 0
+        cur_index = 0
 
-    for line in lines:
-        items = line.split()
-        if items[3] == 'rgb(0,0,0)':
-            continue
+        for line in lines:
+            items = line.split()
+            if items[-1] == 'rgb(0,0,0)':
+                continue
 
-        index1 = index_map.get(items[0])
-        if index1 is None:
-            mw_points = _radec_from_img(mw_points, items[0])
-            index_map[items[0]] = index
-            index1, index = index, index+1
+            polygon = []
 
-        index2 = index_map.get(items[1])
-        if index2 is None:
-            mw_points = _radec_from_img(mw_points, items[1])
-            index_map[items[1]] = index
-            index2, index = index, index+1
+            sum_ra = 0.0
+            sum_dec = 0.0
 
-        index3 = index_map.get(items[2])
-        if index3 is None:
-            mw_points = _radec_from_img(mw_points, items[2])
-            index_map[items[2]] = index
-            index3, index = index, index+1
+            n_points = len(items)-1
+            for i in range(n_points):
+                point_index = index_map.get(items[i])
+                if point_index is None:
+                    ra, dec = self._radec_from_img(items[i])
+                    mw_radec.append((ra, dec,))
+                    if self.mw_points is None:
+                        self.mw_points = np.array([[ra, dec]])
+                    else:
+                        self.mw_points = np.append(self.mw_points, [[ra, dec]], axis=0)
+                    index_map[items[i]] = cur_index
+                    point_index = cur_index
+                    cur_index += 1
+                else:
+                    ra, dec = mw_radec[point_index]
+                sum_ra += ra
+                sum_dec += dec
+                polygon.append(point_index)
 
-        r, g, b = items[3][4:-1].split(',')
-        r = int(r) / 255.0
-        g = int(g) / 255.0
-        b = int(b) / 255.0
+            arr_ra.append(sum_ra * RAD2DEG / n_points)
+            arr_dec.append(sum_dec * RAD2DEG / n_points)
+            poly_index.append(len(self.mw_polygons))
 
-        mw_triangles.append([index1, index2, index3, (r, g, b)])
+            r, g, b = items[-1][4:-1].split(',')
+            r = int(r) / 255.0
+            g = int(g) / 255.0
+            b = int(b) / 255.0
 
-    return mw_points, mw_triangles
+            self.mw_polygons.append([polygon, (r, g, b)])
 
+        mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
+        indexes = self.sky_mesh.lookup_id(arr_ra, arr_dec)
+        for i in range(len(indexes)):
+            index = indexes[i] ^ mask
+            if self.polygon_center_blocks[index] is None:
+                self.polygon_center_blocks[index] = [poly_index[i]]
+            else:
+                self.polygon_center_blocks[index].append(poly_index[i])
 
-def import_enhanced_milky_way_poly(filename):
-    milkyway_file = open(filename, 'r')
-    lines = milkyway_file.readlines()
-    milkyway_file.close()
+    def select_polygons(self, fieldcentre, radius):
+        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
+        selection = []
+        mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
 
-    mw_polygons = []
-    index_map = {}
-    mw_points = None
+        for trixel in intersecting_trixels:
+            trixel_polygons = self.polygon_center_blocks[trixel ^ mask]
+            if trixel_polygons is not None:
+                selection.extend(trixel_polygons)
 
-    index = 0
+        return selection
 
-    for line in lines:
-        items = line.split()
-        if items[-1] == 'rgb(0,0,0)':
-            continue
-
-        polygon = []
-
-        for i in range(len(items)-1):
-            point_index = index_map.get(items[i])
-            if point_index is None:
-                mw_points = _radec_from_img(mw_points, items[i])
-                index_map[items[i]] = index
-                point_index = index
-                index += 1
-            polygon.append(point_index)
-
-        r, g, b = items[-1][4:-1].split(',')
-        r = int(r) / 255.0
-        g = int(g) / 255.0
-        b = int(b) / 255.0
-
-        mw_polygons.append([polygon, (r, g, b)])
-
-    return mw_points, mw_polygons

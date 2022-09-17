@@ -475,59 +475,32 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def draw_enhanced_milky_way(self, mw_points, mw_triangles):
+    def draw_enhanced_milky_way(self, enhanced_milky_way):
         self.graphics.save()
         self.graphics.antialias_off()
+
+        tm = time()
+
+        mw_points = enhanced_milky_way.mw_points
 
         x, y, z = np_radec_to_xyz(mw_points[:, 0], mw_points[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
         mulx = -1 if self.config.mirror_x else 1
         muly = -1 if self.config.mirror_y else 1
 
-        self.graphics.set_linewidth(self.config.milky_way_linewidth)
+        self.graphics.set_linewidth(0)
         fd = self.config.enhanced_milky_way_fade
 
-        tm = time()
-        for i1, i2, i3, rgb in mw_triangles:
-            x1, y1, z1 = x[i1].item(), y[i1].item(), z[i1].item()
-            x2, y2, z2 = x[i2].item(), y[i2].item(), z[i2].item()
-            x3, y3, z3 = x[i3].item(), y[i3].item(), z[i3].item()
+        selected_polygons = enhanced_milky_way.select_polygons(self.fieldcentre, self.fieldsize)
 
-            if z1 > 0 and z2 > 0 and z3 > 0:
-                frgb = (fd[0] + rgb[0] * fd[1], fd[2] + rgb[1] * fd[3], fd[4] + rgb[2] * fd[5])
-                self.graphics.set_pen_rgb(frgb)
-                self.graphics.set_fill_rgb(frgb)
-                polygon = [[mulx*x1, muly*y1], [mulx*x2, muly*y2], [mulx*x3, muly*y3]]
-                self.graphics.polygon(polygon, DrawMode.BOTH)
+        for polygon_index in selected_polygons:
+            polygon, rgb = enhanced_milky_way.mw_polygons[polygon_index]
+            xy_polygon = [(x[i].item() * mulx, y[i].item() * muly) for i in polygon]
+            frgb = (fd[0] + rgb[0] * fd[1], fd[2] + rgb[1] * fd[3], fd[4] + rgb[2] * fd[5])
+            self.graphics.set_fill_rgb(frgb)
+            self.graphics.polygon(xy_polygon, DrawMode.FILL)
 
         self.graphics.antialias_on()
-        print("Milky way draw within {} s".format(str(time()-tm)), flush=True)
-        self.graphics.restore()
-
-    def draw_enhanced_milky_way_poly(self, mw_points, mw_polygons):
-        self.graphics.save()
-        self.graphics.antialias_off()
-
-        x, y, z = np_radec_to_xyz(mw_points[:, 0], mw_points[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-        mulx = -1 if self.config.mirror_x else 1
-        muly = -1 if self.config.mirror_y else 1
-
-        self.graphics.set_linewidth(self.config.milky_way_linewidth)
-        fd = self.config.enhanced_milky_way_fade
-
-        tm = time()
-        for polygon, rgb in mw_polygons:
-            for i in polygon:
-                if z[i].item() < 0:
-                    break
-            else:
-                xy_polygon = [(x[i].item() * mulx, y[i].item() * muly) for i in polygon]
-                frgb = (fd[0] + rgb[0] * fd[1], fd[2] + rgb[1] * fd[3], fd[4] + rgb[2] * fd[5])
-                self.graphics.set_pen_rgb(frgb)
-                self.graphics.set_fill_rgb(frgb)
-                self.graphics.polygon(xy_polygon, DrawMode.BOTH)
-
-        self.graphics.antialias_on()
-        print("Milky way draw within {} s".format(str(time()-tm)), flush=True)
+        print("Milky way total draw within {} s".format(str(time()-tm)), flush=True)
         self.graphics.restore()
 
     def draw_extra_objects(self,extra_positions):
@@ -982,7 +955,7 @@ class SkymapEngine:
             if self.config.show_milky_way:
                 # tm = time()
                 if self.config.show_enhanced_milky_way:
-                    self.draw_enhanced_milky_way_poly(used_catalogs.enhanced_milky_way[0], used_catalogs.enhanced_milky_way[1])
+                    self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way)
                 else:
                     self.draw_milky_way(used_catalogs.milky_way)
                 # print("Milky way within {} s".format(str(time()-tm)), flush=True)
