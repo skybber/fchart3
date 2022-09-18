@@ -494,22 +494,23 @@ class SkymapEngine:
 
         fr_x1, fr_y1, fr_x2, fr_y2 = self.get_field_rect_mm()
 
+        total_polygons = 0
         for polygon_index in selected_polygons:
             polygon, rgb = enhanced_milky_way.mw_polygons[polygon_index]
             xy_polygon = [(x[i].item() * mulx, y[i].item() * muly) for i in polygon]
             for xp, yp in xy_polygon:
                 if (xp >= fr_x1) and (xp <= fr_x2) and (yp >= fr_y1) and (yp <= fr_y2):
-                    in_field_rect = True
                     break
             else:
                 continue
 
             frgb = (fd[0] + rgb[0] * fd[1], fd[2] + rgb[1] * fd[3], fd[4] + rgb[2] * fd[5])
+            total_polygons += 1
             self.graphics.set_fill_rgb(frgb)
             self.graphics.polygon(xy_polygon, DrawMode.FILL)
 
         self.graphics.antialias_on()
-        print("Milky way total draw within {} s".format(str(time()-tm)), flush=True)
+        print("Enhanced milky way draw within {} s. Total polygons={}".format(str(time()-tm), total_polygons), flush=True)
         self.graphics.restore()
 
     def draw_extra_objects(self,extra_positions):

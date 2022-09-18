@@ -120,14 +120,14 @@ class CairoDrawing(GraphicsInterface):
     def set_dashed_line(self, on, off, start=0.0):
         GraphicsInterface.set_dashed_line(self, on, off, start)
 
-    def line(self, x1,y1,x2,y2):
+    def line(self, x1, y1, x2, y2):
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
-        self.context.move_to(x1,-y1)
-        self.context.line_to(x2,-y2)
+        self.context.move_to(x1, -y1)
+        self.context.line_to(x2, -y2)
         self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
         self.context.stroke()
 
-    def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
+    def rectangle(self, x, y, width, height, mode=DrawMode.BORDER):
         self.context.rectangle(x, -y, width, height)
         self._draw_element(mode)
 
@@ -143,7 +143,7 @@ class CairoDrawing(GraphicsInterface):
         self.context.close_path()
         self._draw_element(mode)
 
-    def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):
+    def ellipse(self, x, y, rlong, rshort, posangle, mode=DrawMode.BORDER):
         self.context.save()
         scale = rshort/rlong
         self.context.translate(x, -y)
@@ -193,7 +193,7 @@ class CairoDrawing(GraphicsInterface):
         return width
 
     def _moveto(self, x, y):
-        self.context.move_to(x,-y)
+        self.context.move_to(x, -y)
 
     def translate(self, dx, dy):
         self.context.translate(dx, -dy)
@@ -202,10 +202,10 @@ class CairoDrawing(GraphicsInterface):
         self.context.rotate(-angle)
 
     def clip_path(self, path):
-        (x,y) = path[0]
-        self.context.move_to(x,-y)
-        for (x,y) in path[1:]:
-            self.context.line_to(x,-y)
+        (x, y) = path[0]
+        self.context.move_to(x, -y)
+        for (x, y) in path[1:]:
+            self.context.line_to(x, -y)
         self.context.close_path()
         self.context.clip()
 
