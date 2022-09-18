@@ -19,6 +19,10 @@ import math
 
 from .vector_math import *
 
+import numpy as np
+from time import time
+# from memory_profiler import profile
+
 icosahedron_G = 0.5*(1.0+math.sqrt(5.0))
 icosahedron_b = 1.0/math.sqrt(1.0+icosahedron_G*icosahedron_G)
 icosahedron_a = icosahedron_b*icosahedron_G
@@ -177,7 +181,9 @@ class GeodesicGrid:
     def nr_of_zones(level):
         return 20 << (level << 1)
 
+    # @profile
     def __init__(self, level):
+        # tm = time()
         self.max_level = level
         if level >= 0:
             self._triangles = [None] * (level+1)
@@ -190,10 +196,14 @@ class GeodesicGrid:
             for i in range(20):
                 corners = icosahedron_triangles[i]
                 self._init_triangle(0, i, icosahedron_corners[corners[0]], icosahedron_corners[corners[1]], icosahedron_corners[corners[2]])
-            # for i in range(level + 1):
-                # print(self._triangles[i])
         else:
             self._triangles = None
+        # print("#################### Geodesic grid within {} s".format(str(time()-tm)), flush=True)
+
+    def to_np_arrays(self):
+        for i in range(self.max_level+1):
+            self._triangles[i] = np.array(self._triangles[i])
+            self._triangle_centers[i] = np.array(self._triangle_centers[i])
 
     def get_triangle_corners(self, lev, index):
         h0, h1, h2 = None, None, None
@@ -209,30 +219,22 @@ class GeodesicGrid:
             x = index & 3
             if x == 0:
                 c0, c1, c2 = self.get_triangle_corners(lev, i)
-                h0 = c0
-                h1 = t[2]
-                h2 = t[1]
+                h0, h1, h2 = c0, t[2], t[1]
             elif x == 1:
                 c0, c1, c2 = self.get_triangle_corners(lev, i)
-                h0 = t[2]
-                h1 = c1
-                h2 = t[0]
+                h0, h1, h2 = t[2], c1, t[0]
             elif x == 2:
                 c0, c1, c2 = self.get_triangle_corners(lev, i)
-                h0 = t[1]
-                h1 = t[0]
-                h2 = c2
+                h0, h1, h2 = t[1], t[0], c2
             elif x == 3:
-                h0 = t[0]
-                h1 = t[1]
-                h2 = t[2]
+                h0, h1, h2 = t[0], t[1], t[2]
         return h0, h1, h2
 
     def get_partner_triangle(self, lev, index):
         if lev == 0:
             return index+1 if (index&1) == 1 else index-1
 
-        x = index&7
+        x = index & 7
         if x == 2 or x == 6:
             return index+1
         if x == 3 or x == 7:

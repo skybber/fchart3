@@ -26,6 +26,14 @@ def vector_norm_add(a, b):
     return v0/n, v1/n, v2/n
 
 
+def vector_norm_add_assign(dest, a, b):
+    v0 = a[0] + b[0]
+    v1 = a[1] + b[1]
+    v2 = a[2] + b[2]
+    n = math.sqrt(v0**2 + v1**2 + v2**2)
+    dest[0], dest[1], dest[2] = v0/n, v1/n, v2/n
+
+
 def vector_norm_add3(a, b, c):
     v0 = a[0] + b[0] + c[0]
     v1 = a[1] + b[1] + c[1]
@@ -75,6 +83,6 @@ def vector_length(v):
     return math.sqrt(v[0]**2 + v[1]**2 + v[2]**2)
 
 
-__all__ = ['vector_norm_add', 'vector_norm_add3', 'vector_sub','vector_dot', 'vector_cross',
+__all__ = ['vector_norm_add', 'vector_norm_add_assign', 'vector_norm_add3', 'vector_sub','vector_dot', 'vector_cross',
            'vector_norm_cross', 'vector_scal_dot', 'vector_length'
            ]

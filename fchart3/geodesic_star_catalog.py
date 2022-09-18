@@ -32,6 +32,9 @@ from .star_catalog import *
 from .geodesic_binfile_reader import *
 from .geodesic_grid import *
 
+# from memory_profiler import profile
+
+
 COLOR_TABLE = (
     (0.602745,0.713725,1.000000),
     (0.604902,0.715294,1.000000),
@@ -394,10 +397,7 @@ NORTH = (0.0, 0.0, 1.0)
 
 
 class ZoneData:
-    def __init__(self):
-        self.center = None
-        self.axis0 = None
-        self.axis1 = None
+    __slots__ = 'center', 'axis0', 'axis1'
 
     def get_J2000_pos(self, star_X0, star_X1):
         return (self.axis0 * star_X0) + (star_X1 * self.axis1) + self.center
@@ -561,7 +561,9 @@ class GeodesicStarCatalog(StarCatalog):
     """
     Star catalog composed of GeodesicStarCatalogComponent. Each component represents one level of Geodesic tree.
     """
+    # @profile
     def __init__(self, data_dir, extra_data_dir, bsc_hip_map):
+        # tm = time()
         self._cat_components = []
         max_file_num = 8
         for i in range(max_file_num+1):
@@ -589,6 +591,10 @@ class GeodesicStarCatalog(StarCatalog):
 
         if len(self._cat_components) > 0:
             self._cat_components[0].load_static_stars(bsc_hip_map)
+
+        self._geodesic_grid.to_np_arrays()
+
+        # print("#################### Geodesic star catalog within {} s".format(str(time()-tm)), flush=True)
 
     def _load_gsc_component(self, data_dir, file_regex):
         files = glob.glob(os.path.join(data_dir, file_regex))
