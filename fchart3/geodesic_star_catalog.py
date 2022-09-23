@@ -701,6 +701,6 @@ class GeodesicStarCatalog(StarCatalog):
 if __name__ == '__main__':
     data_dir='./data/catalogs/'
     tm = time()
-    cat = GeodesicStarCatalog(data_dir, none)
+    cat = GeodesicStarCatalog(data_dir, None)
     print("Loaded in : " + str(time()-tm) + "ms")
     print("Done")

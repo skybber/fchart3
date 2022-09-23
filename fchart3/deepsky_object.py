@@ -50,11 +50,15 @@ QSO = 12
 GALCL = 13
 
 
-TYPENAME=['Unknown',
-          'G', 'N', 'PN', 'OC', 'GC', 'PG', 'xxx', 'xxx', 'AST', 'xxx', 'SNR', 'QSO', 'GALCL']
+TYPENAME = ['Unknown', 'G', 'N', 'PN', 'OC', 'GC', 'PG', 'xxx', 'xxx', 'AST', 'xxx', 'SNR', 'QSO', 'GALCL']
 
 
 class DeepskyObject:
+
+    __slots__ = 'cat', 'name', 'all_names', 'synonyms', 'component', 'type', 'constellation', 'ra', 'dec', \
+                'mag', 'rlong', 'rshort', 'position_angle', 'messier', 'master_object', 'visible', '_label', \
+                'outlines'
+
     def __init__(self, catalog='NGC'):
         """
         This class has the following fields:
@@ -131,14 +135,14 @@ class DeepskyObject:
         rah, ram, ras, sign = rad2hms_t(self.ra)
         decd, decm, decs, sign = rad2dms_t(self.dec)
 
-        cat  = self.cat
+        cat = self.cat
         name = self.name
         if self.messier > 0:
             cat = 'M'
             name = str(self.messier)
 
         s += cat.ljust(8)+' '+name.rjust(8)+' '+self.constellation
-        s +='  '
+        s += '  '
         s += str(rah).rjust(3)+str(ram).rjust(3)+str(int(ras+0.5)).rjust(3)
         s += '  '
         if sign >= 0:
@@ -190,7 +194,7 @@ class UnknownNebula:
         self.outlines[level].append(outlines)
 
 
-def cmp_ra(x,y):
+def cmp_ra(x, y):
     r = 0
     if x.ra > y.ra:
         r = 1
@@ -199,7 +203,7 @@ def cmp_ra(x,y):
     return r
 
 
-def cmp_dec(x,y):
+def cmp_dec(x, y):
     r = 0
     if x.dec > y.dec:
         r = 1
@@ -237,4 +241,3 @@ def cmp_to_key(mycmp):
         def __ne__(self, other):
             return mycmp(self.obj, other.obj) != 0
     return K
-
