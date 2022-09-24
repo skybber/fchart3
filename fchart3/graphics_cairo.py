@@ -33,7 +33,7 @@ class CairoDrawing(GraphicsInterface):
     """
     A CairoDrawing - implement Graphics interface using PyCairo
     """
-    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None):
+    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None, jpg_quality=90):
         """
         :param fobj: file object
         :param width: width in mm
@@ -54,9 +54,10 @@ class CairoDrawing(GraphicsInterface):
         self.sfc_height = None
         self.tolerance = tolerance
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
+        self.jpg_quality = jpg_quality
 
     def new(self):
-        if self.format == 'png':
+        if self.format in ['png', 'jpg']:
             self.set_point_size(PONT_IMG)
             self.sfc_width = int(self.gi_width * DPMM_IMG)
             self.sfc_height = int(self.gi_height * DPMM_IMG)
@@ -215,6 +216,8 @@ class CairoDrawing(GraphicsInterface):
     def finish(self):
         if self.format == 'png':
             self.surface.write_to_png(self.fobj)
+        elif self.format == 'jpg':
+            self.surface.write_to_jpg(self.fobj, self.jpg_quality)
         else:
             self.surface.show_page()
             self.surface.flush()
