@@ -1,6 +1,8 @@
 from setuptools import setup
 from distutils.core import Extension
 import platform
+import sys
+import time
 from glob import glob
 
 packages = ['fchart3']
@@ -14,7 +16,7 @@ except:
     ext_modules = []
     include_dirs = []
 
-    stdout.write('Numpy not found:  Not building C extensions\n')
+    sys.stdout.write('Numpy not found:  Not building C extensions\n')
     time.sleep(5)
 
 if platform.system() == 'Darwin':
