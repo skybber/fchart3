@@ -17,22 +17,18 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-# numarray library: http://www.stsci.edu/resources/software_hardware/numarray
-
 import argparse
 import textwrap
 
 from time import time
 
-# Standard python modules
 import os
 import sys
-import stat
 import numpy as np
 
 import fchart3
 
-from fchart3.astrocalc import hms2rad, dms2rad
+from fchart3.astrocalc import hms2rad, dms2rad, rad2hms, rad2dms
 from fchart3.skymap_engine import SkymapEngine, EN, NL, ES
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
@@ -42,7 +38,7 @@ from fchart3.graphics_cairo import CairoDrawing
 
 
 def print_version():
-    print('fchart3 version 0.8.0 (c) fchart3 authors 2005-2021')
+    print('fchart3 version 0.9.0 (c) fchart3 authors 2005-2022')
     print("""
 fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
@@ -92,7 +88,7 @@ class RuntimeSettings:
 
         argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
                                     help='Width of the drawing area in mm.')
-        argumentparser.add_argument('-size', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
+        argumentparser.add_argument('-fieldsize', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
 
         argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
@@ -142,8 +138,17 @@ class RuntimeSettings:
         argumentparser.add_argument('--show-equatorial-grid', dest='show_equatorial_grid', action='store_true',
                                     help='Show equatorial grid.')
 
-        argumentparser.add_argument('--hide-coords-legend', dest='show_coords_legend', action='store_false',
-                                    help='Hide coordinations legend.')
+        argumentparser.add_argument('--show-milky-way', dest='show_milky_way', action='store_true',
+                                    help='Show milky way.')
+
+        argumentparser.add_argument('--show-enhanced-milky-way', dest='show_enhanced_milky_way', action='store_true',
+                                    help='Show enhanced milky way.')
+
+        argumentparser.add_argument('--show-nebula-outlines', dest='show_nebula_outlines', action='store_true',
+                                    help='Show nebula outlines.')
+
+        argumentparser.add_argument('--show-coords-legend', dest='show_coords_legend', action='store_true',
+                                    help='Show coordinations legend.')
 
         argumentparser.add_argument('--hide-field-border', dest='show_field_border', action='store_false',
                                     help='Hide field border.')
@@ -179,13 +184,17 @@ class RuntimeSettings:
                                     help='Star cluster color.')
         argumentparser.add_argument('--color-galaxy-cluster', dest='galaxy_cluster_color', action='store', default='#505050',
                                     help='Galaxy cluster color.')
-        argumentparser.add_argument('--color-milky_way-lines', dest='milky_way_lines_color', action='store', default='#808080',
+        argumentparser.add_argument('--color-milky-way', dest='milky_way_color', action='store', default='#d8d8d8',
                                     help='Milky way color.')
+
         argumentparser.add_argument('--color-grid', dest='grid_color', action='store', default='#405060',
                                     help='Star cluster color.')
-
         argumentparser.add_argument('--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
                                     help='Constellation line width (default: 0.5)')
+        argumentparser.add_argument('--linewidth-constellation-border', dest='constellation_border_linewidth', nargs='?', action='store', default=0.5, type=float,
+                                    help='Constellation border line width (default: 0.5)')
+        argumentparser.add_argument('--linewidth-nebula', dest='nebula_linewidth', nargs='?', action='store', default=0.3, type=float,
+                                    help='Line width of equatorial grid (default: 0.3)')
         argumentparser.add_argument('--linewidth-open-cluster', dest='open_cluster_linewidth', nargs='?', action='store', default=0.3, type=float,
                                     help='Line width of open cluster (default: 0.3)')
         argumentparser.add_argument('--linewidth-galaxy-cluster', dest='galaxy_cluster_linewidth', nargs='?', action='store', default=0.2, type=float,
@@ -200,7 +209,7 @@ class RuntimeSettings:
                                     help='Line width of equatorial grid (default: 0.1)')
 
         argumentparser.add_argument('--no-margin', dest='no_margin', action='store_true', default=False,
-                                    help='Star cluster color.')
+                                    help='No margin.')
 
         argumentparser.add_argument('--font', dest='font', action='store', default='Arial',
                                     help='Font (Arial)')
@@ -294,6 +303,24 @@ def _convert_color(color):
 
 def _create_engine_configuration():
     config = EngineConfiguration()
+
+    config.legend_only = False
+    config.show_star_labels = True
+    config.show_flamsteed = True
+    config.show_mag_scale_legend = False
+    config.show_map_scale_legend = False
+    config.show_orientation_legend = False
+    config.show_dso_legend = False
+    config.show_coords_legend = False
+    config.show_field_border = False
+    config.show_equatorial_grid = False
+    config.show_constellation_shapes = True
+    config.show_constellation_borders = True
+    config.show_deepsky = True
+    config.show_milky_way = False
+    config.show_enhanced_milky_way = False
+    config.show_nebula_outlines = False
+
     config.show_star_labels = settings.parser.show_star_labels
     config.show_flamsteed = settings.parser.show_flamsteed
     config.show_mag_scale_legend = settings.parser.show_mag_scale_legend
@@ -303,7 +330,9 @@ def _create_engine_configuration():
     config.show_coords_legend = settings.parser.show_coords_legend
     config.show_field_border = settings.parser.show_field_border
     config.show_equatorial_grid = settings.parser.show_equatorial_grid
-    config.show_milky_way = False
+    config.show_milky_way = settings.parser.show_milky_way
+    config.show_enhanced_milky_way = settings.parser.show_enhanced_milky_way
+    config.show_nebula_outlines = settings.parser.show_nebula_outlines
     config.fov_telrad = settings.parser.fov_telrad
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
@@ -318,9 +347,11 @@ def _create_engine_configuration():
     config.galaxy_color = _convert_color(settings.parser.galaxy_color)
     config.star_cluster_color = _convert_color(settings.parser.star_cluster_color)
     config.galaxy_cluster_color = _convert_color(settings.parser.galaxy_cluster_color)
-    config.milky_way_lines_color = _convert_color(settings.parser.milky_way_lines_color)
+    config.milky_way_color = _convert_color(settings.parser.milky_way_color)
     config.grid_color = _convert_color(settings.parser.grid_color)
     config.constellation_linewidth = settings.parser.constellation_linewidth
+    config.constellation_border_linewidth = settings.parser.constellation_border_linewidth
+    config.nebula_linewidth = settings.parser.nebula_linewidth
     config.open_cluster_linewidth = settings.parser.open_cluster_linewidth
     config.galaxy_cluster_linewidth = settings.parser.galaxy_cluster_linewidth
     config.dso_linewidth = settings.parser.dso_linewidth
@@ -331,6 +362,19 @@ def _create_engine_configuration():
     config.font = settings.parser.font
     config.font_size = settings.parser.font_size
     config.legend_font_scale = settings.parser.legend_font_scale
+
+    if config.show_enhanced_milky_way:
+        mw_scale_fac = 3.0
+
+        bg_r, bg_g, bg_b = config.background_color[0], config.background_color[1], config.background_color[2]
+
+        config.enhanced_milky_way_fade = (bg_r, (config.milky_way_color[0] - bg_r) * mw_scale_fac,
+                                          bg_g, (config.milky_way_color[1] - bg_g) * mw_scale_fac,
+                                          bg_b, (config.milky_way_color[2] - bg_b) * mw_scale_fac)
+
+        config.milky_way_color = (bg_r + (config.milky_way_color[0]-bg_r),
+                                  bg_g + (config.milky_way_color[1]-bg_g),
+                                  bg_b + (config.milky_way_color[2]-bg_b))
 
     return config
 

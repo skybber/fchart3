@@ -68,8 +68,9 @@ class EngineConfiguration:
         self._show_constellation_shapes = True
         self._show_constellation_borders = True
         self._show_deepsky = True
-        self._show_milky_way = True
+        self._show_milky_way = False
         self._show_enhanced_milky_way = False
+        self._show_nebula_outlines = False
         self._show_picker = False
         self._fov_telrad = False
         self._eyepiece_fov = None
@@ -82,7 +83,6 @@ class EngineConfiguration:
         self._label_color = DEFAULT_LABEL_COLOR
         self._constellation_lines_color = DEFAULT_CONSTELLATION_LINES_COLOR
         self._constellation_border_color = DEFAULT_CONSTELLATION_BORDER_COLOR
-        self._constellation_border_linewidth = DEFAULT_CONSTELLATION_BORDER_LINEWIDTH
         self._constellation_hl_border_color = DEFAULT_CONSTELLATION_HL_BORDER_COLOR
         self._dso_color = DEFAULT_DSO_COLOR
         self._nebula_color = DEFAULT_DSO_COLOR
@@ -91,6 +91,7 @@ class EngineConfiguration:
         self._galaxy_cluster_color = DEFAULT_DSO_COLOR
         self._grid_color = DEFAULT_GRID_COLOR
         self._constellation_linewidth = DEFAULT_CONSTELLATION_LINEWIDTH
+        self._constellation_border_linewidth = DEFAULT_CONSTELLATION_BORDER_LINEWIDTH
         self._constellation_linespace = DEFAULT_CONSTELLATION_LINE_SPACE
         self._open_cluster_linewidth = DEFAULT_OPEN_CLUSTER_LINEWIDTH
         self._galaxy_cluster_linewidth = DEFAULT_GALAXY_CLUSTER_LINEWIDTH
@@ -240,6 +241,14 @@ class EngineConfiguration:
     @show_enhanced_milky_way.setter
     def show_enhanced_milky_way(self, value):
         self._show_enhanced_milky_way = value
+
+    @property
+    def show_nebula_outlines(self):
+        return self._show_nebula_outlines
+
+    @show_nebula_outlines.setter
+    def show_nebula_outlines(self, value):
+        self._show_nebula_outlines = value
 
     @property
     def show_picker(self):

@@ -7,22 +7,22 @@ packages = ['fchart3']
 ext_modules = []
 try:
     import numpy
-    include_dirs=[numpy.get_include()]
-    have_numpy=True
+    include_dirs = [numpy.get_include()]
+    have_numpy = True
 except:
-    have_numpy=False
-    ext_modules=[]
-    include_dirs=[]
+    have_numpy = False
+    ext_modules = []
+    include_dirs = []
 
     stdout.write('Numpy not found:  Not building C extensions\n')
     time.sleep(5)
 
-if platform.system()=='Darwin':
-    extra_compile_args=['-arch','i386','-arch','x86_64']
-    extra_link_args=['-arch','i386','-arch','x86_64']
+if platform.system() == 'Darwin':
+    extra_compile_args = ['-arch','i386','-arch','x86_64']
+    extra_link_args = ['-arch','i386','-arch','x86_64']
 else:
-    extra_compile_args=[]
-    extra_link_args=[]
+    extra_compile_args = []
+    extra_link_args = []
 
 if have_numpy:
     include_dirs += ['fchart3/htm','fchart3/htm/htm_src','fchart3/htm/include']
@@ -39,7 +39,7 @@ if have_numpy:
 
 setup(
     name='fchart3',
-    version='0.8.0',
+    version='0.9.0',
     description='Collection of Python scripts to make beautiful deepsky charts in various formats',
     keywords='fchart3 starchart star charts finder chart astronomy map',
     url='https://github.com/skybber/fchart3',
@@ -75,7 +75,7 @@ setup(
                               'data/catalogs/unnamedstars.dat',
                               'data/catalogs/vic.txt',
                               'data/label_positions.txt',
-                ]},
+                              ]},
     ext_modules=ext_modules,
     include_dirs=include_dirs,
 )

@@ -39,11 +39,19 @@ Michiel
 
 *The* manual:
 
-usage: fchart3 [-h] [-o [OUTPUT_DIR]] [-f [OUTPUT_FILE]] [-limdso [LIMITING_MAGNITUDE_DEEPSKY]] [-limstar [LIMITING_MAGNITUDE_STARS]] [-usno-nomad [USNO_NOMAD_FILE]] [-width [WIDTH]] [-size [FIELDSIZE]] [-fmessier] [-fasterism] [-funknown] [-lang [LANGUAGE]] [-sc [SHOW_CATALOGS]]
-               [-x [CROSS_MARKS]] [-capt [CAPTION]] [--hide-star-labels] [--hide-flamsteed] [--hide-mag-scale-legend] [--hide-map-scale-legend] [--hide-map-orientation-legend] [--show-dso-legend] [--show-equatorial-grid] [--hide-coords-legend] [--hide-field-border] [--FOV-telrad]
-               [-mx] [-my] [--star-colors] [--color-background BACKGROUND_COLOR] [--color-draw DRAW_COLOR] [--color-label LABEL_COLOR] [--color-constellation-lines CONSTELLATION_LINES_COLOR] [--color-constellation-border CONSTELLATION_BORDER_COLOR] [--color-deepsky DSO_COLOR]
-               [--color-nebula NEBULA_COLOR] [--color-galaxy GALAXY_COLOR] [--color-star-cluster STAR_CLUSTER_COLOR] [--color-grid GRID_COLOR] [--linewidth-constellation [CONSTELLATION_LINEWIDTH]] [--linewidth-open-cluster [OPEN_CLUSTER_LINEWIDTH]]
-               [--linewidth-deepsky [DSO_LINEWIDTH]] [--linewidth-legend [LEGEND_LINEWIDTH]] [--linewidth-grid [GRID_LINEWIDTH]] [--no-margin] [--font FONT] [--font-size FONT_SIZE] [--legend_font_scale LEGEND_FONT_SCALE] [-v]
+usage: fchart3 [-h] [-o [OUTPUT_DIR]] [-f [OUTPUT_FILE]] [-limdso [LIMITING_MAGNITUDE_DEEPSKY]] [-limstar [LIMITING_MAGNITUDE_STARS]] [-width [WIDTH]] [-size [FIELDSIZE]] [-fmessier] [-fasterism] [-funknown] [-lang [LANGUAGE]] [-sc [SHOW_CATALOGS]]
+               [-x [CROSS_MARKS]] [-capt [CAPTION]] [--hide-star-labels] [--hide-flamsteed] [--show-equatorial-grid] [--show-enhanced-milky-way] [--show-nebula-outlines]
+               [--hide-mag-scale-legend] [--hide-map-scale-legend] [--hide-map-orientation-legend] [--show-dso-legend] [--show-coords-legend] [--hide-field-border]
+               [-mx] [-my]
+               [--color-background BACKGROUND_COLOR] [--color-draw DRAW_COLOR] [--color-label LABEL_COLOR] [--star-colors] [--color-constellation-lines CONSTELLATION_LINES_COLOR] [--color-constellation-border CONSTELLATION_BORDER_COLOR] [--color-deepsky DSO_COLOR]
+               [--color-nebula [NEBULA_COLOR]] [--color-galaxy [GALAXY_COLOR]] [--color-star-cluster [STAR_CLUSTER_COLOR]] [--color-galaxy-cluster [GALAXY_CLUSTER_COLOR]] [--color-milky_way [MILKY_WAY_COLOR]] [--color-grid [GRID_COLOR]]
+               [--linewidth-constellation [CONSTELLATION_LINEWIDTH]] [--linewidth-constellation-border [constellation_border_linewidth]] [--linewidth-nebula [NEBULA_LINEWIDTH]] [--linewidth-open-cluster [OPEN_CLUSTER_LINEWIDTH]]
+               [--linewidth-deepsky [DSO_LINEWIDTH]] [--linewidth-galaxy-cluster [GALAXY_CLUSTER_LINEWIDTH]] [--linewidth-milky-way [MILKY_WAY_LINEWIDTH]]
+               [--linewidth-legend [LEGEND_LINEWIDTH]] [--linewidth-grid [GRID_LINEWIDTH]] [--no-margin]
+               [--font FONT] [--font-size FONT_SIZE] [--legend_font_scale LEGEND_FONT_SCALE]
+               [--FOV-telrad]
+               [--extra-data-dir EXTRA_DATA_DIR]
+               [-v]
                [sourcelist ...]
 
 fchart3
@@ -90,38 +98,54 @@ optional arguments:
   --show-dso-legend     Show deepsky object legend.
   --show-equatorial-grid
                         Show equatorial grid.
-  --hide-coords-legend  Hide coordinations legend.
+  --show-enhanced-milky-way
+                        Show enhanced milky way.
+  --show-nebula-outlines
+                        Show nebula outlines
+  --show-coords-legend  Show coordinations legend.
   --hide-field-border   Hide field border.
   --FOV-telrad          Show telrad circles at FOV.
   -mx, --mirror-x       Mirror in x axis.
   -my, --mirror-y       Mirror in y axis.
   --star-colors         Colorify stars according spectral type.
-  --color-background BACKGROUND_COLOR
+  --color-background [BACKGROUND_COLOR]
                         Background color. (default white)
-  --color-draw DRAW_COLOR
+  --color-draw [DRAW_COLOR]
                         Drawing color for stars. (default black)
-  --color-label LABEL_COLOR
+  --color-label [LABEL_COLOR]
                         Label color. (default black)
-  --color-constellation-lines CONSTELLATION_LINES_COLOR
+  --color-constellation-lines [CONSTELLATION_LINES_COLOR]
                         Constellation border color.
-  --color-constellation-border CONSTELLATION_BORDER_COLOR
+  --color-constellation-border [CONSTELLATION_BORDER_COLOR]
                         Constellation lines color.
-  --color-deepsky DSO_COLOR
+  --color-deepsky [DSO_COLOR]
                         Unclassified deepsky color.
-  --color-nebula NEBULA_COLOR
+  --color-nebula [NEBULA_COLOR]
                         Nebula color.
-  --color-galaxy GALAXY_COLOR
+  --color-galaxy [GALAXY_COLOR]
                         Galaxy color.
-  --color-star-cluster STAR_CLUSTER_COLOR
+  --color-star-cluster [STAR_CLUSTER_COLOR]
                         Star cluster color.
+  --color-galaxy-cluster [GALAXY_CLUSTER_COLOR]
+                        Galaxy cluster color.
+  --color-milky_way [MILKY_WAY_COLOR]
+                        Milky way color.
   --color-grid GRID_COLOR
                         Star cluster color.
   --linewidth-constellation [CONSTELLATION_LINEWIDTH]
                         Constellation line width (default: 0.5)
+  --linewidth-constellation-border [constellation_border_linewidth]
+                        Constellation border line width (default: 0.2)
+  --linewidth-nebula [NEBULA_LINEWIDTH]
+                        Nebula line width (default: 0.3)
   --linewidth-open-cluster [OPEN_CLUSTER_LINEWIDTH]
                         Line width of open cluster (default: 0.3)
   --linewidth-deepsky [DSO_LINEWIDTH]
                         Line width of open cluster (default: 0.2)
+  --linewidth-galaxy-cluster [GALAXY_CLUSTER_LINEWIDTH]
+                        Line width of galaxy cluster (default: 0.2)
+  --linewidth-milky-way [MILKY_WAY_LINEWIDTH]
+                        Line width of Milky Way (default: 0.2)
   --linewidth-legend [LEGEND_LINEWIDTH]
                         Line width of open cluster (default: 0.3)
   --linewidth-grid [GRID_LINEWIDTH]
@@ -129,6 +153,7 @@ optional arguments:
   --no-margin           Star cluster color.
   --font FONT           Font (Arial)
   --font-size FONT_SIZE
+  --extra-data-dir      Path to extra data files (Stellarium star catalogues)
                         Font size
   --legend_font_scale LEGEND_FONT_SCALE
                         Scale of font used in legend related to chart font size.

@@ -376,14 +376,14 @@ class SkymapEngine:
                 self.galaxy(x, y, rlong, rshort, posangle, dso.mag, label, label_ext, labelpos)
             elif dso.type == deepsky.N:
                 has_outlines = False
-                if dso.outlines is not None and rlong > self.min_radius:
+                if self.config.show_nebula_outlines and dso.outlines is not None and rlong > self.min_radius:
                     has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort, posangle, label, label_ext, labelpos)
                 if not has_outlines:
                     self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, label_ext, labelpos)
             elif dso.type == deepsky.PN:
                 self.planetary_nebula(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.OC:
-                if dso.outlines is not None:
+                if self.config.show_nebula_outlines and dso.outlines is not None:
                     has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort)
                 self.open_cluster(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.GC:
@@ -962,23 +962,15 @@ class SkymapEngine:
 
         if not self.config.legend_only:
 
-            if self.config.show_milky_way:
-                # tm = time()
-                if self.config.show_enhanced_milky_way:
-                    self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way)
-                else:
-                    self.draw_milky_way(used_catalogs.milky_way)
-                # print("Milky way within {} s".format(str(time()-tm)), flush=True)
-
             if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
                 clip_path = [(x2, y2)]
 
                 if self.config.show_map_scale_legend:
-                    clip_path.extend([(x2,y1+w_maps_height),
+                    clip_path.extend([(x2, y1+w_maps_height),
                                      (x2-w_maps_width, y1+w_maps_height),
                                      (x2-w_maps_width, y1)])
                 else:
-                    clip_path.append((x2,y1))
+                    clip_path.append((x2, y1))
 
                 if self.config.show_mag_scale_legend:
                     clip_path.extend([(x1 + w_mags_width, y1),
@@ -990,6 +982,11 @@ class SkymapEngine:
                 clip_path.append((x1, y2))
 
                 self.graphics.clip_path(clip_path)
+
+            if self.config.show_milky_way:
+                self.draw_milky_way(used_catalogs.milky_way)
+            elif self.config.show_enhanced_milky_way:
+                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way)
 
             if self.config.show_equatorial_grid:
                 # tm = time()
