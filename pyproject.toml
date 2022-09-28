@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0","numpy>=1.23.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fchart3"
+version = "0.9.0"
+authors = [
+  { name="Vladimir Dvorak (skybber)", email="lada.dvorak7@gmail.com" },
+]
+description = "Collection of Python scripts to make beautiful deepsky charts in various formats"
+readme = "README.md"
+requires-python = ">=3.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/skybber/fchart3"
+"Bug Tracker" = "https://github.com/skybber/fchart3/issues"
