@@ -475,7 +475,7 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def draw_enhanced_milky_way(self, enhanced_milky_way):
+    def draw_enhanced_milky_way(self, enhanced_milky_way, use_optimized_mw):
         self.graphics.save()
         self.graphics.antialias_off()
 
@@ -490,13 +490,20 @@ class SkymapEngine:
         self.graphics.set_linewidth(0)
         fd = self.config.enhanced_milky_way_fade
 
-        selected_polygons = enhanced_milky_way.select_polygons(self.fieldcentre, self.fieldsize)
+        if use_optimized_mw:
+            selected_polygons = enhanced_milky_way.select_opti_polygons(self.fieldcentre, self.fieldsize)
+        else:
+            selected_polygons = enhanced_milky_way.select_polygons(self.fieldcentre, self.fieldsize)
 
         fr_x1, fr_y1, fr_x2, fr_y2 = self.get_field_rect_mm()
 
         total_polygons = 0
         for polygon_index in selected_polygons:
-            polygon, rgb = enhanced_milky_way.mw_polygons[polygon_index]
+            if use_optimized_mw:
+                polygon, rgb = enhanced_milky_way.mw_opti_polygons[polygon_index]
+            else:
+                polygon, rgb = enhanced_milky_way.mw_polygons[polygon_index]
+
             xy_polygon = [(x[i].item() * mulx, y[i].item() * muly) for i in polygon]
             for xp, yp in xy_polygon:
                 if (xp >= fr_x1) and (xp <= fr_x2) and (yp >= fr_y1) and (yp <= fr_y2):
@@ -921,7 +928,7 @@ class SkymapEngine:
         self.graphics.restore()
 
     def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None,
-                 extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None):
+                 extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False):
         """ Creates map using given graphics, params and config
         used_catalogs - UsedCatalogs data structure
         showing_dso - DSO forced to be shown even if they don't pass the filter
@@ -986,7 +993,7 @@ class SkymapEngine:
             if self.config.show_milky_way:
                 self.draw_milky_way(used_catalogs.milky_way)
             elif self.config.show_enhanced_milky_way:
-                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way)
+                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way, use_optimized_mw)
 
             if self.config.show_equatorial_grid:
                 # tm = time()

@@ -31,7 +31,8 @@ from . import deepsky_object as deepsky
 
 class UsedCatalogs:
     def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limiting_magnitude_deepsky=10.0, force_messier=False,
-                 force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False):
+                 force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False,
+                 enhanced_mw_optim_max_col_diff=None):
         # Read basic catalogs
         self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'constellationship_western.fab',
@@ -59,7 +60,7 @@ class UsedCatalogs:
         self._messierlist.sort(key=lambda x: x.messier)
         self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
         self._milky_way = import_milky_way(os.path.join(data_dir, 'milkyway.dat'))
-        self._enhanced_milky_way = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced.dat'))
+        self._enhanced_milky_way = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced.dat'), enhanced_mw_optim_max_col_diff)
 
     def free_mem(self):
         self._starcatalog.free_mem()

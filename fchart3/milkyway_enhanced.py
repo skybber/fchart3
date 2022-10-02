@@ -18,16 +18,26 @@
 from .deepsky_object import *
 from .htm.htm import HTM
 
+from time import time
+
 RAD2DEG = 180.0/np.pi
 
 
 class EnhancedMilkyWay:
-    def __init__(self, milkyway_filename):
+    def __init__(self, milkyway_filename, optim_max_col_diff=None):
         self.sky_mesh = HTM(4)
         self.polygon_center_blocks = [None] * self.sky_mesh.size()
+        self.opti_polygon_center_blocks = [None] * self.sky_mesh.size()
         self.mw_points = None
         self.mw_polygons = []
+        self.mw_opti_polygons = None
+        tm = time()
         self.add_polygons(milkyway_filename)
+        if optim_max_col_diff is not None:
+            self._create_opti_polygons(15/255.0)
+            print("Enhanced milky way initialized within {}s. Optimized polygons={}, total polygons={}".format(str(time()-tm), len(self.mw_opti_polygons), len(self.mw_polygons)), flush=True)
+        else:
+            print("Enhanced milky way initialized within {}s. Total polygons={}".format(str(time()-tm), len(self.mw_polygons)), flush=True)
 
     def _radec_from_img(self, point):
         x, y = point.split(',')
@@ -58,6 +68,7 @@ class EnhancedMilkyWay:
             sum_dec = 0.0
 
             n_points = len(items)-1
+
             for i in range(n_points):
                 point_index = index_map.get(items[i])
                 if point_index is None:
@@ -81,6 +92,7 @@ class EnhancedMilkyWay:
             poly_index.append(len(self.mw_polygons))
 
             r, g, b = items[-1][4:-1].split(',')
+
             r = int(r) / 255.0
             g = int(g) / 255.0
             b = int(b) / 255.0
@@ -96,6 +108,118 @@ class EnhancedMilkyWay:
             else:
                 self.polygon_center_blocks[index].append(poly_index[i])
 
+    def _create_opti_polygons(self, max_col_diff):
+        self.mw_opti_polygons = self._merge_polygons(self.mw_polygons, max_col_diff)
+        arr_ra, arr_dec, poly_index = ([], [], [])
+        ind = 0
+        for polygon, _ in self.mw_opti_polygons:
+            sum_ra = 0.0
+            sum_dec = 0.0
+            for point_ind in polygon:
+                sum_ra += self.mw_points[point_ind][0]
+                sum_dec += self.mw_points[point_ind][1]
+            arr_ra.append(sum_ra * RAD2DEG / len(polygon))
+            arr_dec.append(sum_dec * RAD2DEG / len(polygon))
+            poly_index.append(ind)
+            ind += 1
+
+        mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
+        indexes = self.sky_mesh.lookup_id(arr_ra, arr_dec)
+        for i in range(len(indexes)):
+            index = indexes[i] ^ mask
+            if self.opti_polygon_center_blocks[index] is None:
+                self.opti_polygon_center_blocks[index] = [poly_index[i]]
+            else:
+                self.opti_polygon_center_blocks[index].append(poly_index[i])
+
+    def _merge_polygons(self, polygons, max_col_diff):
+        merges = 0
+
+        npoints = len(self.mw_points)
+        merge_to_ind_ar = [-1] * len(polygons)
+        merged_poly_ar = [None] * len(polygons)
+        edge_join_map = {}
+
+        for pol_ind, pol_def in enumerate(polygons):
+            polygon = pol_def[0]
+            r, g, b = pol_def[1]
+
+            min_diff = max_col_diff
+            min_merge_pol_ind = -1
+
+            edges = []
+
+            for point_ind in range(len(polygon)):
+                i1, i2 = polygon[point_ind], polygon[(point_ind+1) % len(polygon)]
+                if i1 > i2:
+                    i1, i2 = i2, i1
+                edge_key = i1 * npoints + i2
+
+                edges.append([edge_key, polygon[point_ind], polygon[(point_ind+1) % len(polygon)]])
+
+                if edge_key in edge_join_map:
+                    merge_pol_ind = edge_join_map[edge_key]
+
+                    while merge_to_ind_ar[merge_pol_ind] != -1:
+                        merge_pol_ind = merge_to_ind_ar[merge_pol_ind]
+
+                    rj, gj, bj = polygons[merge_pol_ind][1]
+                    diff = abs(r-rj) + abs(g-gj) + abs(b-bj)
+                    if diff < min_diff:
+                        min_diff = diff
+                        min_merge_pol_ind = merge_pol_ind
+
+            if min_merge_pol_ind != -1:
+                merges += 1
+                merge_to_ind_ar[pol_ind] = min_merge_pol_ind
+                merged_poly_ar[min_merge_pol_ind] = self._merge_edges(merged_poly_ar[min_merge_pol_ind], edges)
+            else:
+                for edge_key, _, _ in edges:
+                    edge_join_map[edge_key] = pol_ind
+                merged_poly_ar[pol_ind] = edges
+
+        out_polygons = []
+        for pol_ind, merge_to in enumerate(merge_to_ind_ar):
+            if merge_to == -1:
+                polygon = []
+                for edge in merged_poly_ar[pol_ind]:
+                    polygon.append(edge[1])
+                rgb = polygons[pol_ind][1]
+                out_polygons.append([polygon, rgb])
+
+        return out_polygons
+
+    def _merge_edges(self, edges1, edges2):
+        out_edges = []
+        for e1 in edges1:
+            if not any(e1[0] == e2[0] for e2 in edges2) and e1[1] != e1[2]:
+                out_edges.append([e1[0], e1[1], e1[2]])
+        for e2 in edges2:
+            if not any(e2[0] == e1[0] for e1 in edges1) and e2[1] != e2[2]:
+                out_edges.append([e2[0], e2[1], e2[2]])
+        end_point = -1;
+        res_edges = []
+        for i in range(len(out_edges)):
+            e = out_edges[i]
+            if end_point == -1 or e[1] == end_point:
+                res_edges.append(e)
+                end_point = e[2]
+                continue
+            for j in range(i, len(out_edges)):
+                te = out_edges[j]
+                if te[1] == end_point:
+                    out_edges[i], out_edges[j] = out_edges[j], out_edges[i]
+                    break
+                if te[2] == end_point:
+                    te[1], te[2] = te[2], te[1]
+                    if j != i:
+                        out_edges[i], out_edges[j] = out_edges[j], out_edges[i]
+                    break
+            e = out_edges[i]
+            res_edges.append(e)
+            end_point = e[2]
+        return res_edges
+
     def select_polygons(self, fieldcentre, radius):
         intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
         selection = []
@@ -108,3 +232,14 @@ class EnhancedMilkyWay:
 
         return selection
 
+    def select_opti_polygons(self, fieldcentre, radius):
+        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
+        selection = []
+        mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
+
+        for trixel in intersecting_trixels:
+            trixel_polygons = self.opti_polygon_center_blocks[trixel ^ mask]
+            if trixel_polygons is not None:
+                selection.extend(trixel_polygons)
+
+        return selection
