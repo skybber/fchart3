@@ -929,7 +929,8 @@ class SkymapEngine:
         self.graphics.restore()
 
     def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None,
-                 extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False):
+                 extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,
+                 transparent=False):
         """ Creates map using given graphics, params and config
         used_catalogs - UsedCatalogs data structure
         showing_dso - DSO forced to be shown even if they don't pass the filter
@@ -955,8 +956,8 @@ class SkymapEngine:
 
         self.graphics.new()
 
-        # if not self.config.legend_only:
-        #     self.graphics.clear()
+        if not transparent:
+            self.graphics.clear()
 
         self.graphics.set_pen_rgb(self.config.draw_color)
         self.graphics.set_fill_rgb(self.config.draw_color)
