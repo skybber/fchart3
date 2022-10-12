@@ -669,7 +669,8 @@ class SkymapEngine:
             index = indices[i]
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
             if (xx >= x1-rr) and (xx <= x2+rr) and (yy >= y1-rr) and (yy <= y2+rr):
-                self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
+                if self.config.show_star_circles:
+                    self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
                 if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
                     r = xx*xx + yy*yy
                     if r < pick_min_r:
@@ -954,8 +955,8 @@ class SkymapEngine:
 
         self.graphics.new()
 
-        if not self.config.legend_only:
-            self.graphics.clear()
+        # if not self.config.legend_only:
+        #     self.graphics.clear()
 
         self.graphics.set_pen_rgb(self.config.draw_color)
         self.graphics.set_fill_rgb(self.config.draw_color)

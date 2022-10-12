@@ -67,6 +67,7 @@ class EngineConfiguration:
         self._show_equatorial_grid = False
         self._show_constellation_shapes = True
         self._show_constellation_borders = True
+        self._show_star_circles = True
         self._show_deepsky = True
         self._show_milky_way = False
         self._show_enhanced_milky_way = False
@@ -219,13 +220,20 @@ class EngineConfiguration:
         self._show_constellation_borders = value
 
     @property
+    def show_star_circles(self):
+        return self._show_star_circles
+
+    @show_star_circles.setter
+    def show_star_circles(self, value):
+        self._show_star_circles = value
+
+    @property
     def show_deepsky(self):
         return self._show_deepsky
 
     @show_deepsky.setter
     def show_deepsky(self, value):
         self._show_deepsky = value
-
     @property
     def show_milky_way(self):
         return self._show_milky_way
