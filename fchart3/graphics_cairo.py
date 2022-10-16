@@ -18,6 +18,7 @@
 from math import pi
 
 import cairo
+import PIL.Image as Image
 
 from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode
 
@@ -61,7 +62,10 @@ class CairoDrawing(GraphicsInterface):
             self.set_point_size(PONT_IMG)
             self.sfc_width = int(self.gi_width * DPMM_IMG)
             self.sfc_height = int(self.gi_height * DPMM_IMG)
-            self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.sfc_width, self.sfc_height)
+            if self.format == 'jpg':
+                self.surface = cairo.ImageSurface(cairo.FORMAT_RGB24, self.sfc_width, self.sfc_height)
+            else:
+                self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.sfc_width, self.sfc_height)
             self.surface.set_device_scale(DPMM_IMG, DPMM_IMG)
             self.surface.set_device_offset(self.gi_origin_x*DPMM_IMG, self.gi_origin_y*DPMM_IMG)
         elif self.format == 'svg':
@@ -213,11 +217,29 @@ class CairoDrawing(GraphicsInterface):
     def reset_clip(self):
         self.context.reset_clip()
 
+    def to_pill(self) -> Image:
+        format = self.surface.get_format()
+        size = (self.surface.get_width(), self.surface.get_height())
+        stride = self.surface.get_stride()
+
+        with self.surface.get_data() as memory:
+            if format == cairo.Format.RGB24:
+                return Image.frombuffer(
+                    "RGB", size, memory.tobytes(),
+                    'raw', "BGRX", stride)
+            elif format == cairo.Format.ARGB32:
+                return Image.frombuffer(
+                    "RGBA", size, memory.tobytes(),
+                    'raw', "BGRa", stride)
+            else:
+                raise NotImplementedError(repr(format))
+
     def finish(self):
         if self.format == 'png':
             self.surface.write_to_png(self.fobj)
         elif self.format == 'jpg':
-            self.surface.write_to_jpg(self.fobj, self.jpg_quality)
+            im = self.to_pill()
+            im.save(self.fobj, format="jpeg", quality=self.jpg_quality)
         else:
             self.surface.show_page()
             self.surface.flush()

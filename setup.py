@@ -50,7 +50,7 @@ setup(
     license='GPLv2',
     packages=packages,
     include_package_data=True,
-    install_requires=['numpy', 'pycairo'],
+    install_requires=['numpy', 'pycairo', 'Pillow'],
     scripts=['bin/fchart3'],
     package_data={'fchart3': ['data/catalogs/bsc5.dat',
                               'data/catalogs/constbndJ2000.dat',
