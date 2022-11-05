@@ -287,7 +287,8 @@ class SkymapEngine:
         if dso_highlights:
             for dso_highligt in dso_highlights:
                 for dso in dso_highligt.dsos:
-                    filtered_showing_dsos.append(dso)
+                    if dso not in deepsky_list:
+                        filtered_showing_dsos.append(dso)
                     if dso in dso_hide_filter_set:
                         dso_hide_filter_set.remove(dso)
 
