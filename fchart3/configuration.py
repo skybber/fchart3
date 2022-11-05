@@ -24,7 +24,7 @@ DEFAULT_NEBULA_LINEWIDTH = 0.3
 DEFAULT_DSO_LINEWIDTH = 0.2
 DEFAULT_LEGEND_LINEWIDTH = 0.2
 DEFAULT_GRID_LINEWIDTH = 0.2
-DEFAULT_DSO_HIGHLIGHT_LINEWIDTH = 0.3
+DEFAULT_HIGHLIGHT_LINEWIDTH = 0.3
 DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
 DEFAULT_TELRAD_LINEWIDTH = 0.3
 DEFAULT_PICKER_LINEWIDTH = 0.4
@@ -103,8 +103,8 @@ class EngineConfiguration:
         self._no_margin = False
         self._font = DEFAULT_FONT
         self._font_size = DEFAULT_FONT_SIZE
-        self._dso_highlight_color = DEFAULT_DSO_HIGHLIGHT_COLOR
-        self._dso_highlight_linewidth = DEFAULT_DSO_HIGHLIGHT_LINEWIDTH
+        self._highlight_color = DEFAULT_DSO_HIGHLIGHT_COLOR
+        self._highlight_linewidth = DEFAULT_HIGHLIGHT_LINEWIDTH
         self._dso_dynamic_brightness = False
         self._legend_font_scale = DEFAULT_LEGEND_FONT_SCALE
         self._milky_way_color = DEFAULT_MILKY_WAY_COLOR
@@ -507,20 +507,20 @@ class EngineConfiguration:
         self._font_size = value
 
     @property
-    def dso_highlight_color(self):
-        return self._dso_highlight_color
+    def highlight_color(self):
+        return self._highlight_color
 
-    @dso_highlight_color.setter
-    def dso_highlight_color(self, value):
-        self._dso_highlight_color = value
+    @highlight_color.setter
+    def highlight_color(self, value):
+        self._highlight_color = value
 
     @property
-    def dso_highlight_linewidth(self):
-        return self._dso_highlight_linewidth
+    def highlight_linewidth(self):
+        return self._highlight_linewidth
 
-    @dso_highlight_linewidth.setter
-    def dso_highlight_linewidth(self, value):
-        self._dso_highlight_linewidth = value
+    @highlight_linewidth.setter
+    def highlight_linewidth(self, value):
+        self._highlight_linewidth = value
 
     @property
     def dso_dynamic_brightness(self):

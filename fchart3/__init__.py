@@ -45,4 +45,4 @@ from fchart3.used_catalogs import *
 from fchart3.graphics_cairo import *
 from fchart3.graphics_interface import *
 from fchart3.highlight_definition import *
-
+from fchart3.dso_highlight_definition import *

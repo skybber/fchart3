@@ -261,7 +261,7 @@ class SkymapEngine:
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
-    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, hl_showing_dsos, dso_hide_filter, visible_dso_collector):
+    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector):
         if not self.config.show_deepsky:
             return
 
@@ -283,6 +283,13 @@ class SkymapEngine:
                     filtered_showing_dsos.append(dso)
                 if dso in dso_hide_filter_set:
                     dso_hide_filter_set.remove(dso)
+
+        if dso_highlights:
+            for dso_highligt in dso_highlights:
+                for dso in dso_highligt.dsos:
+                    filtered_showing_dsos.append(dso)
+                    if dso in dso_hide_filter_set:
+                        dso_hide_filter_set.remove(dso)
 
         deepsky_list.sort(key=lambda x: x.mag)
         deepsky_list_ext = []
@@ -327,8 +334,11 @@ class SkymapEngine:
 
             label = dso.label()
 
-            if hl_showing_dsos and dso in showing_dsos:
-                self.draw_dso_hightlight(x, y, rlong, label, visible_dso_collector)
+            if dso_highlights:
+                for dso_highligt in dso_highlights:
+                    if dso in dso_highligt.dsos:
+                        self.draw_dso_hightlight(x, y, rlong, label, dso_highligt, visible_dso_collector)
+                        break
 
             rlong = dso.rlong if dso.rlong is not None else self.min_radius
             rshort = dso.rshort if dso.rshort is not None else self.min_radius
@@ -560,11 +570,13 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def draw_dso_hightlight(self, x, y, rlong, dso_name, visible_dso_collector):
+    def draw_dso_hightlight(self, x, y, rlong, dso_name, dso_highligth, visible_dso_collector):
         self.graphics.save()
 
-        self.graphics.set_pen_rgb(self.config.dso_highlight_color)
-        self.graphics.set_linewidth(self.config.dso_highlight_linewidth)
+        self.graphics.set_pen_rgb(dso_highligth.color)
+        self.graphics.set_linewidth(dso_highligth.line_width)
+        if dso_highligth.dash and len(dso_highligth.dash) == 2:
+            self.graphics.set_dashed_line(dso_highligth.dash[0], dso_highligth.dash[1])
 
         r = self.config.font_size
         self.mirroring_graphics.circle(x, y, r)
@@ -928,7 +940,7 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def make_map(self, used_catalogs, showing_dsos=None, hl_showing_dsos=False, highlights=None, dso_hide_filter=None,
+    def make_map(self, used_catalogs, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
                  extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,
                  transparent=False):
         """ Creates map using given graphics, params and config
@@ -1015,7 +1027,7 @@ class SkymapEngine:
 
             if used_catalogs.deepskycatalog is not None:
                 # tm = time()
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, hl_showing_dsos, dso_hide_filter, visible_dso_collector)
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
                 # print("DSO within {} s".format(str(time()-tm)), flush=True)
 
             if extra_positions:
