@@ -51,7 +51,7 @@ DEFAULT_EXT_LABEL_FONT_FACTOR = 1.2
 DEFAULT_BAYER_LABEL_FONT_FACTOR = 1.2
 DEFAULT_FLAMSTEED_LABEL_FONT_FACTOR = 0.9
 DEFAULT_OUTLINED_DSO_LABEL_FONT_FACTOR = 1.1
-
+DEFAULT_HIGHLIGHT_LABEL_FONT_FACTOR = 1.0
 
 class EngineConfiguration:
     def __init__(self):
@@ -121,6 +121,7 @@ class EngineConfiguration:
         self._bayer_label_font_fac = DEFAULT_BAYER_LABEL_FONT_FACTOR
         self._flamsteed_label_font_fac = DEFAULT_FLAMSTEED_LABEL_FONT_FACTOR
         self._outlined_dso_label_font_fac = DEFAULT_OUTLINED_DSO_LABEL_FONT_FACTOR
+        self._highlight_label_font_fac = DEFAULT_HIGHLIGHT_LABEL_FONT_FACTOR
         self._star_mag_shift = 0
 
     @property
@@ -657,3 +658,11 @@ class EngineConfiguration:
     @outlined_dso_label_font_fac.setter
     def outlined_dso_label_font_fac(self, value):
         self._outlined_dso_label_font_fac = value
+
+    @property
+    def highlight_label_font_fac(self):
+        return self._highlight_label_font_fac
+
+    @highlight_label_font_fac.setter
+    def highlight_label_font_fac(self, value):
+        self._highlight_label_font_fac = value

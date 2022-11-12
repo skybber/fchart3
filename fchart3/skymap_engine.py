@@ -545,11 +545,14 @@ class SkymapEngine:
 
         self.graphics.save()
 
+        fn = self.graphics.gi_fontsize
+        highlight_fh = self.config.highlight_label_font_fac * fn
+
         for hl_def in highlights:
-            self.graphics.set_pen_rgb(hl_def.color)
-            self.graphics.set_linewidth(hl_def.line_width)
-            for rax, decx, object_name in hl_def.data:
+            for rax, decx, object_name, label in hl_def.data:
                 if angular_distance((rax, decx), self.fieldcentre) < self.fieldsize:
+                    self.graphics.set_pen_rgb(hl_def.color)
+                    self.graphics.set_linewidth(hl_def.line_width)
                     x, y = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                     if hl_def.style == 'cross':
                         r = self.config.font_size * 2
@@ -560,6 +563,8 @@ class SkymapEngine:
                     elif hl_def.style == 'circle':
                         r = self.config.font_size
                         self.mirroring_graphics.circle(x, y, r)
+                        if label:
+                            self.draw_circular_object_label(x, y, r, label, fh=highlight_fh)
                         if object_name and visible_dso_collector is not None:
                             xs1, ys1 = x-r, y-r
                             xs2, ys2 = x+r, y+r
@@ -716,8 +721,8 @@ class SkymapEngine:
     def draw_stars_labels(self, star_labels):
         fn = self.graphics.gi_fontsize
         printed = {}
-        bayer_fn = self.config.bayer_label_font_fac * fn
-        flamsteed_fn = self.config.flamsteed_label_font_fac * fn
+        bayer_fh = self.config.bayer_label_font_fac * fn
+        flamsteed_fh = self.config.flamsteed_label_font_fac * fn
         for x, y, r, star in star_labels:
             if isinstance(star, str):
                 self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
@@ -731,10 +736,10 @@ class SkymapEngine:
                     if slabel not in printed_labels:
                         printed_labels.add(slabel)
                         if slabel in STAR_LABELS:
-                            self.graphics.set_font(self.graphics.gi_font, bayer_fn)
+                            self.graphics.set_font(self.graphics.gi_font, bayer_fh)
                             slabel = STAR_LABELS.get(slabel)
                         else:
-                            self.graphics.set_font(self.graphics.gi_font, flamsteed_fn)
+                            self.graphics.set_font(self.graphics.gi_font, flamsteed_fh)
                         self.draw_circular_object_label(x, y, r, slabel)
 
         self.graphics.set_font(self.graphics.gi_font, fn)
