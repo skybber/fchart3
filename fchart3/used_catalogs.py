@@ -201,7 +201,7 @@ class UsedCatalogs:
         hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs, all_dsos)
         if use_pgc_catalog:
             print('Reading PGC/UGC...')
-            pgclist = import_pgc_deepsky(os.path.join(data_dir, 'PGC.dat'), show_catalogs, all_dsos)
+            pgclist = import_pgc_deepsky(os.path.join(data_dir, 'PGC.dat'), os.path.join(data_dir, 'PGC_update.dat'), show_catalogs, all_dsos)
         else:
             pgclist = []
         print('Reading VIC...')

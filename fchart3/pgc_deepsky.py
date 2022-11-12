@@ -21,12 +21,37 @@ from .deepsky_object import *
 from .hnsky_deepsky import parse_catalog_name, dso_type_map
 
 
-def import_pgc_deepsky(filename, show_catalogs, all_dsos):
-    sf = open(filename, 'r')
+def import_pgc_deepsky(pgc_dat_file, pgc_update_file, show_catalogs, all_dsos):
+    sf = open(pgc_update_file, 'r')
+    lines = sf.readlines()
+    sf.close()
+
+    pgc_updates = {}
+
+    for line in lines:
+        pgc_name, s_ra, s_dec, major, minor = line.split()
+        try:
+            ra = float(s_ra)
+            dec = float(s_dec)
+
+            major = float(major)/60.0*np.pi/180.0/2.0
+            if minor == '-':
+                minor = major
+            else:
+                minor = float(minor)/60.0*np.pi/180.0/2.0
+            if major < minor:
+                major, minor = minor, major
+            pgc_updates[int(pgc_name[3:])] = (ra, dec, major, minor)
+        except ValueError:
+            pass
+
+    sf = open(pgc_dat_file, 'r')
     lines = sf.readlines()
     sf.close()
 
     dso_list = []
+
+    max_ang_update_diff = np.pi * 2 / (60.0 * 180.0)
 
     for line in lines:
 
@@ -59,8 +84,10 @@ def import_pgc_deepsky(filename, show_catalogs, all_dsos):
                 ugc_name = None
 
             pgc_dso = DeepskyObject()
-            pgc_dso.ra = float(line[6:8])*np.pi/12.0 + float(line[8:10])*np.pi/(12.0*60.0) + float(line[10:14])*np.pi/(12*60.0*60)
-            pgc_dso.dec = float(line[14]+'1')*(float(line[15:17])*np.pi/180.0 + float(line[17:19])*np.pi/(180.0*60) + float(line[19:21])*np.pi/(180.0*60*60))
+
+            ra = float(line[6:8])*np.pi/12.0 + float(line[8:10])*np.pi/(12.0*60.0) + float(line[10:14])*np.pi/(12*60.0*60)
+            dec = float(line[14]+'1')*(float(line[15:17])*np.pi/180.0 + float(line[17:19])*np.pi/(180.0*60) + float(line[19:21])*np.pi/(180.0*60*60))
+
             pgc_dso.type = dso_type_map.get('GX', UNKNOWN)
 
             try:
@@ -69,14 +96,30 @@ def import_pgc_deepsky(filename, show_catalogs, all_dsos):
                 pgc_dso.mag = 100.0
 
             try:
-                pgc_dso.rlong = float(line[43:49])/60.0*np.pi/180.0/2.0
+                rlong = float(line[43:49])/60.0*np.pi/180.0/2.0
             except ValueError:
-                pgc_dso.rlong = 15.0/60.0/60.0*np.pi/180.0/2.0
+                rlong = 15.0/60.0/60.0*np.pi/180.0/2.0
 
             try:
-                pgc_dso.rshort = float(line[51:56])/60.0*np.pi/180.0/2.0
+                rshort = float(line[51:56])/60.0*np.pi/180.0/2.0
             except ValueError:
-                pgc_dso.rshort = pgc_dso.rlong
+                rshort = pgc_dso.rlong
+
+            pgc_update = pgc_updates.get(pgc_num)
+
+            if pgc_update is not None:
+                ra_diff = abs(ra - pgc_update[0])
+                dec_diff = abs(dec - pgc_update[1])
+                if ra_diff < max_ang_update_diff and dec_diff < max_ang_update_diff:
+                    ra = pgc_update[0]
+                    dec = pgc_update[1]
+                    rlong = pgc_update[2]
+                    rshort = pgc_update[3]
+
+            pgc_dso.ra = ra
+            pgc_dso.dec = dec
+            pgc_dso.rlong = rlong
+            pgc_dso.rshort = rshort
 
             try:
                 pgc_dso.position_angle = int(line[73:76])*np.pi/180.0
