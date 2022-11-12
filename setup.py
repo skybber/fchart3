@@ -66,6 +66,7 @@ setup(
                               'data/catalogs/namedstars.dat',
                               'data/catalogs/outlines_catgen.dat',
                               'data/catalogs/PGC.dat',
+                              'data/catalogs/PGC_update.dat',
                               'data/catalogs/revic.txt',
                               'data/catalogs/revngc.txt',
                               'data/catalogs/sac.txt',
