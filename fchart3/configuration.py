@@ -47,11 +47,12 @@ DEFAULT_PICKER_COLOR = (0.5, 0.5, 0.0)
 DEFAULT_FONT_SIZE = 2.6
 DEFAULT_FONT = 'Arial'
 DEFAULT_LEGEND_FONT_SCALE = 1.75
-DEFAULT_EXT_LABEL_FONT_FACTOR = 1.2
-DEFAULT_BAYER_LABEL_FONT_FACTOR = 1.2
-DEFAULT_FLAMSTEED_LABEL_FONT_FACTOR = 0.9
-DEFAULT_OUTLINED_DSO_LABEL_FONT_FACTOR = 1.1
-DEFAULT_HIGHLIGHT_LABEL_FONT_FACTOR = 1.0
+DEFAULT_EXT_LABEL_FONT_SCALE = 1.2
+DEFAULT_BAYER_LABEL_FONT_SCALE = 1.2
+DEFAULT_FLAMSTEED_LABEL_FONT_SCALE = 0.9
+DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE = 1.1
+DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE = 1.0
+
 
 class EngineConfiguration:
     def __init__(self):
@@ -114,14 +115,14 @@ class EngineConfiguration:
         self._telrad_color = DEFAULT_TELRAD_COLOR
         self._eyepiece_linewidth = DEFAULT_EYEPIECE_LINEWIDTH
         self._eyepiece_color = DEFAULT_EYEPIECE_COLOR
-        self._picker_radius = -1 # < 0 means picker is not active
+        self._picker_radius = -1  # < 0 means picker is not active
         self._picker_linewidth = DEFAULT_PICKER_LINEWIDTH
         self._picker_color = DEFAULT_PICKER_COLOR
-        self._ext_label_font_fac = DEFAULT_EXT_LABEL_FONT_FACTOR
-        self._bayer_label_font_fac = DEFAULT_BAYER_LABEL_FONT_FACTOR
-        self._flamsteed_label_font_fac = DEFAULT_FLAMSTEED_LABEL_FONT_FACTOR
-        self._outlined_dso_label_font_fac = DEFAULT_OUTLINED_DSO_LABEL_FONT_FACTOR
-        self._highlight_label_font_fac = DEFAULT_HIGHLIGHT_LABEL_FONT_FACTOR
+        self._ext_label_font_scale = DEFAULT_EXT_LABEL_FONT_SCALE
+        self._bayer_label_font_scale = DEFAULT_BAYER_LABEL_FONT_SCALE
+        self._flamsteed_label_font_scale = DEFAULT_FLAMSTEED_LABEL_FONT_SCALE
+        self._outlined_dso_label_font_scale = DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE
+        self._highlight_label_font_scale = DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE
         self._star_mag_shift = 0
 
     @property
@@ -620,12 +621,12 @@ class EngineConfiguration:
         self._picker_linewidth = value
 
     @property
-    def ext_label_font_fac(self):
-        return self._ext_label_font_fac
+    def ext_label_font_scale(self):
+        return self._ext_label_font_scale
 
-    @ext_label_font_fac.setter
-    def ext_label_font_fac(self, value):
-        self._ext_label_font_fac = value
+    @ext_label_font_scale.setter
+    def ext_label_font_scale(self, value):
+        self._ext_label_font_scale = value
 
     @property
     def star_mag_shift(self):
@@ -636,33 +637,33 @@ class EngineConfiguration:
         self._star_mag_shift = value
 
     @property
-    def bayer_label_font_fac(self):
-        return self._bayer_label_font_fac
+    def bayer_label_font_scale(self):
+        return self._bayer_label_font_scale
 
-    @bayer_label_font_fac.setter
-    def bayer_label_font_fac(self, value):
-        self._bayer_label_font_fac = value
-
-    @property
-    def flamsteed_label_font_fac(self):
-        return self._flamsteed_label_font_fac
-
-    @flamsteed_label_font_fac.setter
-    def flamsteed_label_font_fac(self, value):
-        self._flamsteed_label_font_fac = value
+    @bayer_label_font_scale.setter
+    def bayer_label_font_scale(self, value):
+        self._bayer_label_font_scale = value
 
     @property
-    def outlined_dso_label_font_fac(self):
-        return self._outlined_dso_label_font_fac
+    def flamsteed_label_font_scale(self):
+        return self._flamsteed_label_font_scale
 
-    @outlined_dso_label_font_fac.setter
-    def outlined_dso_label_font_fac(self, value):
-        self._outlined_dso_label_font_fac = value
+    @flamsteed_label_font_scale.setter
+    def flamsteed_label_font_scale(self, value):
+        self._flamsteed_label_font_scale = value
 
     @property
-    def highlight_label_font_fac(self):
-        return self._highlight_label_font_fac
+    def outlined_dso_label_font_scale(self):
+        return self._outlined_dso_label_font_scale
 
-    @highlight_label_font_fac.setter
-    def highlight_label_font_fac(self, value):
-        self._highlight_label_font_fac = value
+    @outlined_dso_label_font_scale.setter
+    def outlined_dso_label_font_scale(self, value):
+        self._outlined_dso_label_font_scale = value
+
+    @property
+    def highlight_label_font_scale(self):
+        return self._highlight_label_font_scale
+
+    @highlight_label_font_scale.setter
+    def highlight_label_font_scale(self, value):
+        self._highlight_label_font_scale = value
