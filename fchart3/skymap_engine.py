@@ -596,7 +596,7 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def draw_trajectory(self,trajectory):
+    def draw_trajectory(self, trajectory):
         # Draw extra objects
         # print('Drawing trajectory...')
         self.graphics.save()
@@ -620,7 +620,8 @@ class SkymapEngine:
                     if i == 1:
                         self.draw_trajectory_tick(x2, y2, x1, y1)
 
-            self.mirroring_graphics.text_centred(x2, y2 - r - fh/2.0, label2)
+            if z2 > 0:
+                self.mirroring_graphics.text_centred(x2, y2 - r - fh/2.0, label2)
 
             x1, y1, z1 = (x2, y2, z2)
 
