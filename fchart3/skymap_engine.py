@@ -272,10 +272,7 @@ class SkymapEngine:
 
         filtered_showing_dsos = []
 
-        if dso_hide_filter:
-            dso_hide_filter_set = {dso for dso in dso_hide_filter}
-        else:
-            dso_hide_filter_set = {}
+        dso_hide_filter_set = { dso for dso in dso_hide_filter }  if dso_hide_filter else {}
 
         if showing_dsos:
             for dso in showing_dsos:
@@ -297,24 +294,24 @@ class SkymapEngine:
 
         # calc for deepsky objects from selection
         for dso in deepsky_list:
-            x, y = radec_to_xy(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            if dso.rlong is None:
-                rlong = self.min_radius
-            else:
-                rlong = dso.rlong*self.drawingscale
-                if rlong < self.min_radius:
+            x, y, z = radec_to_xyz(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            if z >= 0:
+                if dso.rlong is None:
                     rlong = self.min_radius
-            deepsky_list_ext.append((dso, x, y, rlong))
-
-        # calc for deepsky objects from showing dsos
-        for dso in filtered_showing_dsos:
-            if angular_distance((dso.ra, dso.dec), self.fieldcentre) < self.fieldsize:
-                x, y, z = radec_to_xyz(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-                if z > 0:
+                else:
                     rlong = dso.rlong*self.drawingscale
                     if rlong < self.min_radius:
                         rlong = self.min_radius
-                    deepsky_list_ext.append((dso, x, y, rlong))
+                deepsky_list_ext.append((dso, x, y, rlong))
+
+        # calc for deepsky objects from showing dsos
+        for dso in filtered_showing_dsos:
+            x, y, z = radec_to_xyz(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            if z > 0:
+                rlong = dso.rlong*self.drawingscale
+                if rlong < self.min_radius:
+                    rlong = self.min_radius
+                deepsky_list_ext.append((dso, x, y, rlong))
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_ext)
 
@@ -538,8 +535,8 @@ class SkymapEngine:
         # Draw extra objects
         # print('Drawing extra objects...')
         for rax, decx, label, labelpos in extra_positions:
-            if angular_distance((rax, decx), self.fieldcentre) < self.fieldsize:
-                x, y = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x, y, z = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            if z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
     def draw_highlights(self, highlights, visible_dso_collector):
@@ -553,10 +550,10 @@ class SkymapEngine:
 
         for hl_def in highlights:
             for rax, decx, object_name, label in hl_def.data:
-                if angular_distance((rax, decx), self.fieldcentre) < self.fieldsize:
+                x, y, z = radec_to_xyz(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                if z >= 0:
                     self.graphics.set_pen_rgb(hl_def.color)
                     self.graphics.set_linewidth(hl_def.line_width)
-                    x, y = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                     if hl_def.style == 'cross':
                         r = self.config.font_size * 2
                         self.mirroring_graphics.line(x-r, y, x-r/2, y)
