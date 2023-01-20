@@ -1,5 +1,5 @@
 #    fchart3 draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-2021 fchart authors
+#    Copyright (C) 2005-2023 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
