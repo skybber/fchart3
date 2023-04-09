@@ -913,16 +913,16 @@ class SkymapEngine:
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
         if jd is not None:
-            jd_key = int(math.round(jd * 10 * 4)) // 4
+            jd_key = int(round(jd * 10 * 10)) // 10
             constell_lines = constell_lines_cache.get(jd_key)
             if constell_lines is None:
                 points = constell_catalog.all_constell_lines
                 xr1, yr1, zr1 = np_sphere_to_rect(points[:,0], points[:,1])
-                mat_rect1 = np.column_stack(xr1, yr1, zr1)
+                mat_rect1 = np.column_stack((xr1, yr1, zr1))
                 mat_rect1 = np.matmul(mat_rect1, precession_matrix)
                 ra1, dec1 = np_rect_to_sphere(mat_rect1[:,[0]], mat_rect1[:,[1]], mat_rect1[:,[2]])
                 xr2, yr2, zr2 = np_sphere_to_rect(points[:,2], points[:,3])
-                mat_rect2 = np.column_stack(xr2, yr2, zr2)
+                mat_rect2 = np.column_stack((xr2, yr2, zr2))
                 mat_rect2 = np.matmul(mat_rect2, precession_matrix)
                 ra2, dec2 = np_rect_to_sphere(mat_rect2[:,[0]], mat_rect2[:,[1]], mat_rect2[:,[2]])
                 constell_lines = np.column_stack((ra1, dec1, ra2, dec2))
@@ -952,12 +952,12 @@ class SkymapEngine:
         self.graphics.set_dashed_line(0.6, 1.2)
 
         if jd is not None:
-            jd_key = int(math.round(jd * 10 * 4)) // 4
+            jd_key = int(round(jd * 10 * 10)) // 10
             constell_boundaries = constell_boundaries_cache.get(jd_key)
             if constell_boundaries is None:
                 points = constell_catalog.boundaries_points
                 xr, yr, zr = np_sphere_to_rect(points[:,0], points[:,1])
-                mat_rect = np.column_stack(xr, yr, zr)
+                mat_rect = np.column_stack((xr, yr, zr))
                 mat_rect = np.matmul(mat_rect, precession_matrix)
                 ra, dec = np_rect_to_sphere(mat_rect[:,[0]], mat_rect[:,[1]], mat_rect[:,[2]])
                 constell_boundaries = np.column_stack((ra, dec))
