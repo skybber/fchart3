@@ -626,7 +626,7 @@ class GeodesicStarCatalog(StarCatalog):
     def init_triangle(self, lev, index, c0, c1, c2):
         self._cat_components[lev].init_triangle(index, c0, c1, c2)
 
-    def select_stars(self, fieldcentre, radius, lm_stars):
+    def select_stars(self, fieldcentre, radius, lm_stars, precession_matrix):
         """
         Return an array containing of items [[ra, dec, mag], [ra, dec, mag]...]
         for all stars in the field centered around field centre with given radius,
@@ -674,8 +674,13 @@ class GeodesicStarCatalog(StarCatalog):
         if rect_stars is None or len(rect_stars) == 0:
             return None
 
-        dim = len(rect_stars)
-        ra, dec = np_rect_to_sphere(rect_stars['x'].reshape(dim, 1), rect_stars['y'].reshape(dim, 1), rect_stars['z'].reshape(dim, 1))
+        if precession_matrix is not None:
+            mat_rect_stars = np.column_stack((rect_stars['x'], rect_stars['y'], rect_stars['z']))
+            mat_rect_stars = np.matmul(mat_rect_stars, precession_matrix)
+            ra, dec = np_rect_to_sphere(mat_rect_stars[:,[0]], mat_rect_stars[:,[1]], mat_rect_stars[:,[2]])
+        else:
+            dim = len(rect_stars)
+            ra, dec = np_rect_to_sphere(rect_stars['x'].reshape(dim, 1), rect_stars['y'].reshape(dim, 1), rect_stars['z'].reshape(dim, 1))
 
         eq_stars = np.core.records.fromarrays(
             [

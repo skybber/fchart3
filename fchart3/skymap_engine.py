@@ -40,6 +40,7 @@ from .widget_telrad import WidgetTelrad
 from .widget_eyepiece import WidgetEyepiece
 from .widget_picker import WidgetPicker
 
+from .precession import compute_precession_matrix
 
 NL = {
     'h':'u',
@@ -122,6 +123,8 @@ DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*6
 MAG_SCALE_X = [0, 1,   2,   3,   4,    5,    25]
 MAG_SCALE_Y = [0, 1.8, 3.3, 4.7, 6,  7.2,  18.0]
 
+constell_lines_cache = {}
+constell_boundaries_cache = {}
 
 class SkymapEngine:
     def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
@@ -643,7 +646,7 @@ class SkymapEngine:
         radius = 0.1 * 1.33 ** mag_s + self.star_mag_r_shift
         return radius
 
-    def draw_stars(self, star_catalog, allow_star_pick):
+    def draw_stars(self, star_catalog, precession_matrix, allow_star_pick):
         # Select and draw stars
         # print('Drawing stars...')
 
@@ -652,8 +655,7 @@ class SkymapEngine:
         else:
             pick_r = 0
 
-        # tm = time()
-        selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars)
+        selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars, precession_matrix)
         if selection is None or len(selection) == 0:
             print('No stars found.')
             return
@@ -745,12 +747,12 @@ class SkymapEngine:
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
-    def draw_constellations(self, constell_catalog, hl_constellation):
+    def draw_constellations(self, constell_catalog, jd, precession_matrix, hl_constellation):
         # print('Drawing constellations...')
         if self.config.show_constellation_borders:
-            self.draw_constellation_boundaries(constell_catalog, hl_constellation)
+            self.draw_constellation_boundaries(constell_catalog, jd, precession_matrix, hl_constellation)
         if self.config.show_constellation_shapes:
-            self.draw_constellation_shapes(constell_catalog)
+            self.draw_constellation_shapes(constell_catalog, jd, precession_matrix)
 
     def draw_grid_equatorial(self):
         # print('Drawing equatorial grid...')
@@ -904,13 +906,32 @@ class SkymapEngine:
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
 
-    def draw_constellation_shapes(self, constell_catalog):
+
+    def draw_constellation_shapes(self, constell_catalog, jd, precession_matrix):
         self.graphics.save()
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
-        x1, y1, z1 = np_radec_to_xyz(constell_catalog.all_constell_lines[:, 0], constell_catalog.all_constell_lines[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-        x2, y2, z2 = np_radec_to_xyz(constell_catalog.all_constell_lines[:, 2], constell_catalog.all_constell_lines[:, 3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        if jd is not None:
+            jd_key = int(math.round(jd * 10 * 4)) // 4
+            constell_lines = constell_lines_cache.get(jd_key)
+            if constell_lines is None:
+                points = constell_catalog.all_constell_lines
+                xr1, yr1, zr1 = np_sphere_to_rect(points[:,0], points[:,1])
+                mat_rect1 = np.column_stack(xr1, yr1, zr1)
+                mat_rect1 = np.matmul(mat_rect1, precession_matrix)
+                ra1, dec1 = np_rect_to_sphere(mat_rect1[:,[0]], mat_rect1[:,[1]], mat_rect1[:,[2]])
+                xr2, yr2, zr2 = np_sphere_to_rect(points[:,2], points[:,3])
+                mat_rect2 = np.column_stack(xr2, yr2, zr2)
+                mat_rect2 = np.matmul(mat_rect2, precession_matrix)
+                ra2, dec2 = np_rect_to_sphere(mat_rect2[:,[0]], mat_rect2[:,[1]], mat_rect2[:,[2]])
+                constell_lines = np.column_stack((ra1, dec1, ra2, dec2))
+                constell_lines_cache[jd_key] = constell_lines
+        else:
+            constell_lines = constell_catalog.all_constell_lines
+
+        x1, y1, z1 = np_radec_to_xyz(constell_lines[:, 0], constell_lines[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x2, y2, z2 = np_radec_to_xyz(constell_lines[:, 2], constell_lines[:, 3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
@@ -926,11 +947,25 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def draw_constellation_boundaries(self, constell_catalog, hl_constellation):
+    def draw_constellation_boundaries(self, constell_catalog, jd, precession_matrix, hl_constellation):
         self.graphics.save()
         self.graphics.set_dashed_line(0.6, 1.2)
 
-        x, y, z = np_radec_to_xyz(constell_catalog.boundaries_points[:,0], constell_catalog.boundaries_points[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        if jd is not None:
+            jd_key = int(math.round(jd * 10 * 4)) // 4
+            constell_boundaries = constell_boundaries_cache.get(jd_key)
+            if constell_boundaries is None:
+                points = constell_catalog.boundaries_points
+                xr, yr, zr = np_sphere_to_rect(points[:,0], points[:,1])
+                mat_rect = np.column_stack(xr, yr, zr)
+                mat_rect = np.matmul(mat_rect, precession_matrix)
+                ra, dec = np_rect_to_sphere(mat_rect[:,[0]], mat_rect[:,[1]], mat_rect[:,[2]])
+                constell_boundaries = np.column_stack((ra, dec))
+                constell_boundaries_cache[jd_key] = constell_boundaries
+        else:
+            constell_boundaries = constell_catalog.boundaries_points
+
+        x, y, z = np_radec_to_xyz(constell_boundaries[:,0], constell_boundaries[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
@@ -947,11 +982,12 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def make_map(self, used_catalogs, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
+    def make_map(self, used_catalogs, jd=None, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
                  extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,
                  transparent=False):
         """ Creates map using given graphics, params and config
         used_catalogs - UsedCatalogs data structure
+        jd - julian date
         showing_dso - DSO forced to be shown even if they don't pass the filter
         hl_showing_dsos - True if showing dso will be highlighted
         highlights - list of HighlightDefinitions that will be marked
@@ -960,6 +996,8 @@ class SkymapEngine:
         hl_constellation - constellation name that will be highlighted
         trajectory - defined by list of points (ra, dec) points
         visible_objects - output array containing list of object visible on the map
+        use_optimized_mw - use optimized milky way
+        trasnparent - make chart transparent
         """
         visible_dso_collector = [] if visible_objects is not None else None
         self.picked_dso = None
@@ -987,6 +1025,8 @@ class SkymapEngine:
 
         w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
         w_maps_width, w_maps_height = self.w_map_scale.get_size()
+
+        precession_matrix = compute_precession_matrix(jd) if jd is not None else None
 
         if not self.config.legend_only:
 
@@ -1026,7 +1066,7 @@ class SkymapEngine:
 
             if used_catalogs.constellcatalog is not None:
                 # tm = time()
-                self.draw_constellations(used_catalogs.constellcatalog, hl_constellation)
+                self.draw_constellations(used_catalogs.constellcatalog, jd, precession_matrix, hl_constellation)
                 # print("constellations within {} s".format(str(time()-tm)), flush=True)
 
             if used_catalogs.unknown_nebulas is not None:
@@ -1045,7 +1085,7 @@ class SkymapEngine:
 
             if used_catalogs.starcatalog is not None:
                 # tm = time()
-                self.draw_stars(used_catalogs.starcatalog, self.picked_dso is None)
+                self.draw_stars(used_catalogs.starcatalog, precession_matrix, self.picked_dso is None)
                 # print("Stars within {} s".format(str(time()-tm)), flush=True)
 
             self.graphics.reset_clip()
