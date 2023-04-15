@@ -17,6 +17,7 @@
 import os
 import numpy as np
 
+from .astrocalc import sphere_to_rect
 from .constellation import ConstellationCatalog
 from .geodesic_star_catalog import GeodesicStarCatalog
 from .deepsky_catalog import DeepskyCatalog
@@ -46,6 +47,7 @@ class UsedCatalogs:
         self._reduced_deeplist = []
         self._messierlist=[]
         for dso in self._deeplist:
+            dso.x, dso.y, dso.z = sphere_to_rect(dso.ra, dso.dec)
             if dso.messier > 0:
                 self._messierlist.append(dso)
             if force_messier and dso.messier > 0:

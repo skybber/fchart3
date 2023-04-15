@@ -88,5 +88,4 @@ def compute_precession_matrix(jd_tdb):
                   (sb * sc,
                    -sc * cb * ca - sa * cc,
                    -sc * cb * sa + cc * ca)))
-
     return rot3

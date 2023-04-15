@@ -15,7 +15,6 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import string
 import numpy as np
 import math
 
@@ -123,8 +122,9 @@ DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*6
 MAG_SCALE_X = [0, 1,   2,   3,   4,    5,    25]
 MAG_SCALE_Y = [0, 1.8, 3.3, 4.7, 6,  7.2,  18.0]
 
-constell_lines_cache = {}
-constell_boundaries_cache = {}
+constell_lines_rect1 = None
+constell_lines_rect2 = None
+constell_bound_rect = None
 
 class SkymapEngine:
     def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
@@ -264,7 +264,7 @@ class SkymapEngine:
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
-    def draw_deepsky_objects(self, deepsky_catalog, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector):
+    def draw_deepsky_objects(self, deepsky_catalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector):
         if not self.config.show_deepsky:
             return
 
@@ -295,26 +295,8 @@ class SkymapEngine:
         deepsky_list.sort(key=lambda x: x.mag)
         deepsky_list_ext = []
 
-        # calc for deepsky objects from selection
-        for dso in deepsky_list:
-            x, y, z = radec_to_xyz(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            if z >= 0:
-                if dso.rlong is None:
-                    rlong = self.min_radius
-                else:
-                    rlong = dso.rlong*self.drawingscale
-                    if rlong < self.min_radius:
-                        rlong = self.min_radius
-                deepsky_list_ext.append((dso, x, y, rlong))
-
-        # calc for deepsky objects from showing dsos
-        for dso in filtered_showing_dsos:
-            x, y, z = radec_to_xyz(dso.ra, dso.dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            if z > 0:
-                rlong = dso.rlong*self.drawingscale
-                if rlong < self.min_radius:
-                    rlong = self.min_radius
-                deepsky_list_ext.append((dso, x, y, rlong))
+        self.calc_deepsky_list_ext(precession_matrix, deepsky_list_ext, deepsky_list)
+        self.calc_deepsky_list_ext(precession_matrix, deepsky_list_ext, filtered_showing_dsos)
 
         label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_ext)
 
@@ -421,6 +403,33 @@ class SkymapEngine:
                         pick_xp2, pick_yp2 = self.mirroring_graphics.to_pixel(pick_r, pick_r)
                         pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
                         visible_dso_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
+
+    def calc_deepsky_list_ext(self, precession_matrix, deepsky_list_ext, dso_list):
+        if precession_matrix is not None:
+            mat_rect_dso = np.empty([len(dso_list), 3])
+            for i, dso in enumerate(dso_list):
+               mat_rect_dso[i] = [dso.x, dso.y, dso.z]
+            mat_rect_dso = np.matmul(mat_rect_dso, precession_matrix)
+            ra_ar, dec_ar = np_rect_to_sphere(mat_rect_dso[:,[0]], mat_rect_dso[:,[1]], mat_rect_dso[:,[2]])
+        else:
+            ra_ar = np.empty([len(dso_list)])
+            dec_ar = np.empty([len(dso_list)])
+            for i, dso in enumerate(dso_list):
+                ra_ar[i] = dso.ra
+                dec_ar[i] = dso.dec
+
+        x, y, z = np_radec_to_xyz(ra_ar, dec_ar, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+
+        for i, dso in enumerate(dso_list):
+            if z[i] > 0:
+                if dso.rlong is None:
+                    rlong = self.min_radius
+                else:
+                    rlong = dso.rlong*self.drawingscale
+                    if rlong < self.min_radius:
+                        rlong = self.min_radius
+                deepsky_list_ext.append((dso, x[i], y[i], rlong))
+
 
     def draw_dso_outlines(self, dso, x, y, rlong, rshort, posangle=None, label=None, label_ext=None,  labelpos=None):
         lev_shift = 0
@@ -912,21 +921,20 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
+        global constell_lines_rect1, constell_lines_rect2
+
         if jd is not None:
-            jd_key = int(round(jd * 10 * 10)) // 10
-            constell_lines = constell_lines_cache.get(jd_key)
-            if constell_lines is None:
+            if constell_lines_rect1 is None:
                 points = constell_catalog.all_constell_lines
                 xr1, yr1, zr1 = np_sphere_to_rect(points[:,0], points[:,1])
-                mat_rect1 = np.column_stack((xr1, yr1, zr1))
-                mat_rect1 = np.matmul(mat_rect1, precession_matrix)
-                ra1, dec1 = np_rect_to_sphere(mat_rect1[:,[0]], mat_rect1[:,[1]], mat_rect1[:,[2]])
+                constell_lines_rect1 = np.column_stack((xr1, yr1, zr1))
                 xr2, yr2, zr2 = np_sphere_to_rect(points[:,2], points[:,3])
-                mat_rect2 = np.column_stack((xr2, yr2, zr2))
-                mat_rect2 = np.matmul(mat_rect2, precession_matrix)
-                ra2, dec2 = np_rect_to_sphere(mat_rect2[:,[0]], mat_rect2[:,[1]], mat_rect2[:,[2]])
-                constell_lines = np.column_stack((ra1, dec1, ra2, dec2))
-                constell_lines_cache[jd_key] = constell_lines
+                constell_lines_rect2 = np.column_stack((xr2, yr2, zr2))
+            prec_rect1 = np.matmul(constell_lines_rect1, precession_matrix)
+            ra1, dec1 = np_rect_to_sphere(prec_rect1[:,[0]], prec_rect1[:,[1]], prec_rect1[:,[2]])
+            prec_rect2 = np.matmul(constell_lines_rect2, precession_matrix)
+            ra2, dec2 = np_rect_to_sphere(prec_rect2[:,[0]], prec_rect2[:,[1]], prec_rect2[:,[2]])
+            constell_lines = np.column_stack((ra1, dec1, ra2, dec2))
         else:
             constell_lines = constell_catalog.all_constell_lines
 
@@ -951,17 +959,17 @@ class SkymapEngine:
         self.graphics.save()
         self.graphics.set_dashed_line(0.6, 1.2)
 
+        global constell_bound_rect
+
         if jd is not None:
-            jd_key = int(round(jd * 10 * 10)) // 10
-            constell_boundaries = constell_boundaries_cache.get(jd_key)
-            if constell_boundaries is None:
+            if constell_bound_rect is None:
                 points = constell_catalog.boundaries_points
                 xr, yr, zr = np_sphere_to_rect(points[:,0], points[:,1])
-                mat_rect = np.column_stack((xr, yr, zr))
-                mat_rect = np.matmul(mat_rect, precession_matrix)
-                ra, dec = np_rect_to_sphere(mat_rect[:,[0]], mat_rect[:,[1]], mat_rect[:,[2]])
-                constell_boundaries = np.column_stack((ra, dec))
-                constell_boundaries_cache[jd_key] = constell_boundaries
+                constell_bound_rect = np.column_stack((xr, yr, zr))
+
+            prec_rect = np.matmul(constell_bound_rect, precession_matrix)
+            ra, dec = np_rect_to_sphere(prec_rect[:,[0]], prec_rect[:,[1]], prec_rect[:,[2]])
+            constell_boundaries = np.column_stack((ra, dec))
         else:
             constell_boundaries = constell_catalog.boundaries_points
 
@@ -1026,7 +1034,10 @@ class SkymapEngine:
         w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
         w_maps_width, w_maps_height = self.w_map_scale.get_size()
 
-        precession_matrix = compute_precession_matrix(jd) if jd is not None else None
+        if jd is not None:
+            precession_matrix = np.linalg.inv(compute_precession_matrix(jd))
+        else:
+            precession_matrix = None
 
         if not self.config.legend_only:
 
@@ -1074,7 +1085,7 @@ class SkymapEngine:
 
             if used_catalogs.deepskycatalog is not None:
                 # tm = time()
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
                 # print("DSO within {} s".format(str(time()-tm)), flush=True)
 
             if extra_positions:
@@ -1720,20 +1731,3 @@ class SkymapEngine:
             y1, y2 = y2, y1
         return x1, y1, x2, y2
 
-
-if __name__ == '__main__':
-    from . import graphics_cairo
-    from . import composite_star_catalog as sc
-
-    data_dir='./data/catalogs/'
-
-    stars = sc.CompositeStarCatalog(data_dir)
-
-    width = 200
-    cairo = cairo.CairoDrawing(width, width, 'radec00.pdf',)
-
-    sm = SkymapEngine(cairo)
-    sm.set_caption('Probeersel')
-    sm.set_field(1.5,1, 0.05)
-    sm.make_map(stars)
-    cairo.close()

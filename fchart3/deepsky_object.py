@@ -55,7 +55,7 @@ TYPENAME = ['Unknown', 'G', 'N', 'PN', 'OC', 'GC', 'PG', 'xxx', 'xxx', 'AST', 'x
 
 class DeepskyObject:
 
-    __slots__ = 'cat', 'name', 'all_names', 'synonyms', 'component', 'type', 'constellation', 'ra', 'dec', \
+    __slots__ = 'cat', 'name', 'all_names', 'synonyms', 'component', 'type', 'constellation', 'ra', 'dec', 'x', 'y', 'z', \
                 'mag', 'rlong', 'rshort', 'position_angle', 'messier', 'master_object', 'visible', '_label', \
                 'outlines'
 
@@ -107,6 +107,9 @@ class DeepskyObject:
         self.constellation=''
         self.ra=-1.0
         self.dec=0.0
+        self.x = 0.0
+        self.y = 0.0
+        self.z = 0.0
         self.mag=-100.0
         self.rlong=-1.0
         self.rshort=-1.0
