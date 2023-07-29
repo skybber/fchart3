@@ -615,10 +615,9 @@ class SkymapEngine:
         self.graphics.set_pen_rgb(self.config.dso_color)
 
         fh = self.graphics.gi_fontsize
-        x1 = None
-        y1 = None
-        z1 = None
-        r = self.min_radius * 1.2 / 2**0.5
+        x1, y1, z1 = (None, None, None)
+
+        labels = []
 
         for i in range(0, len(trajectory)):
             rax2, decx2, label2 = trajectory[i]
@@ -632,10 +631,46 @@ class SkymapEngine:
                     if i == 1:
                         self.draw_trajectory_tick(x2, y2, x1, y1)
 
-            if z2 > 0:
-                self.mirroring_graphics.text_centred(x2, y2 - r - fh/2.0, label2)
+            if x1 is not None:
+                n = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+                nx = (x2-x1)/n
+                ny = (y2-y1)/n
+            else:
+                nx, ny = (None, None)
+
+            labels.append([x2, y2, z2, nx, ny, label2])
 
             x1, y1, z1 = (x2, y2, z2)
+
+        sum_x, sum_y = (0, 0)
+        for _, _, _, nx, ny, _ in labels:
+            if nx is not None:
+                sum_x += nx
+                sum_y += ny
+        # label_pos:
+        #   1
+        # 4 + 2
+        #   3
+        if sum_x != 0 or sum_y != 0:
+            sum_x = sum_x / (len(labels) - 1)
+            sum_y = sum_y / (len(labels) - 1)
+            cmp = 0.8
+            if sum_x > cmp or sum_x < -cmp:
+                label_pos = 1
+            else:
+                label_pos = 2
+        else:
+            label_pos = 0
+
+        r = self.min_radius * 1.2 / 2**0.5
+        for x, y, z, nx2, ny2, label in labels:
+            if z > 0:
+                if label_pos == 1:
+                    self.mirroring_graphics.text_centred(x, y + r + fh, label)
+                elif label_pos == 2:
+                    self.mirroring_graphics.text_right(x + r + fh/4, y - fh/2, label)
+                else:
+                    self.mirroring_graphics.text_centred(x, y - r - fh/2.0, label)
 
         self.graphics.restore()
 
@@ -1730,4 +1765,3 @@ class SkymapEngine:
         if y1 > y2:
             y1, y2 = y2, y1
         return x1, y1, x2, y2
-
