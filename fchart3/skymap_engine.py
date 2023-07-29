@@ -631,12 +631,12 @@ class SkymapEngine:
                     if i == 1:
                         self.draw_trajectory_tick(x2, y2, x1, y1)
 
+            nx, ny = (None, None)
             if x1 is not None:
                 n = math.sqrt((x2-x1)**2 + (y2-y1)**2)
-                nx = (x2-x1)/n
-                ny = (y2-y1)/n
-            else:
-                nx, ny = (None, None)
+                if n != 0:
+                    nx = (x2-x1)/n
+                    ny = (y2-y1)/n
 
             labels.append([x2, y2, z2, nx, ny, label2])
 
@@ -663,7 +663,7 @@ class SkymapEngine:
             label_pos = 0
 
         r = self.min_radius * 1.2 / 2**0.5
-        for x, y, z, nx2, ny2, label in labels:
+        for x, y, z, nx, ny, label in labels:
             if z > 0:
                 if label_pos == 1:
                     self.mirroring_graphics.text_centred(x, y + r + fh, label)
