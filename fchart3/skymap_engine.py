@@ -298,7 +298,7 @@ class SkymapEngine:
         self.calc_deepsky_list_ext(precession_matrix, deepsky_list_ext, deepsky_list)
         self.calc_deepsky_list_ext(precession_matrix, deepsky_list_ext, filtered_showing_dsos)
 
-        label_potential = LabelPotential(self.get_field_radius_mm(), deepsky_list_ext)
+        self.label_potential.add_deepsky_list(deepsky_list_ext)
 
         # print('Drawing objects...')
         pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
@@ -355,15 +355,15 @@ class SkymapEngine:
             pot = 1e+30
             for labelpos_index in range(len(labelpos_list)):
                 [[x1, y1], [x2, y2], [x3, y3]] = labelpos_list[labelpos_index]
-                pot1 = label_potential.compute_potential(x2, y2)
-                # label_potential.compute_potential(x1,y1),
-                # label_potential.compute_potential(x3,y3)])
+                pot1 = self.label_potential.compute_potential(x2, y2)
+                # self.label_potential.compute_potential(x1,y1),
+                # self.label_potential.compute_potential(x3,y3)])
                 if pot1 < pot:
                     pot = pot1
                     labelpos = labelpos_index
 
             [xx, yy] = labelpos_list[labelpos][1]
-            label_potential.add_position(xx, yy, label_length)
+            self.label_potential.add_position(xx, yy, label_length)
 
             if dso.type == deepsky.G:
                 self.galaxy(x, y, rlong, rshort, posangle, dso.mag, label, label_ext, labelpos)
@@ -741,11 +741,41 @@ class SkymapEngine:
                     if r < pick_min_r:
                         pick = (xx, yy, rr, mag[index], bsc[index])
                         pick_min_r = r
-                else:
-                    if self.config.show_star_labels:
-                        bsc_star = selection[index]['bsc']
-                        if bsc_star is not None:
-                            star_labels.append((xx, yy, rr, bsc_star))
+                elif self.config.show_star_labels:
+                    bsc_star = selection[index]['bsc']
+                    if bsc_star is not None:
+                        labelpos = 0
+                        if isinstance(bsc_star, str):
+                            slabel = bsc_star
+                        else:
+                            slabel = bsc_star.greek
+                            if slabel:
+                                labelpos = -1
+                            elif self.config.show_flamsteed:
+                                slabel = bsc_star.flamsteed
+
+                        if slabel:
+                            label_length = self.graphics.text_width(slabel)
+                            labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
+                            if labelpos == -1:
+                                [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[0]
+                                self.label_potential.add_position(lx2, ly2, label_length)
+                            else:
+                                pot = 1e+30
+                                for labelpos_index in range(len(labelpos_list)):
+                                    [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[labelpos_index]
+                                    pot1 = self.label_potential.compute_potential(lx2, ly2)
+                                    if labelpos_index == 0:
+                                        pot1 *= 0.6 # favour label 0
+                                    # self.label_potential.compute_potential(x1,y1),
+                                    # self.label_potential.compute_potential(x3,y3)])
+                                    if pot1 < pot:
+                                        pot = pot1
+                                        labelpos = labelpos_index
+
+                                [lx, ly] = labelpos_list[labelpos][1]
+                                self.label_potential.add_position(lx, ly, label_length)
+                            star_labels.append((xx, yy, rr, labelpos, bsc_star))
 
         if len(star_labels) > 0:
             self.draw_stars_labels(star_labels)
@@ -770,10 +800,10 @@ class SkymapEngine:
         printed = {}
         bayer_fh = self.config.bayer_label_font_scale * fn
         flamsteed_fh = self.config.flamsteed_label_font_scale * fn
-        for x, y, r, star in star_labels:
+        for x, y, r, labelpos, star in star_labels:
             if isinstance(star, str):
                 self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-                self.draw_circular_object_label(x, y, r, star)
+                self.draw_circular_object_label(x, y, r, star, labelpos)
             else:
                 slabel = star.greek
                 if not slabel and self.config.show_flamsteed:
@@ -787,7 +817,7 @@ class SkymapEngine:
                             slabel = STAR_LABELS.get(slabel)
                         else:
                             self.graphics.set_font(self.graphics.gi_font, flamsteed_fh)
-                        self.draw_circular_object_label(x, y, r, slabel)
+                        self.draw_circular_object_label(x, y, r, slabel, labelpos)
 
         self.graphics.set_font(self.graphics.gi_font, fn)
 
@@ -1076,6 +1106,8 @@ class SkymapEngine:
 
         if not self.config.legend_only:
 
+            self.label_potential = LabelPotential(self.get_field_radius_mm())
+
             if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
                 clip_path = [(x2, y2)]
 
@@ -1118,6 +1150,11 @@ class SkymapEngine:
             if used_catalogs.unknown_nebulas is not None:
                 self.draw_unknown_nebula(used_catalogs.unknown_nebulas)
 
+            if used_catalogs.starcatalog is not None:
+                # tm = time()
+                self.draw_stars(used_catalogs.starcatalog, precession_matrix, self.picked_dso is None)
+                # print("Stars within {} s".format(str(time()-tm)), flush=True)
+
             if used_catalogs.deepskycatalog is not None:
                 # tm = time()
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
@@ -1128,11 +1165,6 @@ class SkymapEngine:
 
             if trajectory:
                 self.draw_trajectory(trajectory)
-
-            if used_catalogs.starcatalog is not None:
-                # tm = time()
-                self.draw_stars(used_catalogs.starcatalog, precession_matrix, self.picked_dso is None)
-                # print("Stars within {} s".format(str(time()-tm)), flush=True)
 
             self.graphics.reset_clip()
 
@@ -1196,9 +1228,7 @@ class SkymapEngine:
         self.graphics.circle(x, y, r, DrawMode.BOTH)
 
     def open_cluster(self, x, y, radius, label, label_ext, labelpos):
-        r = radius
-        if radius <= 0.0:
-            r = self.drawingwidth/40.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
 
         self.graphics.save()
 
@@ -1219,9 +1249,7 @@ class SkymapEngine:
         self.graphics.restore()
 
     def galaxy_cluster(self, x, y, radius, label, label_ext, labelpos):
-        r = radius
-        if radius <= 0.0:
-            r = self.drawingwidth/40.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
 
         self.graphics.save()
 
@@ -1252,9 +1280,7 @@ class SkymapEngine:
             self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
 
     def asterism(self, x, y, radius, label, label_ext, labelpos):
-        r = radius
-        if radius <= 0.0:
-            r = self.drawingwidth/40.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
         w2 = 2**0.5
         d = r/2.0*w2
 
@@ -1292,9 +1318,7 @@ class SkymapEngine:
         x,y,radius, label_length in mm
         returns [[start, centre, end],()]
         """
-        r = radius
-        if radius <= 0.0:
-            r = self.drawingwidth/40.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
         w2 = 2**0.5
         d = r/2.0*w2
         fh = self.graphics.gi_fontsize
@@ -1475,10 +1499,7 @@ class SkymapEngine:
 
     def circular_object_labelpos(self, x, y, radius=-1.0, label_length=0.0):
         fh = self.graphics.gi_fontsize
-        r = radius
-
-        if radius <= 0.0:
-            r = self.drawingwidth/40.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
 
         arg = 1.0-2*fh/(3.0*r)
 
@@ -1504,9 +1525,7 @@ class SkymapEngine:
         return label_pos_list
 
     def globular_cluster(self, x, y, radius, label, label_ext, labelpos):
-        r = radius
-        if radius <= 0.0:
-            r = self.drawingwidth/40.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
@@ -1657,9 +1676,7 @@ class SkymapEngine:
         return label_pos_list
 
     def planetary_nebula(self, x, y, radius, label, label_ext, labelpos):
-        r = radius
-        if radius <= 0.0:
-            r = self.drawingwidth/60.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
@@ -1685,9 +1702,7 @@ class SkymapEngine:
         self.graphics.restore()
 
     def supernova_remnant(self, x, y, radius, label, label_ext, labelpos):
-        r = radius
-        if radius <= 0.0:
-            r = self.drawingwidth/40.0
+        r = radius if radius > 0 else self.drawingwidth/40.0
         self.graphics.save()
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
