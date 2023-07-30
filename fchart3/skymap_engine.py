@@ -165,6 +165,7 @@ class SkymapEngine:
         self.w_picker = None
         self.mirroring_graphics = None
         self.picked_dso = None
+        self.picked_star = None
         self.star_mag_r_shift = 0
 
     def set_field(self, ra, dec, fieldradius):
@@ -690,15 +691,11 @@ class SkymapEngine:
         radius = 0.1 * 1.33 ** mag_s + self.star_mag_r_shift
         return radius
 
-    def draw_stars(self, star_catalog, precession_matrix, allow_star_pick):
+    def draw_stars(self, star_catalog, precession_matrix):
         # Select and draw stars
         # print('Drawing stars...')
 
-        if allow_star_pick:
-            pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
-        else:
-            pick_r = 0
-
+        pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
         selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars, precession_matrix)
         if selection is None or len(selection) == 0:
             print('No stars found.')
@@ -727,7 +724,6 @@ class SkymapEngine:
         self.graphics.set_linewidth(0)
 
         star_labels = []
-        pick = None
         pick_min_r = pick_r**2
         x1, y1, x2, y2 = self.get_field_rect_mm()
         for i in range(len(indices)):
@@ -739,7 +735,7 @@ class SkymapEngine:
                 if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
                     r = xx*xx + yy*yy
                     if r < pick_min_r:
-                        pick = (xx, yy, rr, mag[index], bsc[index])
+                        self.picked_star = (xx, yy, rr, mag[index], bsc[index])
                         pick_min_r = r
                 elif self.config.show_star_labels:
                     bsc_star = selection[index]['bsc']
@@ -780,11 +776,12 @@ class SkymapEngine:
         if len(star_labels) > 0:
             self.draw_stars_labels(star_labels)
 
-        if pick is not None:
+    def draw_picked_star(self):
+        if self.picked_star is not None:
             fn = self.graphics.gi_fontsize
-            x, y, r, mag, bsc = pick
+            x, y, r, mag, bsc = self.picked_star
             self.graphics.set_font(self.graphics.gi_font, 0.9*fn)
-            label =str(mag)
+            label = str(mag)
             if bsc is not None:
                 if bsc.greek:
                     label += '(' + STAR_LABELS[bsc.greek] + ' ' + bsc.constellation.capitalize() + ')'
@@ -1074,6 +1071,7 @@ class SkymapEngine:
         """
         visible_dso_collector = [] if visible_objects is not None else None
         self.picked_dso = None
+        self.picked_star = None
 
         if self.config.mirror_x or self.config.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
@@ -1107,6 +1105,7 @@ class SkymapEngine:
         if not self.config.legend_only:
 
             self.label_potential = LabelPotential(self.get_field_radius_mm())
+            self.picked_star = None
 
             if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
                 clip_path = [(x2, y2)]
@@ -1152,13 +1151,16 @@ class SkymapEngine:
 
             if used_catalogs.starcatalog is not None:
                 # tm = time()
-                self.draw_stars(used_catalogs.starcatalog, precession_matrix, self.picked_dso is None)
+                self.draw_stars(used_catalogs.starcatalog, precession_matrix)
                 # print("Stars within {} s".format(str(time()-tm)), flush=True)
 
             if used_catalogs.deepskycatalog is not None:
                 # tm = time()
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
                 # print("DSO within {} s".format(str(time()-tm)), flush=True)
+
+            if self.picked_dso is None and self.picked_star is not None:
+                self.draw_picked_star()
 
             if extra_positions:
                 self.draw_extra_objects(extra_positions)
