@@ -762,7 +762,7 @@ class SkymapEngine:
                                     [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[labelpos_index]
                                     pot1 = self.label_potential.compute_potential(lx2, ly2)
                                     if labelpos_index == 0:
-                                        pot1 *= 0.6 # favour label 0
+                                        pot1 *= 0.6 # favour label right
                                     # self.label_potential.compute_potential(x1,y1),
                                     # self.label_potential.compute_potential(x3,y3)])
                                     if pot1 < pot:

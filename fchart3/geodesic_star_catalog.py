@@ -464,33 +464,36 @@ class GeodesicStarCatalogComponent:
             # Initialize star_position_scale. This scale is used to multiply stars position
             # encoded as integers so that it optimize precision over the triangle.
             # It has to be computed for each triangle because the relative orientation of the 2 axis is different for each triangle.
-            mu0 = vector_dot(vector_sub(c0,z.center), z.axis0)
-            mu1 = vector_dot(vector_sub(c0,z.center), z.axis1)
-            f = 1.0/math.sqrt(1.0-mu0*mu0-mu1*mu1)
-            h = abs(mu0)*f
+            sc0 = vector_sub(c0,z.center)
+            mu0 = vector_dot(sc0, z.axis0)
+            mu1 = vector_dot(sc0, z.axis1)
+            f = 1.0-mu0*mu0-mu1*mu1
+            h = mu0*mu0/f
             if self.star_position_scale < h:
                 self.star_position_scale = h
-            h = abs(mu1)*f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-
-            mu0 = vector_dot(vector_sub(c1,z.center), z.axis0)
-            mu1 = vector_dot(vector_sub(c1,z.center), z.axis1)
-            f = 1.0/math.sqrt(1.0-mu0*mu0-mu1*mu1)
-            h = abs(mu0)*f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-            h = abs(mu1)*f
+            h = mu1*mu1/f
             if self.star_position_scale < h:
                 self.star_position_scale = h
 
-            mu0 = vector_dot(vector_sub(c2, z.center), z.axis0)
-            mu1 = vector_dot(vector_sub(c2, z.center), z.axis1)
-            f = 1.0/math.sqrt(1.0-mu0*mu0-mu1*mu1)
-            h = abs(mu0)*f
+            sc1 = vector_sub(c1,z.center)
+            mu0 = vector_dot(sc1, z.axis0)
+            mu1 = vector_dot(sc1, z.axis1)
+            f = 1.0-mu0*mu0-mu1*mu1
+            h = mu0*mu0/f
             if self.star_position_scale < h:
                 self.star_position_scale = h
-            h = abs(mu1)*f
+            h = mu1*mu1/f
+            if self.star_position_scale < h:
+                self.star_position_scale = h
+
+            sc2 = vector_sub(c2,z.center)
+            mu0 = vector_dot(sc2, z.axis0)
+            mu1 = vector_dot(sc2, z.axis1)
+            f = 1.0-mu0*mu0-mu1*mu1
+            h = mu0*mu0/f
+            if self.star_position_scale < h:
+                self.star_position_scale = h
+            h = mu1*mu1/f
             if self.star_position_scale < h:
                 self.star_position_scale = h
 
@@ -502,7 +505,7 @@ class GeodesicStarCatalogComponent:
         else:
             star_max_pos_val = (1 << 17)-1
 
-        self.star_position_scale /= star_max_pos_val
+        self.star_position_scale = math.sqrt(self.star_position_scale) / star_max_pos_val
 
         for z in self._zone_data_ar:
             z.axis0 = np.array(vector_scal_dot(self.star_position_scale, z.axis0))
