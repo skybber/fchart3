@@ -39,7 +39,7 @@ class CairoDrawing(GraphicsInterface):
         :param fobj: file object
         :param width: width in mm
         :param height: height in mm
-        :param format: format png/svg
+        :param format: format png/svg/jpg
         :param pixels: True if units of width/height are pixels
         :param landscape: True if orientation of page is landscape
         :param tolerance: Cairo context drawing tolerance, use it for speedup of graphics operations
@@ -129,7 +129,10 @@ class CairoDrawing(GraphicsInterface):
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.move_to(x1, -y1)
         self.context.line_to(x2, -y2)
-        self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
+        if  self.gi_dash_style is None:
+            self.context.set_dash([])
+        else:
+            self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
         self.context.stroke()
 
     def rectangle(self, x, y, width, height, mode=DrawMode.BORDER):
@@ -162,7 +165,10 @@ class CairoDrawing(GraphicsInterface):
     def _draw_element(self, mode):
         if mode == DrawMode.BORDER:
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
-            self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
+            if  self.gi_dash_style is None:
+                self.context.set_dash([])
+            else:
+                self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
             self.context.stroke()
         elif mode == DrawMode.FILL:
             self.context.set_source_rgb(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2])

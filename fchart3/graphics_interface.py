@@ -56,7 +56,6 @@ class GraphicsInterface:
                    to the bottom left corner of the drawing.
     gi_origin_y    vertical position of the user coordinate system relative
                    to the bottom left corner of the drawing.
-    gi_dash_style  line /dash style: ([on, off], start). Solid = ([],0.0)
     gi_stack       graphics state stack.
     """
     def __init__(self, width, height):
@@ -69,7 +68,7 @@ class GraphicsInterface:
         self.gi_pen_rgb = (0.0, 0.0, 0.0)
         self.gi_fill_rgb = (0.0, 0.0, 0.0)
         self.gi_linewidth = 0.1
-        self.gi_dash_style = ([], 0.0)
+        self.gi_dash_style = None
         self.gi_origin_x = self.gi_width/2.0
         self.gi_origin_y = self.gi_height/2.0
         self.gi_font = 'Times-Roman'
@@ -163,7 +162,7 @@ class GraphicsInterface:
         """
         From now on, all lines should be drawn solid. Extend this method.
         """
-        self.gi_dash_style = ([],0.0)
+        self.gi_dash_style = None
 
     def set_dashed_line(self, on, off, start=0.0):
         """
@@ -192,39 +191,39 @@ class GraphicsInterface:
         Shift origin of coordinate system (dx,dy) mm with respect to
         self.gi_origin_{x,y}
         """
-        print('GraphicsInterface.translate())')
+        pass
 
     def rotate(self, angle):
         """
         Rotate coordinates angle radians around current origin.
         """
-        print('GraphicsInterface.rotate()')
+        pass
 
     def line(self, x1, y1, x2, y2):
         """
         Draw a line from (x1,y1) to (x2,y2) using the current pen gray value, linestyle
         and linewidth.
         """
-        print('GraphicsInterface.line()')
+        pass
 
     def rectangle(self, x, y, width, height, mode=DrawMode.BORDER):
         """
         Draw a rectangle with left upper corner in (x,y) and widt/height
         pen gray value
         """
-        print('GraphicsInterface.rectangle()')
+        pass
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         """
         Draw a circle with centre at (x,y) and radius r.
         """
-        print('GraphicsInterface.circle()')
+        pass
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
         """
         Draw a circle with specified vertices
         """
-        print('GraphicsInterface.circle()')
+        pass
 
     def ellipse(self, x, y, rlong, rshort, position_angle, mode=DrawMode.BORDER):
         """
@@ -232,62 +231,62 @@ class GraphicsInterface:
         short radius rshort. position_angle is the angle between the
         long axis and the positive x-axis in radians.
         """
-        print('GraphicsInterface.ellipse()')
+        pass
 
     def text(self, text):
         """
         Draw 'text' at the current position. The current position is
         the bottom left corner of the text to be drawn.
         """
-        print('GraphicsInterface.text()')
+        pass
 
     def text_right(self, x, y, text):
         """
         x, y is the bottom left corner of text
         """
-        print('GraphicsInterface.text_right()')
+        pass
 
     def text_left(self, x, y, text):
         """
         x, y is the bottom right corner of text
         """
-        print('GraphicsInterface.text_left()')
+        pass
 
     def text_centred(self, x, y, text):
         """
         Draw text centred at (x,y)
         """
-        print('GraphicsInterface.text_centred()')
+        pass
 
     def text_width(self, text):
         """
         Text width in current font
         """
-        print('GraphicsInterface.text_width()')
+        pass
 
     def finish(self):
         """
         Finalize the drawing (Store to disk, memory, whatever).
         """
-        print('GraphicsInterface.finish()')
+        pass
 
     def clip_path(self, path):
         """
         Clip path
         """
-        print('GraphicsInterface.clip_rectangle()')
+        pass
 
     def reset_clip(self):
         """
         Clip rectangle
         """
-        print('GraphicsInterface.reset_clip()')
+        pass
 
     def clear(self):
         """
         Fill by background color
         """
-        print('GraphicsInterface.clwar()')
+        pass
 
     def set_background_rgb(self, background_rgb):
         """
@@ -310,5 +309,5 @@ class GraphicsInterface:
     def antialias_on(self):
         pass
 
-    def antialias_oof(self):
+    def antialias_off(self):
         pass
