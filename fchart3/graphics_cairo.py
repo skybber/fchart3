@@ -179,9 +179,6 @@ class CairoDrawing(GraphicsInterface):
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
             self.context.stroke()
 
-    def text(self, text):
-        self.context.show_text(text)
-
     def text_right(self, x, y, text):
         self._moveto(x, y)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])

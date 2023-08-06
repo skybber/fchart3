@@ -106,6 +106,7 @@ class SkiaDrawing(GraphicsInterface):
             self.font_default = skia.Font(skia.Typeface('NotoSans'), fontsize)
 
     def set_linewidth(self, linewidth):
+        GraphicsInterface.set_linewidth(self, linewidth)
         self.paint_default.setStrokeWidth(linewidth)
         self.paint_dash.setStrokeWidth(linewidth)
 
@@ -122,19 +123,13 @@ class SkiaDrawing(GraphicsInterface):
         self.canvas.drawLine((x1,-y1), (x2,-y2), paint)
 
     def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
-        self.canvas.drawRect(skia.Rec(x, -y, width, height))
+        paint = self._get_paint()
+        self._set_color_and_stroke_style(paint, mode)
+        self.canvas.drawRect(skia.Rec(x, -y, width, height), paint)
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         paint = self._get_paint()
-        if mode == DrawMode.BORDER:
-            paint.setStyle(skia.Paint.kStroke_Style)
-            paint.setColor4f(skia.Color4f(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2]))
-        elif mode == DrawMode.FILL:
-            paint.setStyle(skia.Paint.kFill_Style)
-            paint.setColor4f(skia.Color4f(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
-        else:
-            paint.setStyle(skia.Paint.kStrokeAndFill_Style)
-            paint.setColor4f(skia.Color4f(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
+        self._set_color_and_stroke_style(paint, mode)
         self.canvas.drawCircle(x, -y, r, paint)
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
@@ -143,7 +138,7 @@ class SkiaDrawing(GraphicsInterface):
         for v in vertices[1:]:
             path.lineTo(v[0], -v[1])
         path.close()
-        self.paint_default.setColor4f(skia.Color4f(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
+        self._set_color_and_stroke_style(self.paint_default, mode)
         self.canvas.drawPath(path, self.paint_default)
 
     def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):
@@ -154,11 +149,9 @@ class SkiaDrawing(GraphicsInterface):
         rect = skia.Rect(-rlong, -rshort, rlong, rshort)
         self.canvas.translate(x, -y)
         self.canvas.rotate(-180.0*posangle/pi)
+        self._set_color_and_stroke_style(paint, mode)
         self.canvas.drawOval(rect, paint)
         self.canvas.restore()
-
-    def text(self, text):
-        pass
 
     def text_right(self, x, y, text):
         self.paint_text.setColor4f(skia.Color4f(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2]))
@@ -205,8 +198,27 @@ class SkiaDrawing(GraphicsInterface):
     def to_pixel(self, x, y):
         return (int(x * DPMM_IMG + self.sfc_width/2), int(y * DPMM_IMG + self.sfc_height/2))
 
+    def antialias_on(self):
+        self.paint_default.setAntiAlias(True)
+        self.paint_dash.setAntiAlias(True)
+
+    def antialias_off(self):
+        self.paint_default.setAntiAlias(False)
+        self.paint_dash.setAntiAlias(False)
+
     def _get_paint(self):
         if self.gi_dash_style is None:
             return self.paint_default
         self.paint_dash.setPathEffect(skia.DashPathEffect.Make(self.gi_dash_style[0], self.gi_dash_style[1]))
         return self.paint_dash
+
+    def _set_color_and_stroke_style(self, paint, mode):
+        if mode == DrawMode.BORDER:
+            paint.setStyle(skia.Paint.kStroke_Style)
+            paint.setColor4f(skia.Color4f(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2]))
+        elif mode == DrawMode.FILL:
+            paint.setStyle(skia.Paint.kFill_Style)
+            paint.setColor4f(skia.Color4f(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
+        else:
+            paint.setStyle(skia.Paint.kStrokeAndFill_Style)
+            paint.setColor4f(skia.Color4f(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))

@@ -233,13 +233,6 @@ class GraphicsInterface:
         """
         pass
 
-    def text(self, text):
-        """
-        Draw 'text' at the current position. The current position is
-        the bottom left corner of the text to be drawn.
-        """
-        pass
-
     def text_right(self, x, y, text):
         """
         x, y is the bottom left corner of text
