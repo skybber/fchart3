@@ -33,6 +33,7 @@ from fchart3.skymap_engine import SkymapEngine, EN, NL, ES
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics_cairo import CairoDrawing
+from fchart3.graphics_tikz import TikZDrawing
 
 #################################################################
 
@@ -81,10 +82,10 @@ class RuntimeSettings:
         argumentparser.add_argument('--extra-data-dir', dest='extra_data_dir', nargs='?', action='store',
                                     help='Path to extra data files (Stellarium star catalogues)')
 
-        argumentparser.add_argument('-limdso', dest='limiting_magnitude_deepsky', nargs='?', action='store', default=12.0, type=float,
-                                    help='Deepsky limiting magnitude (default: 12.0)')
-        argumentparser.add_argument('-limstar', dest='limiting_magnitude_stars', nargs='?', action='store', default=12.0, type=float,
-                                    help='Stellar limiting magnitude (default: 12.0)')
+        argumentparser.add_argument('-limdso', dest='limit_magnitude_deepsky', nargs='?', action='store', default=12.0, type=float,
+                                    help='Deepsky limit magnitude (default: 12.0)')
+        argumentparser.add_argument('-limstar', dest='limit_magnitude_stars', nargs='?', action='store', default=12.0, type=float,
+                                    help='Stellar limit magnitude (default: 12.0)')
 
         argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
                                     help='Width of the drawing area in mm.')
@@ -171,9 +172,9 @@ class RuntimeSettings:
         argumentparser.add_argument('--color-label', dest='label_color', action='store', default='#202020',
                                     help='Label color. (default black)')
         argumentparser.add_argument('--color-constellation-lines', dest='constellation_lines_color', action='store', default='#80a0c0',
-                                    help='Constellation border color.')
-        argumentparser.add_argument('--color-constellation-border', dest='constellation_border_color', action='store', default='#b0a020',
                                     help='Constellation lines color.')
+        argumentparser.add_argument('--color-constellation-border', dest='constellation_border_color', action='store', default='#b0a020',
+                                    help='Constellation border color.')
         argumentparser.add_argument('--color-deepsky', dest='dso_color', action='store', default='#505050',
                                     help='Unclassified deepsky color.')
         argumentparser.add_argument('--color-nebula', dest='nebula_color', action='store', default='#005000',
@@ -188,28 +189,28 @@ class RuntimeSettings:
                                     help='Milky way color.')
 
         argumentparser.add_argument('--color-grid', dest='grid_color', action='store', default='#405060',
-                                    help='Star cluster color.')
+                                    help='Grid color.')
         argumentparser.add_argument('--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
                                     help='Constellation line width (default: 0.5)')
         argumentparser.add_argument('--linewidth-constellation-border', dest='constellation_border_linewidth', nargs='?', action='store', default=0.5, type=float,
                                     help='Constellation border line width (default: 0.5)')
         argumentparser.add_argument('--linewidth-nebula', dest='nebula_linewidth', nargs='?', action='store', default=0.3, type=float,
-                                    help='Line width of equatorial grid (default: 0.3)')
+                                    help='Line width of nebulae (default: 0.3)')
         argumentparser.add_argument('--linewidth-open-cluster', dest='open_cluster_linewidth', nargs='?', action='store', default=0.3, type=float,
                                     help='Line width of open cluster (default: 0.3)')
         argumentparser.add_argument('--linewidth-galaxy-cluster', dest='galaxy_cluster_linewidth', nargs='?', action='store', default=0.2, type=float,
                                     help='Line width of galaxy cluster (default: 0.2)')
         argumentparser.add_argument('--linewidth-deepsky', dest='dso_linewidth', nargs='?', action='store', default=0.2, type=float,
-                                    help='Line width of open cluster (default: 0.2)')
+                                    help='Line width of deepsky object (default: 0.2)')
         argumentparser.add_argument('--linewidth-milky-way', dest='milky_way_linewidth', nargs='?', action='store', default=0.2, type=float,
                                     help='Line width of Milky Way (default: 0.2)')
         argumentparser.add_argument('--linewidth-legend', dest='legend_linewidth', nargs='?', action='store', default=0.2, type=float,
-                                    help='Line width of open cluster (default: 0.3)')
+                                    help='Line width of legend (default: 0.2)')
         argumentparser.add_argument('--linewidth-grid', dest='grid_linewidth', nargs='?', action='store', default=0.1, type=float,
                                     help='Line width of equatorial grid (default: 0.1)')
 
         argumentparser.add_argument('--no-margin', dest='no_margin', action='store_true', default=False,
-                                    help='No margin.')
+                                    help='No chart margin line.')
 
         argumentparser.add_argument('--font', dest='font', action='store', default='Arial',
                                     help='Font (Arial)')
@@ -399,7 +400,7 @@ if __name__ == '__main__':
 
     used_catalogs = UsedCatalogs(data_dir,
                                  extra_data_dir=settings.parser.extra_data_dir,
-                                 limiting_magnitude_deepsky=settings.parser.limiting_magnitude_deepsky,
+                                 limit_magnitude_deepsky=settings.parser.limit_magnitude_deepsky,
                                  force_messier=settings.parser.force_messier,
                                  force_asterisms=settings.parser.force_asterisms,
                                  force_unknown=settings.parser.force_unknown,
@@ -411,8 +412,8 @@ if __name__ == '__main__':
     print(str(len(used_catalogs.reduced_deeplist))+'/'+str(len(used_catalogs.deeplist))+' deepsky objects after magnitude/messier selection.')
 
     print('Making maps with: ')
-    print('   Deep sky lm    : ' + str(settings.parser.limiting_magnitude_deepsky))
-    print('   Stellar lm     : ' + str(settings.parser.limiting_magnitude_stars))
+    print('   Deep sky limit : ' + str(settings.parser.limit_magnitude_deepsky))
+    print('   Stellar limit  : ' + str(settings.parser.limit_magnitude_stars))
     print('   Fieldsize      : ' + str(settings.parser.fieldsize) + ' degrees')
     print('   Paperwidth     : ' + str(settings.parser.width) + ' mm')
     print('   Output dir     : ' + settings.parser.output_dir)
@@ -443,7 +444,7 @@ if __name__ == '__main__':
                 filename = settings.parser.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.width, format='pdf')
-                engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limiting_magnitude_stars)
+                engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limit_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration())
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
                 engine.set_caption('M '+str(object.messier))
@@ -516,15 +517,23 @@ if __name__ == '__main__':
                     output_format = 'png'
                 elif filename.endswith('.svg'):
                     output_format = 'svg'
+                elif filename.endswith('.tikz'):
+                    output_format = 'tikz'
                 else:
                     output_format = 'pdf'
-                artist = CairoDrawing(filename,
-                                      settings.parser.width,
-                                      settings.parser.width,
-                                      output_format)
+                if output_format == 'tikz':
+                    artist = TikZDrawing(filename,
+                                         settings.parser.width,
+                                         settings.parser.width,
+                                         output_format)
+                else:
+                    artist = CairoDrawing(filename,
+                                          settings.parser.width,
+                                          settings.parser.width,
+                                          output_format)
                 engine = SkymapEngine(artist, settings.language,
-                                      lm_stars=settings.parser.limiting_magnitude_stars,
-                                      lm_deepsky=settings.parser.limiting_magnitude_deepsky)
+                                      lm_stars=settings.parser.limit_magnitude_stars,
+                                      lm_deepsky=settings.parser.limit_magnitude_deepsky)
                 engine.set_configuration(_create_engine_configuration())
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
                 caption = cat + ' ' + name
