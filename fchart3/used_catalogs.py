@@ -31,7 +31,7 @@ from . import deepsky_object as deepsky
 
 
 class UsedCatalogs:
-    def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limiting_magnitude_deepsky=10.0, force_messier=False,
+    def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limit_magnitude_deepsky=10.0, force_messier=False,
                  force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False,
                  enhanced_mw_optim_max_col_diff=None):
         # Read basic catalogs
@@ -52,7 +52,7 @@ class UsedCatalogs:
                 self._messierlist.append(dso)
             if force_messier and dso.messier > 0:
                 self._reduced_deeplist.append(dso)
-            elif dso.mag <= limiting_magnitude_deepsky and \
+            elif dso.mag <= limit_magnitude_deepsky and \
                     dso.master_object is None and \
                     dso.type != deepsky.GALCL and \
                     (dso.type != deepsky.STARS or force_asterisms or (dso.messier > 0 and dso.type == deepsky.STARS)) and \
@@ -199,18 +199,18 @@ class UsedCatalogs:
 
     def _get_deepsky_list(self, data_dir, show_catalogs, use_pgc_catalog):
         all_dsos = {}
-        print('Reading Hnsky...')
+        print('Reading Hnsky...', flush=True)
         hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs, all_dsos)
         if use_pgc_catalog:
-            print('Reading PGC/UGC...')
+            print('Reading PGC/UGC...', flush=True)
             pgclist = import_pgc_deepsky(os.path.join(data_dir, 'PGC.dat'), os.path.join(data_dir, 'PGC_update.dat'), show_catalogs, all_dsos)
         else:
             pgclist = []
-        print('Reading VIC...')
+        print('Reading VIC...', flush=True)
         viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
         deeplist = hnskylist + pgclist + viclist
         deeplist.sort(key=deepsky.cmp_to_key(deepsky.cmp_name))
-        print('Reading DSO outlines...')
+        print('Reading DSO outlines...', flush=True)
         dso_dict = self._get_dso_dict(deeplist)
 
         all_lvl_outlines = import_outlines_catgen(os.path.join(data_dir, 'outlines_catgen.dat'))

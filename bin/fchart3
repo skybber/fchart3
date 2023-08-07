@@ -89,6 +89,8 @@ class RuntimeSettings:
 
         argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
                                     help='Width of the drawing area in mm.')
+        argumentparser.add_argument('-height', dest='height', nargs='?', action='store', default=270.0, type=float,
+                                    help='height of the drawing area in mm.')
         argumentparser.add_argument('-fieldsize', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
 
@@ -192,7 +194,7 @@ class RuntimeSettings:
                                     help='Grid color.')
         argumentparser.add_argument('--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', default=0.5, type=float,
                                     help='Constellation line width (default: 0.5)')
-        argumentparser.add_argument('--linewidth-constellation-border', dest='constellation_border_linewidth', nargs='?', action='store', default=0.5, type=float,
+        argumentparser.add_argument('--linewidth-constellation-border', dest='constellation_border_linewidth', nargs='?', action='store', default=0.3, type=float,
                                     help='Constellation border line width (default: 0.5)')
         argumentparser.add_argument('--linewidth-nebula', dest='nebula_linewidth', nargs='?', action='store', default=0.3, type=float,
                                     help='Line width of nebulae (default: 0.3)')
@@ -416,6 +418,7 @@ if __name__ == '__main__':
     print('   Stellar limit  : ' + str(settings.parser.limit_magnitude_stars))
     print('   Fieldsize      : ' + str(settings.parser.fieldsize) + ' degrees')
     print('   Paperwidth     : ' + str(settings.parser.width) + ' mm')
+    print('   Paperheight    : ' + str(settings.parser.height) + ' mm')
     print('   Output dir     : ' + settings.parser.output_dir)
     print('   Force Messier  : ' + str(settings.parser.force_messier))
     print('   Force asterisms: ' + str(settings.parser.force_asterisms))
@@ -443,7 +446,7 @@ if __name__ == '__main__':
                 artist = None
                 filename = settings.parser.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
-                artist = CairoDrawing(filename, settings.parser.width, settings.parser.width, format='pdf')
+                artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
                 engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limit_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration())
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
@@ -524,12 +527,12 @@ if __name__ == '__main__':
                 if output_format == 'tikz':
                     artist = TikZDrawing(filename,
                                          settings.parser.width,
-                                         settings.parser.width,
+                                         settings.parser.height,
                                          output_format)
                 else:
                     artist = CairoDrawing(filename,
                                           settings.parser.width,
-                                          settings.parser.width,
+                                          settings.parser.height,
                                           output_format)
                 engine = SkymapEngine(artist, settings.language,
                                       lm_stars=settings.parser.limit_magnitude_stars,
