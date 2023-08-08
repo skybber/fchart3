@@ -34,6 +34,7 @@ from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics_cairo import CairoDrawing
 from fchart3.graphics_tikz import TikZDrawing
+from fchart3.graphics_interface import FontStyle
 
 #################################################################
 
@@ -220,6 +221,13 @@ class RuntimeSettings:
         argumentparser.add_argument('--font-size', dest='font_size', type=float, default=3.0,
                                     help='Font size')
 
+        argumentparser.add_argument('--font-style-bayer', dest='font_style_bayer', default='',
+                                    help='Baer designation font style. [italic,bold,italicbold]')
+        argumentparser.add_argument('--font-style-flamsteed', dest='font_style_flamsteed', default='',
+                                    help='Flamsteed designation font style. [italic,bold,italicbold]')
+        argumentparser.add_argument('--font-style-dso', dest='font_style_dso', default='',
+                                    help='DSO designation font style. [italic,bold,italicbold]')
+
         argumentparser.add_argument('--legend_font_scale', dest='legend_font_scale', type=float, default=1.75,
                                     help='Scale of font used in legend related to chart font size.')
 
@@ -303,6 +311,14 @@ def _convert_color(color):
 
     return r, g, b
 
+def _convert_font_style(font_style):
+    if font_style == 'italic':
+        return FontStyle.ITALIC
+    if font_style == 'bold':
+        return FontStyle.BOLD
+    if font_style == 'italicbold':
+        return FontStyle.ITALIC_BOLD
+    return FontStyle.NORMAL
 
 def _create_engine_configuration():
     config = EngineConfiguration()
@@ -336,9 +352,12 @@ def _create_engine_configuration():
     config.show_milky_way = settings.parser.show_milky_way
     config.show_enhanced_milky_way = settings.parser.show_enhanced_milky_way
     config.show_nebula_outlines = settings.parser.show_nebula_outlines
+
     config.fov_telrad = settings.parser.fov_telrad
+
     config.mirror_x = settings.parser.mirror_x
     config.mirror_y = settings.parser.mirror_y
+
     config.star_colors = settings.parser.star_colors
     config.background_color = _convert_color(settings.parser.background_color)
     config.draw_color = _convert_color(settings.parser.draw_color)
@@ -365,6 +384,9 @@ def _create_engine_configuration():
     config.font = settings.parser.font
     config.font_size = settings.parser.font_size
     config.legend_font_scale = settings.parser.legend_font_scale
+    config.bayer_label_font_style = _convert_font_style(settings.parser.font_style_bayer)
+    config.flamsteed_label_font_style = _convert_font_style(settings.parser.font_style_flamsteed)
+    config.dso_label_font_style = _convert_font_style(settings.parser.font_style_dso)
 
     if config.show_enhanced_milky_way:
         mw_scale_fac = 3.0

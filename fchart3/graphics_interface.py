@@ -33,6 +33,11 @@ class DrawMode(Enum):
     FILL = 2
     BOTH = 3
 
+class FontStyle(Enum):
+    NORMAL = 0
+    ITALIC = 1
+    BOLD = 2
+    ITALIC_BOLD = 3
 
 def paper_A(n):
     """
@@ -51,7 +56,7 @@ class GraphicsInterface:
     gi_height      height of drawing in mm
     gi_linewidth   width of the pen line in mm
     gi_font        name of the default font
-    gi_fontsize    height of the font in mm
+    gi_font_size    height of the font in mm
     gi_origin_x    horizontal position of the user coordinate system relative
                    to the bottom left corner of the drawing.
     gi_origin_y    vertical position of the user coordinate system relative
@@ -72,9 +77,10 @@ class GraphicsInterface:
         self.gi_origin_x = self.gi_width/2.0
         self.gi_origin_y = self.gi_height/2.0
         self.gi_font = 'Times-Roman'
+        self.gi_font_style = 0
         self.set_point_size(POINT)
         self.pointsize = None
-        self.gi_fontsize = None
+        self.gi_font_size = None
 
         self.gi_fobj = ''
         self.gi_stack = []
@@ -82,7 +88,7 @@ class GraphicsInterface:
 
     def set_point_size(self, pointsize):
         self.pointsize = pointsize
-        self.gi_fontsize = 12*self.pointsize
+        self.gi_font_size = 12*self.pointsize
 
     def get_default_fontsize(self):
         return 12*self.pointsize
@@ -94,7 +100,8 @@ class GraphicsInterface:
         self.gi_stack.append((self.gi_linewidth,
                               self.gi_dash_style,
                               self.gi_font,
-                              self.gi_fontsize,
+                              self.gi_font_size,
+                              self.gi_font_style,
                               self.gi_fill_rgb,
                               self.gi_pen_rgb))
 
@@ -105,7 +112,8 @@ class GraphicsInterface:
         (self.gi_linewidth,
          self.gi_dash_style,
          self.gi_font,
-         self.gi_fontsize,
+         self.gi_font_size,
+         self.gi_font_style,
          self.gi_fill_rgb,
          self.gi_pen_rgb) = self.gi_stack.pop()
 
@@ -172,19 +180,22 @@ class GraphicsInterface:
         """
         self.gi_dash_style = ([on, off], start)
 
-    def set_font(self, font='Times-Roman', fontsize=None):
+    def set_font(self, font='Times-Roman', font_size=None, font_style=FontStyle.NORMAL):
         """
         \"font\" is the fontname (a string)
         \"fontsize\" the fontsize in mm.
+        \"font_style\" the fonr style
 
         This method must be extended by derived classes, not overriden. It sets
-        gi_font and gi_fontsize. In order to set a 12 point Helvetica font, use:
+        gi_font and gi_font_size. In order to set a 12 point Helvetica font, use:
         GI.set_font('Helvetica', 12*POINT)
         """
-        if fontsize is None:
-            fontsize = self.get_default_fontsize()
+        if font_size is None:
+            font_size = self.get_default_fontsize()
         self.gi_font = font
-        self.gi_fontsize = fontsize
+        self.gi_font_size = font_size
+        self.gi_font_style = font_style
+
 
     def translate(self, dx, dy):
         """

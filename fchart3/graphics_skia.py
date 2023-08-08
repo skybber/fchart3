@@ -18,7 +18,7 @@
 import skia
 from math import pi
 
-from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode
+from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode, FontStyle
 
 DPI_IMG = 100.0
 DPMM_IMG = DPI_IMG/INCH
@@ -97,11 +97,11 @@ class SkiaDrawing(GraphicsInterface):
         GraphicsInterface.restore(self)
         self.canvas.restore()
 
-    def set_font(self, font='Arial', fontsize=12*POINT):
-        old_size = self.gi_fontsize
-        GraphicsInterface.set_font(self, font, fontsize)
-        if self.font_default is None or old_size != fontsize:
-            self.font_default = skia.Font(skia.Typeface('NotoSans'), fontsize)
+    def set_font(self, font='Arial', font_size=12*POINT, font_style=FontStyle.NORMAL):
+        old_size = self.gi_font_size
+        GraphicsInterface.set_font(self, font, font_size, font_style)
+        if self.font_default is None or old_size != font_size:
+            self.font_default = skia.Font(skia.Typeface('NotoSans'), font_size)
 
     def set_linewidth(self, linewidth):
         GraphicsInterface.set_linewidth(self, linewidth)

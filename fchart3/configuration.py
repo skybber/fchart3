@@ -15,6 +15,8 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from fchart3.graphics_interface import FontStyle
+
 DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_CONSTELLATION_LINE_SPACE = 3
 DEFAULT_CONSTELLATION_BORDER_LINEWIDTH = 0.2
@@ -120,7 +122,10 @@ class EngineConfiguration:
         self._picker_color = DEFAULT_PICKER_COLOR
         self._ext_label_font_scale = DEFAULT_EXT_LABEL_FONT_SCALE
         self._bayer_label_font_scale = DEFAULT_BAYER_LABEL_FONT_SCALE
+        self._bayer_label_font_style = FontStyle.NORMAL
         self._flamsteed_label_font_scale = DEFAULT_FLAMSTEED_LABEL_FONT_SCALE
+        self._flamsteed_label_font_style = FontStyle.NORMAL
+        self._dso_label_font_style = FontStyle.NORMAL
         self._outlined_dso_label_font_scale = DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE
         self._highlight_label_font_scale = DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE
         self._star_mag_shift = 0
@@ -645,12 +650,36 @@ class EngineConfiguration:
         self._bayer_label_font_scale = value
 
     @property
+    def bayer_label_font_style(self):
+        return self._bayer_label_font_style
+
+    @bayer_label_font_style.setter
+    def bayer_label_font_style(self, value):
+        self._bayer_label_font_style = value
+
+    @property
     def flamsteed_label_font_scale(self):
         return self._flamsteed_label_font_scale
 
     @flamsteed_label_font_scale.setter
     def flamsteed_label_font_scale(self, value):
         self._flamsteed_label_font_scale = value
+
+    @property
+    def flamsteed_label_font_style(self):
+        return self._flamsteed_label_font_style
+
+    @flamsteed_label_font_style.setter
+    def flamsteed_label_font_style(self, value):
+        self._flamsteed_label_font_style = value
+
+    @property
+    def dso_label_font_style(self):
+        return self._dso_label_font_style
+
+    @dso_label_font_style.setter
+    def dso_label_font_style(self, value):
+        self._dso_label_font_style = value
 
     @property
     def outlined_dso_label_font_scale(self):

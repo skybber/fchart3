@@ -20,7 +20,7 @@ from math import pi
 import cairo
 import PIL.Image as Image
 
-from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode
+from fchart3.graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode, FontStyle
 
 DPI_IMG = 100.0
 DPMM_IMG = DPI_IMG/INCH
@@ -107,13 +107,15 @@ class CairoDrawing(GraphicsInterface):
         GraphicsInterface.restore(self)
         self.context.restore()
 
-    def set_font(self, font='Arial', fontsize=12*POINT):
-        GraphicsInterface.set_font(self, font, fontsize)
-        self.context.set_font_size(self.gi_fontsize)
+    def set_font(self, font='Arial', font_size=12*POINT, font_style=FontStyle.NORMAL):
+        GraphicsInterface.set_font(self, font, font_size, font_style)
+        self.context.set_font_size(self.gi_font_size)
+        cairo_slant = cairo.FONT_SLANT_ITALIC if (self.gi_font_style & FontStyle.ITALIC.value) != 0 else cairo.FONT_SLANT_NORMAL
+        cairo_weight = cairo.FONT_WEIGHT_BOLD if (self.gi_font_style & FontStyle.BOLD.value) != 0 else cairo.FONT_WEIGHT_NORMAL
         if isinstance(font, cairo.FontFace):
             self.context.set_font_face(font)
         else:
-            self.context.select_font_face(self.gi_font, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+            self.context.select_font_face(self.gi_font, cairo_slant, cairo_weight)
 
     def set_linewidth(self, linewidth):
         GraphicsInterface.set_linewidth(self,linewidth)

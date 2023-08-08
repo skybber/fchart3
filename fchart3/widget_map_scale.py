@@ -76,9 +76,9 @@ class WidgetMapScale:
                       x - lw/2.0, y + 0.5*fh)
         graphics.line(x - self.ruler_length + lw/2.0, y - 0.5*fh,
                       x - self.ruler_length + lw/2.0, y + 0.5*fh)
-        old_fontsize = graphics.gi_fontsize
+        old_fontsize = graphics.gi_font_size
         graphics.set_font(graphics.gi_font, fh)
-        graphics.text_centred(x - self.ruler_length/2.0, y + graphics.gi_fontsize*2/3.0, self.ruler_label)
+        graphics.text_centred(x - self.ruler_length/2.0, y + graphics.gi_font_size*2/3.0, self.ruler_label)
 
         graphics.set_font(graphics.gi_font, old_fontsize)
 
