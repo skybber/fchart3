@@ -55,12 +55,15 @@ GREEK_TO_LATEX = {
 def _cm(v):
     return v / 10.0
 
+
 def _to_latex_text(t):
     latex = [GREEK_TO_LATEX.get(c, c) for c in t]
     return ''.join(latex)
 
+
 def _to_tikz_color(rgb):
     return '{{ rgb,1:red,{:.3f};green,{:.3f};blue,{:.3f} }}'.format(rgb[0], rgb[1], rgb[2])
+
 
 class TikZDrawing(GraphicsInterface):
     """
@@ -237,7 +240,6 @@ class TikZDrawing(GraphicsInterface):
             code |= 8
         return code
 
-
     def _flush_scope(self):
         if len(self.scope_stack)>0:
             scope = self.scope_stack[-1]
@@ -259,5 +261,3 @@ class TikZDrawing(GraphicsInterface):
         if self.gi_font_style == FontStyle.ITALIC_BOLD:
             return '\\itshape\\bfseries'
         return ''
-
-

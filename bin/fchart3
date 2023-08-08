@@ -227,6 +227,8 @@ class RuntimeSettings:
                                     help='Flamsteed designation font style. [italic,bold,italicbold]')
         argumentparser.add_argument('--font-style-dso', dest='font_style_dso', default='',
                                     help='DSO designation font style. [italic,bold,italicbold]')
+        argumentparser.add_argument('--flamsteed-numbers-only', dest='flamsteed_numbers_only', action='store_true',
+                                    help='Show flamsteed designation without constellation prefix.')
 
         argumentparser.add_argument('--legend_font_scale', dest='legend_font_scale', type=float, default=1.75,
                                     help='Scale of font used in legend related to chart font size.')
@@ -339,6 +341,7 @@ def _create_engine_configuration():
     config.show_milky_way = False
     config.show_enhanced_milky_way = False
     config.show_nebula_outlines = False
+    config.flamsteed_numbers_only = False
 
     config.show_star_labels = settings.parser.show_star_labels
     config.show_flamsteed = settings.parser.show_flamsteed
@@ -387,6 +390,7 @@ def _create_engine_configuration():
     config.bayer_label_font_style = _convert_font_style(settings.parser.font_style_bayer)
     config.flamsteed_label_font_style = _convert_font_style(settings.parser.font_style_flamsteed)
     config.dso_label_font_style = _convert_font_style(settings.parser.font_style_dso)
+    config.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
 
     if config.show_enhanced_milky_way:
         mw_scale_fac = 3.0

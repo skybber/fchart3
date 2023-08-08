@@ -129,6 +129,7 @@ class EngineConfiguration:
         self._outlined_dso_label_font_scale = DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE
         self._highlight_label_font_scale = DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE
         self._star_mag_shift = 0
+        self._flamsteed_numbers_only = False
 
     @property
     def legend_only(self):
@@ -696,3 +697,11 @@ class EngineConfiguration:
     @highlight_label_font_scale.setter
     def highlight_label_font_scale(self, value):
         self._highlight_label_font_scale = value
+
+    @property
+    def flamsteed_numbers_only(self):
+        return self._flamsteed_numbers_only
+
+    @flamsteed_numbers_only.setter
+    def flamsteed_numbers_only(self, value):
+        self._flamsteed_numbers_only = value

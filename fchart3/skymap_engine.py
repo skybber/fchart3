@@ -749,7 +749,8 @@ class SkymapEngine:
                                 labelpos = -1
                             elif self.config.show_flamsteed:
                                 slabel = bsc_star.flamsteed
-
+                                if slabel and self.config.flamsteed_numbers_only:
+                                    slabel = slabel.split()[0]
                         if slabel:
                             label_length = self.graphics.text_width(slabel)
                             labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
@@ -805,6 +806,8 @@ class SkymapEngine:
                 slabel = star.greek
                 if not slabel and self.config.show_flamsteed:
                     slabel = star.flamsteed
+                    if slabel and self.config.flamsteed_numbers_only:
+                        slabel = slabel.split()[0]
                 if slabel:
                     printed_labels = printed.setdefault(star.constellation, set())
                     if slabel not in printed_labels:
