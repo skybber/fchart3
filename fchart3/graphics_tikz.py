@@ -169,6 +169,16 @@ class TikZDrawing(GraphicsInterface):
             color_pen = _to_tikz_color(self.gi_pen_rgb)
             self.fobj.write('\\draw[color={},fill={}] {} -- cycle;\n'.format(color_pen, color_fill, tikz_vertices))
 
+    def polyline(self, vertices):
+        self._flush_scope()
+        tikz_vertices = ['({:.3f},{:.3f})'.format(_cm(v[0]), _cm(v[1])) for v in vertices]
+        tikz_vertices = ' -- '.join(tikz_vertices)
+        color = _to_tikz_color(self.gi_pen_rgb)
+        if  self.gi_dash_style is None:
+            self.fobj.write('\\draw[line width={:.3f}mm,color={}] {};\n'.format(self.gi_linewidth, color, tikz_vertices))
+        else:
+            self.fobj.write('\\draw[line width={:.3f}mm,mydashed,color={}] {};\n'.format(self.gi_linewidth, color, tikz_vertices))
+
     def ellipse(self, x, y, rlong, rshort, posangle, mode=DrawMode.BORDER):
         self.save()
         self.translate(x, y)

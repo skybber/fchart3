@@ -548,7 +548,7 @@ class SkymapEngine:
         # Draw extra objects
         # print('Drawing extra objects...')
         for rax, decx, label, labelpos in extra_positions:
-            x, y, z = radec_to_xy(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x, y, z = radec_to_xyz(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
             if z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
@@ -1042,6 +1042,9 @@ class SkymapEngine:
 
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
+        wh_frac = max(self.drawingwidth, self.drawingheight) / 50
+        max_angle2 = (1 / 180 * np.pi)
+
         for index1, index2, cons1, cons2 in constell_catalog.boundaries_lines:
             if z[index1] > 0 and z[index2] > 0:
                 if hl_constellation and (hl_constellation == cons1 or hl_constellation == cons2):
@@ -1051,9 +1054,66 @@ class SkymapEngine:
                     self.graphics.set_pen_rgb(self.config.constellation_border_color)
                     self.graphics.set_linewidth(self.config.constellation_border_linewidth)
 
-                self.mirroring_graphics.line(x[index1], y[index1], x[index2], y[index2])
+                x_start, y_start = x[index1], y[index1]
+                x_end, y_end = x[index2], y[index2]
+
+                c1 = self.cohen_sutherland_encode(x_start, y_start)
+                c2 = self.cohen_sutherland_encode(x_end, y_end)
+                if (c1 | c2) == 0 or (c1 & c2) == 0:
+                    ra_start, dec_start = constell_boundaries[index1]
+                    ra_end, dec_end = constell_boundaries[index2]
+
+                    divisions = self.calc_boundary_divisions(1, wh_frac, max_angle2, x_start, y_start, x_end, y_end, ra_start, dec_start, ra_end, dec_end)
+
+                    if divisions == 1:
+                        self.mirroring_graphics.line(x_start, y_start, x_end, y_end)
+                    else:
+                        if abs(ra_end-ra_start) > np.pi:
+                            d_ra = (ra_end - (ra_start + 2*np.pi)) / divisions
+                        else:
+                            d_ra = (ra_end - ra_start) / divisions
+                        d_dec = (dec_end - dec_start) / divisions
+
+                        vertices = [(x_start, y_start)]
+                        ra1, dec1 = ra_start, dec_start
+
+                        for i in range(divisions-1):
+                            ra2 = ra1 + d_ra
+                            dec2 = dec1 + d_dec
+                            x2, y2 = radec_to_xy(ra2, dec2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                            vertices.append((x2, y2))
+                            ra1, dec1 = ra2, dec2
+                        vertices.append((x_end, y_end))
+                        self.mirroring_graphics.polyline(vertices)
 
         self.graphics.restore()
+
+    def calc_boundary_divisions(self, divs, wh_frac, max_angle2, x1, y1, x2, y2, ra1, dec1, ra2, dec2):
+        if abs(x2-x1) < wh_frac and abs(y2-y1) < wh_frac:
+            return divs
+
+        if abs(ra2-ra1) > np.pi:
+            ra_center = np.pi + (ra1 + ra2) / 2
+        else:
+            ra_center = (ra1 + ra2) / 2
+        dec_center = (dec1 + dec2) /2
+
+        x_center, y_center = radec_to_xy(ra_center, dec_center, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+
+        vx1 = x_center - x1
+        vy1 = y_center - y1
+        vx2 = x2 - x_center
+        vy2 = y2 - y_center
+
+        vec_mul2 = (vx1 * vy2 - vy1 * vx2) / (math.sqrt(vx1**2 + vy1**2) * math.sqrt(vx2**2 + vy2**2))
+
+        # self.mirroring_graphics.circle(x_center, y_center, 3, DrawMode.BORDER)
+        # self.mirroring_graphics.text_centred(x_center, y_center, str(vec_mul2))
+
+        if abs(vec_mul2) < max_angle2:
+            return divs
+
+        return self.calc_boundary_divisions(divs * 2, wh_frac, max_angle2, x1, y1, x_center, y_center, ra1, dec1, ra_center, dec_center)
 
     def make_map(self, used_catalogs, jd=None, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
                  extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,
@@ -1792,3 +1852,15 @@ class SkymapEngine:
         if y1 > y2:
             y1, y2 = y2, y1
         return x1, y1, x2, y2
+
+    def cohen_sutherland_encode(self, x, y):
+        code = 0
+        if x < -self.drawingwidth/2:
+            code |= 1
+        if x > self.drawingwidth/2:
+            code |= 2
+        if y > self.drawingheight/2:
+            code |= 4
+        if y < -self.drawingheight/2:
+            code |= 8
+        return code

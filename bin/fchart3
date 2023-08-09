@@ -222,11 +222,11 @@ class RuntimeSettings:
                                     help='Font size')
 
         argumentparser.add_argument('--font-style-bayer', dest='font_style_bayer', default='',
-                                    help='Baer designation font style. [italic,bold,italicbold]')
+                                    help='Baer designation font style. [italic,bold]')
         argumentparser.add_argument('--font-style-flamsteed', dest='font_style_flamsteed', default='',
-                                    help='Flamsteed designation font style. [italic,bold,italicbold]')
+                                    help='Flamsteed designation font style. [italic,bold]')
         argumentparser.add_argument('--font-style-dso', dest='font_style_dso', default='',
-                                    help='DSO designation font style. [italic,bold,italicbold]')
+                                    help='DSO designation font style. [italic,bold]')
         argumentparser.add_argument('--flamsteed-numbers-only', dest='flamsteed_numbers_only', action='store_true',
                                     help='Show flamsteed designation without constellation prefix.')
 
@@ -318,8 +318,6 @@ def _convert_font_style(font_style):
         return FontStyle.ITALIC
     if font_style == 'bold':
         return FontStyle.BOLD
-    if font_style == 'italicbold':
-        return FontStyle.ITALIC_BOLD
     return FontStyle.NORMAL
 
 def _create_engine_configuration():

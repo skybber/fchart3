@@ -232,7 +232,13 @@ class GraphicsInterface:
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
         """
-        Draw a circle with specified vertices
+        Draw a poligon with specified vertices
+        """
+        pass
+
+    def polyline(self, vertices):
+        """
+        Draw a polyline with specified vertices
         """
         pass
 

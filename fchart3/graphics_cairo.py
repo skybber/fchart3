@@ -110,8 +110,8 @@ class CairoDrawing(GraphicsInterface):
     def set_font(self, font='Arial', font_size=12*POINT, font_style=FontStyle.NORMAL):
         GraphicsInterface.set_font(self, font, font_size, font_style)
         self.context.set_font_size(self.gi_font_size)
-        cairo_slant = cairo.FONT_SLANT_ITALIC if (self.gi_font_style & FontStyle.ITALIC.value) != 0 else cairo.FONT_SLANT_NORMAL
-        cairo_weight = cairo.FONT_WEIGHT_BOLD if (self.gi_font_style & FontStyle.BOLD.value) != 0 else cairo.FONT_WEIGHT_NORMAL
+        cairo_slant = cairo.FONT_SLANT_ITALIC if (self.gi_font_style == FontStyle.ITALIC) != 0 else cairo.FONT_SLANT_NORMAL
+        cairo_weight = cairo.FONT_WEIGHT_BOLD if (self.gi_font_style == FontStyle.BOLD) != 0 else cairo.FONT_WEIGHT_NORMAL
         if isinstance(font, cairo.FontFace):
             self.context.set_font_face(font)
         else:
@@ -145,6 +145,12 @@ class CairoDrawing(GraphicsInterface):
         self._moveto(x+r, y)
         self.context.arc(x, -y, r, 0, 2.0*pi)
         self._draw_element(mode)
+
+    def polyline(self, vertices):
+        self.context.move_to(vertices[0][0], -vertices[0][1])
+        for i in range(1, len(vertices)):
+            self.context.line_to(vertices[i][0], -vertices[i][1])
+        self._draw_element(DrawMode.BORDER)
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
         self.context.move_to(vertices[0][0], -vertices[0][1])

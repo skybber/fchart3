@@ -139,6 +139,14 @@ class SkiaDrawing(GraphicsInterface):
         self._set_color_and_stroke_style(self.paint_default, mode)
         self.canvas.drawPath(path, self.paint_default)
 
+    def polyline(self, vertices):
+        path = skia.Path()
+        path.moveTo(vertices[0][0], -vertices[0][1])
+        for v in vertices[1:]:
+            path.lineTo(v[0], -v[1])
+        self._set_color_and_stroke_style(self.paint_default)
+        self.canvas.drawPath(path, self.paint_default)
+
     def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):
         self.canvas.save()
         paint = self._get_paint()
