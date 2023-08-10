@@ -726,8 +726,7 @@ class SkymapEngine:
         star_labels = []
         pick_min_r = pick_r**2
         x1, y1, x2, y2 = self.get_field_rect_mm()
-        for i in range(len(indices)):
-            index = indices[i]
+        for i, index in enumerate(indices):
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
             if (xx >= x1-rr) and (xx <= x2+rr) and (yy >= y1-rr) and (yy <= y2+rr):
                 if self.config.show_star_circles:
@@ -1042,7 +1041,7 @@ class SkymapEngine:
 
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
-        wh_frac = max(self.drawingwidth, self.drawingheight) / 50
+        wh_min = 2.5
         max_angle2 = (1 / 180 * np.pi)
 
         for index1, index2, cons1, cons2 in constell_catalog.boundaries_lines:
@@ -1057,18 +1056,20 @@ class SkymapEngine:
                 x_start, y_start = x[index1], y[index1]
                 x_end, y_end = x[index2], y[index2]
 
-                c1 = self.cohen_sutherland_encode(x_start, y_start)
-                c2 = self.cohen_sutherland_encode(x_end, y_end)
-                if (c1 | c2) == 0 or (c1 & c2) == 0:
-                    ra_start, dec_start = constell_boundaries[index1]
-                    ra_end, dec_end = constell_boundaries[index2]
+                ra_start, dec_start = constell_boundaries[index1]
+                ra_end, dec_end = constell_boundaries[index2]
 
-                    divisions = self.calc_boundary_divisions(1, wh_frac, max_angle2, x_start, y_start, x_end, y_end, ra_start, dec_start, ra_end, dec_end)
+                divisions = self.calc_boundary_divisions(1, 1, wh_min, max_angle2, x_start, y_start, x_end, y_end, ra_start, dec_start, ra_end, dec_end)
 
+                if divisions > 0:
                     if divisions == 1:
                         self.mirroring_graphics.line(x_start, y_start, x_end, y_end)
                     else:
                         if abs(ra_end-ra_start) > np.pi:
+                            if ra_end < ra_start:
+                                ra_start, ra_end = ra_end, ra_start
+                                dec_start, dec_end = dec_end, dec_start
+                                x_start, y_start, x_end, y_end = x_end, y_end, x_start, y_start
                             d_ra = (ra_end - (ra_start + 2*np.pi)) / divisions
                         else:
                             d_ra = (ra_end - ra_start) / divisions
@@ -1078,8 +1079,8 @@ class SkymapEngine:
                         ra1, dec1 = ra_start, dec_start
 
                         for i in range(divisions-1):
-                            ra2 = ra1 + d_ra
                             dec2 = dec1 + d_dec
+                            ra2 = ra1 + d_ra
                             x2, y2 = radec_to_xy(ra2, dec2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
                             vertices.append((x2, y2))
                             ra1, dec1 = ra2, dec2
@@ -1088,8 +1089,9 @@ class SkymapEngine:
 
         self.graphics.restore()
 
-    def calc_boundary_divisions(self, divs, wh_frac, max_angle2, x1, y1, x2, y2, ra1, dec1, ra2, dec2):
-        if abs(x2-x1) < wh_frac and abs(y2-y1) < wh_frac:
+    def calc_boundary_divisions(self, level, divs, wh_min, max_angle2, x1, y1, x2, y2, ra1, dec1, ra2, dec2):
+        if abs(x2-x1) < wh_min and abs(y2-y1) < wh_min:
+            # self.mirroring_graphics.text_centred((x1+x2)/2, (y1+y2)/2, '{:.1f}'.format(max(abs(x2-x1), abs(y2-y1))))
             return divs
 
         if abs(ra2-ra1) > np.pi:
@@ -1100,6 +1102,14 @@ class SkymapEngine:
 
         x_center, y_center = radec_to_xy(ra_center, dec_center, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
+        if level == 1:
+            c1 = self.cohen_sutherland_encode(x1, x_center)
+            c2 = self.cohen_sutherland_encode(y1, y_center)
+            c3 = self.cohen_sutherland_encode(x_center, x2)
+            c4 = self.cohen_sutherland_encode(y_center, y2)
+            if (c1 | c2) != 0 and (c1 & c2) != 0 and (c3 | c4) != 0 and (c3 & c4) != 0:
+                return 0
+
         vx1 = x_center - x1
         vy1 = y_center - y1
         vx2 = x2 - x_center
@@ -1107,13 +1117,10 @@ class SkymapEngine:
 
         vec_mul2 = (vx1 * vy2 - vy1 * vx2) / (math.sqrt(vx1**2 + vy1**2) * math.sqrt(vx2**2 + vy2**2))
 
-        # self.mirroring_graphics.circle(x_center, y_center, 3, DrawMode.BORDER)
-        # self.mirroring_graphics.text_centred(x_center, y_center, str(vec_mul2))
-
         if abs(vec_mul2) < max_angle2:
             return divs
 
-        return self.calc_boundary_divisions(divs * 2, wh_frac, max_angle2, x1, y1, x_center, y_center, ra1, dec1, ra_center, dec_center)
+        return self.calc_boundary_divisions(level+1, divs * 2, wh_min, max_angle2, x1, y1, x_center, y_center, ra1, dec1, ra_center, dec_center)
 
     def make_map(self, used_catalogs, jd=None, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
                  extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,
