@@ -74,58 +74,58 @@ class RuntimeSettings:
               )
 
         argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', default='./',
-                                    help='Specify the output directory (default: .)')
+                                    help='Specify the output directory (default: current directory)')
 
         argumentparser.add_argument('-f', '--output-file', dest='output_file', nargs='?', action='store',
-                                    help='Specify output file name. (default: name of dso object). Image format is defined by extension.' +\
-                                         'Supported format/extensions are pdf, png and svg.')
+                                    help='Specify the output file name. (default: name of DSO object). ' +\
+                                         'The image format is defined by the file extension. ' +\
+                                         'Supported formats/extensions are pdf, png, and svg.')
 
         argumentparser.add_argument('--extra-data-dir', dest='extra_data_dir', nargs='?', action='store',
-                                    help='Path to extra data files (Stellarium star catalogues)')
+                                    help='Path to extra data directory containing Stellarium star catalogues.')
 
         argumentparser.add_argument('-limdso', dest='limit_magnitude_deepsky', nargs='?', action='store', default=12.0, type=float,
-                                    help='Deepsky limit magnitude (default: 12.0)')
+                                    help='Limiting magnitude for deep sky objects (default: 12.0)')
         argumentparser.add_argument('-limstar', dest='limit_magnitude_stars', nargs='?', action='store', default=12.0, type=float,
-                                    help='Stellar limit magnitude (default: 12.0)')
-
+                                    help='Limiting magnitude for stars. (Default: 12.0)')
         argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
-                                    help='Width of the drawing area in mm.')
+                            help='Width of the drawing area in millimeters.')
         argumentparser.add_argument('-height', dest='height', nargs='?', action='store', default=270.0, type=float,
-                                    help='height of the drawing area in mm.')
+                                    help='Height of the drawing area in millimeters.')
         argumentparser.add_argument('-fieldsize', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
 
         argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
-                                    help='Select all Messier objects, regardless of the limiting magnitude for deepsky objects')
+                                    help='Select all Messier objects, regardless of the limiting magnitude for deep sky objects.')
         argumentparser.add_argument('-fasterism', '--force-asterisms', dest='force_asterisms', action='store_true',
-                                    help='Force plotting of  asterisms in map. By default, only \"Messier\" asterisms are plotted.' + \
-                                          'All others are ignored. The default setting helps cleaning up especially Virgo cluster maps.')
+                                    help='Force plotting of asterisms on the map. By default, only "Messier" asterisms are plotted,' + \
+                                         ' while all others are ignored. The default setting helps clean up maps, especially in the Virgo cluster region.')
         argumentparser.add_argument('-funknown', '--force-unknown', dest='force_unknown', action='store_true',
-                                    help='By default, objects in external galaxies are plotted only if their magnitude is known and lower than ' +\
-                                         'the limiting magnitude of deepsky objects. If this option is given, also objects in external galaxies ' +\
-                                         'of which the magnitude is not known are plotted. This option will clutter some galaxies like M 101 and ' +\
-                                         'NGC 4559.')
+                                    help='By default, objects in external galaxies are plotted only if their magnitude is known and is lower than ' + \
+                                         'the limiting magnitude for deep sky objects. If this option is given, objects in external galaxies ' + \
+                                         'of which the magnitude is unknown will also be plotted. This option may clutter some galaxies like M 101 ' + \
+                                         'and NGC 4559.')
 
         argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
-                                    help='Specify language on the maps, either \'en\' or \'nl\' or \'es\' (default: en)')
+                                    help='Specify the language for the maps, options: \'en\', \'nl\', \'es\' (default: en)')
 
         argumentparser.add_argument('-sc', '--show-catalogs', dest='show_catalogs', nargs='?', action='store',
                                     help='Comma separated list of additional catalogs to be show on the map. (e.g. LBN).')
 
         argumentparser.add_argument('-x', '--add-cross', dest='cross_marks', nargs='?', action='append',
-                                    help='Add a cross in the map at a specified position. The format of the argument of this option is: ' +\
-                                         '\"rah:ram:ras,+/-decd:decm:decs,label,labelposition\" For example: -x\"20:35:25.4,+60:07:17.7,SN,t\" for ' +\
-                                         'the supernova sn2004et in NGC 6946. The label position can be \'t\' for top, \'b\' for bottom, \'l\' for ' +\
+                                    help='Add a cross to the map at a specified position. The format of the argument for this option is: ' + \
+                                         '\"rah:ram:ras,+/-decd:decm:decs,label,labelposition\". For example: -x\"20:35:25.4,+60:07:17.7,SN,t\" for ' + \
+                                         'the supernova sn2004et in NGC 6946. The label position can be \'t\' for top, \'b\' for bottom, \'l\' for ' + \
                                          'left, or \'r\' for right. The label and label position may be omitted.')
 
         argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default='',
-                                    help='Force a specific caption for the maps. All maps will get the same caption.')
+                                    help='Force a specific caption for the maps. All maps will have the same caption.')
 
         argumentparser.add_argument('--hide-star-labels', dest='show_star_labels', action='store_false',
                                     help='Hide star labels.')
 
         argumentparser.add_argument('--hide-flamsteed', dest='show_flamsteed', action='store_false',
-                                    help='Hide Flamsteed designation.')
+                                    help='Hide Flamsteed designations.')
 
         argumentparser.add_argument('--hide-mag-scale-legend', dest='show_mag_scale_legend', action='store_false',
                                     help='Hide magnitude scale legend.')
@@ -133,53 +133,54 @@ class RuntimeSettings:
         argumentparser.add_argument('--hide-map-scale-legend', dest='show_map_scale_legend', action='store_false',
                                     help='Hide map scale legend.')
 
-        argumentparser.add_argument('--hide-map-orientation-legend', dest='show_orientation_legend', action='store_false',
+        argumentparser.add_argument('--hide-map-orientation-legend', dest='show_orientation_legend',
+                                    action='store_false',
                                     help='Hide orientation legend.')
 
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true',
-                                    help='Show deepsky object legend.')
+                                    help='Show deep-sky object legend.')
 
         argumentparser.add_argument('--show-equatorial-grid', dest='show_equatorial_grid', action='store_true',
                                     help='Show equatorial grid.')
 
         argumentparser.add_argument('--show-milky-way', dest='show_milky_way', action='store_true',
-                                    help='Show milky way.')
+                                    help='Show Milky Way.')
 
         argumentparser.add_argument('--show-enhanced-milky-way', dest='show_enhanced_milky_way', action='store_true',
-                                    help='Show enhanced milky way.')
+                                    help='Show enhanced Milky Way.')
 
         argumentparser.add_argument('--show-nebula-outlines', dest='show_nebula_outlines', action='store_true',
                                     help='Show nebula outlines.')
 
         argumentparser.add_argument('--show-coords-legend', dest='show_coords_legend', action='store_true',
-                                    help='Show coordinations legend.')
+                                    help='Show coordinates legend.')
 
         argumentparser.add_argument('--hide-field-border', dest='show_field_border', action='store_false',
-                                    help='Hide field border.')
+                                    help='Hide the field border.')
 
         argumentparser.add_argument('--FOV-telrad', dest='fov_telrad', action='store_true',
-                                    help='Show telrad circles at FOV.')
+                                    help='Show telrad circles at the field of view.')
 
         # Transformation
         argumentparser.add_argument('-mx', '--mirror-x', dest='mirror_x', action='store_true',
-                                    help='Mirror in x axis.')
+                                    help='Mirror in the x-axis.')
         argumentparser.add_argument('-my', '--mirror-y', dest='mirror_y', action='store_true',
-                                    help='Mirror in y axis.')
+                                    help='Mirror in the y-axis.')
 
         argumentparser.add_argument('--star-colors', dest='star_colors', action='store_true',
-                                    help='Colorify stars according spectral type.')
+                                    help='Color stars according to spectral type.')
         argumentparser.add_argument('--color-background', dest='background_color', action='store', default='#F0F0F0',
-                                    help='Background color. (default white)')
+                                    help='Background color. (default: white)')
         argumentparser.add_argument('--color-draw', dest='draw_color', action='store', default='#000000',
-                                    help='Drawing color for stars. (default black)')
+                                    help='Drawing color for stars. (default: black)')
         argumentparser.add_argument('--color-label', dest='label_color', action='store', default='#202020',
-                                    help='Label color. (default black)')
+                                    help='Label color. (default: black)')
         argumentparser.add_argument('--color-constellation-lines', dest='constellation_lines_color', action='store', default='#80a0c0',
                                     help='Constellation lines color.')
         argumentparser.add_argument('--color-constellation-border', dest='constellation_border_color', action='store', default='#b0a020',
                                     help='Constellation border color.')
         argumentparser.add_argument('--color-deepsky', dest='dso_color', action='store', default='#505050',
-                                    help='Unclassified deepsky color.')
+                                    help='Unclassified deep sky object color.')
         argumentparser.add_argument('--color-nebula', dest='nebula_color', action='store', default='#005000',
                                     help='Nebula color.')
         argumentparser.add_argument('--color-galaxy', dest='galaxy_color', action='store', default='#500000',
@@ -189,7 +190,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--color-galaxy-cluster', dest='galaxy_cluster_color', action='store', default='#505050',
                                     help='Galaxy cluster color.')
         argumentparser.add_argument('--color-milky-way', dest='milky_way_color', action='store', default='#d8d8d8',
-                                    help='Milky way color.')
+                                    help='Milky Way color.')
 
         argumentparser.add_argument('--color-grid', dest='grid_color', action='store', default='#405060',
                                     help='Grid color.')
@@ -200,20 +201,23 @@ class RuntimeSettings:
         argumentparser.add_argument('--linewidth-nebula', dest='nebula_linewidth', nargs='?', action='store', default=0.3, type=float,
                                     help='Line width of nebulae (default: 0.3)')
         argumentparser.add_argument('--linewidth-open-cluster', dest='open_cluster_linewidth', nargs='?', action='store', default=0.3, type=float,
-                                    help='Line width of open cluster (default: 0.3)')
+                                    help='Line width of open clusters (default: 0.3)')
         argumentparser.add_argument('--linewidth-galaxy-cluster', dest='galaxy_cluster_linewidth', nargs='?', action='store', default=0.2, type=float,
-                                    help='Line width of galaxy cluster (default: 0.2)')
+                                    help='Line width of galaxy clusters (default: 0.2)')
         argumentparser.add_argument('--linewidth-deepsky', dest='dso_linewidth', nargs='?', action='store', default=0.2, type=float,
-                                    help='Line width of deepsky object (default: 0.2)')
+                                    help='Line width of deep sky objects (default: 0.2)')
         argumentparser.add_argument('--linewidth-milky-way', dest='milky_way_linewidth', nargs='?', action='store', default=0.2, type=float,
-                                    help='Line width of Milky Way (default: 0.2)')
+                                    help='Line width of the Milky Way (default: 0.2)')
         argumentparser.add_argument('--linewidth-legend', dest='legend_linewidth', nargs='?', action='store', default=0.2, type=float,
-                                    help='Line width of legend (default: 0.2)')
+                                    help='Line width of the legend (default: 0.2)')
         argumentparser.add_argument('--linewidth-grid', dest='grid_linewidth', nargs='?', action='store', default=0.1, type=float,
-                                    help='Line width of equatorial grid (default: 0.1)')
+                                    help='Line width of the equatorial grid (default: 0.1)')
+
+        argumentparser.add_argument('--constellation-line-space', dest='constellation_linespace', nargs='?', action='store', default=1.5, type=float,
+                                    help='Space between star and constellation shape line. (Default: 1.5)')
 
         argumentparser.add_argument('--no-margin', dest='no_margin', action='store_true', default=False,
-                                    help='No chart margin line.')
+                                    help='Do not draw the chart margin line.')
 
         argumentparser.add_argument('--font', dest='font', action='store', default='Arial',
                                     help='Font (Arial)')
@@ -222,18 +226,18 @@ class RuntimeSettings:
                                     help='Font size')
 
         argumentparser.add_argument('--font-style-bayer', dest='font_style_bayer', default='',
-                                    help='Baer designation font style. [italic,bold]')
+                                    help='Bayer designation font style. [italic, bold]')
         argumentparser.add_argument('--font-style-flamsteed', dest='font_style_flamsteed', default='',
-                                    help='Flamsteed designation font style. [italic,bold]')
+                                    help='Flamsteed designation font style. [italic, bold]')
         argumentparser.add_argument('--font-style-dso', dest='font_style_dso', default='',
-                                    help='DSO designation font style. [italic,bold]')
+                                    help='DSO designation font style. [italic, bold]')
         argumentparser.add_argument('--flamsteed-numbers-only', dest='flamsteed_numbers_only', action='store_true',
-                                    help='Show flamsteed designation without constellation prefix.')
+                                    help='Show Flamsteed designations without constellation prefix.')
 
         argumentparser.add_argument('--legend_font_scale', dest='legend_font_scale', type=float, default=1.75,
-                                    help='Scale of font used in legend related to chart font size.')
+                                    help='Scale of the font used in the legend relative to the chart font size.')
 
-        argumentparser.add_argument('-v', '--version', action='store_true', help='display version information and exit.')
+        argumentparser.add_argument('-v', '--version', action='store_true', help='Display version information and exit.')
         argumentparser.add_argument('sourcelist', nargs='*')
 
         self.parser = argumentparser.parse_args()
@@ -373,6 +377,7 @@ def _create_engine_configuration():
     config.milky_way_color = _convert_color(settings.parser.milky_way_color)
     config.grid_color = _convert_color(settings.parser.grid_color)
     config.constellation_linewidth = settings.parser.constellation_linewidth
+    config.constellation_linespace = settings.parser.constellation_linespace
     config.constellation_border_linewidth = settings.parser.constellation_border_linewidth
     config.nebula_linewidth = settings.parser.nebula_linewidth
     config.open_cluster_linewidth = settings.parser.open_cluster_linewidth
