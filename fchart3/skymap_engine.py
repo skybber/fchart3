@@ -1041,7 +1041,9 @@ class SkymapEngine:
 
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
-        wh_min = 2.5
+        wh_min = 2.5 # 2.5mm min interp distance
+        flat_dec = np.pi*75/180 # boundaries can be linearized above 75 deg
+        flat_rac_interp = np.pi*7/180 # some "magic" angle 7 deg.
         max_angle2 = (1 / 180 * np.pi)
 
         for index1, index2, cons1, cons2 in constell_catalog.boundaries_lines:
@@ -1059,33 +1061,45 @@ class SkymapEngine:
                 ra_start, dec_start = constell_boundaries[index1]
                 ra_end, dec_end = constell_boundaries[index2]
 
-                divisions = self.calc_boundary_divisions(1, 1, wh_min, max_angle2, x_start, y_start, x_end, y_end, ra_start, dec_start, ra_end, dec_end)
+                if abs(ra_end - ra_start) > np.pi:
+                    if ra_end < ra_start:
+                        ra_start, ra_end = ra_end, ra_start
+                        dec_start, dec_end = dec_end, dec_start
+                        x_start, y_start, x_end, y_end = x_end, y_end, x_start, y_start
+                    d_ra = (ra_end - (ra_start + 2 * np.pi))
+                else:
+                    d_ra = (ra_end - ra_start)
 
-                if divisions > 0:
-                    if divisions == 1:
-                        self.mirroring_graphics.line(x_start, y_start, x_end, y_end)
-                    else:
-                        if abs(ra_end-ra_start) > np.pi:
-                            if ra_end < ra_start:
-                                ra_start, ra_end = ra_end, ra_start
-                                dec_start, dec_end = dec_end, dec_start
-                                x_start, y_start, x_end, y_end = x_end, y_end, x_start, y_start
-                            d_ra = (ra_end - (ra_start + 2*np.pi)) / divisions
-                        else:
-                            d_ra = (ra_end - ra_start) / divisions
-                        d_dec = (dec_end - dec_start) / divisions
+                d_dec = (dec_end - dec_start)
 
-                        vertices = [(x_start, y_start)]
-                        ra1, dec1 = ra_start, dec_start
+                interpolate = True
+                if (abs(dec_start) > flat_dec or abs(dec_end) > flat_dec) and abs(d_ra) < flat_rac_interp:
+                    interpolate = False
 
-                        for i in range(divisions-1):
-                            dec2 = dec1 + d_dec
-                            ra2 = ra1 + d_ra
-                            x2, y2 = radec_to_xy(ra2, dec2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-                            vertices.append((x2, y2))
-                            ra1, dec1 = ra2, dec2
-                        vertices.append((x_end, y_end))
-                        self.mirroring_graphics.polyline(vertices)
+                if interpolate:
+                    divisions = self.calc_boundary_divisions(1, 1, wh_min, max_angle2, x_start, y_start, x_end, y_end, ra_start, dec_start, ra_end, dec_end)
+                else:
+                    divisions = 1
+
+                if divisions == 0:
+                    continue
+
+                if divisions == 1:
+                    self.mirroring_graphics.line(x_start, y_start, x_end, y_end)
+                else:
+                    dd_ra = d_ra / divisions
+                    dd_dec = d_dec / divisions
+                    vertices = [(x_start, y_start)]
+                    ra1, dec1 = ra_start, dec_start
+
+                    for i in range(divisions-1):
+                        dec2 = dec1 + dd_dec
+                        ra2 = ra1 + dd_ra
+                        x2, y2 = radec_to_xy(ra2, dec2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                        vertices.append((x2, y2))
+                        ra1, dec1 = ra2, dec2
+                    vertices.append((x_end, y_end))
+                    self.mirroring_graphics.polyline(vertices)
 
         self.graphics.restore()
 
