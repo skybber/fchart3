@@ -16,14 +16,8 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 __doc__ = """
-The modules saguaro and revngc are meant for the import of deepsky data
-
 skymap_engine contains the SkymapEngine class that draws maps of the sky,
-given a StarCatalog and DeepskyCatalog. eps and pdf provide classes to
-create eps and pdf files respectively. These classes are subclassed
-from GraphicsInterface.
-
-astrocalc provides coordinate conversions etc.
+given a StarCatalog and DeepskyCatalog. 
 """
 
 import os
@@ -39,6 +33,7 @@ def get_catalogs_dir():
     return os.path.join(get_data('catalogs'))
 
 
+from fchart3.config_loader import *
 from fchart3.skymap_engine import *
 from fchart3.configuration import *
 from fchart3.used_catalogs import *

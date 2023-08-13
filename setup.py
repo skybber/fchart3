@@ -78,6 +78,7 @@ setup(
                               'data/catalogs/unnamedstars.dat',
                               'data/catalogs/vic.txt',
                               'data/label_positions.txt',
+                              'data/default.conf',
                               ]},
     ext_modules=ext_modules,
     include_dirs=include_dirs,
