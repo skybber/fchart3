@@ -1212,7 +1212,7 @@ class SkymapEngine:
 
                 self.graphics.clip_path(clip_path)
 
-            if self.config.show_milky_way:
+            if self.config.show_simple_milky_way:
                 self.draw_milky_way(used_catalogs.milky_way)
             elif self.config.show_enhanced_milky_way:
                 self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way, use_optimized_mw)

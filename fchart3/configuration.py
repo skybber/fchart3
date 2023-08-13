@@ -72,7 +72,7 @@ class EngineConfiguration:
         self._show_constellation_borders = True
         self._show_star_circles = True
         self._show_deepsky = True
-        self._show_milky_way = False
+        self._show_simple_milky_way = False
         self._show_enhanced_milky_way = False
         self._show_nebula_outlines = False
         self._show_picker = False
@@ -243,12 +243,12 @@ class EngineConfiguration:
     def show_deepsky(self, value):
         self._show_deepsky = value
     @property
-    def show_milky_way(self):
-        return self._show_milky_way
+    def show_simple_milky_way(self):
+        return self._show_simple_milky_way
 
-    @show_milky_way.setter
-    def show_milky_way(self, value):
-        self._show_milky_way = value
+    @show_simple_milky_way.setter
+    def show_simple_milky_way(self, value):
+        self._show_simple_milky_way = value
 
     @property
     def show_enhanced_milky_way(self):

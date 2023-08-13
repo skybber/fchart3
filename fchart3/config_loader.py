@@ -28,7 +28,7 @@ RGB_ITEMS = ['background_color', 'draw_color', 'label_color', 'constellation_lin
 BOOLEAN_ITEMS = ['show_star_labels', 'show_flamsteed', 'show_mag_scale_legend', 'show_map_scale_legend',
                  'show_orientation_legend', 'show_dso_legend', 'show_coords_legend', 'show_field_border',
                  'show_equatorial_grid', 'show_constellation_shapes', 'show_constellation_borders',
-                 'show_deepsky', 'show_simple_milky_way', 'show_enhanced_milky_way', 'show_outlines_of_nebulae',
+                 'show_deepsky', 'show_simple_milky_way', 'show_enhanced_milky_way', 'show_nebula_outlines',
                  'star_colors', 'flamsteed_numbers_only']
 
 STRING_ITEMS = ['font']
