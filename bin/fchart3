@@ -330,6 +330,7 @@ def _create_engine_configuration(config_file = None):
     config = EngineConfiguration()
 
     # 1. sets defaults
+    config.light_mode = True
     config.legend_only = False
     config.show_star_labels = True
     config.show_flamsteed = True
