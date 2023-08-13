@@ -225,10 +225,14 @@ class TikZDrawing(GraphicsInterface):
         scope['rotate'] = 180.0*angle/pi
 
     def clip_path(self, path):
-        pass
+        tikz_vertices = ['({:.3f},{:.3f})'.format(_cm(v[0]), _cm(v[1])) for v in path]
+        tikz_vertices = ' -- '.join(tikz_vertices)
+        self.fobj.write('\\begin {{scope}};\n'.format(tikz_vertices))
+        self.fobj.write('\\clip {}--cycle;\n'.format(tikz_vertices))
 
     def reset_clip(self):
-        pass
+        self.fobj.write('\\end {scope};\n')
+        # self.fobj.write('\\clip ({:.3f}, {:.3f}) rectangle ({:.3f}, {:.3f});\n'.format(-_cm(self.gi_width)/2, -_cm(self.gi_height)/2, _cm(self.gi_width), _cm(self.gi_height)))
 
     def finish(self):
         self.fobj.write('\\end{tikzpicture}\n')

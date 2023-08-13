@@ -1311,7 +1311,7 @@ class SkymapEngine:
         colour in advance using set_pen_rgb and set_fill_rgb
         """
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
-        self.graphics.circle(x, y, r, DrawMode.BOTH)
+        self.graphics.circle(x, y, r, DrawMode.FILL)
 
     def open_cluster(self, x, y, radius, label, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
