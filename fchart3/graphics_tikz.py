@@ -126,8 +126,8 @@ class TikZDrawing(GraphicsInterface):
 
     def line(self, x1, y1, x2, y2):
         self._flush_scope()
-        c1 = self._cohen_sutherland_encode(x1, y1)
-        c2 = self._cohen_sutherland_encode(x2, y2)
+        c1 = self.cohen_sutherland_encode(x1, y1)
+        c2 = self.cohen_sutherland_encode(x2, y2)
         if (c1 | c2) == 0 or (c1 & c2) == 0:
             color = _to_tikz_color(self.gi_pen_rgb)
             if self.gi_dash_style is None:
@@ -232,7 +232,6 @@ class TikZDrawing(GraphicsInterface):
 
     def reset_clip(self):
         self.fobj.write('\\end {scope};\n')
-        # self.fobj.write('\\clip ({:.3f}, {:.3f}) rectangle ({:.3f}, {:.3f});\n'.format(-_cm(self.gi_width)/2, -_cm(self.gi_height)/2, _cm(self.gi_width), _cm(self.gi_height)))
 
     def finish(self):
         self.fobj.write('\\end{tikzpicture}\n')
@@ -241,18 +240,6 @@ class TikZDrawing(GraphicsInterface):
 
     def on_screen(self, x, y):
         return x > -self.gi_width/2.0 and x < self.gi_width/2.0 and y > -self.gi_height/2.0  and y < self.gi_height/2.0
-
-    def _cohen_sutherland_encode(self, x, y):
-        code = 0
-        if x < -self.gi_width/2:
-            code |= 1
-        if x > self.gi_width/2:
-            code |= 2
-        if y > self.gi_height/2:
-            code |= 4
-        if y < -self.gi_height/2:
-            code |= 8
-        return code
 
     def _flush_scope(self):
         if len(self.scope_stack)>0:

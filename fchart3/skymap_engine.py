@@ -1117,10 +1117,10 @@ class SkymapEngine:
         x_center, y_center = radec_to_xy(ra_center, dec_center, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
 
         if level == 1:
-            c1 = self.cohen_sutherland_encode(x1, x_center)
-            c2 = self.cohen_sutherland_encode(y1, y_center)
-            c3 = self.cohen_sutherland_encode(x_center, x2)
-            c4 = self.cohen_sutherland_encode(y_center, y2)
+            c1 = self.graphics.cohen_sutherland_encode(x1, x_center)
+            c2 = self.graphics.cohen_sutherland_encode(y1, y_center)
+            c3 = self.graphics.cohen_sutherland_encode(x_center, x2)
+            c4 = self.graphics.cohen_sutherland_encode(y_center, y2)
             if (c1 | c2) != 0 and (c1 & c2) != 0 and (c3 | c4) != 0 and (c3 & c4) != 0:
                 return 0
 
@@ -1873,15 +1873,3 @@ class SkymapEngine:
         if y1 > y2:
             y1, y2 = y2, y1
         return x1, y1, x2, y2
-
-    def cohen_sutherland_encode(self, x, y):
-        code = 0
-        if x < -self.drawingwidth/2:
-            code |= 1
-        if x > self.drawingwidth/2:
-            code |= 2
-        if y > self.drawingheight/2:
-            code |= 4
-        if y < -self.drawingheight/2:
-            code |= 8
-        return code

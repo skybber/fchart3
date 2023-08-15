@@ -321,3 +321,15 @@ class GraphicsInterface:
 
     def antialias_off(self):
         pass
+
+    def cohen_sutherland_encode(self, x, y):
+        code = 0
+        if x < -self.gi_width/2:
+            code |= 1
+        if x > self.gi_width/2:
+            code |= 2
+        if y > self.gi_height/2:
+            code |= 4
+        if y < -self.gi_height/2:
+            code |= 8
+        return code
