@@ -44,6 +44,12 @@ class MirroringGraphics:
     def line(self, x1, y1, x2, y2):
         self.graphics.line(self.mul_x*x1, self.mul_y*y1, self.mul_x*x2, self.mul_y*y2)
 
+    def polyline(self, vertices):
+        mirrored_vertices = []
+        for v in vertices:
+            mirrored_vertices.append((self.mul_x*v[0], self.mul_y*v[1]))
+        self.graphics.polyline(mirrored_vertices)
+
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         self.graphics.circle(self.mul_x*x, self.mul_y*y, r, mode)
 
