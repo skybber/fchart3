@@ -81,6 +81,7 @@ class GraphicsInterface:
         self.set_point_size(POINT)
         self.pointsize = None
         self.gi_font_size = None
+        self.gi_default_font_size = None
 
         self.gi_fobj = ''
         self.gi_stack = []
@@ -196,6 +197,8 @@ class GraphicsInterface:
         self.gi_font_size = font_size
         self.gi_font_style = font_style
 
+    def set_default_font_size(self, default_font_size):
+        self.gi_default_font_size = default_font_size
 
     def translate(self, dx, dy):
         """

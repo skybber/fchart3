@@ -29,6 +29,8 @@ PONT_IMG = 1.0/DPMM_IMG
 A4_WIDTH_POINTS = 594
 A4_HEIGHT_POINTS = 842
 
+CAIRO_DEFAULT_FONT_SIZE = 12 * POINT
+
 
 class CairoDrawing(GraphicsInterface):
     """
@@ -90,7 +92,8 @@ class CairoDrawing(GraphicsInterface):
         self.context = cairo.Context(self.surface)
         if self.tolerance is not None:
             self.context.set_tolerance(self.tolerance)
-        self.set_font('Times-Roman', 12*POINT)
+        self.set_font('Times-Roman', CAIRO_DEFAULT_FONT_SIZE)
+        self.set_default_font_size(CAIRO_DEFAULT_FONT_SIZE)
         self.set_linewidth(10)
 
     def clear(self):
@@ -107,7 +110,7 @@ class CairoDrawing(GraphicsInterface):
         GraphicsInterface.restore(self)
         self.context.restore()
 
-    def set_font(self, font='Arial', font_size=12*POINT, font_style=FontStyle.NORMAL):
+    def set_font(self, font='Arial', font_size=CAIRO_DEFAULT_FONT_SIZE, font_style=FontStyle.NORMAL):
         GraphicsInterface.set_font(self, font, font_size, font_style)
         self.context.set_font_size(self.gi_font_size)
         cairo_slant = cairo.FONT_SLANT_ITALIC if (self.gi_font_style == FontStyle.ITALIC) != 0 else cairo.FONT_SLANT_NORMAL

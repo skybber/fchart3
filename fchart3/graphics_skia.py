@@ -27,6 +27,7 @@ PONT_IMG = 1.0/DPMM_IMG
 A4_WIDTH_POINTS = 594
 A4_HEIGHT_POINTS = 842
 
+SKIA_DEFAULT_FONT_SIZE = 12*POINT
 
 class SkiaDrawing(GraphicsInterface):
     """
@@ -97,7 +98,7 @@ class SkiaDrawing(GraphicsInterface):
         GraphicsInterface.restore(self)
         self.canvas.restore()
 
-    def set_font(self, font='Arial', font_size=12*POINT, font_style=FontStyle.NORMAL):
+    def set_font(self, font='Arial', font_size=SKIA_DEFAULT_FONT_SIZE, font_style=FontStyle.NORMAL):
         old_size = self.gi_font_size
         GraphicsInterface.set_font(self, font, font_size, font_style)
         if self.font_default is None or old_size != font_size:
