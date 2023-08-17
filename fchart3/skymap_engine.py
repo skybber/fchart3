@@ -218,6 +218,143 @@ class SkymapEngine:
     def set_active_constellation(self, active_constellation):
         self.active_constellation = active_constellation
 
+    def make_map(self, used_catalogs, jd=None, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
+                 extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,
+                 transparent=False):
+        """ Creates map using given graphics, params and config
+        used_catalogs - UsedCatalogs data structure
+        jd - julian date
+        showing_dso - DSO forced to be shown even if they don't pass the filter
+        hl_showing_dsos - True if showing dso will be highlighted
+        highlights - list of HighlightDefinitions that will be marked
+        dso_hide_filter - list of DSO to be hidden, except showing_dso
+        extra_positions - extra positions to be drawn
+        hl_constellation - constellation name that will be highlighted
+        trajectory - defined by list of points (ra, dec) points
+        visible_objects - output array containing list of object visible on the map
+        use_optimized_mw - use optimized milky way
+        trasnparent - make chart transparent
+        """
+        visible_dso_collector = [] if visible_objects is not None else None
+        self.picked_dso = None
+        self.picked_star = None
+
+        if self.config.mirror_x or self.config.mirror_y:
+            self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
+        else:
+            self.mirroring_graphics = self.graphics
+
+        self.create_widgets()
+
+        self.graphics.set_background_rgb(self.config.background_color)
+
+        self.graphics.new()
+
+        if not transparent:
+            self.graphics.clear()
+
+        self.graphics.set_pen_rgb(self.config.draw_color)
+        self.graphics.set_fill_rgb(self.config.draw_color)
+        self.graphics.set_font(font=self.config.font, font_size=self.config.font_size)
+        self.graphics.set_default_font_size(self.config.font_size)
+        self.graphics.set_linewidth(self.config.legend_linewidth)
+
+        x1, y1, x2, y2 = self.get_field_rect_mm()
+
+        w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
+        w_maps_width, w_maps_height = self.w_map_scale.get_size()
+
+        if jd is not None:
+            precession_matrix = np.linalg.inv(compute_precession_matrix(jd))
+        else:
+            precession_matrix = None
+
+        if not self.config.legend_only:
+
+            self.label_potential = LabelPotential(self.get_field_radius_mm())
+            self.picked_star = None
+
+            if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
+                clip_path = [(x2, y2)]
+
+                if self.config.show_map_scale_legend:
+                    clip_path.extend([(x2, y1+w_maps_height),
+                                      (x2-w_maps_width, y1+w_maps_height),
+                                      (x2-w_maps_width, y1)])
+                else:
+                    clip_path.append((x2, y1))
+
+                if self.config.show_mag_scale_legend:
+                    clip_path.extend([(x1 + w_mags_width, y1),
+                                      (x1 + w_mags_width, y1 + w_mags_heigth),
+                                      (x1, y1 + w_mags_heigth)])
+                else:
+                    clip_path.append((x1, y1))
+
+                clip_path.append((x1, y2))
+
+                self.graphics.clip_path(clip_path)
+
+            if self.config.show_simple_milky_way:
+                self.draw_milky_way(used_catalogs.milky_way)
+            elif self.config.show_enhanced_milky_way:
+                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way, use_optimized_mw)
+
+            if self.config.show_equatorial_grid:
+                # tm = time()
+                self.draw_grid_equatorial()
+                # print("Equatorial grid within {} s".format(str(time()-tm)), flush=True)
+
+            if highlights:
+                self.draw_highlights(highlights, visible_dso_collector)
+
+            if used_catalogs.constellcatalog is not None:
+                # tm = time()
+                self.draw_constellations(used_catalogs.constellcatalog, jd, precession_matrix, hl_constellation)
+                # print("constellations within {} s".format(str(time()-tm)), flush=True)
+
+            if used_catalogs.unknown_nebulas is not None:
+                self.draw_unknown_nebula(used_catalogs.unknown_nebulas)
+
+            if used_catalogs.starcatalog is not None:
+                # tm = time()
+                self.draw_stars(used_catalogs.starcatalog, precession_matrix)
+                # print("Stars within {} s".format(str(time()-tm)), flush=True)
+
+            if used_catalogs.deepskycatalog is not None:
+                # tm = time()
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
+                # print("DSO within {} s".format(str(time()-tm)), flush=True)
+
+            if self.picked_dso is None and self.picked_star is not None:
+                self.draw_picked_star()
+
+            if extra_positions:
+                self.draw_extra_objects(extra_positions)
+
+            if trajectory:
+                self.draw_trajectory(trajectory)
+
+            self.graphics.reset_clip()
+
+        # print('Drawing legend')
+        self.draw_caption()
+
+        # print('Drawing widgets')
+        self.draw_widgets()
+
+        # Draw border of field-of-view
+        self.draw_field_border()
+
+        # tm = time()
+        self.graphics.finish()
+        # print("Rest {} ms".format(str(time()-tm)), flush=True)
+
+        if visible_dso_collector is not None:
+            visible_dso_collector.sort(key=lambda x: x[0])
+            for obj in visible_dso_collector:
+                visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
+
     def draw_caption(self):
         if self.caption != '':
             font_size = self.get_legend_font_size()
@@ -284,8 +421,8 @@ class SkymapEngine:
                     dso_hide_filter_set.remove(dso)
 
         if dso_highlights:
-            for dso_highligt in dso_highlights:
-                for dso in dso_highligt.dsos:
+            for dso_highlight in dso_highlights:
+                for dso in dso_highlight.dsos:
                     if dso not in deepsky_list:
                         filtered_showing_dsos.append(dso)
                     if dso in dso_hide_filter_set:
@@ -317,9 +454,9 @@ class SkymapEngine:
             label = dso.label()
 
             if dso_highlights:
-                for dso_highligt in dso_highlights:
-                    if dso in dso_highligt.dsos:
-                        self.draw_dso_hightlight(x, y, rlong, label, dso_highligt, visible_dso_collector)
+                for dso_highlight in dso_highlights:
+                    if dso in dso_highlight.dsos:
+                        self.draw_dso_hightlight(x, y, rlong, label, dso_highlight, visible_dso_collector)
                         break
 
             rlong = dso.rlong if dso.rlong is not None else self.min_radius
@@ -1108,143 +1245,6 @@ class SkymapEngine:
             return divs
 
         return self.calc_boundary_divisions(level+1, divs * 2, wh_min, max_angle2, x1, y1, x_center, y_center, ra1, dec1, ra_center, dec_center)
-
-    def make_map(self, used_catalogs, jd=None, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
-                 extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,
-                 transparent=False):
-        """ Creates map using given graphics, params and config
-        used_catalogs - UsedCatalogs data structure
-        jd - julian date
-        showing_dso - DSO forced to be shown even if they don't pass the filter
-        hl_showing_dsos - True if showing dso will be highlighted
-        highlights - list of HighlightDefinitions that will be marked
-        dso_hide_filter - list of DSO to be hidden, except showing_dso
-        extra_positions - extra positions to be drawn
-        hl_constellation - constellation name that will be highlighted
-        trajectory - defined by list of points (ra, dec) points
-        visible_objects - output array containing list of object visible on the map
-        use_optimized_mw - use optimized milky way
-        trasnparent - make chart transparent
-        """
-        visible_dso_collector = [] if visible_objects is not None else None
-        self.picked_dso = None
-        self.picked_star = None
-
-        if self.config.mirror_x or self.config.mirror_y:
-            self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
-        else:
-            self.mirroring_graphics = self.graphics
-
-        self.create_widgets()
-
-        self.graphics.set_background_rgb(self.config.background_color)
-
-        self.graphics.new()
-
-        if not transparent:
-            self.graphics.clear()
-
-        self.graphics.set_pen_rgb(self.config.draw_color)
-        self.graphics.set_fill_rgb(self.config.draw_color)
-        self.graphics.set_font(font=self.config.font, font_size=self.config.font_size)
-        self.graphics.set_default_font_size(self.config.font_size)
-        self.graphics.set_linewidth(self.config.legend_linewidth)
-
-        x1, y1, x2, y2 = self.get_field_rect_mm()
-
-        w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
-        w_maps_width, w_maps_height = self.w_map_scale.get_size()
-
-        if jd is not None:
-            precession_matrix = np.linalg.inv(compute_precession_matrix(jd))
-        else:
-            precession_matrix = None
-
-        if not self.config.legend_only:
-
-            self.label_potential = LabelPotential(self.get_field_radius_mm())
-            self.picked_star = None
-
-            if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
-                clip_path = [(x2, y2)]
-
-                if self.config.show_map_scale_legend:
-                    clip_path.extend([(x2, y1+w_maps_height),
-                                     (x2-w_maps_width, y1+w_maps_height),
-                                     (x2-w_maps_width, y1)])
-                else:
-                    clip_path.append((x2, y1))
-
-                if self.config.show_mag_scale_legend:
-                    clip_path.extend([(x1 + w_mags_width, y1),
-                                     (x1 + w_mags_width, y1 + w_mags_heigth),
-                                     (x1, y1 + w_mags_heigth)])
-                else:
-                    clip_path.append((x1, y1))
-
-                clip_path.append((x1, y2))
-
-                self.graphics.clip_path(clip_path)
-
-            if self.config.show_simple_milky_way:
-                self.draw_milky_way(used_catalogs.milky_way)
-            elif self.config.show_enhanced_milky_way:
-                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way, use_optimized_mw)
-
-            if self.config.show_equatorial_grid:
-                # tm = time()
-                self.draw_grid_equatorial()
-                # print("Equatorial grid within {} s".format(str(time()-tm)), flush=True)
-
-            if highlights:
-                self.draw_highlights(highlights, visible_dso_collector)
-
-            if used_catalogs.constellcatalog is not None:
-                # tm = time()
-                self.draw_constellations(used_catalogs.constellcatalog, jd, precession_matrix, hl_constellation)
-                # print("constellations within {} s".format(str(time()-tm)), flush=True)
-
-            if used_catalogs.unknown_nebulas is not None:
-                self.draw_unknown_nebula(used_catalogs.unknown_nebulas)
-
-            if used_catalogs.starcatalog is not None:
-                # tm = time()
-                self.draw_stars(used_catalogs.starcatalog, precession_matrix)
-                # print("Stars within {} s".format(str(time()-tm)), flush=True)
-
-            if used_catalogs.deepskycatalog is not None:
-                # tm = time()
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
-                # print("DSO within {} s".format(str(time()-tm)), flush=True)
-
-            if self.picked_dso is None and self.picked_star is not None:
-                self.draw_picked_star()
-
-            if extra_positions:
-                self.draw_extra_objects(extra_positions)
-
-            if trajectory:
-                self.draw_trajectory(trajectory)
-
-            self.graphics.reset_clip()
-
-        # print('Drawing legend')
-        self.draw_caption()
-
-        # print('Drawing widgets')
-        self.draw_widgets()
-
-        # Draw border of field-of-view
-        self.draw_field_border()
-
-        # tm = time()
-        self.graphics.finish()
-        # print("Rest {} ms".format(str(time()-tm)), flush=True)
-
-        if visible_dso_collector is not None:
-            visible_dso_collector.sort(key=lambda x: x[0])
-            for obj in visible_dso_collector:
-                visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
 
     def create_widgets(self):
         self.w_mag_scale = WidgetMagnitudeScale(self,
