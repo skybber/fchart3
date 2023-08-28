@@ -26,7 +26,7 @@ class WidgetPicker:
         self.picker_color = picker_color
 
     def draw(self, graphics):
-        graphics.save()
+        graphics.set_solid_line()
         graphics.set_pen_rgb(self.picker_color)
         graphics.set_linewidth(self.picker_linewidth)
         r = self.picker_radius
@@ -39,4 +39,3 @@ class WidgetPicker:
         graphics.line(-r, r, -r, r-x)
         graphics.line(r, r, r-x, r)
         graphics.line(r, r, r, r-x)
-        graphics.restore()

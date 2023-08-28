@@ -61,6 +61,7 @@ class WidgetMapScale:
         x = right - fh
         y = bottom + fh + fh/2
 
+        graphics.set_solid_line()
         graphics.set_linewidth(self.legend_linewidth)
 
         lw = graphics.gi_linewidth

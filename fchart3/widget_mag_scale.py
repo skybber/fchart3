@@ -48,6 +48,7 @@ class WidgetMagnitudeScale:
         legendy = bottom + np.arange(self.stars_in_scale)*fh + 0.5*fh
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
 
+        graphics.set_solid_line()
         graphics.set_linewidth(0)
 
         if legend_only and graphics.gi_background_rgb:
