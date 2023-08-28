@@ -20,8 +20,9 @@ import numpy as np
 
 class WidgetCoords:
 
-    def __init__(self, language):
+    def __init__(self, language, color=(0, 0, 0)):
         self.language = language
+        self.color = color
 
     def draw(self, graphics, left, bottom, ra, dec, legend_only):
         """

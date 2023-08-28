@@ -22,12 +22,13 @@ from .graphics_interface import DrawMode
 
 class WidgetMapScale:
 
-    def __init__(self, drawingscale, maxlength, legend_fontsize, legend_linewidth):
+    def __init__(self, drawingscale, maxlength, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
         self.drawingscale = drawingscale
         self.maxlength = maxlength
         self.legend_fontsize = legend_fontsize
         self.legend_linewidth = legend_linewidth
         self._initialize()
+        self.color = color
 
     def _initialize(self):
         # Determine a suitable scale ruler
@@ -62,6 +63,7 @@ class WidgetMapScale:
         y = bottom + fh + fh/2
 
         graphics.set_solid_line()
+        graphics.set_pen_rgb(self.color)
         graphics.set_linewidth(self.legend_linewidth)
 
         lw = graphics.gi_linewidth

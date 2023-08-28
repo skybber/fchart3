@@ -1251,19 +1251,22 @@ class SkymapEngine:
                                                 legend_fontsize=self.get_legend_font_size(),
                                                 stars_in_scale=STARS_IN_SCALE,
                                                 lm_stars=self.lm_stars,
-                                                legend_linewidth=self.config.legend_linewidth)
+                                                legend_linewidth=self.config.legend_linewidth,
+                                                color=self.config.draw_color)
 
         self.w_map_scale = WidgetMapScale(drawingscale=self.drawingscale,
                                           maxlength=self.drawingwidth/3.0,
                                           legend_fontsize=self.get_legend_font_size(),
-                                          legend_linewidth=self.config.legend_linewidth)
+                                          legend_linewidth=self.config.legend_linewidth,
+                                          color=self.config.draw_color)
 
         self.w_orientation = WidgetOrientation(legend_fontsize=self.get_legend_font_size(),
                                                mirror_x=self.config.mirror_x,
-                                               mirror_y=self.config.mirror_y)
+                                               mirror_y=self.config.mirror_y,
+                                               color=self.config.draw_color)
 
-        self.w_coords = WidgetCoords(self.language)
-        self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN)
+        self.w_coords = WidgetCoords(self.language, color=self.config.draw_color)
+        self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN, color=self.config.draw_color)
         self.w_telrad = WidgetTelrad(self.drawingscale, self.config.telrad_linewidth, self.config.telrad_color)
         self.w_eyepiece = WidgetEyepiece(self.drawingscale, self.config.eyepiece_fov, self.config.eyepiece_linewidth, self.config.eyepiece_color)
         self.w_picker = WidgetPicker(self.config.picker_radius, self.config.picker_linewidth, self.config.picker_color)

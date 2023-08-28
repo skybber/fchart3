@@ -22,7 +22,7 @@ from .graphics_interface import DrawMode
 
 class WidgetMagnitudeScale:
 
-    def __init__(self, sky_map_engine, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth):
+    def __init__(self, sky_map_engine, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth, color=(0, 0, 0)):
         self.engine = sky_map_engine
         self.legend_fontsize = legend_fontsize
         self.stars_in_scale = stars_in_scale
@@ -33,6 +33,7 @@ class WidgetMagnitudeScale:
         else:
             self.width = 2.7 * self.legend_fontsize
         self.height = (self.stars_in_scale + 0.6) * self.legend_fontsize
+        self.color = color
 
     def get_size(self):
         return (self.width, self.height)
@@ -49,6 +50,7 @@ class WidgetMagnitudeScale:
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
 
         graphics.set_solid_line()
+        graphics.set_pen_rgb(self.color)
         graphics.set_linewidth(0)
 
         if legend_only and graphics.gi_background_rgb:

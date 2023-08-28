@@ -22,10 +22,11 @@ from . import deepsky_object as deepsky
 
 class WidgetDsoLegend:
 
-    def __init__(self, language, drawingwidth, legend_margin):
+    def __init__(self, language, drawingwidth, legend_margin, color=(0, 0, 0)):
         self.language = language
         self.drawingwidth = drawingwidth
         self.legend_margin = legend_margin
+        self.color = color
 
     def draw_dso_legend(self, sky_map_engine, graphics, legend_only):
         fh = graphics.gi_font_size

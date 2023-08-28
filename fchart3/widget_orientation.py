@@ -17,10 +17,11 @@
 
 class WidgetOrientation:
 
-    def __init__(self, legend_fontsize, mirror_x, mirror_y):
+    def __init__(self, legend_fontsize, mirror_x, mirror_y, color=(0, 0, 0)):
         self.legend_fontsize = legend_fontsize
         self.mirror_x = mirror_x
         self.mirror_y = mirror_y
+        self.color = color
 
     def draw(self, graphics, left, top, legend_only):
         # Draw orientation indication
@@ -32,5 +33,6 @@ class WidgetOrientation:
         x_axis_caption = 'E' if self.mirror_x else 'W'
         graphics.text_right(x+dl+self.legend_fontsize/6.0, y-self.legend_fontsize/3.0, x_axis_caption)
         graphics.set_solid_line()
+        graphics.set_pen_rgb(self.color)
         graphics.line(x-dl, y, x+dl, y)
         graphics.line(x, y-dl, x, y+dl)
