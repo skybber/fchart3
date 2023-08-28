@@ -133,7 +133,7 @@ class TikZDrawing(GraphicsInterface):
             if self.gi_dash_style is None:
                 self.fobj.write('\\draw[line width={:.3f}mm,color={}] ({:.3f},{:.3f})--({:.3f},{:.3f});\n'.format(self.gi_linewidth, color, _cm(x1), _cm(y1), _cm(x2), _cm(y2)))
             else:
-                self.fobj.write('\\draw[mydashed,line width={:.3f}mm,color={}] ({:.3f},{:.3f})--({:.3f},{:.3f});\n'.format(self.gi_linewidth, color, _cm(x1), _cm(y1), _cm(x2), _cm(y2)))
+                self.fobj.write('\\draw[line width={:.3f}mm,mydashed,color={}] ({:.3f},{:.3f})--({:.3f},{:.3f});\n'.format(self.gi_linewidth, color, _cm(x1), _cm(y1), _cm(x2), _cm(y2)))
 
     def rectangle(self, x, y, width, height, mode=DrawMode.BORDER):
         self._flush_scope()
@@ -198,20 +198,23 @@ class TikZDrawing(GraphicsInterface):
     def text_right(self, x, y, text):
         self._flush_scope()
         latex_fs = self._get_latex_font_style()
+        scale = self._get_font_scale()
         tr_shape = ',transform shape' if self._is_active_scope() else ''
-        self.fobj.write('\\node[font=\sffamily{},anchor=base west{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
+        self.fobj.write('\\node[scale={:.3f},font=\sffamily{},inner sep=0,anchor=base west{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
 
     def text_left(self, x, y, text):
         self._flush_scope()
         latex_fs = self._get_latex_font_style()
+        scale = self._get_font_scale()
         tr_shape = ',transform shape' if self._is_active_scope() else ''
-        self.fobj.write('\\node[font=\sffamily{},anchor=base east{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
+        self.fobj.write('\\node[scale={:.3f},font=\sffamily{},inner sep=0,anchor=base east{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
 
     def text_centred(self, x, y, text):
         self._flush_scope()
         latex_fs = self._get_latex_font_style()
+        scale = self._get_font_scale()
         tr_shape = ',transform shape' if self._is_active_scope() else ''
-        self.fobj.write('\\node[font=\sffamily{},anchor=base{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
+        self.fobj.write('\\node[scale={:.3f},font=\sffamily{},inner sep=0,anchor=base{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
 
     def text_width(self, text):
         return 10.0
@@ -262,3 +265,6 @@ class TikZDrawing(GraphicsInterface):
         if self.gi_font_style == FontStyle.ITALIC_BOLD:
             return '\\itshape\\bfseries'
         return ''
+
+    def _get_font_scale(self):
+        return self.gi_font_size / self.gi_default_font_size
