@@ -951,8 +951,8 @@ class SkymapEngine:
         self.graphics.set_solid_line()
         self.graphics.set_pen_rgb(self.config.grid_color)
 
-        self.draw_grid_ra()
         self.draw_grid_dec()
+        self.draw_grid_ra()
 
         self.graphics.restore()
 
@@ -973,7 +973,7 @@ class SkymapEngine:
         secs = int(ra_minutes % 1 * 60)
         return label_fmt.format(hrs, mins, secs)
 
-    def draw_grid_ra(self):
+    def draw_grid_dec(self):
         prev_steps, prev_grid_minutes = (None, None)
         for grid_minutes in DEC_GRID_SCALE:
             steps = self.fieldradius / (np.pi * grid_minutes / (180 * 60))
@@ -994,10 +994,10 @@ class SkymapEngine:
         while dec_minutes < 90*60:
             dec = np.pi * dec_minutes / (180*60)
             if (dec > dec_min) and (dec < dec_max):
-                self.draw_grid_ra_line(dec, dec_minutes, label_fmt)
+                self.draw_grid_dec_line(dec, dec_minutes, label_fmt)
             dec_minutes += grid_minutes
 
-    def draw_grid_ra_line(self, dec, dec_minutes, label_fmt):
+    def draw_grid_dec_line(self, dec, dec_minutes, label_fmt):
         dra = self.fieldradius / 10
         x11, y11, z11 = (None, None, None)
         agg_ra = 0
@@ -1027,7 +1027,7 @@ class SkymapEngine:
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
 
-    def draw_grid_dec(self):
+    def draw_grid_ra(self):
         prev_steps, prev_grid_minutes = (None, None)
         fc_cos = math.cos(self.fieldcentre[1])
         for grid_minutes in RA_GRID_SCALE:
@@ -1056,13 +1056,13 @@ class SkymapEngine:
 
         ra_minutes = 0
 
-        while ra_minutes <= 24*60:
+        while ra_minutes < 24*60:
             ra = np.pi * ra_minutes / (12*60)
             if abs(self.fieldcentre[0]-ra) < ra_size or abs(self.fieldcentre[0]-2*np.pi-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
-                self.draw_grid_dec_line(ra, ra_minutes, label_fmt)
+                self.draw_grid_ra_line(ra, ra_minutes, label_fmt)
             ra_minutes += grid_minutes
 
-    def draw_grid_dec_line(self, ra, ra_minutes, label_fmt):
+    def draw_grid_ra_line(self, ra, ra_minutes, label_fmt):
         ddec = self.fieldradius / 10
         x11, y11, z11 = (None, None, None)
         x21, y21, z21 = (None, None, None)
