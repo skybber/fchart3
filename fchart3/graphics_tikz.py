@@ -234,7 +234,7 @@ class TikZDrawing(GraphicsInterface):
         self.fobj.write('\\clip {}--cycle;\n'.format(tikz_vertices))
 
     def reset_clip(self):
-        self.fobj.write('\\end {scope};\n')
+        self.fobj.write('\\end {scope}\n')
 
     def finish(self):
         self.fobj.write('\\end{tikzpicture}\n')

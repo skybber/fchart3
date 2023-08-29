@@ -292,8 +292,11 @@ class SkymapEngine:
                     clip_path.append((x1, y1))
 
                 clip_path.append((x1, y2))
+            else:
+                clip_path = [(x2,y2), (x2, y1), (x1, y1), (x1, y2)]
 
-                self.graphics.clip_path(clip_path)
+            self.graphics.clip_path(clip_path)
+
 
             if self.config.show_simple_milky_way:
                 self.draw_milky_way(used_catalogs.milky_way)
