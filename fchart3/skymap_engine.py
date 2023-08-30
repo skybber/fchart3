@@ -111,7 +111,7 @@ STAR_LABELS = {
     "ome":"ω"
 }
 
-STARS_IN_SCALE = 7
+STARS_IN_SCALE = 10
 LEGEND_MARGIN = 0.47
 BASE_SCALE = 0.98
 GRID_DENSITY = 4
@@ -1255,7 +1255,9 @@ class SkymapEngine:
                                                 stars_in_scale=STARS_IN_SCALE,
                                                 lm_stars=self.lm_stars,
                                                 legend_linewidth=self.config.legend_linewidth,
-                                                color=self.config.draw_color)
+                                                vertical=False,
+                                                color=self.config.draw_color
+                                                )
 
         self.w_map_scale = WidgetMapScale(drawingscale=self.drawingscale,
                                           maxlength=self.drawingwidth/3.0,
