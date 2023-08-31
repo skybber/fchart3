@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from fchart3.graphics_interface import FontStyle
+from .graphics_interface import FontStyle
 
 DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_CONSTELLATION_LINE_SPACE = 3

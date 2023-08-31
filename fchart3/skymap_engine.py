@@ -30,6 +30,8 @@ from . import deepsky_object as deepsky
 
 from .graphics_interface import DrawMode
 
+from .projection_orthographic import ProjectionOrthographic
+
 from .widget_mag_scale import WidgetMagnitudeScale
 from .widget_map_scale import WidgetMapScale
 from .widget_orientation import WidgetOrientation
@@ -143,16 +145,13 @@ class SkymapEngine:
         self.lm_stars = lm_stars
         self.lm_deepsky = lm_deepsky
 
-        self.set_caption(caption)
-        self.set_field(ra, dec, fieldradius)
-
         self.fieldcentre = None
-        self.fc_sincos_dec = None
         self.fieldradius = None
         self.fieldsize = None
         self.scene_scale = None
         self.drawingscale = None
         self.legend_fontscale = None
+
         self.active_constellation = None
 
         self.w_mag_scale = None
@@ -167,15 +166,14 @@ class SkymapEngine:
         self.picked_dso = None
         self.picked_star = None
         self.star_mag_r_shift = 0
+        self.projection = None
+
+        self.set_field(ra, dec, fieldradius)
+
 
     def set_field(self, ra, dec, fieldradius):
-        """
-        Provide the RA, DEC, and radius of the map in radians. This method
-        sets a new drawingscale and legend_fontscale
-        """
-        self.fieldcentre = (ra, dec)
-        self.fc_sincos_dec = (math.sin(dec), math.cos(dec))
         self.fieldradius = fieldradius
+        self.fieldcentre = (ra, dec)
 
         wh = max(self.drawingwidth, self.drawingheight)
 
@@ -189,6 +187,7 @@ class SkymapEngine:
         self.drawingscale = self.scene_scale*wh/2.0/math.sin(fieldradius)
         self.legend_fontscale = min(self.config.legend_font_scale, wh/100.0)
         self.set_caption(self.caption)
+        self.projection = ProjectionOrthographic(self.fieldcentre, self.drawingscale)
 
     def set_configuration(self, config):
         self.config = config
@@ -466,7 +465,7 @@ class SkymapEngine:
             rshort = dso.rshort if dso.rshort is not None else self.min_radius
             rlong = rlong*self.drawingscale
             rshort = rshort*self.drawingscale
-            posangle = dso.position_angle+direction_ddec((dso.ra, dso.dec), self.fieldcentre, self.fc_sincos_dec)+0.5*np.pi
+            posangle = dso.position_angle+self.projection.direction_ddec(dso.ra, dso.dec)+0.5*np.pi
 
             if rlong <= self.min_radius:
                 rshort *= self.min_radius/rlong
@@ -557,7 +556,7 @@ class SkymapEngine:
                 ra_ar[i] = dso.ra
                 dec_ar[i] = dso.dec
 
-        x, y, z = np_radec_to_xyz(ra_ar, dec_ar, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x, y, z = self.projection.np_radec_to_xyz(ra_ar, dec_ar)
 
         for i, dso in enumerate(dso_list):
             if z[i] > 0:
@@ -579,7 +578,7 @@ class SkymapEngine:
             if outlines_ar:
                 has_outlines = True
                 for outlines in outlines_ar:
-                    x_outl, y_outl = np_radec_to_xy(outlines[0], outlines[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                    x_outl, y_outl = self.projection.np_radec_to_xy(outlines[0], outlines[1])
                     self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle,
                                                  label, label_ext, draw_label, labelpos)
                     draw_label = False
@@ -591,7 +590,7 @@ class SkymapEngine:
         for uneb in unknown_nebulas:
             ra = (uneb.ra_min + uneb.ra_max) / 2.0
             dec = (uneb.dec_min + uneb.dec_max) / 2.0
-            x, y, z = radec_to_xyz(ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x, y, z = self.projection.radec_to_xyz(ra, dec)
             if z <=0:
                 continue
             for outl_lev in range(3):
@@ -600,11 +599,11 @@ class SkymapEngine:
                     continue
                 for outl in outlines:
                     if z > 0:
-                        x_outl, y_outl = np_radec_to_xy(outl[0], outl[1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                        x_outl, y_outl = self.projection.np_radec_to_xy(outl[0], outl[1])
                         self.unknown_diffuse_nebula_outlines(x_outl, y_outl, outl_lev)
 
     def draw_milky_way(self, milky_way_lines):
-        x, y, z = np_radec_to_xyz(milky_way_lines[:, 0], milky_way_lines[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x, y, z = self.projection.np_radec_to_xyz(milky_way_lines[:, 0], milky_way_lines[:, 1])
         mulx = -1 if self.config.mirror_x else 1
         muly = -1 if self.config.mirror_y else 1
         self.graphics.set_pen_rgb(self.config.milky_way_color)
@@ -637,7 +636,7 @@ class SkymapEngine:
 
         mw_points = enhanced_milky_way.mw_points
 
-        x, y, z = np_radec_to_xyz(mw_points[:, 0], mw_points[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x, y, z = self.projection.np_radec_to_xyz(mw_points[:, 0], mw_points[:, 1])
         mulx = -1 if self.config.mirror_x else 1
         muly = -1 if self.config.mirror_y else 1
 
@@ -680,7 +679,7 @@ class SkymapEngine:
         # Draw extra objects
         # print('Drawing extra objects...')
         for rax, decx, label, labelpos in extra_positions:
-            x, y, z = radec_to_xyz(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x, y, z = self.projection.radec_to_xyz(rax, decx)
             if z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
@@ -692,7 +691,7 @@ class SkymapEngine:
 
         for hl_def in highlights:
             for rax, decx, object_name, label in hl_def.data:
-                x, y, z = radec_to_xyz(rax, decx, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                x, y, z = self.projection.radec_to_xyz(rax, decx)
                 if z >= 0:
                     self.graphics.set_pen_rgb(hl_def.color)
                     self.graphics.set_linewidth(hl_def.line_width)
@@ -745,7 +744,7 @@ class SkymapEngine:
 
         for i in range(0, len(trajectory)):
             rax2, decx2, label2 = trajectory[i]
-            x2, y2, z2 = radec_to_xyz(rax2, decx2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x2, y2, z2 = self.projection.radec_to_xyz(rax2, decx2)
 
             if i > 0:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
@@ -827,7 +826,7 @@ class SkymapEngine:
         print('Faintest star: ' + str(round(max(selection['mag']), 2)))
 
         # tm = time()
-        x, y = np_radec_to_xy(selection['ra'], selection['dec'], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x, y = self.projection.np_radec_to_xy(selection['ra'], selection['dec'])
 
         # print("Stars view positioning {} ms".format(str(time()-tm)), flush=True)
 
@@ -1002,8 +1001,8 @@ class SkymapEngine:
         x11, y11, z11 = (None, None, None)
         agg_ra = 0
         while True:
-            x12, y12, z12 = radec_to_xyz(self.fieldcentre[0] + agg_ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            x22, y22, z22 = radec_to_xyz(self.fieldcentre[0] - agg_ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x12, y12, z12 = self.projection.radec_to_xyz(self.fieldcentre[0] + agg_ra, dec)
+            x22, y22, z22 = self.projection.radec_to_xyz(self.fieldcentre[0] - agg_ra, dec)
             if x11 is not None and z11 > 0 and z12 > 0:
                 self.mirroring_graphics.line(x11, y11, x12, y12)
                 self.mirroring_graphics.line(x21, y21, x22, y22)
@@ -1068,8 +1067,8 @@ class SkymapEngine:
         x21, y21, z21 = (None, None, None)
         agg_dec = 0
         while True:
-            x12, y12, z12 = radec_to_xyz(ra, self.fieldcentre[1] + agg_dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-            x22, y22, z22 = radec_to_xyz(ra, self.fieldcentre[1] - agg_dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+            x12, y12, z12 = self.projection.radec_to_xyz(ra, self.fieldcentre[1] + agg_dec)
+            x22, y22, z22 = self.projection.radec_to_xyz(ra, self.fieldcentre[1] - agg_dec)
             if x11 is not None:
                 if z11 > 0 and z12 > 0:
                     self.mirroring_graphics.line(x11, y11, x12, y12)
@@ -1120,8 +1119,8 @@ class SkymapEngine:
         else:
             constell_lines = constell_catalog.all_constell_lines
 
-        x1, y1, z1 = np_radec_to_xyz(constell_lines[:, 0], constell_lines[:, 1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
-        x2, y2, z2 = np_radec_to_xyz(constell_lines[:, 2], constell_lines[:, 3], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x1, y1, z1 = self.projection.np_radec_to_xyz(constell_lines[:, 0], constell_lines[:, 1])
+        x2, y2, z2 = self.projection.np_radec_to_xyz(constell_lines[:, 2], constell_lines[:, 3])
 
         for i in range(len(x1)):
             if z1[i] > 0 and z2[i] > 0:
@@ -1152,7 +1151,7 @@ class SkymapEngine:
         else:
             constell_boundaries = constell_catalog.boundaries_points
 
-        x, y, z = np_radec_to_xyz(constell_boundaries[:,0], constell_boundaries[:,1], self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x, y, z = self.projection.np_radec_to_xyz(constell_boundaries[:,0], constell_boundaries[:,1])
 
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
@@ -1210,7 +1209,7 @@ class SkymapEngine:
                     for i in range(divisions-1):
                         dec2 = dec1 + dd_dec
                         ra2 = ra1 + dd_ra
-                        x2, y2 = radec_to_xy(ra2, dec2, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+                        x2, y2 = self.projection.radec_to_xy(ra2, dec2)
                         vertices.append((x2, y2))
                         ra1, dec1 = ra2, dec2
                     vertices.append((x_end, y_end))
@@ -1227,7 +1226,7 @@ class SkymapEngine:
             ra_center = (ra1 + ra2) / 2
         dec_center = (dec1 + dec2) /2
 
-        x_center, y_center = radec_to_xy(ra_center, dec_center, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        x_center, y_center = self.projection.radec_to_xy(ra_center, dec_center)
 
         if level == 1:
             c1 = self.graphics.cohen_sutherland_encode(x1, x_center)

@@ -15,33 +15,22 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-__doc__ = """
-skymap_engine contains the SkymapEngine class that draws maps of the sky,
-given a StarCatalog and DeepskyCatalog. 
-"""
+class ProjectionInterface:
+    def __init__(self, fieldcentre, drawingscale):
+        self.drawingscale = drawingscale
+        self.fieldcentre = fieldcentre
 
-import os
+    def radec_to_xy(self, ra, dec):
+        pass
 
-_ROOT = os.path.abspath(os.path.dirname(__file__))
+    def radec_to_xyz(self, ra, dec):
+        pass
 
+    def np_radec_to_xy(self, ra, dec):
+        pass
 
-def get_data(path):
-    return os.path.join(_ROOT, 'data', path)
+    def np_radec_to_xyz(self, ra, dec):
+        pass
 
-
-def get_catalogs_dir():
-    return os.path.join(get_data('catalogs'))
-
-
-from fchart3.config_loader import *
-from fchart3.skymap_engine import *
-from fchart3.configuration import *
-from fchart3.used_catalogs import *
-from fchart3.graphics_cairo import *
-from fchart3.graphics_skia import *
-from fchart3.graphics_tikz import *
-from fchart3.graphics_interface import *
-from fchart3.highlight_definition import *
-from fchart3.dso_highlight_definition import *
-from fchart3.projection_interface import *
-from fchart3.projection_orthographic import *
+    def direction_ddec(self, ra, dec):
+        pass
