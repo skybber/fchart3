@@ -15,13 +15,9 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import numpy as np
-import math
-
 from time import time
 
 from .label_potential import *
-from .astrocalc import *
 from .np_astrocalc import *
 from .constellation import *
 from .mirroring_graphics import *
@@ -224,7 +220,6 @@ class SkymapEngine:
         used_catalogs - UsedCatalogs data structure
         jd - julian date
         showing_dso - DSO forced to be shown even if they don't pass the filter
-        hl_showing_dsos - True if showing dso will be highlighted
         highlights - list of HighlightDefinitions that will be marked
         dso_hide_filter - list of DSO to be hidden, except showing_dso
         extra_positions - extra positions to be drawn
@@ -232,7 +227,7 @@ class SkymapEngine:
         trajectory - defined by list of points (ra, dec) points
         visible_objects - output array containing list of object visible on the map
         use_optimized_mw - use optimized milky way
-        trasnparent - make chart transparent
+        transparent - make chart transparent
         """
         visible_dso_collector = [] if visible_objects is not None else None
         self.picked_dso = None
