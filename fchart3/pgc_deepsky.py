@@ -15,8 +15,6 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import numpy as np
-
 from .deepsky_object import *
 from .hnsky_deepsky import parse_catalog_name, dso_type_map
 

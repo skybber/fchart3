@@ -16,6 +16,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import math
+import numpy as np
 
 from .projection_interface import ProjectionInterface
 
@@ -25,19 +26,69 @@ from .np_astrocalc import *
 class ProjectionOrthographic(ProjectionInterface):
     def __init__(self, fieldcentre, drawingscale):
         ProjectionInterface.__init__(self, fieldcentre, drawingscale)
-        self.fc_sincos_dec = (math.sin(fieldcentre[1]), math.cos(fieldcentre[1]))
+        self.sin_dec0 = math.sin(fieldcentre[1])
+        self.cos_dec0 = math.cos(fieldcentre[1])
 
     def radec_to_xy(self, ra, dec):
-        return radec_to_xy(ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        ra0, dec0 = self.fieldcentre
+        delta_ra = ra - ra0
+
+        sin_dec = math.sin(dec)
+        cos_dec = math.cos(dec)
+        cos_delta_ra = math.cos(delta_ra)
+
+        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+
+        x = -cos_dec*math.sin(delta_ra)*self.drawingscale
+        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale
+        return x, y
 
     def radec_to_xyz(self, ra, dec):
-        return radec_to_xyz(ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        ra0, dec0 = self.fieldcentre
+        delta_ra = ra - ra0
+
+        sin_dec = math.sin(dec)
+        cos_dec = math.cos(dec)
+        cos_delta_ra = math.cos(delta_ra)
+
+        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+
+        z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
+        x = -cos_dec*math.sin(delta_ra)*self.drawingscale if z>0 else 0
+        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale if z>0 else 0
+        return x, y, z
 
     def np_radec_to_xy(self, ra, dec):
-        return np_radec_to_xy(ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        ra0, dec0 = self.fieldcentre
+        delta_ra = ra - ra0
+
+        sin_dec = np.sin(dec)
+        cos_dec = np.cos(dec)
+        cos_delta_ra = np.cos(delta_ra)
+
+        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+
+        x = -cos_dec*np.sin(delta_ra)*self.drawingscale
+        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale
+        return x, y
 
     def np_radec_to_xyz(self, ra, dec):
-        return np_radec_to_xyz(ra, dec, self.fieldcentre, self.drawingscale, self.fc_sincos_dec)
+        ra0, dec0 = self.fieldcentre
+        delta_ra = ra - ra0
+
+        sin_dec = np.sin(dec)
+        cos_dec = np.cos(dec)
+        cos_delta_ra = np.cos(delta_ra)
+
+        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+
+        z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
+        x = np.where(z>0,-cos_dec*np.sin(delta_ra)*self.drawingscale,0)
+        y = np.where(z>0,(sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale,0)
+        return x,y,z
 
     def direction_ddec(self, ra, dec):
-        return direction_ddec((ra, dec), self.fieldcentre, self.fc_sincos_dec)
+        ra0, dec0 = self.fieldcentre
+        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+        angle = math.atan2(-math.sin(dec)*math.sin(ra-ra0), math.cos(dec)*cos_dec0 + math.sin(dec)*sin_dec0*math.cos(ra-ra0))
+        return angle

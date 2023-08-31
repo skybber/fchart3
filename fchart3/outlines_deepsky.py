@@ -15,8 +15,6 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import numpy as np
-
 from .deepsky_object import *
 
 FIXING_NAMES = { 'NGC2174': 'NGC2175', 'NGC1893' : 'IC410' }

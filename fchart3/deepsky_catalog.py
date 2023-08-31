@@ -17,10 +17,8 @@
 
 
 from io import StringIO
-import numpy as np
 
 from .deepsky_object import *
-from .astrocalc import *
 from .htm.htm import HTM
 
 RAD2DEG = 180.0/np.pi

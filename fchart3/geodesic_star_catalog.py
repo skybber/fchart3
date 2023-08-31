@@ -15,19 +15,10 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from collections import namedtuple
-
-import os
-import sys
-import struct
 import glob
-import math
-import numpy as np
-from time import time
 
 from .astrocalc import *
 from .np_astrocalc import *
-from .vector_math import *
 from .star_catalog import *
 from .geodesic_binfile_reader import *
 from .geodesic_grid import *
