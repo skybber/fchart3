@@ -65,28 +65,28 @@ class WidgetDsoLegend:
         for lab in bottomlabels:
             bl.append(lab[0])
 
-        sky_map_engine.open_cluster(legendx, legendy - (tl.index('OCL') + 1)*legendinc, r)
+        sky_map_engine.open_cluster(legendx, legendy - (tl.index('OCL') + 1)*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, legendy - (tl.index('OCL') + 1)*legendinc - fh/3.0, self.language['OCL'])
 
-        sky_map_engine.asterism(legendx, legendy - (tl.index('AST') + 1)*legendinc, r)
+        sky_map_engine.asterism(legendx, legendy - (tl.index('AST') + 1)*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, legendy - (tl.index('AST') + 1)*legendinc - fh/3.0, self.language['AST'])
 
-        sky_map_engine.galaxy(legendx, legendy - (tl.index('G') + 1)*legendinc, r)
+        sky_map_engine.galaxy(legendx, legendy - (tl.index('G') + 1)*legendinc, r, -1, 0.0, 7.0, '', '', '')
         graphics.text_left(legendx + text_offset, legendy - (tl.index('G') + 1)*legendinc - fh/3.0, self.language['G'])
 
-        sky_map_engine.globular_cluster(legendx, legendy  - (tl.index('GCL') +1 )*legendinc, r)
+        sky_map_engine.globular_cluster(legendx, legendy  - (tl.index('GCL') +1 )*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
 
         legendy = self.legend_margin*self.drawingwidth
 
-        sky_map_engine.supernova_remnant(legendx, -legendy + bl.index('SNR')*legendinc, r)
+        sky_map_engine.supernova_remnant(legendx, -legendy + bl.index('SNR')*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])
 
-        sky_map_engine.planetary_nebula(legendx, -legendy + bl.index('PN')*legendinc, r)
+        sky_map_engine.planetary_nebula(legendx, -legendy + bl.index('PN')*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc -  fh/3.0, self.language['PN'])
 
-        sky_map_engine.diffuse_nebula(legendx, -legendy + bl.index('N')*legendinc, r)
+        sky_map_engine.diffuse_nebula(legendx, -legendy + bl.index('N')*legendinc, r, -1, 0.0, '', '', '')
         graphics.text_left(legendx + text_offset, -legendy + bl.index('N')*legendinc - fh/3.0, self.language['N'])
 
-        sky_map_engine.unknown_object(legendx, -legendy + bl.index('PG')*legendinc, r)
+        sky_map_engine.unknown_object(legendx, -legendy + bl.index('PG')*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, -legendy + bl.index('PG')*legendinc - fh/3.0, self.language['PG'])
