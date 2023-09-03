@@ -20,9 +20,6 @@ import numpy as np
 
 from .projection_interface import ProjectionInterface
 
-from .astrocalc import *
-from .np_astrocalc import *
-
 class ProjectionOrthographic(ProjectionInterface):
     def __init__(self, fieldcentre, drawingscale):
         ProjectionInterface.__init__(self, fieldcentre, drawingscale)
@@ -83,8 +80,8 @@ class ProjectionOrthographic(ProjectionInterface):
         sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
 
         z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-        x = np.where(z>0,-cos_dec*np.sin(delta_ra)*self.drawingscale,0)
-        y = np.where(z>0,(sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale,0)
+        x = np.where(z>0, -cos_dec*np.sin(delta_ra)*self.drawingscale, 0)
+        y = np.where(z>0, (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale, 0)
         return x,y,z
 
     def direction_ddec(self, ra, dec):

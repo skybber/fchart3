@@ -28,6 +28,7 @@ from .graphics_interface import DrawMode
 
 from .projection_orthographic import ProjectionOrthographic
 
+from .space_widget_allocator import SpaceWidgetAllocator
 from .widget_mag_scale import WidgetMagnitudeScale
 from .widget_map_scale import WidgetMapScale
 from .widget_orientation import WidgetOrientation
@@ -150,6 +151,7 @@ class SkymapEngine:
 
         self.active_constellation = None
 
+        self.space_widget_allocator = None
         self.w_mag_scale = None
         self.w_map_scale = None
         self.w_orientation = None
@@ -253,10 +255,6 @@ class SkymapEngine:
         self.graphics.set_default_font_size(self.config.font_size)
         self.graphics.set_linewidth(self.config.legend_linewidth)
 
-        x1, y1, x2, y2 = self.get_field_rect_mm()
-
-        w_mags_width, w_mags_heigth = self.w_mag_scale.get_size()
-        w_maps_width, w_maps_height = self.w_map_scale.get_size()
 
         if jd is not None:
             precession_matrix = np.linalg.inv(compute_precession_matrix(jd))
@@ -268,29 +266,8 @@ class SkymapEngine:
             self.label_potential = LabelPotential(self.get_field_radius_mm())
             self.picked_star = None
 
-            if self.config.show_map_scale_legend or self.config.show_mag_scale_legend:
-                clip_path = [(x2, y2)]
-
-                if self.config.show_map_scale_legend:
-                    clip_path.extend([(x2, y1+w_maps_height),
-                                      (x2-w_maps_width, y1+w_maps_height),
-                                      (x2-w_maps_width, y1)])
-                else:
-                    clip_path.append((x2, y1))
-
-                if self.config.show_mag_scale_legend:
-                    clip_path.extend([(x1 + w_mags_width, y1),
-                                      (x1 + w_mags_width, y1 + w_mags_heigth),
-                                      (x1, y1 + w_mags_heigth)])
-                else:
-                    clip_path.append((x1, y1))
-
-                clip_path.append((x1, y2))
-            else:
-                clip_path = [(x2,y2), (x2, y1), (x1, y1), (x1, y2)]
-
+            clip_path = self.space_widget_allocator.get_border_path()
             self.graphics.clip_path(clip_path)
-
 
             if self.config.show_simple_milky_way:
                 self.draw_milky_way(used_catalogs.milky_way)
@@ -387,9 +364,9 @@ class SkymapEngine:
         if self.config.show_picker and self.config.picker_radius > 0:
             self.w_picker.draw(self.graphics)
         if self.config.show_mag_scale_legend:
-            self.w_mag_scale.draw(self.graphics, x1, y1, self.config.legend_only)
+            self.w_mag_scale.draw(self.graphics, self.config.legend_only)
         if self.config.show_map_scale_legend:
-            self.w_map_scale.draw(self.graphics, x2, y1, self.config.legend_only)
+            self.w_map_scale.draw(self.graphics, self.config.legend_only)
         if self.config.show_orientation_legend:
             self.w_orientation.draw(self.graphics, x1, y2, self.config.legend_only)
         if self.config.show_coords_legend:
@@ -1244,7 +1221,11 @@ class SkymapEngine:
         return self.calc_boundary_divisions(level+1, divs * 2, wh_min, max_angle2, x1, y1, x_center, y_center, ra1, dec1, ra_center, dec_center)
 
     def create_widgets(self):
-        self.w_mag_scale = WidgetMagnitudeScale(self,
+        left, bottom, right, top = self.get_field_rect_mm()
+        self.space_widget_allocator = SpaceWidgetAllocator(left, bottom, right, top)
+
+        self.w_mag_scale = WidgetMagnitudeScale(sky_map_engine=self,
+                                                alloc_space_spec='bottom,left',
                                                 legend_fontsize=self.get_legend_font_size(),
                                                 stars_in_scale=STARS_IN_SCALE,
                                                 lm_stars=self.lm_stars,
@@ -1253,7 +1234,9 @@ class SkymapEngine:
                                                 color=self.config.draw_color
                                                 )
 
-        self.w_map_scale = WidgetMapScale(drawingscale=self.drawingscale,
+        self.w_map_scale = WidgetMapScale(sky_map_engine=self,
+                                          alloc_space_spec='bottom,right',
+                                          drawingscale=self.drawingscale,
                                           maxlength=self.drawingwidth/3.0,
                                           legend_fontsize=self.get_legend_font_size(),
                                           legend_linewidth=self.config.legend_linewidth,
@@ -1269,6 +1252,11 @@ class SkymapEngine:
         self.w_telrad = WidgetTelrad(self.drawingscale, self.config.telrad_linewidth, self.config.telrad_color)
         self.w_eyepiece = WidgetEyepiece(self.drawingscale, self.config.eyepiece_fov, self.config.eyepiece_linewidth, self.config.eyepiece_color)
         self.w_picker = WidgetPicker(self.config.picker_radius, self.config.picker_linewidth, self.config.picker_color)
+
+        if self.config.show_mag_scale_legend:
+            self.w_mag_scale.allocate_space(self.space_widget_allocator)
+        if self.config.show_map_scale_legend:
+            self.w_map_scale.allocate_space(self.space_widget_allocator)
 
     def star(self, x, y, radius, star_color):
         """

@@ -17,17 +17,19 @@
 
 import numpy as np
 
+from .widget_base import WidgetBase
 from .graphics_interface import DrawMode
 
 
-class WidgetMagnitudeScale:
+class WidgetMagnitudeScale(WidgetBase):
 
-    def __init__(self, sky_map_engine, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth, vertical=True, color=(0, 0, 0)):
-        self.engine = sky_map_engine
+    def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth, vertical=True, color=(0, 0, 0)):
+        WidgetBase.__init__(self, sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
         self.legend_fontsize = legend_fontsize
         self.stars_in_scale = stars_in_scale
         self.lm_stars = lm_stars
         self.legend_linewidth = legend_linewidth
+        self.alloc_space_spec = alloc_space_spec
         self.vertical = vertical
         self.color = color
         if vertical:
@@ -41,14 +43,7 @@ class WidgetMagnitudeScale:
             self.width = (self.stars_in_scale + 0.6) * self.legend_fontsize
 
 
-    def get_size(self):
-        return (self.width, self.height)
-
-    def draw(self, graphics, left, bottom, legend_only):
-        """
-        Draws a vertical magnitude scale with at most \"stars_in_scale\" stars down
-        to magnitude -1
-        """
+    def draw(self, graphics, legend_only):
         fh = self.legend_fontsize
         mags_in_scale = int(self.lm_stars) - np.arange(self.stars_in_scale)
 
@@ -59,25 +54,23 @@ class WidgetMagnitudeScale:
         if legend_only and graphics.gi_background_rgb:
             graphics.save()
             graphics.set_fill_background()
-            graphics.rectangle(left, bottom+self.height, self.width, self.height, DrawMode.FILL)
+            graphics.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)
             graphics.restore()
 
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
 
         if self.vertical:
             graphics.set_font(graphics.gi_font, fh * 0.8)
-            legendy = bottom + np.arange(self.stars_in_scale)*fh + 0.5*fh
+            legendy = self.y - self.height + np.arange(self.stars_in_scale)*fh + 0.5*fh
 
             for i in range(len(legendy)):
-                self.engine.no_mirror_star(left+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
-                graphics.text_right(left+1.2*fh, legendy[i], str(mags_in_scale[i]))
+                self.engine.no_mirror_star(self.x+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
+                graphics.text_right(self.x+1.2*fh, legendy[i], str(mags_in_scale[i]))
         else:
             graphics.set_font(graphics.gi_font, fh * 0.66)
-            legendx = left + np.arange(self.stars_in_scale)*fh + 0.5*fh
+            legendx = self.x + np.arange(self.stars_in_scale)*fh + 0.5*fh
             for i in range(self.stars_in_scale):
-                self.engine.no_mirror_star(legendx[i] + 0.6 * fh, bottom + 0.66*fh, legendr[-i-1])
-                graphics.text_centred(legendx[i] + 0.6 * fh, bottom + 1.6*fh, str(mags_in_scale[-i-1]))
+                self.engine.no_mirror_star(legendx[i] + 0.6 * fh, self.y-self.height + 0.66*fh, legendr[-i-1])
+                graphics.text_centred(legendx[i] + 0.6 * fh, self.y-self.height + 1.6*fh, str(mags_in_scale[-i-1]))
 
-        graphics.set_linewidth(self.legend_linewidth)
-        graphics.line(left, bottom+self.height, left+self.width, bottom+self.height)
-        graphics.line(left+self.width, bottom+self.height, left+self.width, bottom)
+        self.draw_bounding_rect(graphics)

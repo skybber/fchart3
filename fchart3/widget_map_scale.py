@@ -17,18 +17,22 @@
 
 import numpy as np
 
+from .widget_base import WidgetBase
 from .graphics_interface import DrawMode
 
 
-class WidgetMapScale:
+class WidgetMapScale(WidgetBase):
 
-    def __init__(self, drawingscale, maxlength, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
+    def __init__(self, sky_map_engine, alloc_space_spec, drawingscale, maxlength, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
+        WidgetBase.__init__(self, sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
         self.drawingscale = drawingscale
         self.maxlength = maxlength
         self.legend_fontsize = legend_fontsize
         self.legend_linewidth = legend_linewidth
-        self._initialize()
+        self.alloc_space_spec = alloc_space_spec
         self.color = color
+        self.x, self.y = None, None
+        self._initialize()
 
     def _initialize(self):
         # Determine a suitable scale ruler
@@ -46,21 +50,13 @@ class WidgetMapScale:
                 break
 
         fh = self.legend_fontsize * 0.66
-        self.width, self.height = self.ruler_length + 2*fh, fh*3
+        self.width, self.height = self.ruler_length + 2*fh, 2.2 * self.legend_fontsize
 
-    def get_size(self):
-        return (self.width, self.height)
-
-    def draw(self, graphics, right, bottom, legend_only):
-        """
-        x,y are the coordinates of the leftmost point of the horizontal line.
-        This is excluding the vertical end bars. maxlength is the maximum
-        length of the ruler line excluding the endbars.
-        """
+    def draw(self, graphics, legend_only):
         fh = self.legend_fontsize * 0.66
 
-        x = right - fh
-        y = bottom + fh + fh/2
+        x = self.x + self.width - fh
+        y = self.y - self.height + fh + fh/2
 
         graphics.set_solid_line()
         graphics.set_pen_rgb(self.color)
@@ -71,7 +67,7 @@ class WidgetMapScale:
         if legend_only and graphics.gi_background_rgb:
             graphics.save()
             graphics.set_fill_background()
-            graphics.rectangle(right-self.width, bottom+self.height, self.width, self.height, DrawMode.FILL)
+            graphics.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)
             graphics.restore()
 
         graphics.line(x, y, x - self.ruler_length, y)
@@ -85,5 +81,4 @@ class WidgetMapScale:
 
         graphics.set_font(graphics.gi_font, old_fontsize)
 
-        graphics.line(right-self.width, bottom+self.height, right, bottom+self.height)
-        graphics.line(right-self.width, bottom+self.height, right-self.width, bottom)
+        self.draw_bounding_rect(graphics)
