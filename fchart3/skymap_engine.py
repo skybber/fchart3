@@ -831,13 +831,12 @@ class SkymapEngine:
                 elif self.config.show_star_labels:
                     bsc_star = selection[index]['bsc']
                     if bsc_star is not None:
-                        labelpos = 0
                         if isinstance(bsc_star, str):
                             slabel = bsc_star
                         else:
                             slabel = bsc_star.greek
                             if slabel:
-                                labelpos = -1
+                                slabel = STAR_LABELS[slabel] + bsc_star.greek_no
                             elif self.config.show_flamsteed:
                                 slabel = bsc_star.flamsteed
                                 if slabel and self.config.flamsteed_numbers_only:
@@ -845,24 +844,20 @@ class SkymapEngine:
                         if slabel:
                             label_length = self.graphics.text_width(slabel)
                             labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
-                            if labelpos == -1:
-                                [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[0]
-                                self.label_potential.add_position(lx2, ly2, label_length)
-                            else:
-                                pot = 1e+30
-                                for labelpos_index in range(len(labelpos_list)):
-                                    [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[labelpos_index]
-                                    pot1 = self.label_potential.compute_potential(lx2, ly2)
-                                    if labelpos_index == 0:
-                                        pot1 *= 0.6 # favour label right
-                                    # self.label_potential.compute_potential(x1,y1),
-                                    # self.label_potential.compute_potential(x3,y3)])
-                                    if pot1 < pot:
-                                        pot = pot1
-                                        labelpos = labelpos_index
+                            pot = 1e+30
+                            for labelpos_index in range(len(labelpos_list)):
+                                [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[labelpos_index]
+                                pot1 = self.label_potential.compute_potential(lx2, ly2)
+                                if labelpos_index == 0:
+                                    pot1 *= 0.6 # favour label right
+                                # self.label_potential.compute_potential(x1,y1),
+                                # self.label_potential.compute_potential(x3,y3)])
+                                if pot1 < pot:
+                                    pot = pot1
+                                    labelpos = labelpos_index
 
-                                [lx, ly] = labelpos_list[labelpos][1]
-                                self.label_potential.add_position(lx, ly, label_length)
+                            [lx, ly] = labelpos_list[labelpos][1]
+                            self.label_potential.add_position(lx, ly, label_length)
                             star_labels.append((xx, yy, rr, labelpos, bsc_star))
 
         if len(star_labels) > 0:
@@ -875,7 +870,7 @@ class SkymapEngine:
             label = str(mag)
             if bsc is not None:
                 if bsc.greek:
-                    label += '(' + STAR_LABELS[bsc.greek] + ' ' + bsc.constellation.capitalize() + ')'
+                    label += '(' + STAR_LABELS[bsc.greek] + bsc.greek_no + ' ' + bsc.constellation.capitalize() + ')'
                 elif bsc.flamsteed:
                     label += '(' + str(bsc.flamsteed) + ')'
                 elif bsc.HD is not None:
@@ -893,17 +888,21 @@ class SkymapEngine:
                 self.draw_circular_object_label(x, y, r, star, labelpos)
             else:
                 slabel = star.greek
-                if not slabel and self.config.show_flamsteed:
-                    slabel = star.flamsteed
-                    if slabel and self.config.flamsteed_numbers_only:
-                        slabel = slabel.split()[0]
+                if not slabel:
+                    is_greek = False
+                    if self.config.show_flamsteed:
+                        slabel = star.flamsteed
+                        if slabel and self.config.flamsteed_numbers_only:
+                            slabel = slabel.split()[0]
+                else:
+                    is_greek = True
+                    slabel = STAR_LABELS.get(slabel) + star.greek_no
                 if slabel:
                     printed_labels = printed.setdefault(star.constellation, set())
                     if slabel not in printed_labels:
                         printed_labels.add(slabel)
-                        if slabel in STAR_LABELS:
+                        if is_greek:
                             self.graphics.set_font(self.graphics.gi_font, bayer_fh, self.config.bayer_label_font_style)
-                            slabel = STAR_LABELS.get(slabel)
                         else:
                             self.graphics.set_font(self.graphics.gi_font, flamsteed_fh, self.config.flamsteed_label_font_style)
                         self.draw_circular_object_label(x, y, r, slabel, labelpos)

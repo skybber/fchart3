@@ -39,6 +39,7 @@ class BscStar:
         self.constellation=''
         self.constell_number = None
         self.greek = ''
+        self.greek_no = ''
         self.flamsteed = ''
         self.ra=-1.0
         self.dec=0.0
@@ -83,6 +84,7 @@ class ConstellationCatalog:
         star.constell_number = line[4:7].strip().upper()
 
         star.greek = line[7:10].strip().lower()
+        star.greek_no = line[10:11].strip()
         str_HD = line[25:31].strip()
         if str_HD:
             star.HD = int(str_HD)
