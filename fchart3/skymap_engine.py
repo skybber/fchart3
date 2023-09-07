@@ -222,6 +222,7 @@ class SkymapEngine:
         used_catalogs - UsedCatalogs data structure
         jd - julian date
         showing_dso - DSO forced to be shown even if they don't pass the filter
+        dso_highlights - list of DsoHighlightDefinition that will be marked
         highlights - list of HighlightDefinitions that will be marked
         dso_hide_filter - list of DSO to be hidden, except showing_dso
         extra_positions - extra positions to be drawn
@@ -692,6 +693,8 @@ class SkymapEngine:
         self.graphics.set_linewidth(dso_highligth.line_width)
         if dso_highligth.dash and len(dso_highligth.dash) == 2:
             self.graphics.set_dashed_line(dso_highligth.dash[0], dso_highligth.dash[1])
+        else:
+            self.graphics.set_solid_line()
 
         r = self.config.font_size
         self.mirroring_graphics.circle(x, y, r)
