@@ -33,15 +33,17 @@ def get_catalogs_dir():
     return os.path.join(get_data('catalogs'))
 
 
-from fchart3.config_loader import *
-from fchart3.skymap_engine import *
-from fchart3.configuration import *
-from fchart3.used_catalogs import *
-from fchart3.graphics_cairo import *
-from fchart3.graphics_skia import *
-from fchart3.graphics_tikz import *
-from fchart3.graphics_interface import *
-from fchart3.highlight_definition import *
-from fchart3.dso_highlight_definition import *
-from fchart3.projection_interface import *
-from fchart3.projection_orthographic import *
+from .config_loader import *
+from .skymap_engine import *
+from .configuration import *
+from .used_catalogs import *
+from .graphics_cairo import *
+from .graphics_skia import *
+from .graphics_tikz import *
+from .graphics_interface import *
+from .highlight_definition import *
+from .dso_highlight_definition import *
+from .projection_interface import *
+from .projection_orthographic import *
+from .projection_stereographic import *
+
