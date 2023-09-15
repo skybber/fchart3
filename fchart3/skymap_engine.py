@@ -54,6 +54,19 @@ NL = {
     'PG':'Deel van sterrenstelsel'
 }
 
+FR = {
+    'h':'h',
+    'm':'m',
+    's':'s',
+    'G':'Galaxie',
+    'OCL':'Cluster Ouvert',
+    'GCL':'Cluster Globulaire',
+    'AST':'Astérisme',
+    'PN': 'Nébuleuse Planétaire',
+    'N': 'Nébuleuse Diffuse',
+    'SNR':'Rémanent de supernova',
+    'PG':'Partie de glaxie'
+}
 
 EN = {
     'h':'h',
