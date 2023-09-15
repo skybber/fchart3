@@ -80,7 +80,7 @@ optional arguments:
   -funknown, --force-unknown
                         By default, objects in external galaxies are plotted only if their magnitude is known and lower than the limiting magnitude of deepsky objects. If this option is given, also objects in external galaxies of which the magnitude is not known are plotted. This option will clutter some galaxies like M 101 and NGC 4559.
   -lang [LANGUAGE], --language [LANGUAGE]
-                        Specify language on the maps, either 'en' or 'nl' (default: en)
+                        Specify language on the maps, either 'en','es, 'fr', 'nl' (default: en)
   -sc [SHOW_CATALOGS], --show-catalogs [SHOW_CATALOGS]
                         Comma separated list of additional catalogs to be show on the map. (e.g. LBN).
   -x [CROSS_MARKS], --add-cross [CROSS_MARKS]
