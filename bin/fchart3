@@ -30,7 +30,7 @@ import fchart3
 
 from fchart3.config_loader import ConfigurationLoader
 from fchart3.astrocalc import hms2rad, dms2rad, rad2hms, rad2dms
-from fchart3.skymap_engine import SkymapEngine, EN, NL, ES
+from fchart3.skymap_engine import SkymapEngine, EN, NL, ES,FR
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics_cairo import CairoDrawing
@@ -111,7 +111,7 @@ class RuntimeSettings:
                                          'and NGC 4559.')
 
         argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
-                                    help='Specify the language for the maps, options: \'en\', \'nl\', \'es\' (default: en)')
+                                    help='Specify the language for the maps, options: \'en\', \'nl\', \'es\', \'fr\' (default: en)')
 
         argumentparser.add_argument('-sc', '--show-catalogs', dest='show_catalogs', nargs='?', action='store',
                                     help='Comma separated list of additional catalogs to be show on the map. (e.g. LBN).')
@@ -254,6 +254,8 @@ class RuntimeSettings:
             self.language = EN
         elif self.parser.language.upper() == 'ES':
             self.language = ES
+        elif self.parser.language.upper() == 'FR':
+            self.language = FR 
         else:
             print('Unsupported language {}'.format(self.parser.language))
             sys.exit(-1)
