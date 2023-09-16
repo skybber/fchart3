@@ -64,8 +64,8 @@ FR = {
     'AST':'Astérisme',
     'PN': 'Nébuleuse Planétaire',
     'N': 'Nébuleuse Diffuse',
-    'SNR':'Rémanent de supernova',
-    'PG':'Partie de glaxie'
+    'SNR':'Rémanent de Supernova',
+    'PG':'Partie de Galaxie'
 }
 
 EN = {
