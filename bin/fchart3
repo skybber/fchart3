@@ -37,18 +37,20 @@ from fchart3.graphics_cairo import CairoDrawing
 from fchart3.graphics_tikz import TikZDrawing
 from fchart3.graphics_interface import FontStyle
 
+import gettext
+_ = gettext.gettext
+
 #################################################################
 
+VERSION = "0.9.0"
 
-def print_version():
-    print('fchart3 version 0.9.0 (c) fchart3 authors 2005-2023')
-    print("""
+def print_version(version):
+    print(_(f"""fchart3 version {version} (c) fchart3 authors 2005-2023\n
 fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
-LICENSE file.
-""")
+LICENSE file."""))
 
 
 class RuntimeSettings:
@@ -111,7 +113,7 @@ class RuntimeSettings:
                                          'and NGC 4559.')
 
         argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
-                                    help='Specify the language for the maps, options: \'en\', \'nl\', \'es\', \'fr\' (default: en)')
+                                    help='Specify the language for the maps, options: \'en\', \'nl\', \'es\' (default: en)')
 
         argumentparser.add_argument('-sc', '--show-catalogs', dest='show_catalogs', nargs='?', action='store',
                                     help='Comma separated list of additional catalogs to be show on the map. (e.g. LBN).')
@@ -255,13 +257,13 @@ class RuntimeSettings:
         elif self.parser.language.upper() == 'ES':
             self.language = ES
         elif self.parser.language.upper() == 'FR':
-            self.language = FR 
+            self.language = FR    
         else:
-            print('Unsupported language {}'.format(self.parser.language))
+            print(_('Unsupported language {}'.format(self.parser.language)))
             sys.exit(-1)
 
         if self.parser.version:
-            print_version()
+            print_version(VERSION)
             sys.exit(1)
 
         if self.parser.cross_marks:
@@ -300,7 +302,7 @@ class RuntimeSettings:
                     rax, decx = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
                     self.extra_positions_list.append([rax,decx,label_str,label_pos])
                 else:
-                    print('option -x needs three part argument, separated by comma\'s: -x "ra,dec,label"')
+                    print(_('option -x needs three part argument, separated by comma\'s: -x "ra,dec,label"'))
                     sys.exit(-1)
 
 
@@ -316,9 +318,8 @@ def _convert_color(color):
     try:
         r, g, b = [int(color[i:i+2], 16) / 255.0 for i in range(0, len(color), 2)]
     except ValueError:
-        print('Invalid color format {}'.format(color))
+        print( _('Invalid color format {}'.format(color)))
         sys.exit()
-
     return r, g, b
 
 def _convert_font_style(font_style):
@@ -495,11 +496,12 @@ if __name__ == '__main__':
     # Create default settings and parse commandline
     settings = RuntimeSettings()
 
-    print_version()
+    print_version(VERSION)
 
     # Create output space if necessary
     if not os.path.exists(settings.parser.output_dir):
-        print('Creating directory '+settings.parser.output_dir)
+        #print('Creating directory '+settings.parser.output_dir)
+        print(_('Creating directory {}'.format(settings.parser.output_dir)))
         os.mkdir(settings.parser.output_dir)
 
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
@@ -515,7 +517,7 @@ if __name__ == '__main__':
             config_file = settings.parser.config_file
 
         if config_file is None:
-            print('Config file "{}" not found!\n'.format(settings.parser.config_file))
+            print( _('Config file {} not found!\n'.format(settings.parser.config_file)))
             exit(-1)
 
     used_catalogs = UsedCatalogs(data_dir,
@@ -528,39 +530,43 @@ if __name__ == '__main__':
                                  )
 
     # Final report before mapmaking
-    print(str(len(used_catalogs.reduced_deeplist))+'/'+str(len(used_catalogs.deeplist))+' deepsky objects after magnitude/messier selection.')
+    nb_reduced_deeplist= len(used_catalogs.reduced_deeplist)
+    nb_used_catalogs   = len(used_catalogs.deeplist)
+    print(' {0}/{1} deepsky objects after magnitude/messier selection.'.format(nb_reduced_deeplist,nb_used_catalogs))
 
     print('Making maps with: ')
     if config_file:
-        print('   Config file    : ' + config_file)
-    print('   Output dir     : ' + settings.parser.output_dir)
-    print('   Deep sky limit : ' + str(settings.parser.limit_magnitude_deepsky))
-    print('   Stellar limit  : ' + str(settings.parser.limit_magnitude_stars))
-    print('   Fieldsize      : ' + str(settings.parser.fieldsize) + ' degrees')
-    print('   Paper width    : ' + str(settings.parser.width) + ' mm')
-    print('   Paper height   : ' + str(settings.parser.height) + ' mm')
-    print('   Force Messier  : ' + str(settings.parser.force_messier))
-    print('   Force asterisms: ' + str(settings.parser.force_asterisms))
-    print('   Force pg       : ' + str(settings.parser.force_unknown))
-    print('   Extra points   : ' + str(len(settings.extra_positions_list)))
-    print('   Show dso legend: ' + str(settings.parser.show_dso_legend))
+        print( _('   Config file    : {}'.format(config_file)))
+    print(_('   Output dir     : {}'.format(settings.parser.output_dir)))
+    print(_('   Deep sky limit : {}'.format(settings.parser.limit_magnitude_deepsky)))
+    print(_('   Stellar limit  : {}'.format(settings.parser.limit_magnitude_stars)))
+    print(_('   Fieldsize      : {}  degrees'.format(settings.parser.fieldsize)))
+    print(_('   Paper width    : {}  mm'.format(settings.parser.width)))
+    print(_('   Paper height   : {}  mm'.format(settings.parser.height)))
+    print(_('   Force Messier  : {}'.format(settings.parser.force_messier)))
+    print(_('   Force asterisms: {}'.format(settings.parser.force_asterisms)))
+    print(_('   Force pg       : {}'.format(settings.parser.force_unknown)))
+    print(_('   Extra points   : {}'.format(len(settings.extra_positions_list))))
+    print(_('   Show dso legend: {}'.format(settings.parser.show_dso_legend)))
 
     if settings.parser.extra_data_dir:
-        print('   Extra data directory: '+ str(settings.parser.extra_data_dir))
+        print(_('   Extra data directory: {}'.format(settings.parser.extra_data_dir)))
+
 
     for object in settings.extra_positions_list:
         rax,decx,label,labelpos = object
-        print(label,':', rad2hms(rax), rad2dms(decx))
+        #print(label,':', rad2hms(rax), rad2dms(decx))
+        print(_('{0}: rad2hms({1}), rad2dms({2})'.format(label, rax, decx)))
 
     # For all sources...
     for source in settings.parser.sourcelist:
         filename = ''
         # Parse sourcename
         if source.upper().rstrip().lstrip() == 'ALLMESSIER':
-            print('alles')
+            print(_('alles'))
             for object in used_catalogs.messierlist:
                 print('')
-                print('M '+str(object.messier))
+                print(_('M{}'.format(object.messier)))
                 ra  = object.ra
                 dec = object.dec
                 artist = None
@@ -613,7 +619,7 @@ if __name__ == '__main__':
                     name = ','.join(data[2:])
                     filename = settings.parser.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
                 else:
-                    print('Position specification needs three part argument, separated by comma\'s: "ra,dec,caption"')
+                    print(_('Position specification needs three part argument, separated by commas: "ra,dec,caption"'))
                     sys.exit(-1)
 
             else:# : in source
@@ -672,10 +678,10 @@ if __name__ == '__main__':
                         showing_dso = showing_dso.master_object
                     showing_dsos = [showing_dso]
                     engine.set_active_constellation(showing_dso.constellation)
-
-                print("Started in : " + str(time()-tm) + "ms")
+                tmp =   time()-tm
+                print(_("Started in : {} ms".format(tmp)))
                 engine.make_map(used_catalogs, showing_dsos=showing_dsos, extra_positions=settings.extra_positions_list)
             else:
-                print('object not found, try appending an A or a B')
-
-    print("Chart generated in : " + str(time()-tm) + "ms")
+                print(_('object not found, try appending an A or a B'))
+    tmp =   time()-tm
+    print(_("Chart generated in : {} ms ".format(tmp)))
