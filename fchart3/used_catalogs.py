@@ -15,7 +15,17 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import gettext
 import os
+
+uilanguage=os.environ.get('fchart3lang')
+try:
+    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang.install()
+    _ = lang.gettext
+except:                  
+    _ = gettext.gettext
+    
 import numpy as np
 
 from .astrocalc import sphere_to_rect
@@ -29,6 +39,7 @@ from .milkyway import import_milky_way
 from .milkyway_enhanced import EnhancedMilkyWay
 from .vic import import_vic
 from . import deepsky_object as deepsky
+
 
 
 class UsedCatalogs:
@@ -199,18 +210,18 @@ class UsedCatalogs:
 
     def _get_deepsky_list(self, data_dir, show_catalogs, use_pgc_catalog):
         all_dsos = {}
-        print('Reading Hnsky...', flush=True)
+        print( _('Reading Hnsky...'), flush=True)
         hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs, all_dsos)
         if use_pgc_catalog:
-            print('Reading PGC/UGC...', flush=True)
+            print(_('Reading PGC/UGC...'), flush=True)
             pgclist = import_pgc_deepsky(os.path.join(data_dir, 'PGC.dat'), os.path.join(data_dir, 'PGC_update.dat'), show_catalogs, all_dsos)
         else:
             pgclist = []
-        print('Reading VIC...', flush=True)
+        print(_('Reading VIC...'), flush=True)
         viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
         deeplist = hnskylist + pgclist + viclist
         deeplist.sort(key=deepsky.cmp_to_key(deepsky.cmp_name))
-        print('Reading DSO outlines...', flush=True)
+        print(_('Reading DSO outlines...'), flush=True)
         dso_dict = self._get_dso_dict(deeplist)
 
         all_lvl_outlines = import_outlines_catgen(os.path.join(data_dir, 'outlines_catgen.dat'))

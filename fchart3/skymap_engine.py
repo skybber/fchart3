@@ -15,6 +15,19 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+
+import gettext
+import os
+
+uilanguage=os.environ.get('fchart3lang')
+try:
+    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang.install()
+    _ = lang.gettext
+except:                  
+    _ = gettext.gettext
+
+
 from time import time
 
 from .label_potential import *
@@ -40,48 +53,23 @@ from .widget_picker import WidgetPicker
 
 from .precession import compute_precession_matrix
 
-NL = {
-    'h':'u',
-    'm':'m',
-    's':'s',
-    'G':'Sterrenstelsel',
-    'OCL':'Open sterrenhoop',
-    'GCL':'Bolhoop',
-    'AST':'Groepje sterren',
-    'PN':'Planetaire nevel',
-    'N':'Diffuse emissienevel',
-    'SNR':'Supernovarest',
-    'PG':'Deel van sterrenstelsel'
+
+
+LABELi18N = {
+    'h': _('h'),
+    'm':_('m'),
+    's':_('s'),
+    'G':_('Galaxy'),
+    'OCL':_('Open cluster'),
+    'GCL':_('Globular cluster'),
+    'AST':_('Asterism'),
+    'PN':_('Planetary nebula'),
+    'N': _('Diffuse nebula'),
+    'SNR':_('Supernova remnant'),
+    'PG':_('Part of galaxy')
 }
 
 
-EN = {
-    'h':'h',
-    'm':'m',
-    's':'s',
-    'G':'Galaxy',
-    'OCL':'Open cluster',
-    'GCL':'Globular cluster',
-    'AST':'Asterism',
-    'PN': 'Planetary nebula',
-    'N': 'Diffuse nebula',
-    'SNR':'Supernova remnant',
-    'PG':'Part of galaxy'
-}
-
-ES = {
-    'h':'h',
-    'm':'m',
-    's':'s',
-    'G':'Galaxia',
-    'OCL':'Cúmulo abierto',
-    'GCL':'Cúmulo globular',
-    'AST':'Asterismo',
-    'PN': 'Nebulosa planetaria',
-    'N': 'Nebulosa difusa',
-    'SNR':'Remanente de supernova',
-    'PG':'Parte de galaxia'
-}
 
 STAR_LABELS = {
     "alp":"α",
@@ -126,7 +114,7 @@ constell_lines_rect2 = None
 constell_bound_rect = None
 
 class SkymapEngine:
-    def __init__(self, graphics, language=EN, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
+    def __init__(self, graphics, language=LABELi18N, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
         """
         Width is width of the map including the legend in mm.
         """
@@ -646,7 +634,8 @@ class SkymapEngine:
             self.graphics.polygon(xy_polygon, DrawMode.FILL)
 
         self.graphics.antialias_on()
-        print("Enhanced milky way draw within {} s. Total polygons={}".format(str(time()-tm), total_polygons), flush=True)
+        tmp=str(time()-tm)
+        print( _("Enhanced milky way draw within {} s. Total polygons={}".format(tmp, total_polygons)) , flush=True)
 
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
@@ -793,12 +782,13 @@ class SkymapEngine:
         pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
         selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars, precession_matrix)
         if selection is None or len(selection) == 0:
-            print('No stars found.')
+            print(_('No stars found.'))
             return
 
         # print("Stars selection {} ms".format(str(time()-tm)), flush=True)
-        print('{} stars in map.'.format(selection.shape[0]))
-        print('Faintest star: ' + str(round(max(selection['mag']), 2)))
+        print( _('{} stars in map.'.format(selection.shape[0])))
+        var=str(round(max(selection['mag']), 2))
+        print(_(f'Faintest star : {var}' )) 
 
         # tm = time()
         x, y = self.projection.np_radec_to_xy(selection['ra'], selection['dec'])

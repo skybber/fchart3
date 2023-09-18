@@ -14,11 +14,23 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+import gettext
+import os
+
+uilanguage=os.environ.get('fchart3lang')
+try:
+    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang.install()
+    _ = lang.gettext
+except:                  
+    _ = gettext.gettext
+
 
 from .deepsky_object import *
 from .htm.htm import HTM
 
 from time import time
+
 
 RAD2DEG = 180.0/np.pi
 
@@ -33,11 +45,14 @@ class EnhancedMilkyWay:
         self.mw_opti_polygons = None
         tm = time()
         self.add_polygons(milkyway_filename)
+        tmp=time()-tm
         if optim_max_col_diff is not None:
             self._create_opti_polygons(15/255.0)
-            print("Enhanced milky way initialized within {}s. Optimized polygons={}, total polygons={}".format(str(time()-tm), len(self.mw_opti_polygons), len(self.mw_polygons)), flush=True)
+            print( _("Enhanced milky way initialized within {}s. Optimized polygons={}, total polygons={}".format(tmp, len(self.mw_opti_polygons), len(self.mw_polygons))), flush=True) 
+                
         else:
-            print("Enhanced milky way initialized within {}s. Total polygons={}".format(str(time()-tm), len(self.mw_polygons)), flush=True)
+            print(_("Enhanced milky way initialized within {}s. Total polygons={}".format(tmp, len(self.mw_polygons))), flush=True)
+            
 
     def _radec_from_img(self, point):
         x, y = point.split(',')

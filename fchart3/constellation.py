@@ -17,6 +17,17 @@
 
 import numpy as np
 
+import gettext
+import os
+
+uilanguage=os.environ.get('fchart3lang')
+try:
+    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang.install()
+    _ = lang.gettext
+except:                  
+    _ = gettext.gettext
+
 
 class BscStar:
     def __init__(self):
@@ -130,10 +141,10 @@ class ConstellationCatalog:
             star_id1 = int(constell_items[i])
             star_id2 = int(constell_items[i+1])
             if not star_id1 in hip2hr_cross_id_map:
-                print('Skipping constallation={} line. No HR for HIP={}'.format(constell.name, star_id1), flush=True)
+                print(_('Skipping constallation={} line. No HR for HIP={}'.format(constell.name, star_id1), flush=True))
                 continue
             if not star_id2 in hip2hr_cross_id_map:
-                print('Skipping constallation={} line. No HR for HIP={}'.format(constell.name, star_id2), flush=True)
+                print(_('Skipping constallation={} line. No HR for HIP={}'.format(constell.name, star_id2), flush=True))
                 continue
             star1 = self.bright_stars[hip2hr_cross_id_map[star_id1]-1]
             star2 = self.bright_stars[hip2hr_cross_id_map[star_id2]-1]
