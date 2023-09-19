@@ -17,8 +17,6 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-
-
 import gettext
 import os
 
@@ -29,7 +27,6 @@ try:
     _ = lang.gettext
 except:                  
     _ = gettext.gettext
-
 
 import argparse
 import textwrap
@@ -48,19 +45,15 @@ from fchart3.graphics_cairo import CairoDrawing
 from fchart3.graphics_tikz import TikZDrawing
 from fchart3.graphics_interface import FontStyle
 
-
-
 #################################################################
-
-
-def print_version(version="0.9.0"):
-    print(_(f"""fchart3 version {version} (c) fchart3 authors 2005-2023\n
+VERSION ="0.9.0"
+def print_version():
+    print(_(f"""fchart3 version 0.9.0 (c) fchart3 authors 2005-2023\n
 fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
 LICENSE file."""))
-
 
 class RuntimeSettings:
     def __init__(self):
@@ -274,7 +267,7 @@ class RuntimeSettings:
         """
         
         if self.parser.version:
-            print_version("0.9.0")
+            print_version()
             sys.exit(1)
 
         if self.parser.cross_marks:
@@ -500,9 +493,8 @@ def _create_engine_configuration(config_file = None):
 
 
 if __name__ == '__main__':
-    print(_('UI_lang'))
+    #print(_('UI_lang'))
         
-
     tm = time()
 
     data_dir = os.path.join(fchart3.get_catalogs_dir())
@@ -519,12 +511,10 @@ if __name__ == '__main__':
     except:                  
         _ = gettext.gettext
     finally:
-        print("bou")
-
-        print(_('UI_lang'))
+        #print(_(f'lang {uilanguage} '))
+        pass
     
-    
-    #print_version()
+    print_version()
 
     # Create output space if necessary
     if not os.path.exists(settings.parser.output_dir):
