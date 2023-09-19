@@ -439,10 +439,10 @@ class SkymapEngine:
             if dso in dso_hide_filter_set:
                 continue
 
-            base_label = dso.label()
-            label = base_label
+            label = dso.label()
+            label_mag = None
             if self.config.show_dso_mag and dso.mag is not None and dso.mag != -100:
-                label = '{}~{:.1f}'.format(label, dso.mag)
+                label_mag = '{:.1f}'.format(dso.mag)
 
             if dso_highlights:
                 for dso_highlight in dso_highlights:
@@ -493,7 +493,7 @@ class SkymapEngine:
             self.label_potential.add_position(xx, yy, label_length)
 
             if dso.type == deepsky.G:
-                self.galaxy(x, y, rlong, rshort, posangle, dso.mag, label, label_ext, labelpos)
+                self.galaxy(x, y, rlong, rshort, posangle, dso.mag, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.N:
                 has_outlines = False
                 if self.config.show_nebula_outlines and dso.outlines is not None and rlong > self.min_radius:
@@ -501,13 +501,13 @@ class SkymapEngine:
                 if not has_outlines:
                     self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, label_ext, labelpos)
             elif dso.type == deepsky.PN:
-                self.planetary_nebula(x, y, rlong, label, label_ext, labelpos)
+                self.planetary_nebula(x, y, rlong, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.OC:
                 if self.config.show_nebula_outlines and dso.outlines is not None:
                     has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort)
-                self.open_cluster(x, y, rlong, label, label_ext, labelpos)
+                self.open_cluster(x, y, rlong, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.GC:
-                self.globular_cluster(x, y, rlong, label, label_ext, labelpos)
+                self.globular_cluster(x, y, rlong, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.STARS:
                 self.asterism(x, y, rlong, label, label_ext, labelpos)
             elif dso.type == deepsky.SNR:
@@ -524,12 +524,12 @@ class SkymapEngine:
                     xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
                     xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-                    visible_dso_collector.append([rlong, base_label.replace(' ', ''), xp1, yp1, xp2, yp2])
+                    visible_dso_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
                     if self.picked_dso == dso:
                         pick_xp1, pick_yp1 = self.mirroring_graphics.to_pixel(-pick_r, -pick_r)
                         pick_xp2, pick_yp2 = self.mirroring_graphics.to_pixel(pick_r, pick_r)
                         pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
-                        visible_dso_collector.append([rlong, base_label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
+                        visible_dso_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
 
     def calc_deepsky_list_ext(self, precession_matrix, deepsky_list_ext, dso_list):
         if precession_matrix is not None:
@@ -1295,7 +1295,7 @@ class SkymapEngine:
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         self.graphics.circle(x, y, r, DrawMode.FILL)
 
-    def open_cluster(self, x, y, radius, label, label_ext, labelpos):
+    def open_cluster(self, x, y, radius, label, label_mag, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
 
         self.graphics.set_pen_rgb(self.config.star_cluster_color)
@@ -1307,12 +1307,15 @@ class SkymapEngine:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
-            label_fh = None
+            label_fh = self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
+        if not label_ext and label_mag:
+            self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+            self.draw_circular_object_label(x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
 
     def galaxy_cluster(self, x, y, radius, label, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
@@ -1406,7 +1409,7 @@ class SkymapEngine:
         elif labelpos == 3:
             self.graphics.text_left(-rlong-fh/6.0, -fh/3.0, label)
 
-    def galaxy(self, x, y, rlong, rshort, posangle, mag, label, label_ext, labelpos):
+    def galaxy(self, x, y, rlong, rshort, posangle, mag, label, label_mag, label_ext, labelpos):
         """
         If rlong != -1 and rshort == -1 =>   rshort <- rlong
         if rlong < 0.0 => standard galaxy
@@ -1467,6 +1470,10 @@ class SkymapEngine:
                 self.draw_galaxy_label(x, y, label, labelpos, rlong, rshort, label_fh)
             if label_ext:
                 self.draw_galaxy_label(x, y, label_ext, self.to_ext_labelpos(labelpos), rlong, rshort, label_fh)
+            if not label_ext and label_mag:
+                self.mirroring_graphics.translate(0, -label_fh*0.9)
+                self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+                self.draw_galaxy_label(x, y, label_mag, labelpos, rlong, rshort, label_fh)
 
         self.graphics.restore()
 
@@ -1586,7 +1593,7 @@ class SkymapEngine:
         label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
         return label_pos_list
 
-    def globular_cluster(self, x, y, radius, label, label_ext, labelpos):
+    def globular_cluster(self, x, y, radius, label, label_mag, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
@@ -1601,12 +1608,16 @@ class SkymapEngine:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
-            label_fh = None
-            self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
+            label_fh = self.graphics.gi_default_font_size
+            self.graphics.set_font(self.graphics.gi_font, label_fh, self.config.dso_label_font_style)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
+
+        if not label_ext and label_mag:
+            self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+            self.draw_circular_object_label(x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
 
     def diffuse_nebula(self, x, y, width, height, posangle, label, label_ext, labelpos):
         self.graphics.set_linewidth(self.config.nebula_linewidth)
@@ -1728,7 +1739,7 @@ class SkymapEngine:
         label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
         return label_pos_list
 
-    def planetary_nebula(self, x, y, radius, label, label_ext, labelpos):
+    def planetary_nebula(self, x, y, radius, label, label_mag, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
@@ -1745,13 +1756,16 @@ class SkymapEngine:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
-            label_fh = None
-            self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
+            label_fh = self.graphics.gi_default_font_size
+            self.graphics.set_font(self.graphics.gi_font, label_fh, self.config.dso_label_font_style)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
 
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
+        if not label_ext and label_mag:
+            self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+            self.draw_circular_object_label(x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
 
     def supernova_remnant(self, x, y, radius, label, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
@@ -1766,7 +1780,7 @@ class SkymapEngine:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, label_fh)
         else:
-            label_fh = None
+            label_fh = self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
