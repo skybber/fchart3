@@ -76,6 +76,7 @@ class EngineConfiguration:
         self._show_enhanced_milky_way = False
         self._show_nebula_outlines = False
         self._show_picker = False
+        self._show_dso_mag = False
         self._fov_telrad = False
         self._eyepiece_fov = None
         self._mirror_x = False
@@ -273,6 +274,14 @@ class EngineConfiguration:
     @show_picker.setter
     def show_picker(self, value):
         self._show_picker = value
+
+    @property
+    def show_dso_mag(self):
+        return self._show_dso_mag
+
+    @show_dso_mag.setter
+    def show_dso_mag(self, value):
+        self._show_dso_mag = value
 
     @property
     def fov_telrad(self):

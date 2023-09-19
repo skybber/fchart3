@@ -439,7 +439,10 @@ class SkymapEngine:
             if dso in dso_hide_filter_set:
                 continue
 
-            label = dso.label()
+            base_label = dso.label()
+            label = base_label
+            if self.config.show_dso_mag and dso.mag is not None and dso.mag != -100:
+                label = '{}~{:.1f}'.format(label, dso.mag)
 
             if dso_highlights:
                 for dso_highlight in dso_highlights:
@@ -521,12 +524,12 @@ class SkymapEngine:
                     xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
                     xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-                    visible_dso_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
+                    visible_dso_collector.append([rlong, base_label.replace(' ', ''), xp1, yp1, xp2, yp2])
                     if self.picked_dso == dso:
                         pick_xp1, pick_yp1 = self.mirroring_graphics.to_pixel(-pick_r, -pick_r)
                         pick_xp2, pick_yp2 = self.mirroring_graphics.to_pixel(pick_r, pick_r)
                         pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
-                        visible_dso_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
+                        visible_dso_collector.append([rlong, base_label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
 
     def calc_deepsky_list_ext(self, precession_matrix, deepsky_list_ext, dso_list):
         if precession_matrix is not None:
