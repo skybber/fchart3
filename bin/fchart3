@@ -17,12 +17,20 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import gettext
+import os
+
+uilanguage=os.environ.get('fchart3lang')
+try:
+    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang.install()
+    _ = lang.gettext
+except:                  
+    _ = gettext.gettext
+
 import argparse
 import textwrap
-
 from time import time
-
-import os
 import sys
 import numpy as np
 
@@ -30,7 +38,7 @@ import fchart3
 
 from fchart3.config_loader import ConfigurationLoader
 from fchart3.astrocalc import hms2rad, dms2rad, rad2hms, rad2dms
-from fchart3.skymap_engine import SkymapEngine, EN, NL, ES,FR
+from fchart3.skymap_engine import SkymapEngine,LABELi18N
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics_cairo import CairoDrawing
@@ -41,17 +49,14 @@ import gettext
 _ = gettext.gettext
 
 #################################################################
-
-VERSION = "0.9.0"
-
-def print_version(version):
-    print(_(f"""fchart3 version {version} (c) fchart3 authors 2005-2023\n
+VERSION ="0.9.0"
+def print_version():
+    print(_(f"""fchart3 version 0.9.0 (c) fchart3 authors 2005-2023\n
 fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
 LICENSE file."""))
-
 
 class RuntimeSettings:
     def __init__(self):
@@ -249,7 +254,8 @@ class RuntimeSettings:
         if len(self.parser.sourcelist) == 0:
             argumentparser.print_help()
             sys.exit(1)
-
+        
+        """
         if self.parser.language.upper() == 'NL':
             self.language = NL
         elif self.parser.language.upper() == 'EN':
@@ -261,7 +267,8 @@ class RuntimeSettings:
         else:
             print(_('Unsupported language {}'.format(self.parser.language)))
             sys.exit(-1)
-
+        """
+        
         if self.parser.version:
             print_version(VERSION)
             sys.exit(1)
@@ -489,6 +496,8 @@ def _create_engine_configuration(config_file = None):
 
 
 if __name__ == '__main__':
+    #print(_('UI_lang'))
+        
     tm = time()
 
     data_dir = os.path.join(fchart3.get_catalogs_dir())
@@ -496,7 +505,19 @@ if __name__ == '__main__':
     # Create default settings and parse commandline
     settings = RuntimeSettings()
 
-    print_version(VERSION)
+    try:
+        uilanguage  = settings.parser.language.lower()
+        os.environ['fchart3lang'] = uilanguage
+        lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+        lang.install()
+        _ = lang.gettext
+    except:                  
+        _ = gettext.gettext
+    finally:
+        #print(_(f'lang {uilanguage} '))
+        pass
+    
+    print_version()
 
     # Create output space if necessary
     if not os.path.exists(settings.parser.output_dir):
@@ -660,7 +681,7 @@ if __name__ == '__main__':
                                           settings.parser.width,
                                           settings.parser.height,
                                           output_format)
-                engine = SkymapEngine(artist, settings.language,
+                engine = SkymapEngine(artist, 
                                       lm_stars=settings.parser.limit_magnitude_stars,
                                       lm_deepsky=settings.parser.limit_magnitude_deepsky)
                 engine.set_configuration(_create_engine_configuration(config_file))
