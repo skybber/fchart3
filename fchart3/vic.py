@@ -14,6 +14,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+import gettext
+import os
+
+uilanguage=os.environ.get('fchart3lang')
+try:
+    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang.install()
+    _ = lang.gettext
+except:                  
+    _ = gettext.gettext
+
 
 from .deepsky_object import *
 from numpy import *
@@ -54,4 +65,6 @@ def import_vic(filename):
 
 if __name__ == '__main__':
     fname = '../data/catalogs/vic.txt'
-    print(str(len(import_vic(fname)))+' objects in VIC catalogue')
+    nb=len(import_vic(fname))
+    #print(str(len(import_vic(fname)))+' objects in VIC catalogue')
+    print( _(f'{nb} objects in VIC catalogue') )

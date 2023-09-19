@@ -1,0 +1,303 @@
+# Dutch translations for PROJECT.
+# Copyright (C) 2023 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-09-16 23:10-0300\n"
+"PO-Revision-Date: 2023-09-16 15:14-0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: nl\n"
+"Language-Team: nl <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: bin/fchart3i18n.py:494
+msgid "UI_lang"
+msgstr "Interface NL"
+
+#: bin/fchart3i18n.py:264
+msgid "Unsupported language {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:307
+msgid ""
+"option -x needs three part argument, separated by comma's: -x "
+"\"ra,dec,label\""
+msgstr ""
+
+#: bin/fchart3i18n.py:323
+msgid "Invalid color format {}"
+msgstr ""
+
+
+#: bin/fchart3i18n.py:509
+msgid "Creating directory {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:525
+msgid "Config file {} not found!\n"
+msgstr ""
+
+#: bin/fchart3i18n.py:544
+msgid "   Config file    : {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:545
+msgid "   Output dir     : {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:546
+msgid "   Deep sky limit : {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:547
+msgid "   Stellar limit  : {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:548
+msgid "   Fieldsize      : {}  degrees"
+msgstr ""
+
+#: bin/fchart3i18n.py:549
+msgid "   Paper width    : {}  mm"
+msgstr ""
+
+#: bin/fchart3i18n.py:550
+msgid "   Paper height   : {}  mm"
+msgstr ""
+
+#: bin/fchart3i18n.py:551
+msgid "   Force Messier  : {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:552
+msgid "   Force asterisms: {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:553
+msgid "   Force pg       : {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:554
+msgid "   Extra points   : {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:555
+msgid "   Show dso legend: {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:558
+msgid "   Extra data directory: {}"
+msgstr ""
+
+#: bin/fchart3i18n.py:564
+msgid "{0}: rad2hms({1}), rad2dms({2})"
+msgstr ""
+
+#: bin/fchart3i18n.py:571
+msgid "alles"
+msgstr ""
+
+#: bin/fchart3i18n.py:574
+msgid "M{}"
+msgstr ""
+
+#: bin/fchart3i18n.py:627
+msgid ""
+"Position specification needs three part argument, separated by commas: "
+"\"ra,dec,caption\""
+msgstr ""
+
+#: bin/fchart3i18n.py:687
+msgid "Started in : {} ms"
+msgstr ""
+
+#: bin/fchart3i18n.py:690
+msgid "object not found, try appending an A or a B"
+msgstr ""
+
+#: bin/fchart3i18n.py:692
+msgid "Chart generated in : {} ms "
+msgstr ""
+
+#: fchart3/constellation.py:135 fchart3/constellation.py:138
+msgid "Skipping constallation={} line. No HR for HIP={}"
+msgstr ""
+
+#: fchart3/milkyway_enhanced.py:42
+msgid ""
+"Enhanced milky way initialized within {}s. Optimized polygons={}, total "
+"polygons={}"
+msgstr ""
+
+#: fchart3/milkyway_enhanced.py:45
+msgid "Enhanced milky way initialized within {}s. Total polygons={}"
+msgstr ""
+
+#: fchart3/skymap_engine.py:48
+msgid "h"
+msgstr ""
+
+#: fchart3/skymap_engine.py:49
+msgid "m"
+msgstr ""
+
+#: fchart3/skymap_engine.py:50
+msgid "s"
+msgstr ""
+
+#: fchart3/skymap_engine.py:51
+msgid "Galaxie"
+msgstr ""
+
+#: fchart3/skymap_engine.py:52
+msgid "Galaxy"
+msgstr ""
+
+#: fchart3/skymap_engine.py:53
+msgid "Open cluster"
+msgstr ""
+
+#: fchart3/skymap_engine.py:54
+msgid "Globular cluster"
+msgstr ""
+
+#: fchart3/skymap_engine.py:55
+msgid "Asterism"
+msgstr ""
+
+#: fchart3/skymap_engine.py:56
+msgid "Planetary nebula"
+msgstr ""
+
+#: fchart3/skymap_engine.py:57
+msgid "Diffuse nebula"
+msgstr ""
+
+#: fchart3/skymap_engine.py:58
+msgid "Supernova remnant"
+msgstr ""
+
+#: fchart3/skymap_engine.py:59
+msgid "Part of galaxy"
+msgstr ""
+
+#: fchart3/skymap_engine.py:684
+msgid "Enhanced milky way draw within {} s. Total polygons={}"
+msgstr ""
+
+#: fchart3/skymap_engine.py:831
+msgid "No stars found."
+msgstr ""
+
+#: fchart3/skymap_engine.py:835
+msgid "{} stars in map."
+msgstr ""
+
+#: fchart3/skymap_engine.py:836
+msgid "Faintest star: "
+msgstr ""
+
+#: fchart3/used_catalogs.py:204
+msgid "Reading Hnsky..."
+msgstr ""
+
+#: fchart3/used_catalogs.py:207
+msgid "Reading PGC/UGC..."
+msgstr ""
+
+#: fchart3/used_catalogs.py:211
+msgid "Reading VIC..."
+msgstr ""
+
+#: fchart3/used_catalogs.py:215
+msgid "Reading DSO outlines..."
+msgstr ""
+
+#~ msgid "Unsupported language {}"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "option -x needs three part argument, "
+#~ "separated by comma's: -x \"ra,dec,label\""
+#~ msgstr ""
+
+#~ msgid "Invalid color format {}"
+#~ msgstr ""
+
+#~ msgid "Creating directory {}"
+#~ msgstr ""
+
+#~ msgid "Config file {} not found!\n"
+#~ msgstr ""
+
+#~ msgid "   Config file    : {}"
+#~ msgstr ""
+
+#~ msgid "   Output dir     : {}"
+#~ msgstr ""
+
+#~ msgid "   Deep sky limit : {}"
+#~ msgstr ""
+
+#~ msgid "   Stellar limit  : {}"
+#~ msgstr ""
+
+#~ msgid "   Fieldsize      : {}  degrees"
+#~ msgstr ""
+
+#~ msgid "   Paper width    : {}  mm"
+#~ msgstr ""
+
+#~ msgid "   Paper height   : {}  mm"
+#~ msgstr ""
+
+#~ msgid "   Force Messier  : {}"
+#~ msgstr ""
+
+#~ msgid "   Force asterisms: {}"
+#~ msgstr ""
+
+#~ msgid "   Force pg       : {}"
+#~ msgstr ""
+
+#~ msgid "   Extra points   : {}"
+#~ msgstr ""
+
+#~ msgid "   Show dso legend: {}"
+#~ msgstr ""
+
+#~ msgid "   Extra data directory: {}"
+#~ msgstr ""
+
+#~ msgid "{0}: rad2hms({1}), rad2dms({2})"
+#~ msgstr ""
+
+#~ msgid "alles"
+#~ msgstr ""
+
+#~ msgid "M{}"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Position specification needs three part "
+#~ "argument, separated by commas: "
+#~ "\"ra,dec,caption\""
+#~ msgstr ""
+
+#~ msgid "Started in : {} ms"
+#~ msgstr ""
+
+#~ msgid "object not found, try appending an A or a B"
+#~ msgstr ""
+
+#~ msgid "Chart generated in : {} ms "
+#~ msgstr ""
+
