@@ -1314,7 +1314,7 @@ class SkymapEngine:
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
         if not label_ext and label_mag:
-            self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+            self.graphics.set_font(self.graphics.gi_font, label_fh*0.8, self.config.dso_label_font_style)
             self.draw_circular_object_label(x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
 
     def galaxy_cluster(self, x, y, radius, label, label_ext, labelpos):
@@ -1472,7 +1472,7 @@ class SkymapEngine:
                 self.draw_galaxy_label(x, y, label_ext, self.to_ext_labelpos(labelpos), rlong, rshort, label_fh)
             if not label_ext and label_mag:
                 self.mirroring_graphics.translate(0, -label_fh*0.9)
-                self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+                self.graphics.set_font(self.graphics.gi_font, label_fh*0.8, self.config.dso_label_font_style)
                 self.draw_galaxy_label(x, y, label_mag, labelpos, rlong, rshort, label_fh)
 
         self.graphics.restore()
@@ -1616,7 +1616,7 @@ class SkymapEngine:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
 
         if not label_ext and label_mag:
-            self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+            self.graphics.set_font(self.graphics.gi_font, label_fh*0.8, self.config.dso_label_font_style)
             self.draw_circular_object_label(x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
 
     def diffuse_nebula(self, x, y, width, height, posangle, label, label_ext, labelpos):
@@ -1764,7 +1764,7 @@ class SkymapEngine:
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
         if not label_ext and label_mag:
-            self.graphics.set_font(self.graphics.gi_font, label_fh*0.7, self.config.dso_label_font_style)
+            self.graphics.set_font(self.graphics.gi_font, label_fh*0.8, self.config.dso_label_font_style)
             self.draw_circular_object_label(x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
 
     def supernova_remnant(self, x, y, radius, label, label_ext, labelpos):
