@@ -35,7 +35,7 @@ class CairoDrawing(GraphicsInterface):
     """
     A CairoDrawing - implement Graphics interface using PyCairo
     """
-    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None, jpg_quality=90, avif_speed=7):
+    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None, jpg_quality=90, avif_quality=75, avif_speed=7):
         """
         :param fobj: file object
         :param width: width in mm
@@ -45,6 +45,7 @@ class CairoDrawing(GraphicsInterface):
         :param landscape: True if orientation of page is landscape
         :param tolerance: Cairo context drawing tolerance, use it for speedup of graphics operations
         :param jpg_quality: jpeg quality
+        :param avif_quality: avif quality
         :param avif_speed: avif speed
         """
         GraphicsInterface.__init__(self, (width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
@@ -59,6 +60,7 @@ class CairoDrawing(GraphicsInterface):
         self.tolerance = tolerance
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
         self.jpg_quality = jpg_quality
+        self.avif_quality = avif_quality
         self.avif_speed = avif_speed
 
     def new(self):
@@ -259,7 +261,7 @@ class CairoDrawing(GraphicsInterface):
             im.close()
         elif self.format == 'avif':
             im = self.to_pill()
-            im.save(self.fobj, format="AVIF", speed=self.avif_speed, codec='aom')
+            im.save(self.fobj, format="AVIF", speed=self.avif_speed, quality=self.avif_quality)
             im.close()
         else:
             self.surface.show_page()
