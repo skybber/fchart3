@@ -31,12 +31,11 @@ A4_HEIGHT_POINTS = 842
 
 CAIRO_DEFAULT_FONT_SIZE = 12 * POINT
 
-
 class CairoDrawing(GraphicsInterface):
     """
     A CairoDrawing - implement Graphics interface using PyCairo
     """
-    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None, jpg_quality=90):
+    def __init__(self, fobj, width, height, format='pdf', pixels=False, landscape=False, tolerance=None, jpg_quality=90, avif_speed=7):
         """
         :param fobj: file object
         :param width: width in mm
@@ -45,6 +44,8 @@ class CairoDrawing(GraphicsInterface):
         :param pixels: True if units of width/height are pixels
         :param landscape: True if orientation of page is landscape
         :param tolerance: Cairo context drawing tolerance, use it for speedup of graphics operations
+        :param jpg_quality: jpeg quality
+        :param avif_speed: avif speed
         """
         GraphicsInterface.__init__(self, (width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
 
@@ -58,13 +59,14 @@ class CairoDrawing(GraphicsInterface):
         self.tolerance = tolerance
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
         self.jpg_quality = jpg_quality
+        self.avif_speed = avif_speed
 
     def new(self):
-        if self.format in ['png', 'jpg']:
+        if self.format in ['png', 'jpg', 'avif']:
             self.set_point_size(PONT_IMG)
             self.sfc_width = int(self.gi_width * DPMM_IMG)
             self.sfc_height = int(self.gi_height * DPMM_IMG)
-            if self.format == 'jpg':
+            if self.format in ['jpg']:
                 self.surface = cairo.ImageSurface(cairo.FORMAT_RGB24, self.sfc_width, self.sfc_height)
             else:
                 self.surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, self.sfc_width, self.sfc_height)
@@ -254,6 +256,11 @@ class CairoDrawing(GraphicsInterface):
         elif self.format == 'jpg':
             im = self.to_pill()
             im.save(self.fobj, format="jpeg", quality=self.jpg_quality)
+            im.close()
+        elif self.format == 'avif':
+            im = self.to_pill()
+            im.save(self.fobj, format="AVIF", speed=self.avif_speed, codec='aom')
+            im.close()
         else:
             self.surface.show_page()
             self.surface.flush()
