@@ -487,7 +487,7 @@ class SkymapEngine:
                 if self.config.show_nebula_outlines and dso.outlines is not None and rlong > self.min_radius:
                     has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort, posangle, label, label_ext, labelpos)
                 if not has_outlines:
-                    self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, label_ext, labelpos)
+                    self.diffuse_nebula(x, y, 2.0*rlong, 2.0*rshort, posangle, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.PN:
                 self.planetary_nebula(x, y, rlong, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.OC:
@@ -1609,7 +1609,7 @@ class SkymapEngine:
             self.graphics.set_font(self.graphics.gi_font, label_fh*0.8, self.config.dso_label_font_style)
             self.draw_circular_object_label(x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
 
-    def diffuse_nebula(self, x, y, width, height, posangle, label, label_ext, labelpos):
+    def diffuse_nebula(self, x, y, width, height, posangle, label, label_mag, label_ext, labelpos):
         self.graphics.set_linewidth(self.config.nebula_linewidth)
         self.graphics.set_solid_line()
         self.graphics.set_pen_rgb(self.config.nebula_color)
@@ -1636,6 +1636,9 @@ class SkymapEngine:
             self.draw_diffuse_nebula_label(x, y, label, labelpos, d, label_fh)
         if label_ext:
             self.draw_diffuse_nebula_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
+        if not label_ext and label_mag:
+            self.graphics.set_font(self.graphics.gi_font, label_fh*0.8, self.config.dso_label_font_style)
+            self.draw_diffuse_nebula_label(x, y-0.9*label_fh, label_mag, labelpos, d, label_fh)
 
     def draw_diffuse_nebula_label(self, x, y, label, labelpos, d, fh):
         if labelpos == 0 or labelpos == -1:
