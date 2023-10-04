@@ -57,8 +57,8 @@ class ProjectionStereographic(ProjectionInterface):
             x, y, z = 0, 0, -1
         else:
             z = (cos_dec * cos_dec0 * math.cos(delta_ra) + sin_dec * sin_dec0) / denom
-            x = -(2 * cos_dec * math.sin(delta_ra)) / denom * self.drawingscale if z > 0 else 0
-            y = (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.drawingscale if z > 0 else 0
+            x = -(2 * cos_dec * math.sin(delta_ra)) / denom * self.drawingscale
+            y = (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.drawingscale
 
         return x, y, z
 
@@ -91,8 +91,8 @@ class ProjectionStereographic(ProjectionInterface):
         denom = 1 + sin_dec0 * sin_dec + cos_dec0 * cos_dec * cos_delta_ra
 
         z = (cos_dec * cos_dec0 * np.cos(delta_ra) + sin_dec * sin_dec0) / denom
-        x = np.where(z>0, -(2 * cos_dec * np.sin(delta_ra)) / denom * self.drawingscale, 0)
-        y = np.where(z>0, (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.drawingscale, 0)
+        x = -(2 * cos_dec * np.sin(delta_ra)) / denom * self.drawingscale
+        y = (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.drawingscale
         return x,y,z
 
     def direction_ddec(self, ra, dec):
