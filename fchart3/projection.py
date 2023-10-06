@@ -15,10 +15,24 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from enum import Enum
+class ProjectionType(Enum):
+    ORTHOGRAPHIC = 1
+    STEREOGRAPHIC = 2
+
 class ProjectionInterface:
-    def __init__(self, fieldcentre, drawingscale):
-        self.drawingscale = drawingscale
+    def __init__(self):
+        self.fieldcentre = None
+        self.drawingscale = None
+
+    def set_fieldcentre(self, fieldcentre):
         self.fieldcentre = fieldcentre
+
+    def set_drawingscale(self, drawingscale):
+        self.drawingscale = drawingscale
+
+    def is_zoptim(self):
+        pass
 
     def radec_to_xy(self, ra, dec):
         pass

@@ -43,7 +43,7 @@ from .graphics_tikz import *
 from .graphics_interface import *
 from .highlight_definition import *
 from .dso_highlight_definition import *
-from .projection_interface import *
+from .projection import *
 from .projection_orthographic import *
 from .projection_stereographic import *
 

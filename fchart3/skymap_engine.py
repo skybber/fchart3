@@ -39,7 +39,9 @@ from . import deepsky_object as deepsky
 
 from .graphics_interface import DrawMode
 
+from .projection import ProjectionType
 from .projection_orthographic import ProjectionOrthographic
+from .projection_stereographic import ProjectionStereographic
 
 from .space_widget_allocator import SpaceWidgetAllocator
 from .widget_mag_scale import WidgetMagnitudeScale
@@ -166,11 +168,10 @@ class SkymapEngine:
         self.picked_star = None
         self.star_mag_r_shift = 0
         self.projection = None
+        self.norm_field_radius = None
 
-        self.set_field(ra, dec, fieldradius)
 
-
-    def set_field(self, ra, dec, fieldradius):
+    def set_field(self, ra, dec, fieldradius, projection_type=ProjectionType.STEREOGRAPHIC):
         self.fieldradius = fieldradius
         self.fieldcentre = (ra, dec)
 
@@ -186,7 +187,21 @@ class SkymapEngine:
         self.drawingscale = self.scene_scale*wh/2.0/math.sin(fieldradius)
         self.legend_fontscale = min(self.config.legend_font_scale, wh/100.0)
         self.set_caption(self.caption)
-        self.projection = ProjectionOrthographic(self.fieldcentre, self.drawingscale)
+
+        self.projection = self._create_projection(projection_type)
+        self.projection.set_fieldcentre((0, 0))
+        self.projection.set_drawingscale(1.0)
+        self.norm_field_radius, _ = self.projection.radec_to_xy(fieldradius, 0)
+        self.drawingscale = self.scene_scale*wh / 2.0 / abs(self.norm_field_radius)
+        self.projection.set_fieldcentre(self.fieldcentre)
+        self.projection.set_drawingscale(self.drawingscale)
+
+    def _create_projection(self, projection_type):
+        if projection_type == ProjectionType.ORTHOGRAPHIC:
+            return ProjectionOrthographic()
+        if projection_type == ProjectionType.STEREOGRAPHIC:
+            return ProjectionStereographic()
+        return None
 
     def set_configuration(self, config):
         self.config = config
@@ -195,7 +210,7 @@ class SkymapEngine:
             self.star_mag_r_shift = self.magnitude_to_radius(self.lm_stars-self.config.star_mag_shift) - self.magnitude_to_radius(self.lm_stars)
 
     def get_field_radius_mm(self):
-        return self.drawingscale * math.sin(self.fieldradius)
+        return self.drawingscale * self.norm_field_radius
 
     def get_field_rect_mm(self):
         x = self.scene_scale * self.drawingwidth / 2.0
@@ -534,9 +549,10 @@ class SkymapEngine:
                 dec_ar[i] = dso.dec
 
         x, y, z = self.projection.np_radec_to_xyz(ra_ar, dec_ar)
+        nzopt = not self.projection.is_zoptim()
 
         for i, dso in enumerate(dso_list):
-            if z[i] > 0:
+            if nzopt or z[i] > 0:
                 if dso.rlong is None:
                     rlong = self.min_radius
                 else:
@@ -564,18 +580,19 @@ class SkymapEngine:
         return has_outlines
 
     def draw_unknown_nebula(self, unknown_nebulas):
+        zopt = self.projection.is_zoptim()
         for uneb in unknown_nebulas:
             ra = (uneb.ra_min + uneb.ra_max) / 2.0
             dec = (uneb.dec_min + uneb.dec_max) / 2.0
             x, y, z = self.projection.radec_to_xyz(ra, dec)
-            if z <=0:
+            if zopt and z <=0:
                 continue
             for outl_lev in range(3):
                 outlines = uneb.outlines[outl_lev]
                 if not outlines:
                     continue
                 for outl in outlines:
-                    if z > 0:
+                    if not zopt or z > 0:
                         x_outl, y_outl = self.projection.np_radec_to_xy(outl[0], outl[1])
                         self.unknown_diffuse_nebula_outlines(x_outl, y_outl, outl_lev)
 
@@ -587,6 +604,8 @@ class SkymapEngine:
         self.graphics.set_fill_rgb(self.config.milky_way_color)
         self.graphics.set_linewidth(self.config.milky_way_linewidth)
 
+        nzopt = not self.projection.is_zoptim()
+
         polygon = None
         for i in range(len(x)-1):
             if milky_way_lines[i][2] == 0:
@@ -594,11 +613,11 @@ class SkymapEngine:
                     self.graphics.polygon(polygon, DrawMode.BOTH)
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
                 polygon = None
-                if z1 > 0:
+                if nzopt or z1 > 0:
                     polygon = [[mulx*x1, muly*y1]]
             else:
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
-                if z1 > 0:
+                if nzopt or z1 > 0:
                     if polygon is None:
                         polygon = []
                     polygon.append([mulx*x1, muly*y1])
@@ -628,13 +647,14 @@ class SkymapEngine:
         fr_x1, fr_y1, fr_x2, fr_y2 = self.get_field_rect_mm()
 
         total_polygons = 0
+        zopt = self.projection.is_zoptim()
         for polygon_index in selected_polygons:
             if use_optimized_mw:
                 polygon, rgb = enhanced_milky_way.mw_opti_polygons[polygon_index]
             else:
                 polygon, rgb = enhanced_milky_way.mw_polygons[polygon_index]
 
-            if any(z[i] < 0 for i in polygon):
+            if zopt and any(z[i] < 0 for i in polygon):
                 continue
 
             xy_polygon = [(x[i].item() * mulx, y[i].item() * muly) for i in polygon]
@@ -656,9 +676,10 @@ class SkymapEngine:
     def draw_extra_objects(self,extra_positions):
         # Draw extra objects
         # print('Drawing extra objects...')
+        nzopt = not self.projection.is_zoptim()
         for rax, decx, label, labelpos in extra_positions:
             x, y, z = self.projection.radec_to_xyz(rax, decx)
-            if z >= 0:
+            if nzopt or z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
     def draw_highlights(self, highlights, visible_dso_collector):
@@ -666,11 +687,12 @@ class SkymapEngine:
         # print('Drawing highlighted objects...')
         fn = self.graphics.gi_default_font_size
         highlight_fh = self.config.highlight_label_font_scale * fn
+        nzopt = not self.projection.is_zoptim()
 
         for hl_def in highlights:
             for rax, decx, object_name, label in hl_def.data:
                 x, y, z = self.projection.radec_to_xyz(rax, decx)
-                if z >= 0:
+                if nzopt or z >= 0:
                     self.graphics.set_pen_rgb(hl_def.color)
                     self.graphics.set_linewidth(hl_def.line_width)
                     if hl_def.style == 'cross':
@@ -719,6 +741,7 @@ class SkymapEngine:
 
         fh = self.graphics.gi_default_font_size
         x1, y1, z1 = (None, None, None)
+        nzopt = not self.projection.is_zoptim()
 
         labels = []
 
@@ -728,7 +751,7 @@ class SkymapEngine:
 
             if i > 0:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
-                if z1 > 0 and z2 > 0:
+                if nzopt or (z1 > 0 and z2 > 0):
                     self.mirroring_graphics.line(x1, y1, x2, y2)
                     self.draw_trajectory_tick(x1, y1, x2, y2)
                     if i == 1:
@@ -767,7 +790,7 @@ class SkymapEngine:
 
         r = self.min_radius * 1.2 / 2**0.5
         for x, y, z, nx, ny, label in labels:
-            if z > 0:
+            if nzopt or z > 0:
                 if label_pos == 1:
                     self.mirroring_graphics.text_centred(x, y + r + fh, label)
                 elif label_pos == 2:
@@ -980,10 +1003,12 @@ class SkymapEngine:
         dra = self.fieldradius / 10
         x11, y11, z11 = (None, None, None)
         agg_ra = 0
+        nzopt = not self.projection.is_zoptim()
+
         while True:
             x12, y12, z12 = self.projection.radec_to_xyz(self.fieldcentre[0] + agg_ra, dec)
             x22, y22, z22 = self.projection.radec_to_xyz(self.fieldcentre[0] - agg_ra, dec)
-            if x11 is not None and z11 > 0 and z12 > 0:
+            if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 self.mirroring_graphics.line(x11, y11, x12, y12)
                 self.mirroring_graphics.line(x21, y21, x22, y22)
             agg_ra = agg_ra + dra
@@ -1046,13 +1071,15 @@ class SkymapEngine:
         x11, y11, z11 = (None, None, None)
         x21, y21, z21 = (None, None, None)
         agg_dec = 0
+        nzopt = not self.projection.is_zoptim()
+
         while True:
             x12, y12, z12 = self.projection.radec_to_xyz(ra, self.fieldcentre[1] + agg_dec)
             x22, y22, z22 = self.projection.radec_to_xyz(ra, self.fieldcentre[1] - agg_dec)
             if x11 is not None:
-                if z11 > 0 and z12 > 0:
+                if nzopt or (z11 > 0 and z12 > 0):
                     self.mirroring_graphics.line(x11, y11, x12, y12)
-                if z21 > 0 and z22 > 0:
+                if nzopt or (z21 > 0 and z22 > 0):
                     self.mirroring_graphics.line(x21, y21, x22, y22)
             agg_dec = agg_dec + ddec
             if agg_dec > np.pi/2:
@@ -1102,8 +1129,10 @@ class SkymapEngine:
         x1, y1, z1 = self.projection.np_radec_to_xyz(constell_lines[:, 0], constell_lines[:, 1])
         x2, y2, z2 = self.projection.np_radec_to_xyz(constell_lines[:, 2], constell_lines[:, 3])
 
+        nzopt = not self.projection.is_zoptim()
+
         for i in range(len(x1)):
-            if z1[i] > 0 and z2[i] > 0:
+            if nzopt or (z1[i] > 0 and z2[i] > 0):
                 if self.config.constellation_linespace > 0:
                     dx = x2[i] - x1[i]
                     dy = y2[i] - y1[i]
@@ -1140,8 +1169,10 @@ class SkymapEngine:
         flat_rac_interp = np.pi*7/180 # some "magic" angle 7 deg.
         max_angle2 = (1 / 180 * np.pi)
 
+        nzopt = not self.projection.is_zoptim()
+
         for index1, index2, cons1, cons2 in constell_catalog.boundaries_lines:
-            if z[index1] > 0 and z[index2] > 0:
+            if nzopt or (z[index1] > 0 and z[index2] > 0):
                 if hl_constellation and (hl_constellation == cons1 or hl_constellation == cons2):
                     self.graphics.set_pen_rgb(self.config.constellation_hl_border_color)
                     self.graphics.set_linewidth(self.config.constellation_linewidth * 1.75)
@@ -1837,3 +1868,4 @@ class SkymapEngine:
         if y1 > y2:
             y1, y2 = y2, y1
         return x1, y1, x2, y2
+

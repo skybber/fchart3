@@ -18,13 +18,21 @@
 import math
 import numpy as np
 
-from .projection_interface import ProjectionInterface
+from .projection import ProjectionInterface
 
 class ProjectionOrthographic(ProjectionInterface):
-    def __init__(self, fieldcentre, drawingscale):
-        ProjectionInterface.__init__(self, fieldcentre, drawingscale)
+    def __init__(self):
+        ProjectionInterface.__init__(self)
+        self.sin_dec0 = None
+        self.cos_dec0 = None
+
+    def set_fieldcentre(self, fieldcentre):
+        ProjectionInterface.set_fieldcentre(self, fieldcentre)
         self.sin_dec0 = math.sin(fieldcentre[1])
         self.cos_dec0 = math.cos(fieldcentre[1])
+
+    def is_zoptim(self):
+        return True
 
     def radec_to_xy(self, ra, dec):
         ra0, dec0 = self.fieldcentre
