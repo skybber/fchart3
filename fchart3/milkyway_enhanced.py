@@ -46,9 +46,9 @@ class EnhancedMilkyWay:
         tm = time()
         self.add_polygons(milkyway_filename)
         tmp=time()-tm
-        if optim_max_col_diff is not None:
-            self._create_opti_polygons(15/255.0)
-            print( _("Enhanced milky way initialized within {}s. Optimized polygons={}, total polygons={}".format(tmp, len(self.mw_opti_polygons), len(self.mw_polygons))), flush=True) 
+        if optim_max_col_diff is not None and optim_max_col_diff > 0 and optim_max_col_diff < 1.0:
+            self._create_opti_polygons(optim_max_col_diff)
+            print( _("Enhanced milky way initialized within {}s. Optimized polygons={}, total polygons={}".format(tmp, len(self.mw_opti_polygons), len(self.mw_polygons))), flush=True)
                 
         else:
             print(_("Enhanced milky way initialized within {}s. Total polygons={}".format(tmp, len(self.mw_polygons))), flush=True)

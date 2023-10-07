@@ -657,7 +657,7 @@ class SkymapEngine:
             if zopt and any(z[i] < 0 for i in polygon):
                 continue
 
-            xy_polygon = [(x[i].item() * mulx, y[i].item() * muly) for i in polygon]
+            xy_polygon = [(x[i] * mulx, y[i] * muly) for i in polygon]
             for xp, yp in xy_polygon:
                 if (xp >= fr_x1) and (xp <= fr_x2) and (yp >= fr_y1) and (yp <= fr_y2):
                     break
