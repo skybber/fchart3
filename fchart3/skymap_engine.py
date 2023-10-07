@@ -1133,6 +1133,15 @@ class SkymapEngine:
 
         for i in range(len(x1)):
             if nzopt or (z1[i] > 0 and z2[i] > 0):
+                c1 = self.graphics.cohen_sutherland_encode(x1[i], y1[i])
+                c2 = self.graphics.cohen_sutherland_encode(x2[i], y2[i])
+                if (c1 | c2) != 0 and (c1 & c2) != 0:
+                    continue
+                if nzopt and z1[i] < 0 and z2[i] < 0:
+                    c = c1 | c2
+                    if (c & 0b1100 == 0b1100) or (c & 0b0011 == 0b0011):
+                        continue
+
                 if self.config.constellation_linespace > 0:
                     dx = x2[i] - x1[i]
                     dy = y2[i] - y1[i]
