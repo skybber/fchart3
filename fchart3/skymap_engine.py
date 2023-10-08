@@ -858,8 +858,9 @@ class SkymapEngine:
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
             if (xx < x1-rr) or (xx > x2+rr) or (yy < y1-rr) or (yy > y2+rr):
                 continue
+            star_color = star_catalog.get_star_color(selection[index])
             if self.config.show_star_circles:
-                self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
+                self.star(xx, yy, rr, star_color)
 
             if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
                 r = xx**2 + yy**2
@@ -867,7 +868,7 @@ class SkymapEngine:
                     self.picked_star = (xx, yy, rr, mag[index], bsc[index])
                     pick_min_r = r
             elif self.config.show_star_mag:
-                star_mag_defs.append((xx, yy, rr, mag[index]))
+                star_mag_defs.append((xx, yy, rr, mag[index], star_color))
             elif self.config.show_star_labels:
                 bsc_star = selection[index]['bsc']
                 if bsc_star is not None:
@@ -902,9 +903,19 @@ class SkymapEngine:
 
         if len(star_mag_defs) > 0:
             self.graphics.set_font(self.graphics.gi_font, 0.8*self.graphics.gi_default_font_size)
-            for x, y, r, mag in star_mag_defs:
-                label = str(mag)
-                self.draw_circular_object_label(x, y, r, label)
+            for x, y, r, mag, star_color in star_mag_defs:
+                diff_mag = self.lm_stars - mag
+                if diff_mag < 0:
+                    diff_mag = 0
+                if diff_mag > 5:
+                    diff_mag = 5
+                star_intensity = 0.4 + 0.6 * diff_mag / 5;
+
+                self.graphics.set_pen_rgb((self.config.label_color[0] * star_intensity,
+                                           self.config.label_color[1] * star_intensity,
+                                           self.config.label_color[2] * star_intensity))
+
+                self.draw_circular_object_label(x, y, r, str(mag), set_pen=False)
 
         if len(star_labels) > 0:
             self.draw_stars_labels(star_labels)
@@ -1597,11 +1608,12 @@ class SkymapEngine:
             return 2
         return 1
 
-    def draw_circular_object_label(self, x, y, r, label, labelpos=-1, fh=None):
+    def draw_circular_object_label(self, x, y, r, label, labelpos=-1, fh=None, set_pen=True):
         if fh is None:
             fh = self.graphics.gi_default_font_size
         if label:
-            self.graphics.set_pen_rgb(self.config.label_color)
+            if set_pen:
+                self.graphics.set_pen_rgb(self.config.label_color)
             arg = 1.0-2*fh/(3.0*r)
             if (arg < 1.0) and (arg > -1.0):
                 a = math.acos(arg)
