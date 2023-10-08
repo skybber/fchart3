@@ -404,11 +404,6 @@ def _create_engine_configuration(config_file = None):
     if settings.parser.fov_telrad is not None:
         config.fov_telrad = settings.parser.fov_telrad
 
-    if settings.parser.mirror_x is not None:
-        config.mirror_x = settings.parser.mirror_x
-    if settings.parser.mirror_y is not None:
-        config.mirror_y = settings.parser.mirror_y
-
     if settings.parser.star_colors is not None:
         config.star_colors = settings.parser.star_colors
 
@@ -573,7 +568,6 @@ if __name__ == '__main__':
     if settings.parser.extra_data_dir:
         print(_('   Extra data directory: {}'.format(settings.parser.extra_data_dir)))
 
-
     for object in settings.extra_positions_list:
         rax,decx,label,labelpos = object
         #print(label,':', rad2hms(rax), rad2dms(decx))
@@ -596,7 +590,8 @@ if __name__ == '__main__':
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
                 engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limit_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration(config_file))
-                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
+                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0, mirror_x=settings.parser.mirror_x,
+                                 mirror_y=settings.parser.mirror_y)
                 engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 engine.set_active_constellation(object.constellation)

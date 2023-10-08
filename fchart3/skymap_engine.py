@@ -129,14 +129,14 @@ constell_lines_rect2 = None
 constell_bound_rect = None
 
 class SkymapEngine:
-    def __init__(self, graphics, language=LABELi18N, ra=0.0, dec=0.0, fieldradius=-1.0, lm_stars=13.8, lm_deepsky=12.5, caption=''):
+    def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption=''):
         """
         Width is width of the map including the legend in mm.
         """
         self.graphics = graphics
         self.config = EngineConfiguration()
 
-        self.caption = ''
+        self.caption = caption
         self.language = language
         self.drawingwidth = self.graphics.gi_width
         self.drawingheight = self.graphics.gi_height
@@ -151,6 +151,8 @@ class SkymapEngine:
         self.scene_scale = None
         self.drawing_scale = None
         self.legend_fontscale = None
+        self.mirror_x = None
+        self.mirror_y = None
 
         self.active_constellation = None
 
@@ -171,7 +173,7 @@ class SkymapEngine:
         self.norm_field_radius = None
 
 
-    def set_field(self, ra, dec, fieldradius, projection_type=ProjectionType.STEREOGRAPHIC):
+    def set_field(self, ra, dec, fieldradius, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
         self.fieldradius = fieldradius
         self.fieldcentre = (ra, dec)
 
@@ -194,7 +196,11 @@ class SkymapEngine:
         self.norm_field_radius, _ = self.projection.radec_to_xy(fieldradius, 0)
         self.drawing_scale = self.scene_scale*wh / 2.0 / abs(self.norm_field_radius)
         self.projection.set_fieldcentre(self.fieldcentre)
-        self.projection.set_scale(self.drawing_scale, self.drawing_scale)
+        mulx = -1 if mirror_x else 1
+        muly = -1 if mirror_y else 1
+        self.mirror_x = mirror_x
+        self.mirror_y = mirror_y
+        self.projection.set_scale(self.drawing_scale*mulx, self.drawing_scale*muly)
 
     def _create_projection(self, projection_type):
         if projection_type == ProjectionType.ORTHOGRAPHIC:
@@ -252,8 +258,8 @@ class SkymapEngine:
         self.picked_dso = None
         self.picked_star = None
 
-        if self.config.mirror_x or self.config.mirror_y:
-            self.mirroring_graphics = MirroringGraphics(self.graphics, self.config.mirror_x, self.config.mirror_y)
+        if self.mirror_x or self.mirror_y:
+            self.mirroring_graphics = MirroringGraphics(self.graphics, self.mirror_x, self.mirror_y)
         else:
             self.mirroring_graphics = self.graphics
 
@@ -598,8 +604,6 @@ class SkymapEngine:
 
     def draw_milky_way(self, milky_way_lines):
         x, y, z = self.projection.np_radec_to_xyz(milky_way_lines[:, 0], milky_way_lines[:, 1])
-        mulx = -1 if self.config.mirror_x else 1
-        muly = -1 if self.config.mirror_y else 1
         self.graphics.set_pen_rgb(self.config.milky_way_color)
         self.graphics.set_fill_rgb(self.config.milky_way_color)
         self.graphics.set_linewidth(self.config.milky_way_linewidth)
@@ -614,13 +618,13 @@ class SkymapEngine:
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
                 polygon = None
                 if nzopt or z1 > 0:
-                    polygon = [[mulx*x1, muly*y1]]
+                    polygon = [[x1, y1]]
             else:
                 x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
                 if nzopt or z1 > 0:
                     if polygon is None:
                         polygon = []
-                    polygon.append([mulx*x1, muly*y1])
+                    polygon.append([x1, y1])
 
         if polygon is not None and len(polygon) > 2:
             self.graphics.polygon(polygon, DrawMode.FILL)
@@ -633,8 +637,6 @@ class SkymapEngine:
         mw_points = enhanced_milky_way.mw_points
 
         x, y, z = self.projection.np_radec_to_xyz(mw_points[:, 0], mw_points[:, 1])
-        mulx = -1 if self.config.mirror_x else 1
-        muly = -1 if self.config.mirror_y else 1
 
         self.graphics.set_linewidth(0)
         fd = self.config.enhanced_milky_way_fade
@@ -657,7 +659,7 @@ class SkymapEngine:
             if zopt and any(z[i] < 0 for i in polygon):
                 continue
 
-            xy_polygon = [(x[i] * mulx, y[i] * muly) for i in polygon]
+            xy_polygon = [(x[i], y[i]) for i in polygon]
             for xp, yp in xy_polygon:
                 if (xp >= fr_x1) and (xp <= fr_x2) and (yp >= fr_y1) and (yp <= fr_y2):
                     break
@@ -1291,8 +1293,8 @@ class SkymapEngine:
                                           color=self.config.draw_color)
 
         self.w_orientation = WidgetOrientation(legend_fontsize=self.get_legend_font_size(),
-                                               mirror_x=self.config.mirror_x,
-                                               mirror_y=self.config.mirror_y,
+                                               mirror_x=self.mirror_x,
+                                               mirror_y=self.mirror_y,
                                                color=self.config.draw_color)
 
         self.w_coords = WidgetCoords(self.language, color=self.config.draw_color)

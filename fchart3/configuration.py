@@ -80,8 +80,6 @@ class EngineConfiguration:
         self._show_dso_mag = False
         self._fov_telrad = False
         self._eyepiece_fov = None
-        self._mirror_x = False
-        self._mirror_y = False
         self._star_colors = False
         self._light_mode = False
         self._background_color = DEFAULT_BACKGROUND_COLOR
@@ -299,22 +297,6 @@ class EngineConfiguration:
     @eyepiece_fov.setter
     def eyepiece_fov(self, value):
         self._eyepiece_fov = value
-
-    @property
-    def mirror_x(self):
-        return self._mirror_x
-
-    @mirror_x.setter
-    def mirror_x(self, value):
-        self._mirror_x = value
-
-    @property
-    def mirror_y(self):
-        return self._mirror_y
-
-    @mirror_y.setter
-    def mirror_y(self, value):
-        self._mirror_y = value
 
     @property
     def star_colors(self):

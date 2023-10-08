@@ -28,55 +28,44 @@ class MirroringGraphics:
         self.graphics = graphics
         self.mirror_x = mirror_x
         self.mirror_y = mirror_y
-        self.mul_x = -1 if mirror_x else 1
-        self.mul_y = -1 if mirror_y else 1
 
     def translate(self, dx, dy):
-        self.graphics.translate(self.mul_x * dx, self.mul_y * dy)
+        self.graphics.translate(dx, dy)
 
     def rotate(self, angle):
         if self.mirror_x:
-            angle += pi
+            angle = -angle + pi
         if self.mirror_y:
             angle = -angle
         self.graphics.rotate(angle)
 
     def line(self, x1, y1, x2, y2):
-        self.graphics.line(self.mul_x*x1, self.mul_y*y1, self.mul_x*x2, self.mul_y*y2)
+        self.graphics.line(x1, y1, x2, y2)
 
     def polyline(self, vertices):
-        mirrored_vertices = []
-        for v in vertices:
-            mirrored_vertices.append((self.mul_x*v[0], self.mul_y*v[1]))
-        self.graphics.polyline(mirrored_vertices)
+        self.graphics.polyline(vertices)
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
-        self.graphics.circle(self.mul_x*x, self.mul_y*y, r, mode)
+        self.graphics.circle(x, y, r, mode)
 
     def ellipse(self, x, y, rlong, rshort, position_angle, mode=DrawMode.BORDER):
         if self.mirror_x:
-            position_angle += pi
+            position_angle = -position_angle + pi
         if self.mirror_y:
             position_angle = -position_angle
-        self.graphics.ellipse(self.mul_x*x, self.mul_y*y, rlong, rshort, position_angle, mode)
+        self.graphics.ellipse(x, y, rlong, rshort, position_angle, mode)
 
     def text(self, text):
         self.graphics.text(text)
 
     def text_right(self, x, y, text):
-        if self.mirror_x:
-            self.graphics.text_left(-x, self.mul_y*y, text)
-        else:
-            self.graphics.text_right(x, self.mul_y*y, text)
+        self.graphics.text_right(x, y, text)
 
     def text_left(self, x, y, text):
-        if self.mirror_x:
-            self.graphics.text_right(-x, self.mul_y*y, text)
-        else:
-            self.graphics.text_left(x, self.mul_y*y, text)
+        self.graphics.text_left(x, y, text)
 
     def text_centred(self, x, y, text):
-        self.graphics.text_centred(self.mul_x*x, self.mul_y*y, text)
+        self.graphics.text_centred(x, y, text)
 
     def set_pen_rgb(self, pen_rgb):
         """
@@ -88,4 +77,4 @@ class MirroringGraphics:
         """
         Convert x,y to pixel
         """
-        return self.graphics.to_pixel(self.mul_x*x, self.mul_y*y)
+        return self.graphics.to_pixel(x, y)
