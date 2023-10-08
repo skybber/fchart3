@@ -149,7 +149,7 @@ class RuntimeSettings:
                                     help='Hide orientation legend.')
 
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true', default=None,
-                                    help='Show deep-sky object legend.')
+                                    help='Show deep sky object legend.')
 
         argumentparser.add_argument('--show-coords-legend', dest='show_coords_legend', action='store_true', default=None,
                                     help='Show coordinates legend.')
@@ -177,6 +177,12 @@ class RuntimeSettings:
 
         argumentparser.add_argument('--show-nebula-outlines', dest='show_nebula_outlines', action='store_true', default=None,
                                     help='Show nebula outlines.')
+
+        argumentparser.add_argument('--show-dso-mag', dest='show_dso_mag', action='store_true', default=None,
+                                    help='Display magnitudes of deep sky objects.')
+
+        argumentparser.add_argument('--show-star-mag', dest='show_star_mag', action='store_true', default=None,
+                                    help='Display magnitudes of stars.')
 
         argumentparser.add_argument('-telrad', '--FOV-telrad', dest='fov_telrad', action='store_true', default=None,
                                     help='Show telrad circles at the field of view.')
@@ -354,6 +360,8 @@ def _create_engine_configuration(config_file = None):
     config.show_constellation_shapes = True
     config.show_constellation_borders = True
     config.show_deepsky = True
+    config.show_dso_mag = False
+    config.show_star_mag = False
     config.show_simple_milky_way = False
     config.show_enhanced_milky_way = False
     config.show_nebula_outlines = False
@@ -398,6 +406,10 @@ def _create_engine_configuration(config_file = None):
         config.show_enhanced_milky_way = settings.parser.show_enhanced_milky_way
     if settings.parser.show_deepsky is not None:
         config.show_deepsky = settings.parser.show_deepsky
+    if settings.parser.show_dso_mag is not None:
+        config.show_dso_mag = settings.parser.show_dso_mag
+    if settings.parser.show_star_mag is not None:
+        config.show_star_mag = settings.parser.show_star_mag
     if settings.parser.show_nebula_outlines is not None:
         config.show_nebula_outlines = settings.parser.show_nebula_outlines
 

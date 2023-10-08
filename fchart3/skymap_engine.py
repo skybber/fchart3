@@ -449,9 +449,10 @@ class SkymapEngine:
                 continue
 
             label = dso.label()
-            label_mag = None
             if self.config.show_dso_mag and dso.mag is not None and dso.mag != -100:
                 label_mag = '{:.1f}'.format(dso.mag)
+            else:
+                label_mag = None
 
             if dso_highlights:
                 for dso_highlight in dso_highlights:
@@ -827,7 +828,7 @@ class SkymapEngine:
             return
 
         # print("Stars selection {} ms".format(str(time()-tm)), flush=True)
-        print( _('{} stars in map.'.format(selection.shape[0])))
+        print(_('{} stars in map.'.format(selection.shape[0])))
         var=str(round(max(selection['mag']), 2))
         print(_(f'Faintest star : {var}' )) 
 
@@ -850,49 +851,60 @@ class SkymapEngine:
         self.graphics.set_linewidth(0)
 
         star_labels = []
+        star_mag_defs = []
         pick_min_r = pick_r**2
         x1, y1, x2, y2 = self.get_field_rect_mm()
         for i, index in enumerate(indices):
             xx, yy, rr = (x[index].item(), y[index].item(), rsorted[i].item(),)
-            if (xx >= x1-rr) and (xx <= x2+rr) and (yy >= y1-rr) and (yy <= y2+rr):
-                if self.config.show_star_circles:
-                    self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
-                if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
-                    r = xx*xx + yy*yy
-                    if r < pick_min_r:
-                        self.picked_star = (xx, yy, rr, mag[index], bsc[index])
-                        pick_min_r = r
-                elif self.config.show_star_labels:
-                    bsc_star = selection[index]['bsc']
-                    if bsc_star is not None:
-                        if isinstance(bsc_star, str):
-                            slabel = bsc_star
-                        else:
-                            slabel = bsc_star.greek
-                            if slabel:
-                                slabel = STAR_LABELS[slabel] + bsc_star.greek_no
-                            elif self.config.show_flamsteed:
-                                slabel = bsc_star.flamsteed
-                                if slabel and self.config.flamsteed_numbers_only:
-                                    slabel = slabel.split()[0]
-                        if slabel:
-                            label_length = self.graphics.text_width(slabel)
-                            labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
-                            pot = 1e+30
-                            for labelpos_index in range(len(labelpos_list)):
-                                [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[labelpos_index]
-                                pot1 = self.label_potential.compute_potential(lx2, ly2)
-                                if labelpos_index == 0:
-                                    pot1 *= 0.6 # favour label right
-                                # self.label_potential.compute_potential(x1,y1),
-                                # self.label_potential.compute_potential(x3,y3)])
-                                if pot1 < pot:
-                                    pot = pot1
-                                    labelpos = labelpos_index
+            if (xx < x1-rr) or (xx > x2+rr) or (yy < y1-rr) or (yy > y2+rr):
+                continue
+            if self.config.show_star_circles:
+                self.star(xx, yy, rr, star_catalog.get_star_color(selection[index]))
 
-                            [lx, ly] = labelpos_list[labelpos][1]
-                            self.label_potential.add_position(lx, ly, label_length)
-                            star_labels.append((xx, yy, rr, labelpos, bsc_star))
+            if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
+                r = xx**2 + yy**2
+                if r < pick_min_r:
+                    self.picked_star = (xx, yy, rr, mag[index], bsc[index])
+                    pick_min_r = r
+            elif self.config.show_star_mag:
+                star_mag_defs.append((xx, yy, rr, mag[index]))
+            elif self.config.show_star_labels:
+                bsc_star = selection[index]['bsc']
+                if bsc_star is not None:
+                    if isinstance(bsc_star, str):
+                        slabel = bsc_star
+                    else:
+                        slabel = bsc_star.greek
+                        if slabel:
+                            slabel = STAR_LABELS[slabel] + bsc_star.greek_no
+                        elif self.config.show_flamsteed:
+                            slabel = bsc_star.flamsteed
+                            if slabel and self.config.flamsteed_numbers_only:
+                                slabel = slabel.split()[0]
+                    if slabel:
+                        label_length = self.graphics.text_width(slabel)
+                        labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
+                        pot = 1e+30
+                        for labelpos_index in range(len(labelpos_list)):
+                            [[lx1, ly1], [lx2, ly2], [lx3, ly3]] = labelpos_list[labelpos_index]
+                            pot1 = self.label_potential.compute_potential(lx2, ly2)
+                            if labelpos_index == 0:
+                                pot1 *= 0.6 # favour label right
+                            # self.label_potential.compute_potential(x1,y1),
+                            # self.label_potential.compute_potential(x3,y3)])
+                            if pot1 < pot:
+                                pot = pot1
+                                labelpos = labelpos_index
+
+                        [lx, ly] = labelpos_list[labelpos][1]
+                        self.label_potential.add_position(lx, ly, label_length)
+                        star_labels.append((xx, yy, rr, labelpos, bsc_star))
+
+        if len(star_mag_defs) > 0:
+            self.graphics.set_font(self.graphics.gi_font, 0.8*self.graphics.gi_default_font_size)
+            for x, y, r, mag in star_mag_defs:
+                label = str(mag)
+                self.draw_circular_object_label(x, y, r, label)
 
         if len(star_labels) > 0:
             self.draw_stars_labels(star_labels)

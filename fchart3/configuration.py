@@ -78,6 +78,7 @@ class EngineConfiguration:
         self._show_nebula_outlines = False
         self._show_picker = False
         self._show_dso_mag = False
+        self._show_star_mag = False
         self._fov_telrad = False
         self._eyepiece_fov = None
         self._star_colors = False
@@ -281,6 +282,14 @@ class EngineConfiguration:
     @show_dso_mag.setter
     def show_dso_mag(self, value):
         self._show_dso_mag = value
+
+    @property
+    def show_star_mag(self):
+        return self._show_star_mag
+
+    @show_star_mag.setter
+    def show_star_mag(self, value):
+        self._show_star_mag = value
 
     @property
     def fov_telrad(self):
