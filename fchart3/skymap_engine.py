@@ -1191,8 +1191,8 @@ class SkymapEngine:
                     self.graphics.set_pen_rgb(self.config.constellation_border_color)
                     self.graphics.set_linewidth(self.config.constellation_border_linewidth)
 
-                x_start, y_start = x[index1], y[index1]
-                x_end, y_end = x[index2], y[index2]
+                x_start, y_start, z_start = x[index1], y[index1], z[index1]
+                x_end, y_end, z_end = x[index2], y[index2], z[index2]
 
                 ra_start, dec_start = constell_boundaries[index1]
                 ra_end, dec_end = constell_boundaries[index2]
@@ -1201,7 +1201,7 @@ class SkymapEngine:
                     if ra_end < ra_start:
                         ra_start, ra_end = ra_end, ra_start
                         dec_start, dec_end = dec_end, dec_start
-                        x_start, y_start, x_end, y_end = x_end, y_end, x_start, y_start
+                        x_start, y_start, z_start, x_end, y_end, z_end = x_end, y_end, z_end, x_start, y_start, z_start
                     d_ra = (ra_end - (ra_start + 2 * np.pi))
                 else:
                     d_ra = (ra_end - ra_start)
@@ -1213,7 +1213,7 @@ class SkymapEngine:
                     interpolate = False
 
                 if interpolate:
-                    divisions = self.calc_boundary_divisions(1, 1, wh_min, max_angle2, x_start, y_start, x_end, y_end, ra_start, dec_start, ra_end, dec_end)
+                    divisions = self.calc_boundary_divisions(1, 1, wh_min, max_angle2, x_start, y_start, z_start, x_end, y_end, z_end, ra_start, dec_start, ra_end, dec_end)
                 else:
                     divisions = 1
 
@@ -1237,7 +1237,7 @@ class SkymapEngine:
                     vertices.append((x_end, y_end))
                     self.mirroring_graphics.polyline(vertices)
 
-    def calc_boundary_divisions(self, level, divs, wh_min, max_angle2, x1, y1, x2, y2, ra1, dec1, ra2, dec2):
+    def calc_boundary_divisions(self, level, divs, wh_min, max_angle2, x1, y1, z1, x2, y2, z2, ra1, dec1, ra2, dec2):
         if abs(x2-x1) < wh_min and abs(y2-y1) < wh_min:
             # self.mirroring_graphics.text_centred((x1+x2)/2, (y1+y2)/2, '{:.1f}'.format(max(abs(x2-x1), abs(y2-y1))))
             return divs
@@ -1251,12 +1251,18 @@ class SkymapEngine:
         x_center, y_center = self.projection.radec_to_xy(ra_center, dec_center)
 
         if level == 1:
-            c1 = self.graphics.cohen_sutherland_encode(x1, x_center)
-            c2 = self.graphics.cohen_sutherland_encode(y1, y_center)
-            c3 = self.graphics.cohen_sutherland_encode(x_center, x2)
-            c4 = self.graphics.cohen_sutherland_encode(y_center, y2)
-            if (c1 | c2) != 0 and (c1 & c2) != 0 and (c3 | c4) != 0 and (c3 & c4) != 0:
+            c1 = self.graphics.cohen_sutherland_encode(x1, y1)
+            c2 = self.graphics.cohen_sutherland_encode(x_center, y_center)
+            c3 = self.graphics.cohen_sutherland_encode(x2, y2)
+            if (c1 | c2) != 0 and (c1 & c2) != 0 and (c2 | c3) != 0 and (c2 & c3) != 0:
                 return 0
+            nzopt = not self.projection.is_zoptim()
+            if nzopt and z1 < 0 and z2 < 0 and self.fieldradius > np.pi/4:
+                c1 = self.graphics.cohen_sutherland_encode(x1, y1)
+                c2 = self.graphics.cohen_sutherland_encode(x2, y2)
+                c = c1 | c2
+                if (c & 0b1100 == 0b1100) or (c & 0b0011 == 0b0011):
+                    return 0
 
         vx1 = x_center - x1
         vy1 = y_center - y1
@@ -1268,7 +1274,7 @@ class SkymapEngine:
         if abs(vec_mul2) < max_angle2:
             return divs
 
-        return self.calc_boundary_divisions(level+1, divs * 2, wh_min, max_angle2, x1, y1, x_center, y_center, ra1, dec1, ra_center, dec_center)
+        return self.calc_boundary_divisions(level+1, divs * 2, wh_min, max_angle2, x1, y1, 1, x_center, y_center, 1, ra1, dec1, ra_center, dec_center)
 
     def create_widgets(self):
         left, bottom, right, top = self.get_field_rect_mm()
