@@ -44,8 +44,8 @@ class ProjectionOrthographic(ProjectionInterface):
 
         sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
 
-        x = -cos_dec*math.sin(delta_ra)*self.drawingscale
-        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale
+        x = -cos_dec*math.sin(delta_ra)*self.scale_x
+        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y
         return x, y
 
     def radec_to_xyz(self, ra, dec):
@@ -59,8 +59,8 @@ class ProjectionOrthographic(ProjectionInterface):
         sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
 
         z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-        x = -cos_dec*math.sin(delta_ra)*self.drawingscale if z>0 else 0
-        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale if z>0 else 0
+        x = -cos_dec*math.sin(delta_ra)*self.scale_x if z>0 else 0
+        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y if z>0 else 0
         return x, y, z
 
     def np_radec_to_xy(self, ra, dec):
@@ -73,8 +73,8 @@ class ProjectionOrthographic(ProjectionInterface):
 
         sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
 
-        x = -cos_dec*np.sin(delta_ra)*self.drawingscale
-        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale
+        x = -cos_dec*np.sin(delta_ra)*self.scale_x
+        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y
         return x, y
 
     def np_radec_to_xyz(self, ra, dec):
@@ -88,8 +88,8 @@ class ProjectionOrthographic(ProjectionInterface):
         sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
 
         z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-        x = np.where(z>0, -cos_dec*np.sin(delta_ra)*self.drawingscale, 0)
-        y = np.where(z>0, (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale, 0)
+        x = np.where(z>0, -cos_dec*np.sin(delta_ra)*self.scale_x, 0)
+        y = np.where(z>0, (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y, 0)
         return x,y,z
 
     def direction_ddec(self, ra, dec):

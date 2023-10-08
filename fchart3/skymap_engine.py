@@ -149,7 +149,7 @@ class SkymapEngine:
         self.fieldradius = None
         self.fieldsize = None
         self.scene_scale = None
-        self.drawingscale = None
+        self.drawing_scale = None
         self.legend_fontscale = None
 
         self.active_constellation = None
@@ -184,17 +184,17 @@ class SkymapEngine:
         else:
             self.scene_scale = BASE_SCALE
 
-        self.drawingscale = self.scene_scale*wh/2.0/math.sin(fieldradius)
+        self.drawing_scale = self.scene_scale*wh/2.0/math.sin(fieldradius)
         self.legend_fontscale = min(self.config.legend_font_scale, wh/100.0)
         self.set_caption(self.caption)
 
         self.projection = self._create_projection(projection_type)
         self.projection.set_fieldcentre((0, 0))
-        self.projection.set_drawingscale(1.0)
+        self.projection.set_scale(1.0, 1.0)
         self.norm_field_radius, _ = self.projection.radec_to_xy(fieldradius, 0)
-        self.drawingscale = self.scene_scale*wh / 2.0 / abs(self.norm_field_radius)
+        self.drawing_scale = self.scene_scale*wh / 2.0 / abs(self.norm_field_radius)
         self.projection.set_fieldcentre(self.fieldcentre)
-        self.projection.set_drawingscale(self.drawingscale)
+        self.projection.set_scale(self.drawing_scale, self.drawing_scale)
 
     def _create_projection(self, projection_type):
         if projection_type == ProjectionType.ORTHOGRAPHIC:
@@ -210,7 +210,7 @@ class SkymapEngine:
             self.star_mag_r_shift = self.magnitude_to_radius(self.lm_stars-self.config.star_mag_shift) - self.magnitude_to_radius(self.lm_stars)
 
     def get_field_radius_mm(self):
-        return self.drawingscale * self.norm_field_radius
+        return self.drawing_scale * self.norm_field_radius
 
     def get_field_rect_mm(self):
         x = self.scene_scale * self.drawingwidth / 2.0
@@ -455,8 +455,8 @@ class SkymapEngine:
 
             rlong = dso.rlong if dso.rlong is not None else self.min_radius
             rshort = dso.rshort if dso.rshort is not None else self.min_radius
-            rlong = rlong*self.drawingscale
-            rshort = rshort*self.drawingscale
+            rlong = rlong*self.drawing_scale
+            rshort = rshort*self.drawing_scale
             posangle = dso.position_angle+self.projection.direction_ddec(dso.ra, dso.dec)+0.5*np.pi
 
             if rlong <= self.min_radius:
@@ -556,7 +556,7 @@ class SkymapEngine:
                 if dso.rlong is None:
                     rlong = self.min_radius
                 else:
-                    rlong = dso.rlong*self.drawingscale
+                    rlong = dso.rlong*self.drawing_scale
                     if rlong < self.min_radius:
                         rlong = self.min_radius
                 deepsky_list_ext.append((dso, x[i], y[i], rlong))
@@ -1284,7 +1284,7 @@ class SkymapEngine:
 
         self.w_map_scale = WidgetMapScale(sky_map_engine=self,
                                           alloc_space_spec='bottom,right',
-                                          drawingscale=self.drawingscale,
+                                          drawingscale=self.drawing_scale,
                                           maxlength=self.drawingwidth/3.0,
                                           legend_fontsize=self.get_legend_font_size(),
                                           legend_linewidth=self.config.legend_linewidth,
@@ -1297,8 +1297,8 @@ class SkymapEngine:
 
         self.w_coords = WidgetCoords(self.language, color=self.config.draw_color)
         self.w_dso_legend = WidgetDsoLegend(self.language, self.drawingwidth, LEGEND_MARGIN, color=self.config.draw_color)
-        self.w_telrad = WidgetTelrad(self.drawingscale, self.config.telrad_linewidth, self.config.telrad_color)
-        self.w_eyepiece = WidgetEyepiece(self.drawingscale, self.config.eyepiece_fov, self.config.eyepiece_linewidth, self.config.eyepiece_color)
+        self.w_telrad = WidgetTelrad(self.drawing_scale, self.config.telrad_linewidth, self.config.telrad_color)
+        self.w_eyepiece = WidgetEyepiece(self.drawing_scale, self.config.eyepiece_fov, self.config.eyepiece_linewidth, self.config.eyepiece_color)
         self.w_picker = WidgetPicker(self.config.picker_radius, self.config.picker_linewidth, self.config.picker_color)
 
         if self.config.show_mag_scale_legend:

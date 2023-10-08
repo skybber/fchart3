@@ -45,8 +45,8 @@ class ProjectionStereographic(ProjectionInterface):
         sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
 
         k = 2 / (1 + sin_dec0 * sin_dec + cos_dec0 * cos_dec * cos_delta_ra)
-        x = -k * cos_dec * math.sin(delta_ra) * self.drawingscale
-        y = k * (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0) * self.drawingscale
+        x = -k * cos_dec * math.sin(delta_ra) * self.scale_x
+        y = k * (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0) * self.scale_y
         return x, y
 
     def radec_to_xyz(self, ra, dec):
@@ -65,8 +65,8 @@ class ProjectionStereographic(ProjectionInterface):
             x, y, z = 0, 0, -1
         else:
             z = (cos_dec * cos_dec0 * math.cos(delta_ra) + sin_dec * sin_dec0) / denom
-            x = -(2 * cos_dec * math.sin(delta_ra)) / denom * self.drawingscale
-            y = (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.drawingscale
+            x = -(2 * cos_dec * math.sin(delta_ra)) / denom * self.scale_x
+            y = (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.scale_y
 
         return x, y, z
 
@@ -82,8 +82,8 @@ class ProjectionStereographic(ProjectionInterface):
 
         k = 2 / (1 + sin_dec0 * sin_dec + cos_dec0 * cos_dec * cos_delta_ra)
 
-        x = -k * cos_dec*np.sin(delta_ra)*self.drawingscale
-        y = k * (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.drawingscale
+        x = -k * cos_dec*np.sin(delta_ra)*self.scale_x
+        y = k * (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y
         return x, y
 
     def np_radec_to_xyz(self, ra, dec):
@@ -99,8 +99,8 @@ class ProjectionStereographic(ProjectionInterface):
         denom = 1 + sin_dec0 * sin_dec + cos_dec0 * cos_dec * cos_delta_ra
 
         z = (cos_dec * cos_dec0 * np.cos(delta_ra) + sin_dec * sin_dec0) / denom
-        x = -(2 * cos_dec * np.sin(delta_ra)) / denom * self.drawingscale
-        y = (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.drawingscale
+        x = -(2 * cos_dec * np.sin(delta_ra)) / denom * self.scale_x
+        y = (2 * (cos_dec0 * sin_dec - sin_dec0 * cos_dec * cos_delta_ra)) / denom * self.scale_y
         return x,y,z
 
     def direction_ddec(self, ra, dec):

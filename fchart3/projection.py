@@ -23,13 +23,15 @@ class ProjectionType(Enum):
 class ProjectionInterface:
     def __init__(self):
         self.fieldcentre = None
-        self.drawingscale = None
+        self.scale_x = None
+        self.scale_y = None
 
     def set_fieldcentre(self, fieldcentre):
         self.fieldcentre = fieldcentre
 
-    def set_drawingscale(self, drawingscale):
-        self.drawingscale = drawingscale
+    def set_scale(self, scale_x, scale_y):
+        self.scale_x = scale_x
+        self.scale_y = scale_y
 
     def is_zoptim(self):
         pass
