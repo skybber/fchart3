@@ -202,8 +202,8 @@ class GeodesicGrid:
 
     def to_np_arrays(self):
         for i in range(self.max_level+1):
-            self._triangles[i] = np.array(self._triangles[i])
-            self._triangle_centers[i] = np.array(self._triangle_centers[i])
+            self._triangles[i] = np.array(self._triangles[i], dtype=np.float32)
+            self._triangle_centers[i] = np.array(self._triangle_centers[i], dtype=np.float32)
 
     def get_triangle_corners(self, lev, index):
         h0, h1, h2 = None, None, None
