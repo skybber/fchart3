@@ -299,7 +299,7 @@ def set_use_precalc_triangle_size(val):
 def _convert_stars1_helper(stars1, zone_data, mag_table, bsc_hip_map):
     dim = len(stars1)
 
-    rectJ2000 = zone_data.get_J2000_pos(stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
+    rectJ2000 = get_J2000_pos(zone_data, stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
 
     zone_stars = np.core.records.fromarrays( \
         [ \
@@ -335,7 +335,7 @@ def _convert_stars2_helper(stars2, zone_data, mag_table):
     x1 = (ix01[:,2]>>4 | ix01[:,3].astype(np.uint32)<<4 | ix01[:,4].astype(np.uint32)<<12) << 12
     x1 = x1.astype(np.int32) >> 12
 
-    rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
+    rectJ2000 = get_J2000_pos(zone_data, x0.reshape(dim, 1), x1.reshape(dim, 1))
 
     zone_stars = np.core.records.fromarrays( \
         [ \
@@ -363,7 +363,7 @@ def _convert_stars3_helper(stars3, zone_data, mag_table):
     x1 = (ix01[:,2]>>2 | ix01[:,3].astype(np.uint32)<<6 | (ibvx1&0xf).astype(np.uint32)<<14) << 14
     x1 = x1.astype(np.int32) >> 14
 
-    rectJ2000 = zone_data.get_J2000_pos(x0.reshape(dim, 1), x1.reshape(dim, 1))
+    rectJ2000 = get_J2000_pos(zone_data, x0.reshape(dim, 1), x1.reshape(dim, 1))
 
     zone_stars = np.core.records.fromarrays( \
         [ \
@@ -386,12 +386,15 @@ STAR3_DT = np.dtype([('x01', np.uint8, (4,)),
 
 NORTH = (0.0, 0.0, 1.0)
 
-
 class ZoneData:
     __slots__ = 'center', 'axis0', 'axis1'
 
-    def get_J2000_pos(self, star_X0, star_X1):
-        return (self.axis0 * star_X0) + (star_X1 * self.axis1) + self.center
+ZoneDataNp = np.dtype([('center', (np.float32, 3)),
+                       ('axis0', (np.float32, 3)),
+                       ('axis1', (np.float32, 3))])
+
+def get_J2000_pos(zone_data, star_X0, star_X1):
+    return (zone_data['axis0'] * star_X0) + (star_X1 * zone_data['axis1']) + zone_data['center']
 
 
 class GeodesicStarCatalogComponent:
@@ -405,6 +408,9 @@ class GeodesicStarCatalogComponent:
         self._zone_data_ar = None
         self.star_position_scale = 0.0
         self.triangle_size = 0.0
+
+    def to_np_arrays(self):
+        self._zone_data_ar = np.array([(zd.center, zd.axis0, zd.axis1) for zd in self._zone_data_ar], dtype=ZoneDataNp)
 
     @property
     def level(self):
@@ -580,6 +586,7 @@ class GeodesicStarCatalog(StarCatalog):
 
         for cat_comp in self._cat_components:
             cat_comp.scale_axis()
+            cat_comp.to_np_arrays()
 
         self.search_result = GeodesicSearchResult(self._max_geodesic_grid_level)
 
