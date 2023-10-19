@@ -477,7 +477,6 @@ class SkymapEngine:
             label_length = self.graphics.text_width(label)
             labelpos = -1
 
-            labelpos_list = []
             if dso.type == deepsky.G:
                 labelpos_list = self.galaxy_labelpos(x, y, rlong, rshort, posangle, label_length)
             elif dso.type == deepsky.N:

@@ -32,7 +32,7 @@ from .astrocalc import sphere_to_rect
 from .constellation import ConstellationCatalog
 from .geodesic_star_catalog import GeodesicStarCatalog
 from .deepsky_catalog import DeepskyCatalog
-from .hnsky_deepsky import import_hnsky_deepsky
+from .hnsky_deepsky import import_hnsky_deepsky, import_hnsky_supplement
 from .pgc_deepsky import import_pgc_deepsky
 from .outlines_deepsky import import_outlines_catgen
 from .milkyway import import_milky_way
@@ -43,7 +43,7 @@ from . import deepsky_object as deepsky
 
 
 class UsedCatalogs:
-    def __init__(self, data_dir, extra_data_dir, usno_nomad_file=None, limit_magnitude_deepsky=10.0, force_messier=False,
+    def __init__(self, data_dir, extra_data_dir, supplements=None, limit_magnitude_deepsky=10.0, force_messier=False,
                  force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False,
                  enhanced_mw_optim_max_col_diff=None):
         # Read basic catalogs
@@ -52,7 +52,7 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
         self._starcatalog = GeodesicStarCatalog(data_dir, extra_data_dir, self._constellcatalog.bsc_hip_map)
-        self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog)
+        self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog, supplements)
 
         # Apply magnitude selection to deepsky list, build Messier list
         self._reduced_deeplist = []
@@ -208,7 +208,7 @@ class UsedCatalogs:
             arr_y.append(v[1])
         return (np.array(arr_x), np.array(arr_y))
 
-    def _get_deepsky_list(self, data_dir, show_catalogs, use_pgc_catalog):
+    def _get_deepsky_list(self, data_dir, show_catalogs, use_pgc_catalog, supplements):
         all_dsos = {}
         print( _('Reading Hnsky...'), flush=True)
         hnskylist = import_hnsky_deepsky(os.path.join(data_dir, 'deep_sky.hnd'), show_catalogs, all_dsos)
@@ -220,6 +220,11 @@ class UsedCatalogs:
         print(_('Reading VIC...'), flush=True)
         viclist = import_vic(os.path.join(data_dir, 'vic.txt'))
         deeplist = hnskylist + pgclist + viclist
+        if supplements:
+            for supplement in supplements:
+                print(_('Reading hnsky supplement {} ...'.format(supplement)), flush=True)
+                suppl_dsos = import_hnsky_supplement(supplement, all_dsos)
+                deeplist += suppl_dsos
         deeplist.sort(key=deepsky.cmp_to_key(deepsky.cmp_name))
         print(_('Reading DSO outlines...'), flush=True)
         dso_dict = self._get_dso_dict(deeplist)
