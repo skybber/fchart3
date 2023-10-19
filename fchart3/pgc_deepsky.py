@@ -27,7 +27,7 @@ def import_pgc_deepsky(pgc_dat_file, pgc_update_file, show_catalogs, all_dsos):
     pgc_updates = {}
 
     for line in lines:
-        pgc_name, s_ra, s_dec, major, minor = line.split()
+        pgc_name, s_ra, s_dec, major, minor, s_position_angle = line.split()
         try:
             ra = float(s_ra)
             dec = float(s_dec)
@@ -39,7 +39,8 @@ def import_pgc_deepsky(pgc_dat_file, pgc_update_file, show_catalogs, all_dsos):
                 minor = float(minor)/60.0*np.pi/180.0/2.0
             if major < minor:
                 major, minor = minor, major
-            pgc_updates[int(pgc_name[3:])] = (ra, dec, major, minor)
+            position_angle = float(s_position_angle)
+            pgc_updates[int(pgc_name[3:])] = (ra, dec, major, minor, position_angle)
         except ValueError:
             pass
 
@@ -105,6 +106,11 @@ def import_pgc_deepsky(pgc_dat_file, pgc_update_file, show_catalogs, all_dsos):
 
             pgc_update = pgc_updates.get(pgc_num)
 
+            try:
+                position_angle = int(line[73:76])*np.pi/180.0
+            except ValueError:
+                position_angle = 0.0
+
             if pgc_update is not None:
                 ra_diff = abs(ra - pgc_update[0])
                 dec_diff = abs(dec - pgc_update[1])
@@ -113,16 +119,13 @@ def import_pgc_deepsky(pgc_dat_file, pgc_update_file, show_catalogs, all_dsos):
                     dec = pgc_update[1]
                     rlong = pgc_update[2]
                     rshort = pgc_update[3]
+                    position_angle = pgc_update[4] * np.pi / 180.0
 
             pgc_dso.ra = ra
             pgc_dso.dec = dec
             pgc_dso.rlong = rlong
             pgc_dso.rshort = rshort
-
-            try:
-                pgc_dso.position_angle = int(line[73:76])*np.pi/180.0
-            except ValueError:
-                pgc_dso.position_angle = 0.0
+            pgc_dso.position_angle = position_angle
 
             all_dsos[pgc_name] = pgc_dso
             pgc_dso.cat, pgc_dso.name = parse_catalog_name(pgc_name)
