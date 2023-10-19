@@ -214,13 +214,13 @@ def _parse_hnsky_supplement_line(line, all_dsos):
     if items[1].strip():
         object.ra += np.pi * float(items[1]) / (12.0 * 60.0)
     if items[2].strip():
-        object.ra += np.pi * float(items[1]) / (12.0 * 60.0 * 60)
+        object.ra += np.pi * float(items[2]) / (12.0 * 60.0 * 60)
     object.dec = np.pi * float(items[3]) / 180.0
     mul_dec = 1 if object.dec >= 0 else -1
     if items[4].strip():
         object.dec += mul_dec * np.pi * float(items[4]) / (180.0 * 60)
     if items[5].strip():
-        object.dec += mul_dec * np.pi * float(items[5]) / (180.0 * 60)
+        object.dec += mul_dec * np.pi * float(items[5]) / (180.0 * 60 * 60)
 
     str_mag = items[6].strip()
 
