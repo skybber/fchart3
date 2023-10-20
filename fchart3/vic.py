@@ -52,7 +52,6 @@ def import_vic(filename):
             object.name = str(row_id)
             object.all_names = [object.name]
             object.type = STARS
-            object.constellation = ''
             rhs,rms,rss = row['RA'].split(',')
             object.ra = pi * (float(rhs) + float(rms)/60.0) / 12.0
             sign = float(row['Dec'][0]+'1')

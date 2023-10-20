@@ -134,7 +134,7 @@ class UsedCatalogs:
             # special handling for Minkowski
             if cat == 'M' and i+1<len(dso_name) and (dso_name[i+1] == '-' or dso_name[i+1] == '_') :
                 cat = 'Mi'
-            if cat.upper() == 'N' or cat == '' or cat.upper=='NGC':
+            if cat.upper() == 'N' or cat == '' or cat.upper == 'NGC':
                 cat = 'NGC'
 
             if cat.upper() == 'I' or cat.upper() == 'IC':
@@ -149,15 +149,11 @@ class UsedCatalogs:
             for dso in self.deeplist:
                 if dso.cat.upper() == cat_upper:
                     if name.upper() in dso.all_names:
-                        ra = dso.ra
-                        dec = dso.dec
                         cat = dso.cat
                         found_dso = dso
                         break
                 for syn_dso in dso.synonyms:
                     if syn_dso[0].upper() == cat_upper and name.upper() == syn_dso[1]:
-                        ra = dso.ra
-                        dec = dso.dec
                         cat = dso.cat
                         found_dso = dso
                         break
@@ -167,8 +163,6 @@ class UsedCatalogs:
             cat = 'M'
             for mdso in self.messierlist:
                 if mdso.messier == int(name):
-                    ra = mdso.ra
-                    dec = mdso.dec
                     name = str(mdso.messier)
                     found_dso = mdso
                     break

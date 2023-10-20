@@ -55,11 +55,11 @@ TYPENAME = ['Unknown', 'G', 'N', 'PN', 'OC', 'GC', 'PG', 'xxx', 'xxx', 'AST', 'x
 
 class DeepskyObject:
 
-    __slots__ = 'cat', 'name', 'all_names', 'synonyms', 'component', 'type', 'constellation', 'ra', 'dec', 'x', 'y', 'z', \
+    __slots__ = 'cat', 'name', 'all_names', 'synonyms', 'type', 'ra', 'dec', 'x', 'y', 'z', \
                 'mag', 'rlong', 'rshort', 'position_angle', 'messier', 'master_object', 'visible', '_label', \
                 'outlines'
 
-    def __init__(self, catalog='NGC'):
+    def __init__(self):
         """
         This class has the following fields:
 
@@ -70,8 +70,6 @@ class DeepskyObject:
                          '3683A',...)
         - all_names      all names of the object in this catalog.
         - synonyms       all object synonyms
-        - component      number of component if source consists of multiple
-                         components (default: 0)
         - type           integer indicating the type of the object. There
                          are constants defined in this module to help
                          interpret this field:
@@ -87,7 +85,6 @@ class DeepskyObject:
                          STARS           = 9      asterism
                          NOTFOUND        =10      not found in reality/error
                          SNR             =11      supernova remnant
-        - constellation  three letter constellation abbreviation, e.g. AND
         - ra             right ascension in radians (J2000)
         - dec            declination in radians (J2000)
         - mag            magnitude
@@ -98,23 +95,21 @@ class DeepskyObject:
         - messier        number in messier list (default: -1)
         - visible        True if object is visible on the map
         """
-        self.cat = catalog.upper().rstrip().lstrip()
+        self.cat = 'NGC'
         self.name = ''
         self.all_names = []
         self.synonyms = []
-        self.component = 0
         self.type = UNKNOWN
-        self.constellation=''
-        self.ra=-1.0
-        self.dec=0.0
+        self.ra = -1.0
+        self.dec = 0.0
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
-        self.mag=-100.0
-        self.rlong=-1.0
-        self.rshort=-1.0
-        self.position_angle=90.0*np.pi/180.0
-        self.messier=-1
+        self.mag = -100.0
+        self.rlong = -1.0
+        self.rshort = -1.0
+        self.position_angle = 90.0*np.pi/180.0
+        self.messier = -1
         self.master_object = None
         self.visible = True
         self._label = None
@@ -144,7 +139,7 @@ class DeepskyObject:
             cat = 'M'
             name = str(self.messier)
 
-        s += cat.ljust(8)+' '+name.rjust(8)+' '+self.constellation
+        s += cat.ljust(8)+' '+name.rjust(8)
         s += '  '
         s += str(rah).rjust(3)+str(ram).rjust(3)+str(int(ras+0.5)).rjust(3)
         s += '  '
