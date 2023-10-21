@@ -21,6 +21,7 @@ import gettext
 import os
 
 uilanguage=os.environ.get('fchart3lang')
+
 try:
     lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
     lang.install()
@@ -30,6 +31,9 @@ except:
 
 
 class BscStar:
+
+    __slots__ = 'number', 'name', 'HD', 'constellation', 'constell_number', 'greek', 'greek_no', 'flamsteed', 'ra', 'dec', 'mag'
+
     def __init__(self):
         """
         BscStar - has the following fields:
@@ -47,14 +51,14 @@ class BscStar:
         self.number = None
         self.name = ''
         self.HD = None
-        self.constellation=''
+        self.constellation = ''
         self.constell_number = None
         self.greek = ''
         self.greek_no = ''
         self.flamsteed = ''
-        self.ra=-1.0
-        self.dec=0.0
-        self.mag=-100.0
+        self.ra = -1.0
+        self.dec = 0.0
+        self.mag = -100.0
 
 
 class Constellation:
