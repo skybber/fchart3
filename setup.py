@@ -41,7 +41,7 @@ if have_numpy:
 
 setup(
     name='fchart3',
-    version='0.9.0',
+    version='0.10.0',
     description='Collection of Python scripts to make beautiful deepsky charts in various formats',
     keywords='fchart3 starchart star charts finder chart astronomy map',
     url='https://github.com/skybber/fchart3',
@@ -59,7 +59,6 @@ setup(
                               'data/catalogs/convert_stellarium_boundaries.txt',
                               'data/catalogs/cross-id.dat',
                               'data/catalogs/deep_sky.hnd',
-                              'data/catalogs/index.dat',
                               'data/catalogs/milkyway.dat',
                               'data/catalogs/milkyway_enhanced.dat',
                               'data/catalogs/namedstars.dat',
@@ -73,7 +72,6 @@ setup(
                               'data/catalogs/stars_3_1v0_4.cat',
                               'data/catalogs/unnamedstars.dat',
                               'data/catalogs/vic.txt',
-                              'data/label_positions.txt',
                               'data/default.conf',
                               ]},
     ext_modules=ext_modules,
