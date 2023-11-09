@@ -54,9 +54,8 @@ def import_vic(filename):
             object.type = STARS
             rhs,rms,rss = row['RA'].split(',')
             object.ra = pi * (float(rhs) + float(rms)/60.0) / 12.0
-            sign = float(row['Dec'][0]+'1')
             dds, dms, dss = row['Dec'].split(',')
-            object.dec = sign*pi*(float(dds) + float(dms)/60.0) / 180.0
+            object.dec = pi*(float(dds) + float(dms)/60.0) / 180.0
             object.mag = _vic2int(row['mag']) / 10
             deeplist.append(object)
     return deeplist
