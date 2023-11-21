@@ -154,8 +154,6 @@ class SkymapEngine:
         self.mirror_x = None
         self.mirror_y = None
 
-        self.active_constellation = None
-
         self.space_widget_allocator = None
         self.w_mag_scale = None
         self.w_map_scale = None
@@ -233,9 +231,6 @@ class SkymapEngine:
         self.caption = caption
         if caption != '':
             self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_default_font_size*2.0)
-
-    def set_active_constellation(self, active_constellation):
-        self.active_constellation = active_constellation
 
     def make_map(self, used_catalogs, jd=None, showing_dsos=None, dso_highlights=None, highlights=None, dso_hide_filter=None,
                  extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None, use_optimized_mw=False,

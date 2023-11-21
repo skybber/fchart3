@@ -705,7 +705,6 @@ if __name__ == '__main__':
                     if showing_dso.master_object:
                         showing_dso = showing_dso.master_object
                     showing_dsos = [showing_dso]
-                    engine.set_active_constellation(showing_dso.constellation)
                 tmp =   time()-tm
                 print(_("Started in : {} ms".format(tmp)))
                 engine.make_map(used_catalogs, showing_dsos=showing_dsos, extra_positions=settings.extra_positions_list)
