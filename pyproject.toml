@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fchart3"
-version = "0.9.0"
+version = "0.10.1"
 authors = [
   { name="Vladimir Dvorak (skybber)", email="lada.dvorak7@gmail.com" },
 ]
@@ -16,6 +16,8 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     "Operating System :: OS Independent",
 ]
+dependencies = ['numpy', 'pycairo', 'Pillow', 'skia-python']
+keywords = ['fchart3 starchart star charts finder chart astronomy map']
 
 [project.urls]
 "Homepage" = "https://github.com/skybber/fchart3"

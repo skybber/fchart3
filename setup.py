@@ -41,16 +41,15 @@ if have_numpy:
 
 setup(
     name='fchart3',
-    version='0.10.0',
+    version='0.10.1',
     description='Collection of Python scripts to make beautiful deepsky charts in various formats',
     keywords='fchart3 starchart star charts finder chart astronomy map',
     url='https://github.com/skybber/fchart3',
     author='Michiel Brentjens <brentjens@astron.nl>, Austin Riba <root@austinriba.com>, Vladimir Dvorak<lada.dvorak7@gmail.com',
     author_email='lada.dvorak7@gmail.com',
-    license='GPLv2',
     packages=packages,
     include_package_data=True,
-    install_requires=['numpy', 'pycairo', 'Pillow'],
+    install_requires=['numpy', 'pycairo', 'Pillow', 'skia-python'],
     scripts=['bin/fchart3'],
     package_data={'fchart3': ['data/catalogs/bsc5.dat',
                               'data/catalogs/constbndJ2000.dat',
