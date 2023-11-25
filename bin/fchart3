@@ -49,9 +49,9 @@ import gettext
 _ = gettext.gettext
 
 #################################################################
-VERSION ="0.9.0"
+VERSION ="0.10.2"
 def print_version():
-    print(_(f"""fchart3 version 0.9.0 (c) fchart3 authors 2005-2023\n
+    print(_(f"""fchart3 version 0.10.2 (c) fchart3 authors 2005-2023\n
 fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
