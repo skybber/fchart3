@@ -4,6 +4,9 @@ Fchart3 is a Python project designed to create high-quality astronomical charts 
 
 ![Cygnus](https://user-images.githubusercontent.com/2523097/190871573-8e1746cb-2e02-460f-9017-e3788c36089f.png)
 
+![m39](https://github.com/skybber/fchart3/assets/2523097/85f717fe-0da2-4308-831d-2f322a921c88)
+
+
 Online interactive version available on project **CzSky**:
 - [CzSky Chart](https://www.czsky.eu/chart?ra=1.532197702857378&dec=0.06961660554646551&fsz=100&splitview=true)
 
