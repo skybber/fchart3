@@ -457,6 +457,10 @@ class SkymapEngine:
 
             rlong = dso.rlong if dso.rlong is not None else self.min_radius
             rshort = dso.rshort if dso.rshort is not None else self.min_radius
+            if rlong == 0:
+                rlong = rshort
+            elif rshort == 0:
+                rshort = rlong
             rlong = rlong*self.drawing_scale
             rshort = rshort*self.drawing_scale
             posangle = dso.position_angle+self.projection.direction_ddec(dso.ra, dso.dec)+0.5*np.pi
