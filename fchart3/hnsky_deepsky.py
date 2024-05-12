@@ -128,7 +128,7 @@ def _parse_hnsky_line(line, show_catalogs, all_dsos):
     else:
         object.mag = 100.0
 
-    names = items[3].split('/')
+    names = items[3].strip().split('/')
 
     has_cat = False
     visible = False
