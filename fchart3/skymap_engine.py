@@ -444,7 +444,7 @@ class SkymapEngine:
                 continue
 
             label = dso.label()
-            if self.config.show_dso_mag and dso.mag is not None and dso.mag != -100:
+            if self.config.show_dso_mag and dso.mag is not None and dso.mag != -100 and dso.mag < 30:
                 label_mag = '{:.1f}'.format(dso.mag)
             else:
                 label_mag = None
@@ -470,7 +470,7 @@ class SkymapEngine:
                 rlong = self.min_radius
 
             label_ext = None
-            if dso == self.picked_dso and dso.mag < 100.0:
+            if dso == self.picked_dso and dso.mag < 30.0:
                 label_ext = '{:.2f}m'.format(dso.mag)
 
             label_length = self.graphics.text_width(label)
