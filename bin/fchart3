@@ -251,6 +251,9 @@ class RuntimeSettings:
         argumentparser.add_argument('--legend_font_scale', dest='legend_font_scale', type=float, default=None,
                                     help='Scale of the font used in the legend relative to the chart font size.')
 
+        argumentparser.add_argument('--star_mag_shift', dest='star_mag_shift', type=float, default=None,
+                                    help='Enlarge star symbols by given magnitude.')
+
         argumentparser.add_argument('-v', '--version', action='store_true', default=None, help='Display version information and exit.')
 
         argumentparser.add_argument('sourcelist', nargs='*')
@@ -475,6 +478,8 @@ def _create_engine_configuration(config_file = None):
         config.font_size = settings.parser.font_size
     if settings.parser.legend_font_scale is not None:
         config.legend_font_scale = settings.parser.legend_font_scale
+    if settings.parser.star_mag_shift is not None:
+        config.star_mag_shift = settings.parser.star_mag_shift
     if settings.parser.bayer_label_font_scale is not None:
         config.bayer_label_font_scale = settings.parser.bayer_label_font_scale
     if settings.parser.font_style_bayer is not None:

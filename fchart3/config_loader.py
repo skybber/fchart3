@@ -19,7 +19,8 @@ from .graphics_interface import FontStyle
 
 FLOAT_ITEMS = ['constellation_linewidth', 'constellation_border_linewidth', 'nebula_linewidth',
                'open_cluster_linewidth', 'galaxy_cluster_linewidth', 'dso_linewidth', 'milky_way_linewidth',
-               'legend_linewidth', 'grid_linewidth', 'constellation_linespace', 'font_size', 'legend_font_scale']
+               'legend_linewidth', 'grid_linewidth', 'constellation_linespace', 'font_size', 'legend_font_scale',
+               'star_mag_shift']
 
 RGB_ITEMS = ['background_color', 'draw_color', 'label_color', 'constellation_lines_color', 'constellation_border_color',
              'constellation_hl_border_color', 'nebula_color', 'galaxy_color', 'star_cluster_color', 'galaxy_cluster_color',
