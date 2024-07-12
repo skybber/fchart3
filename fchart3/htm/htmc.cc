@@ -72,16 +72,16 @@ void HTMC::init(int depth) throw (const char *) {
     init_numpy();
 }
 
-void HTMC::lookup_id(PyObject* ra_array, 
+void HTMC::lookup_id(PyObject* ra_array,
                      PyObject* dec_array,
                      PyObject* htm_ids_array) throw (const char* ) {
 
-    npy_intp num = PyArray_SIZE(ra_array);
+    npy_intp num = PyArray_SIZE((PyArrayObject*) ra_array);
 
     for (npy_intp i=0; i<num; i++) {
-        double    *raptr    = (double *)    PyArray_GETPTR1(ra_array, i);
-        double    *decptr   = (double *)    PyArray_GETPTR1(dec_array, i);
-        npy_int64 *idptr    = (npy_int64 *) PyArray_GETPTR1(htm_ids_array, i);
+        double    *raptr    = (double *)    PyArray_GETPTR1((PyArrayObject*) ra_array, i);
+        double    *decptr   = (double *)    PyArray_GETPTR1((PyArrayObject*) dec_array, i);
+        npy_int64 *idptr    = (npy_int64 *) PyArray_GETPTR1((PyArrayObject*) htm_ids_array, i);
 
         npy_int64 id = (npy_int64) mHtmInterface.lookupID(*raptr, *decptr);
 
@@ -129,7 +129,7 @@ PyObject* HTMC::intersect(double ra, // all in degrees
     // ----------- FULL NODES -------------
     for(size_t i = 0; i < flist.length(); i++)
     {  
-        idptr = (npy_intp* ) PyArray_GETPTR1(idlist, id_index);
+        idptr = (npy_intp* ) PyArray_GETPTR1((PyArrayObject*) idlist, id_index);
         *idptr = flist(i);
 
         id_index++;
@@ -138,7 +138,7 @@ PyObject* HTMC::intersect(double ra, // all in degrees
         // ----------- Partial Nodes ----------
         for(size_t i = 0; i < plist.length(); i++)
         {  
-            idptr = (npy_intp* ) PyArray_GETPTR1(idlist, id_index);
+            idptr = (npy_intp* ) PyArray_GETPTR1((PyArrayObject*) idlist, id_index);
             *idptr = plist(i);
 
             id_index++;
@@ -157,7 +157,7 @@ PyObject* HTMC::cbincount(double rmin, // units of scale*angle in radians
                           long nbin, 
                           PyObject* ra1_array, // all in degrees
                           PyObject* dec1_array,
-                          PyObject* ra2_array, 
+                          PyObject* ra2_array,
                           PyObject* dec2_array,
                           PyObject* htmrev2_array,
                           PyObject* minmax_ids_array,
@@ -169,20 +169,20 @@ PyObject* HTMC::cbincount(double rmin, // units of scale*angle in radians
     double logrmin = log10(rmin);
     double logrmax = log10(rmax);
 
-    npy_int64 minid = *(npy_int64* ) PyArray_GETPTR1(minmax_ids_array, 0);
-    npy_int64 maxid = *(npy_int64* ) PyArray_GETPTR1(minmax_ids_array, 1);
+    npy_int64 minid = *(npy_int64* ) PyArray_GETPTR1((PyArrayObject*) minmax_ids_array, 0);
+    npy_int64 maxid = *(npy_int64* ) PyArray_GETPTR1((PyArrayObject*) minmax_ids_array, 1);
 
-    npy_intp n1 = PyArray_SIZE(ra1_array);
+    npy_intp n1 = PyArray_SIZE((PyArrayObject*) ra1_array);
 
     npy_intp nscale=0;
     bool degrees = true;
-    if (scale_array != Py_None) {
+    if ((PyObject*) scale_array != Py_None) {
         degrees = false;
-        nscale = PyArray_SIZE(scale_array);
+        nscale = PyArray_SIZE((PyArrayObject*) scale_array);
 
         // we can just do this once
         if (nscale==1) {
-            scale = *(double *) PyArray_GETPTR1(scale_array, 0);
+            scale = *(double *) PyArray_GETPTR1((PyArrayObject*) scale_array, 0);
             logscale = log10(scale);
         }
     }
@@ -232,7 +232,7 @@ PyObject* HTMC::cbincount(double rmin, // units of scale*angle in radians
 
         // one for each point
         if (nscale > 1) {
-            scale = *(double *) PyArray_GETPTR1(scale_array, i1);
+            scale = *(double *) PyArray_GETPTR1((PyArrayObject*) scale_array, i1);
             logscale = log10(scale);
         }
 
@@ -246,8 +246,8 @@ PyObject* HTMC::cbincount(double rmin, // units of scale*angle in radians
         }
 
         // Find the triangles around this point
-        double ra1  = *(double *) PyArray_GETPTR1(ra1_array,  i1);
-        double dec1 = *(double *) PyArray_GETPTR1(dec1_array, i1);
+        double ra1  = *(double *) PyArray_GETPTR1((PyArrayObject*) ra1_array,  i1);
+        double dec1 = *(double *) PyArray_GETPTR1((PyArrayObject*) dec1_array, i1);
 
         domain.setRaDecD(ra1,dec1,d);
         domain.intersect(&index,plist,flist);	  // intersect with list
@@ -278,8 +278,8 @@ PyObject* HTMC::cbincount(double rmin, // units of scale*angle in radians
                 int64_t leafbin = idlist[j] - minid;
 
                 // Any found in this leaf?
-                npy_int64 hlo = *(npy_int64* ) PyArray_GETPTR1(htmrev2_array, leafbin);
-                npy_int64 hhi = *(npy_int64* ) PyArray_GETPTR1(htmrev2_array, leafbin+1);
+                npy_int64 hlo = *(npy_int64* ) PyArray_GETPTR1((PyArrayObject*) htmrev2_array, leafbin);
+                npy_int64 hhi = *(npy_int64* ) PyArray_GETPTR1((PyArrayObject*) htmrev2_array, leafbin+1);
 
                 if ( hlo != hhi) {
 
@@ -289,10 +289,10 @@ PyObject* HTMC::cbincount(double rmin, // units of scale*angle in radians
                     for (int64_t ileaf=0; ileaf<nLeafBin;ileaf++) {
 
                         npy_int64 index = hlo + ileaf;
-                        npy_int64 i2 = *(npy_int64* ) PyArray_GETPTR1(htmrev2_array, index);
+                        npy_int64 i2 = *(npy_int64* ) PyArray_GETPTR1((PyArrayObject*) htmrev2_array, index);
 
-                        double ra2  = *(double *) PyArray_GETPTR1(ra2_array,  i2);
-                        double dec2 = *(double *) PyArray_GETPTR1(dec2_array, i2);
+                        double ra2  = *(double *) PyArray_GETPTR1((PyArrayObject*) ra2_array,  i2);
+                        double dec2 = *(double *) PyArray_GETPTR1((PyArrayObject*) dec2_array, i2);
 
                         double dis = gcirc(ra1, dec1, ra2, dec2, degrees);
                         if (dis <= maxangle) {
@@ -300,7 +300,7 @@ PyObject* HTMC::cbincount(double rmin, // units of scale*angle in radians
 
                             int radbin = (int) ( (logr-logrmin)/log_binsize );
                             if (radbin >=0 && radbin < nbin) {
-                                npy_int64 *cptr = (npy_int64 *) PyArray_GETPTR1(counts_array, radbin);
+                                npy_int64 *cptr = (npy_int64 *) PyArray_GETPTR1((PyArrayObject*) counts_array, radbin);
                                 *cptr += 1;
                                 totcount+=1;
                             } // in one of our radial bins
@@ -349,7 +349,7 @@ Matcher::Matcher(int depth,
     Py_INCREF(ra_input);
     Py_INCREF(dec_input);
 
-    this->npoints = PyArray_SIZE(this->ra);
+    this->npoints = PyArray_SIZE((PyArrayObject*) this->ra);
 
     init_hmap();
 }
@@ -359,8 +359,8 @@ void Matcher::init_hmap(void)
     int64_t htmid=0;
     for (npy_intp i=0; i<this->npoints; i++) {
 
-        double ra = *(double *) PyArray_GETPTR1(this->ra, i);
-        double dec = *(double *) PyArray_GETPTR1(this->dec, i);
+        double ra = *(double *) PyArray_GETPTR1((PyArrayObject*) this->ra, i);
+        double dec = *(double *) PyArray_GETPTR1((PyArrayObject*) this->dec, i);
 
         htmid = htm_interface.lookupID(ra, dec);
 
@@ -386,7 +386,7 @@ PyObject* Matcher::match(PyObject* ra_array, // all in degrees
 
     // no copies made if already double vectors
 
-    npy_intp nrad = PyArray_SIZE(radius_array);
+    npy_intp nrad = PyArray_SIZE((PyArrayObject*) radius_array);
 
     // These will temporarily hold the results
     std::vector<int64_t> m1;
@@ -419,11 +419,11 @@ PyObject* Matcher::match(PyObject* ra_array, // all in degrees
 
     double rad=0, d=0;
     if (nrad == 1) {
-        rad = *(double *) PyArray_GETPTR1(radius_array, 0);
+        rad = *(double *) PyArray_GETPTR1((PyArrayObject*) radius_array, 0);
         d = cos( rad*D2R );
     }
 
-    npy_intp ninput = PyArray_SIZE(ra_array);
+    npy_intp ninput = PyArray_SIZE((PyArrayObject*) ra_array);
 
     for (npy_intp i_input=0; i_input<ninput; i_input++) {
         // Declare the domain and the lists
@@ -431,13 +431,13 @@ PyObject* Matcher::match(PyObject* ra_array, // all in degrees
         ValVec<uint64> plist, flist;	// List results
 
         if (nrad > 1) {
-            rad = *(double *) PyArray_GETPTR1(radius_array, i_input);
+            rad = *(double *) PyArray_GETPTR1((PyArrayObject*) radius_array, i_input);
             d = cos( rad*D2R );
         }
 
         // Find the triangles around this point
-        double ra  = *(double *) PyArray_GETPTR1(ra_array,  i_input);
-        double dec = *(double *) PyArray_GETPTR1(dec_array, i_input);
+        double ra  = *(double *) PyArray_GETPTR1((PyArrayObject*) ra_array,  i_input);
+        double dec = *(double *) PyArray_GETPTR1((PyArrayObject*) dec_array, i_input);
 
         domain.setRaDecD(ra,dec,d);
         domain.intersect(&index,plist,flist);	  // intersect with list
@@ -482,8 +482,8 @@ PyObject* Matcher::match(PyObject* ra_array, // all in degrees
                     int64_t i_this = iter->second[ileaf];
 
                     // Returns distance in degrees
-                    double tra  = *(double *) PyArray_GETPTR1(this->ra, i_this);
-                    double tdec = *(double *) PyArray_GETPTR1(this->dec, i_this);
+                    double tra  = *(double *) PyArray_GETPTR1((PyArrayObject*) this->ra, i_this);
+                    double tdec = *(double *) PyArray_GETPTR1((PyArrayObject*) this->dec, i_this);
 
                     double dis = gcirc(ra, dec, tra, tdec, true);
 
@@ -551,9 +551,9 @@ PyObject* Matcher::match(PyObject* ra_array, // all in degrees
         PyObject* d12out=PyArray_ZEROS(1, &ntotal, NPY_FLOAT64, 0);
 
         for (npy_intp i=0; i<ntotal; i++) {
-            npy_int64 *m1ptr  = (npy_int64* ) PyArray_GETPTR1(m1out, i);
-            npy_int64 *m2ptr  = (npy_int64* ) PyArray_GETPTR1(m2out, i);
-            double    *d12ptr = (npy_float64* ) PyArray_GETPTR1(d12out, i);
+            npy_int64 *m1ptr  = (npy_int64* ) PyArray_GETPTR1((PyArrayObject*) m1out, i);
+            npy_int64 *m2ptr  = (npy_int64* ) PyArray_GETPTR1((PyArrayObject*) m2out, i);
+            double    *d12ptr = (npy_float64* ) PyArray_GETPTR1((PyArrayObject*) d12out, i);
 
             *m1ptr = m1[i];
             *m2ptr = m2[i];
