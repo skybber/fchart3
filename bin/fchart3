@@ -612,7 +612,7 @@ if __name__ == '__main__':
                 engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 engine.set_active_constellation(object.constellation)
-                engine.make_map(used_catalogs, settings.extra_positions_list)
+                engine.make_map(used_catalogs, extra_positions=settings.extra_positions_list)
         else:
             showing_dso = None
             if ':' in source:

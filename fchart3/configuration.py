@@ -56,6 +56,15 @@ DEFAULT_FLAMSTEED_LABEL_FONT_SCALE = 0.9
 DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE = 1.1
 DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE = 1.0
 
+DEFAULT_MERCURY_COLOR = (0.5, 0.5, 0.5)
+DEFAULT_VENUS_COLOR   = (0.9, 0.8, 0.6)
+DEFAULT_EARTH_COLOR   = (0.2, 0.6, 1.0)
+DEFAULT_MARS_COLOR    = (0.8, 0.4, 0.1)
+DEFAULT_JUPITER_COLOR = (0.9, 0.6, 0.5)
+DEFAULT_SATURN_COLOR  = (0.9, 0.8, 0.5)
+DEFAULT_URANUS_COLOR  = (0.6, 0.8, 1.0)
+DEFAULT_NEPTUNE_COLOR = (0.3, 0.5, 0.9)
+DEFAULT_PLUTO_COLOR   = (0.7, 0.6, 0.5)
 
 class EngineConfiguration:
     def __init__(self):
@@ -131,6 +140,15 @@ class EngineConfiguration:
         self._highlight_label_font_scale = DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE
         self._star_mag_shift = 0
         self._flamsteed_numbers_only = False
+        self._mercury_color = DEFAULT_MERCURY_COLOR
+        self._venus_color = DEFAULT_VENUS_COLOR
+        self._earth_color = DEFAULT_EARTH_COLOR
+        self._mars_color = DEFAULT_MARS_COLOR
+        self._jupiter_color = DEFAULT_JUPITER_COLOR
+        self._saturn_color = DEFAULT_SATURN_COLOR
+        self._uranus_color = DEFAULT_URANUS_COLOR
+        self._neptune_color = DEFAULT_NEPTUNE_COLOR
+        self._pluto_color = DEFAULT_PLUTO_COLOR
 
     @property
     def legend_only(self):
@@ -706,3 +724,75 @@ class EngineConfiguration:
     @flamsteed_numbers_only.setter
     def flamsteed_numbers_only(self, value):
         self._flamsteed_numbers_only = value
+
+    @property
+    def mercury_color(self):
+        return self._mercury_color
+
+    @mercury_color.setter
+    def mercury_color(self, value):
+        self._mercury_color = value
+
+    @property
+    def venus_color(self):
+        return self._venus_color
+
+    @venus_color.setter
+    def venus_color(self, value):
+        self._venus_color = value
+
+    @property
+    def earth_color(self):
+        return self._earth_color
+
+    @earth_color.setter
+    def earth_color(self, value):
+        self._earth_color = value
+
+    @property
+    def mars_color(self):
+        return self._mars_color
+
+    @mars_color.setter
+    def mars_color(self, value):
+        self._mars_color = value
+
+    @property
+    def jupiter_color(self):
+        return self._jupiter_color
+
+    @jupiter_color.setter
+    def jupiter_color(self, value):
+        self._jupiter_color = value
+
+    @property
+    def saturn_color(self):
+        return self._saturn_color
+
+    @saturn_color.setter
+    def saturn_color(self, value):
+        self._saturn_color = value
+
+    @property
+    def uranus_color(self):
+        return self._uranus_color
+
+    @uranus_color.setter
+    def uranus_color(self, value):
+        self._uranus_color = value
+
+    @property
+    def neptune_color(self):
+        return self._neptune_color
+
+    @neptune_color.setter
+    def neptune_color(self, value):
+        self._neptune_color = value
+
+    @property
+    def pluto_color(self):
+        return self._pluto_color
+
+    @pluto_color.setter
+    def pluto_color(self, value):
+        self._pluto_color = value
