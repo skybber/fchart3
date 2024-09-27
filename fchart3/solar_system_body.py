@@ -17,7 +17,7 @@
 
 from enum import Enum
 
-class Planet(Enum):
+class SolarSystemBody(Enum):
     MERCURY = (1, "Mercury")
     VENUS   = (2, "Venus")
     EARTH   = (3, "Earth")
@@ -27,13 +27,15 @@ class Planet(Enum):
     URANUS  = (7, "Uranus")
     NEPTUNE = (8, "Neptune")
     PLUTO   = (9, "Pluto")
+    SUN     = (10, "Sun")
+    MOON    = (11, "Moon")
 
     def __init__(self, value, label):
         self._value_ = value
         self.label = label
 
-class PlanetObject:
-    def __init__(self, planet, ra, dec):
-        self.planet = planet
+class SolarSystemBodyObject:
+    def __init__(self, solar_system_body, ra, dec):
+        self.solar_system_body = solar_system_body
         self.ra = ra
         self.dec = dec
