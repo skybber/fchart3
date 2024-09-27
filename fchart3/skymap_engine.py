@@ -54,7 +54,7 @@ from .widget_eyepiece import WidgetEyepiece
 from .widget_picker import WidgetPicker
 
 from .precession import compute_precession_matrix
-
+from .solar_system_body import SolarSystemBody
 
 
 LABELi18N = {
@@ -232,7 +232,7 @@ class SkymapEngine:
         if caption != '':
             self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_default_font_size*2.0)
 
-    def make_map(self, used_catalogs, planets=None, jd=None, showing_dsos=None, dso_highlights=None, highlights=None,
+    def make_map(self, used_catalogs, solsys_bodies=None, jd=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None,
                  use_optimized_mw=False, transparent=False):
         """ Creates map using given graphics, params and config
@@ -324,8 +324,8 @@ class SkymapEngine:
             if extra_positions:
                 self.draw_extra_objects(extra_positions)
 
-            if planets:
-                self.draw_planets(planets)
+            if solsys_bodies:
+                self.draw_solar_system_bodies(solsys_bodies)
 
             if trajectory:
                 self.draw_trajectory(trajectory)
@@ -686,24 +686,28 @@ class SkymapEngine:
             if nzopt or z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
-    def draw_planets(self, planets):
+    def draw_solar_system_bodies(self, solsys_bodies):
         nzopt = not self.projection.is_zoptim()
-        for planet_obj in planets:
-            rax = planet_obj.ra
-            decx = planet_obj.dec
-            planet = planet_obj.planet
+        for ssb_obj in solsys_bodies:
+            rax = ssb_obj.ra
+            decx = ssb_obj.dec
+            solar_system_body = ssb_obj.solar_system_body
 
             x, y, z = self.projection.radec_to_xyz(rax, decx)
 
             if nzopt or z >= 0:
-                color_attr = planet.name.lower() + '_color'
+                color_attr = solar_system_body.name.lower() + '_color'
                 color = getattr(self.config, color_attr)
 
                 self.graphics.set_fill_rgb(color)
-                r = round(1.5*self.min_radius, 2)
+                if solar_system_body in (SolarSystemBody.SUN, SolarSystemBody.MOON):
+                    r = round(1.75*self.min_radius, 2)
+                else:
+                    r = round(1.2*self.min_radius, 2)
+
                 self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
 
-                label = planet.label
+                label = solar_system_body.label
                 fh = self.graphics.gi_default_font_size
                 self.graphics.set_pen_rgb(self.config.label_color)
                 self.mirroring_graphics.text_centred(x, y + r + 0.75 * fh, label)

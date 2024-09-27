@@ -36,7 +36,7 @@ def get_catalogs_dir():
 from .config_loader import *
 from .skymap_engine import *
 from .configuration import *
-from .planet import *
+from .solar_system_body import *
 from .used_catalogs import *
 from .graphics_cairo import *
 from .graphics_skia import *

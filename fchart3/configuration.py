@@ -65,6 +65,8 @@ DEFAULT_SATURN_COLOR  = (0.9, 0.8, 0.5)
 DEFAULT_URANUS_COLOR  = (0.6, 0.8, 1.0)
 DEFAULT_NEPTUNE_COLOR = (0.3, 0.5, 0.9)
 DEFAULT_PLUTO_COLOR   = (0.7, 0.6, 0.5)
+DEFAULT_SUN_COLOR     = (1.0, 1.0, 0.0)
+DEFAULT_MOON_COLOR    = (0.8, 0.8, 0.8)
 
 class EngineConfiguration:
     def __init__(self):
@@ -149,6 +151,8 @@ class EngineConfiguration:
         self._uranus_color = DEFAULT_URANUS_COLOR
         self._neptune_color = DEFAULT_NEPTUNE_COLOR
         self._pluto_color = DEFAULT_PLUTO_COLOR
+        self._sun_color = DEFAULT_SUN_COLOR
+        self._moon_color = DEFAULT_MOON_COLOR
 
     @property
     def legend_only(self):
@@ -796,3 +800,20 @@ class EngineConfiguration:
     @pluto_color.setter
     def pluto_color(self, value):
         self._pluto_color = value
+
+    @property
+    def sun_color(self):
+        return self._sun_color
+
+    @sun_color.setter
+    def sun_color(self, value):
+        self._sun_color = value
+
+    @property
+    def moon_color(self):
+        return self._moon_color
+
+    @moon_color.setter
+    def moon_color(self, value):
+        self._moon_color = value
+
