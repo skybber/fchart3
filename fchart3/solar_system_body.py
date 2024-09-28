@@ -35,7 +35,8 @@ class SolarSystemBody(Enum):
         self.label = label
 
 class SolarSystemBodyObject:
-    def __init__(self, solar_system_body, ra, dec):
+    def __init__(self, solar_system_body, ra, dec, angular_radius):
         self.solar_system_body = solar_system_body
         self.ra = ra
         self.dec = dec
+        self.angular_radius = angular_radius

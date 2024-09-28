@@ -700,10 +700,15 @@ class SkymapEngine:
                 color = getattr(self.config, color_attr)
 
                 self.graphics.set_fill_rgb(color)
+
                 if solar_system_body in (SolarSystemBody.SUN, SolarSystemBody.MOON):
-                    r = round(1.75*self.min_radius, 2)
+                    fix_r = round(1.75 * self.min_radius, 2)
                 else:
-                    r = round(1.2*self.min_radius, 2)
+                    fix_r = round(1.2 * self.min_radius, 2)
+
+                cur_r = ssb_obj.angular_radius * self.drawing_scale
+
+                r = max(fix_r, cur_r)
 
                 self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
 
@@ -711,7 +716,6 @@ class SkymapEngine:
                 fh = self.graphics.gi_default_font_size
                 self.graphics.set_pen_rgb(self.config.label_color)
                 self.mirroring_graphics.text_centred(x, y + r + 0.75 * fh, label)
-
 
     def draw_highlights(self, highlights, visible_dso_collector):
         # Draw highlighted objects
