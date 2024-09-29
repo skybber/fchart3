@@ -183,7 +183,22 @@ class SkiaDrawing(GraphicsInterface):
     def rotate(self, angle):
         self.canvas.rotate(-180.0*angle/pi)
 
+    def move_to(self, x, y):
+        pass
+
     def clip_path(self, path):
+        pass
+
+    def begin_path(self):
+        pass
+
+    def arc_to(self, x, y, r, angle1, angle2):
+        pass
+
+    def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
+        pass
+
+    def complete_path(self, mode=DrawMode.BORDER):
         pass
 
     def reset_clip(self):

@@ -277,6 +277,39 @@ class GraphicsInterface:
         """
         pass
 
+    def begin_path(self):
+        """
+        Start a new path. This initializes the path drawing process.
+        For simplicity and graphics compatibility, the cursor or pen must be set to the
+        center or starting point of the path in advance.
+        """
+        pass
+
+    def move_to(self, x, y):
+        """
+        Move the current drawing point to the coordinates (x, y) without drawing anything.
+        """
+        pass
+
+    def arc_to(self, x, y, r, angle1, angle2):
+        """
+        Draw arc segment in the current path.
+        """
+        pass
+
+    def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
+        """
+        Draw an elliptic arc from `angle1` to `angle2` with center (x, y) and radii rx (x-axis) and ry (y-axis).
+        """
+        pass
+
+    def complete_path(self, mode=DrawMode.BORDER):
+        """
+        Completes the current path and renders it onto the canvas or drawing context.
+        Any additional actions, such as filling or stroking the path, may also happen here.
+        """
+        pass
+
     def finish(self):
         """
         Finalize the drawing (Store to disk, memory, whatever).

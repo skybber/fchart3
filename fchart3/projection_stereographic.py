@@ -108,3 +108,17 @@ class ProjectionStereographic(ProjectionInterface):
         sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
         angle = math.atan2(-math.sin(dec)*math.sin(ra-ra0), math.cos(dec)*cos_dec0 + math.sin(dec)*sin_dec0*math.cos(ra-ra0))
         return angle
+
+    def pos_angle(self, ra1, dec1, ra2, dec2):
+        x1, y1 = self.radec_to_xy(ra1, dec1)
+        x2, y2 = self.radec_to_xy(ra2, dec2)
+
+        dx = x2 - x1
+        dy = y2 - y1
+
+        pos_angle = -math.atan2(dx, dy) + math.pi/2
+
+        if pos_angle < 0:
+            pos_angle += 2 * math.pi
+
+        return pos_angle

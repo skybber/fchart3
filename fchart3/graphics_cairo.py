@@ -149,7 +149,7 @@ class CairoDrawing(GraphicsInterface):
         self._draw_element(mode)
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
-        self._moveto(x+r, y)
+        self.move_to(x+r, y)
         self.context.arc(x, -y, r, 0, 2.0*pi)
         self._draw_element(mode)
 
@@ -172,7 +172,7 @@ class CairoDrawing(GraphicsInterface):
         self.context.translate(x, -y)
         self.context.rotate(-posangle)
         self.context.scale(1, scale)
-        self._moveto(rlong, 0)
+        self.move_to(rlong, 0)
         self.context.arc(0, 0, rlong, 0, 2.0*pi)
         self.context.restore()
         self._draw_element(mode)
@@ -195,19 +195,19 @@ class CairoDrawing(GraphicsInterface):
             self.context.stroke()
 
     def text_right(self, x, y, text):
-        self._moveto(x, y)
+        self.move_to(x, y)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
     def text_left(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
-        self._moveto(x-width-xbearing, y)
+        self.move_to(x-width-xbearing, y)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
     def text_centred(self, x, y, text):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
-        self._moveto(x-width/2, y - height/2)
+        self.move_to(x-width/2, y - height/2)
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.show_text(text)
 
@@ -215,14 +215,31 @@ class CairoDrawing(GraphicsInterface):
         xbearing, ybearing, width, height, dx, dy = self.context.text_extents(text)
         return width
 
-    def _moveto(self, x, y):
-        self.context.move_to(x, -y)
-
     def translate(self, dx, dy):
         self.context.translate(dx, -dy)
 
     def rotate(self, angle):
         self.context.rotate(-angle)
+
+    def move_to(self, x, y):
+        self.context.move_to(x, -y)
+
+    def arc_to(self, x, y, r, angle1, angle2):
+        if angle1 < angle2:
+            self.context.arc(x, -y, r, angle1, angle2)
+        else:
+            self.context.arc_negative(x, -y, r, angle1, angle2)
+
+
+    def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
+        self.context.save()
+        scale = ry / rx
+        self.context.scale(1, scale)
+        if angle1 < angle2:
+            self.context.arc(x, -y, rx, angle1, angle2)
+        else:
+            self.context.arc_negative(x, -y, rx, angle1, angle2)
+        self.context.restore()
 
     def clip_path(self, path):
         (x, y) = path[0]
@@ -251,6 +268,13 @@ class CairoDrawing(GraphicsInterface):
                     'raw', "BGRa", stride)
             else:
                 raise NotImplementedError(repr(format))
+
+    def begin_path(self):
+        pass
+
+    def complete_path(self, mode=DrawMode.BORDER):
+        self.context.close_path()
+        self._draw_element(mode)
 
     def finish(self):
         if self.format == 'png':

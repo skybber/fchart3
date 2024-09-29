@@ -67,6 +67,27 @@ class MirroringGraphics:
     def text_centred(self, x, y, text):
         self.graphics.text_centred(x, y, text)
 
+    def move_to(self, x, y):
+        self.graphics.move_to(x, y)
+
+    def arc_to(self, x, y, r, angle1, angle2):
+        if self.mirror_x:
+            angle1 = -angle1 + pi
+            angle2 = -angle2 + pi
+        if self.mirror_y:
+            angle1 = -angle1
+            angle2 = -angle2
+        self.graphics.arc_to(x, y, r, angle1, angle2)
+
+    def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
+        if self.mirror_x:
+            angle1 = -angle1 + pi
+            angle2 = -angle2 + pi
+        if self.mirror_y:
+            angle1 = -angle1
+            angle2 = -angle2
+        self.graphics.elliptic_arc_to(x, y, rx, ry, angle1, angle2)
+
     def set_pen_rgb(self, pen_rgb):
         """
         Sets gi_pen_rgb. Derived classes should extend, not override this method.

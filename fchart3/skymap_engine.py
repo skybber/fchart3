@@ -688,6 +688,9 @@ class SkymapEngine:
 
     def draw_solar_system_bodies(self, solsys_bodies):
         nzopt = not self.projection.is_zoptim()
+
+        sun = next(b for b in solsys_bodies if b.solar_system_body == SolarSystemBody.SUN)
+
         for ssb_obj in solsys_bodies:
             rax = ssb_obj.ra
             decx = ssb_obj.dec
@@ -707,15 +710,58 @@ class SkymapEngine:
                     fix_r = round(1.2 * self.min_radius, 2)
 
                 cur_r = ssb_obj.angular_radius * self.drawing_scale
-
                 r = max(fix_r, cur_r)
 
-                self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
+                moon_scale = 2.0 if ssb_obj.solar_system_body == SolarSystemBody.MOON else 1.0
+                if solar_system_body in [SolarSystemBody.MOON,
+                                         SolarSystemBody.MERCURY,
+                                         SolarSystemBody.VENUS,
+                                         SolarSystemBody.MARS]:
+
+                    self.draw_phase(x, y, r, ssb_obj, sun, color, moon_scale)
+                else:
+                    self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
 
                 label = solar_system_body.label
+                if ssb_obj.solar_system_body == SolarSystemBody.MOON:
+                    label += "x2"
                 fh = self.graphics.gi_default_font_size
                 self.graphics.set_pen_rgb(self.config.label_color)
-                self.mirroring_graphics.text_centred(x, y + r + 0.75 * fh, label)
+                self.mirroring_graphics.text_centred(x, y + r + 0.75 * fh * moon_scale, label)
+
+    def draw_phase(self, x, y, r, ssb_obj, sun, color, moon_scale):
+        dk = 0.1
+        self.graphics.set_fill_rgb((color[0] * dk, color[1] * dk, color[2] * dk,))
+        self.mirroring_graphics.circle(x, y, r*moon_scale, DrawMode.FILL)
+
+        illuminated_frac = (1 + math.cos(ssb_obj.phase)) / 2
+
+        if illuminated_frac < 0.01:
+            return
+
+        sun_angle = self.projection.pos_angle(ssb_obj.ra, ssb_obj.dec, sun.ra, sun.dec)
+
+        self.graphics.set_fill_rgb(color)
+        self.graphics.save()
+
+        self.mirroring_graphics.translate(x, y)
+        self.mirroring_graphics.rotate(sun_angle)
+
+        self.graphics.begin_path()
+
+        self.mirroring_graphics.move_to(0, r * moon_scale)
+
+        rshort = (1 - 2 * illuminated_frac) * r *moon_scale
+
+        self.mirroring_graphics.arc_to(0, 0, r * moon_scale, -math.pi / 2, math.pi / 2)
+
+        if illuminated_frac < 0.5:
+            self.mirroring_graphics.elliptic_arc_to(0, 0, rshort, r*moon_scale, math.pi/2, -math.pi/2)
+        else:
+            self.mirroring_graphics.elliptic_arc_to(0, 0, -rshort, r*moon_scale, math.pi/2, 3*math.pi/2)
+
+        self.graphics.complete_path(DrawMode.FILL)
+        self.graphics.restore()
 
     def draw_highlights(self, highlights, visible_dso_collector):
         # Draw highlighted objects
@@ -1035,7 +1081,7 @@ class SkymapEngine:
     def draw_grid_dec(self):
         prev_steps, prev_grid_minutes = (None, None)
         for grid_minutes in DEC_GRID_SCALE:
-            steps = self.fieldradius / (np.pi * grid_minutes / (180 * 60))
+            steps = self.fieldradius / (math.pi * grid_minutes / (180 * 60))
             if steps < GRID_DENSITY:
                 if prev_steps is not None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
@@ -1051,7 +1097,7 @@ class SkymapEngine:
         dec_minutes = -90*60 + grid_minutes
 
         while dec_minutes < 90*60:
-            dec = np.pi * dec_minutes / (180*60)
+            dec = math.pi * dec_minutes / (180*60)
             if (dec > dec_min) and (dec < dec_max):
                 self.draw_grid_dec_line(dec, dec_minutes, label_fmt)
             dec_minutes += grid_minutes
@@ -1069,7 +1115,7 @@ class SkymapEngine:
                 self.mirroring_graphics.line(x11, y11, x12, y12)
                 self.mirroring_graphics.line(x21, y21, x22, y22)
             agg_ra = agg_ra + dra
-            if agg_ra > np.pi:
+            if agg_ra > math.pi:
                 break
             if x12 < -self.drawingwidth/2:
                 y = (y12-y11) * (self.drawingwidth/2 + x11) / (x11 - x12) + y11
@@ -1092,7 +1138,7 @@ class SkymapEngine:
         prev_steps, prev_grid_minutes = (None, None)
         fc_cos = math.cos(self.fieldcentre[1])
         for grid_minutes in RA_GRID_SCALE:
-            steps = self.fieldradius / (fc_cos * (np.pi * grid_minutes / (12 * 60)))
+            steps = self.fieldradius / (fc_cos * (math.pi * grid_minutes / (12 * 60)))
             if steps < GRID_DENSITY:
                 if prev_steps is not None:
                     if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
@@ -1101,12 +1147,12 @@ class SkymapEngine:
             prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
         max_visible_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1] > 0 else self.fieldcentre[1]-self.fieldradius;
-        if max_visible_dec >= np.pi/2 or max_visible_dec <= -np.pi/2:
-            ra_size = 2*np.pi
+        if max_visible_dec >= math.pi/2 or max_visible_dec <= -math.pi/2:
+            ra_size = 2*math.pi
         else:
             ra_size = self.fieldradius / math.cos(max_visible_dec)
-            if ra_size > 2*np.pi:
-                ra_size = 2*np.pi
+            if ra_size > 2*math.pi:
+                ra_size = 2*math.pi
 
         if grid_minutes >= 60:
             label_fmt = '{}h'
@@ -1118,8 +1164,8 @@ class SkymapEngine:
         ra_minutes = 0
 
         while ra_minutes < 24*60:
-            ra = np.pi * ra_minutes / (12*60)
-            if abs(self.fieldcentre[0]-ra) < ra_size or abs(self.fieldcentre[0]-2*np.pi-ra) < ra_size or abs(2*np.pi+self.fieldcentre[0]-ra) < ra_size:
+            ra = math.pi * ra_minutes / (12*60)
+            if abs(self.fieldcentre[0]-ra) < ra_size or abs(self.fieldcentre[0]-2*math.pi-ra) < ra_size or abs(2*math.pi+self.fieldcentre[0]-ra) < ra_size:
                 self.draw_grid_ra_line(ra, ra_minutes, label_fmt)
             ra_minutes += grid_minutes
 
@@ -1139,7 +1185,7 @@ class SkymapEngine:
                 if nzopt or (z21 > 0 and z22 > 0):
                     self.mirroring_graphics.line(x21, y21, x22, y22)
             agg_dec = agg_dec + ddec
-            if agg_dec > np.pi/2:
+            if agg_dec > math.pi/2:
                 break
             if y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
                 label = self.grid_ra_label(ra_minutes, label_fmt)
@@ -1231,9 +1277,9 @@ class SkymapEngine:
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
         wh_min = 2.5 # 2.5mm min interp distance
-        flat_dec = np.pi*75/180 # boundaries can be linearized above 75 deg
-        flat_rac_interp = np.pi*7/180 # some "magic" angle 7 deg.
-        max_angle2 = (1 / 180 * np.pi)
+        flat_dec = math.pi*75/180 # boundaries can be linearized above 75 deg
+        flat_rac_interp = math.pi*7/180 # some "magic" angle 7 deg.
+        max_angle2 = (1 / 180 * math.pi)
 
         nzopt = not self.projection.is_zoptim()
 
@@ -1252,12 +1298,12 @@ class SkymapEngine:
                 ra_start, dec_start = constell_boundaries[index1]
                 ra_end, dec_end = constell_boundaries[index2]
 
-                if abs(ra_end - ra_start) > np.pi:
+                if abs(ra_end - ra_start) > math.pi:
                     if ra_end < ra_start:
                         ra_start, ra_end = ra_end, ra_start
                         dec_start, dec_end = dec_end, dec_start
                         x_start, y_start, z_start, x_end, y_end, z_end = x_end, y_end, z_end, x_start, y_start, z_start
-                    d_ra = (ra_end - (ra_start + 2 * np.pi))
+                    d_ra = (ra_end - (ra_start + 2 * math.pi))
                 else:
                     d_ra = (ra_end - ra_start)
 
@@ -1297,8 +1343,8 @@ class SkymapEngine:
             # self.mirroring_graphics.text_centred((x1+x2)/2, (y1+y2)/2, '{:.1f}'.format(max(abs(x2-x1), abs(y2-y1))))
             return divs
 
-        if abs(ra2-ra1) > np.pi:
-            ra_center = np.pi + (ra1 + ra2) / 2
+        if abs(ra2-ra1) > math.pi:
+            ra_center = math.pi + (ra1 + ra2) / 2
         else:
             ra_center = (ra1 + ra2) / 2
         dec_center = (dec1 + dec2) /2
@@ -1312,7 +1358,7 @@ class SkymapEngine:
             if (c1 | c2) != 0 and (c1 & c2) != 0 and (c2 | c3) != 0 and (c2 & c3) != 0:
                 return 0
             nzopt = not self.projection.is_zoptim()
-            if nzopt and z1 < 0 and z2 < 0 and self.fieldradius > np.pi/4:
+            if nzopt and z1 < 0 and z2 < 0 and self.fieldradius > math.pi/4:
                 c1 = self.graphics.cohen_sutherland_encode(x1, y1)
                 c2 = self.graphics.cohen_sutherland_encode(x2, y2)
                 c = c1 | c2
@@ -1539,10 +1585,10 @@ class SkymapEngine:
                                    self.config.galaxy_color[2]*dso_intensity))
 
         p = posangle
-        if posangle >= 0.5*np.pi:
-            p += np.pi
-        if posangle < -0.5*np.pi:
-            p -= np.pi
+        if posangle >= 0.5*math.pi:
+            p += math.pi
+        if posangle < -0.5*math.pi:
+            p -= math.pi
 
         self.mirroring_graphics.ellipse(x, y, rl, rs, p)
 
@@ -1581,10 +1627,10 @@ class SkymapEngine:
             rs = rlong/2.0
 
         p = posangle
-        if posangle >= 0.5*np.pi:
-            p += np.pi
-        if posangle < -0.5*np.pi:
-            p -= np.pi
+        if posangle >= 0.5*math.pi:
+            p += math.pi
+        if posangle < -0.5*math.pi:
+            p -= math.pi
 
         fh = self.graphics.gi_default_font_size
         label_pos_list = []
@@ -1650,7 +1696,7 @@ class SkymapEngine:
             if (arg < 1.0) and (arg > -1.0):
                 a = math.acos(arg)
             else:
-                a = 0.5*np.pi
+                a = 0.5*math.pi
             if labelpos == 0 or labelpos == -1:
                 self.mirroring_graphics.text_right(x+math.sin(a)*r+fh/6.0, y-r, label)
             elif labelpos == 1:
@@ -1669,7 +1715,7 @@ class SkymapEngine:
         if (arg < 1.0) and (arg > -1.0):
             a = math.acos(arg)
         else:
-            a = 0.5*np.pi
+            a = 0.5*math.pi
 
         label_pos_list = []
         xs = x+math.sin(a)*r+fh/6.0
