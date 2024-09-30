@@ -72,20 +72,20 @@ class MirroringGraphics:
 
     def arc_to(self, x, y, r, angle1, angle2):
         if self.mirror_x:
-            angle1 = -angle1 + pi
-            angle2 = -angle2 + pi
+            angle1 = pi - angle1
+            angle2 = pi - angle2
         if self.mirror_y:
-            angle1 = -angle1
-            angle2 = -angle2
+            angle1 = 2*pi - angle1
+            angle2 = 2*pi - angle2
         self.graphics.arc_to(x, y, r, angle1, angle2)
 
     def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
         if self.mirror_x:
-            angle1 = -angle1 + pi
-            angle2 = -angle2 + pi
+            angle1 = pi - angle1
+            angle2 = pi - angle2
         if self.mirror_y:
-            angle1 = -angle1
-            angle2 = -angle2
+            angle1 = 2*pi - angle1
+            angle2 = 2*pi - angle2
         self.graphics.elliptic_arc_to(x, y, rx, ry, angle1, angle2)
 
     def set_pen_rgb(self, pen_rgb):

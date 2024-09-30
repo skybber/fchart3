@@ -532,13 +532,13 @@ class SkymapEngine:
                 xs1, ys1 = x-rlong, y-rlong
                 xs2, ys2 = x+rlong, y+rlong
                 if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
-                    xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
-                    xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
+                    xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
+                    xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
                     xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
                     visible_dso_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
                     if self.picked_dso == dso:
-                        pick_xp1, pick_yp1 = self.mirroring_graphics.to_pixel(-pick_r, -pick_r)
-                        pick_xp2, pick_yp2 = self.mirroring_graphics.to_pixel(pick_r, pick_r)
+                        pick_xp1, pick_yp1 = self.graphics.to_pixel(-pick_r, -pick_r)
+                        pick_xp2, pick_yp2 = self.graphics.to_pixel(pick_r, pick_r)
                         pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
                         visible_dso_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
 
@@ -720,19 +720,19 @@ class SkymapEngine:
 
                     self.draw_phase(x, y, r, ssb_obj, sun, color, moon_scale)
                 else:
-                    self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
+                    self.graphics.circle(x, y, r, DrawMode.FILL)
 
                 label = solar_system_body.label
                 if ssb_obj.solar_system_body == SolarSystemBody.MOON:
                     label += "x2"
                 fh = self.graphics.gi_default_font_size
                 self.graphics.set_pen_rgb(self.config.label_color)
-                self.mirroring_graphics.text_centred(x, y + r + 0.75 * fh * moon_scale, label)
+                self.graphics.text_centred(x, y + r + 0.75 * fh * moon_scale, label)
 
     def draw_phase(self, x, y, r, ssb_obj, sun, color, moon_scale):
         dk = 0.1
         self.graphics.set_fill_rgb((color[0] * dk, color[1] * dk, color[2] * dk,))
-        self.mirroring_graphics.circle(x, y, r*moon_scale, DrawMode.FILL)
+        self.graphics.circle(x, y, r*moon_scale, DrawMode.FILL)
 
         illuminated_frac = (1 + math.cos(ssb_obj.phase)) / 2
 
@@ -744,21 +744,21 @@ class SkymapEngine:
         self.graphics.set_fill_rgb(color)
         self.graphics.save()
 
-        self.mirroring_graphics.translate(x, y)
-        self.mirroring_graphics.rotate(sun_angle)
+        self.graphics.translate(x, y)
+        self.graphics.rotate(sun_angle)
 
         self.graphics.begin_path()
 
-        self.mirroring_graphics.move_to(0, r * moon_scale)
+        self.graphics.move_to(0, r * moon_scale)
 
         rshort = (1 - 2 * illuminated_frac) * r *moon_scale
 
-        self.mirroring_graphics.arc_to(0, 0, r * moon_scale, -math.pi / 2, math.pi / 2)
+        self.graphics.arc_to(0, 0, r * moon_scale, -math.pi / 2, math.pi / 2)
 
         if illuminated_frac < 0.5:
-            self.mirroring_graphics.elliptic_arc_to(0, 0, rshort, r*moon_scale, math.pi/2, -math.pi/2)
+            self.graphics.elliptic_arc_to(0, 0, rshort, r*moon_scale, math.pi/2, -math.pi/2)
         else:
-            self.mirroring_graphics.elliptic_arc_to(0, 0, -rshort, r*moon_scale, math.pi/2, 3*math.pi/2)
+            self.graphics.elliptic_arc_to(0, 0, -rshort, r*moon_scale, math.pi/2, 3*math.pi/2)
 
         self.graphics.complete_path(DrawMode.FILL)
         self.graphics.restore()
@@ -778,21 +778,21 @@ class SkymapEngine:
                     self.graphics.set_linewidth(hl_def.line_width)
                     if hl_def.style == 'cross':
                         r = self.config.font_size * 2
-                        self.mirroring_graphics.line(x-r, y, x-r/2, y)
-                        self.mirroring_graphics.line(x+r, y, x+r/2, y)
-                        self.mirroring_graphics.line(x, y+r, x, y+r/2)
-                        self.mirroring_graphics.line(x, y-r, x, y-r/2)
+                        self.graphics.line(x-r, y, x-r/2, y)
+                        self.graphics.line(x+r, y, x+r/2, y)
+                        self.graphics.line(x, y+r, x, y+r/2)
+                        self.graphics.line(x, y-r, x, y-r/2)
                     elif hl_def.style == 'circle':
                         r = self.config.font_size
-                        self.mirroring_graphics.circle(x, y, r)
+                        self.graphics.circle(x, y, r)
                         if label:
                             self.draw_circular_object_label(x, y, r, label, fh=highlight_fh)
                         if object_name and visible_dso_collector is not None:
                             xs1, ys1 = x-r, y-r
                             xs2, ys2 = x+r, y+r
                             if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
-                                xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
-                                xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
+                                xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
+                                xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
                                 xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
                                 visible_dso_collector.append([r, object_name, xp1, yp1, xp2, yp2])
 
@@ -805,12 +805,12 @@ class SkymapEngine:
             self.graphics.set_solid_line()
 
         r = self.config.font_size
-        self.mirroring_graphics.circle(x, y, r)
+        self.graphics.circle(x, y, r)
         xs1, ys1 = x-r, y-r
         xs2, ys2 = x+r, y+r
         if visible_dso_collector is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
-            xp1, yp1 = self.mirroring_graphics.to_pixel(xs1, ys1)
-            xp2, yp2 = self.mirroring_graphics.to_pixel(xs2, ys2)
+            xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
+            xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
             xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
             visible_dso_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
@@ -833,7 +833,7 @@ class SkymapEngine:
             if i > 0:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
                 if nzopt or (z1 > 0 and z2 > 0):
-                    self.mirroring_graphics.line(x1, y1, x2, y2)
+                    self.graphics.line(x1, y1, x2, y2)
                     self.draw_trajectory_tick(x1, y1, x2, y2)
                     if i == 1:
                         self.draw_trajectory_tick(x2, y2, x1, y1)
@@ -873,11 +873,11 @@ class SkymapEngine:
         for x, y, z, nx, ny, label in labels:
             if nzopt or z > 0:
                 if label_pos == 1:
-                    self.mirroring_graphics.text_centred(x, y + r + fh, label)
+                    self.graphics.text_centred(x, y + r + fh, label)
                 elif label_pos == 2:
-                    self.mirroring_graphics.text_right(x + r + fh/4, y - fh/2, label)
+                    self.graphics.text_right(x + r + fh/4, y - fh/2, label)
                 else:
-                    self.mirroring_graphics.text_centred(x, y - r - fh/2.0, label)
+                    self.graphics.text_centred(x, y - r - fh/2.0, label)
 
     def draw_trajectory_tick(self, x1, y1, x2, y2):
         dx = x2-x1
@@ -886,7 +886,7 @@ class SkymapEngine:
         ddx = dx * 1.0 / dr
         ddy = dy * 1.0 / dr
         self.graphics.set_linewidth(1.5*self.config.constellation_linewidth)
-        self.mirroring_graphics.line(x2-ddy, y2+ddx, x2+ddy, y2-ddx)
+        self.graphics.line(x2-ddy, y2+ddx, x2+ddy, y2-ddx)
 
     def magnitude_to_radius(self, magnitude):
         # radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
@@ -1112,8 +1112,8 @@ class SkymapEngine:
             x12, y12, z12 = self.projection.radec_to_xyz(self.fieldcentre[0] + agg_ra, dec)
             x22, y22, z22 = self.projection.radec_to_xyz(self.fieldcentre[0] - agg_ra, dec)
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
-                self.mirroring_graphics.line(x11, y11, x12, y12)
-                self.mirroring_graphics.line(x21, y21, x22, y22)
+                self.graphics.line(x11, y11, x12, y12)
+                self.graphics.line(x21, y21, x22, y22)
             agg_ra = agg_ra + dra
             if agg_ra > math.pi:
                 break
@@ -1181,9 +1181,9 @@ class SkymapEngine:
             x22, y22, z22 = self.projection.radec_to_xyz(ra, self.fieldcentre[1] - agg_dec)
             if x11 is not None:
                 if nzopt or (z11 > 0 and z12 > 0):
-                    self.mirroring_graphics.line(x11, y11, x12, y12)
+                    self.graphics.line(x11, y11, x12, y12)
                 if nzopt or (z21 > 0 and z22 > 0):
-                    self.mirroring_graphics.line(x21, y21, x22, y22)
+                    self.graphics.line(x21, y21, x22, y22)
             agg_dec = agg_dec + ddec
             if agg_dec > math.pi/2:
                 break
@@ -1251,9 +1251,9 @@ class SkymapEngine:
                     dr = math.sqrt(dx * dx + dy*dy)
                     ddx = dx * self.config.constellation_linespace / dr
                     ddy = dy * self.config.constellation_linespace / dr
-                    self.mirroring_graphics.line(x1[i] + ddx, y1[i] + ddy, x2[i] - ddx, y2[i] - ddy)
+                    self.graphics.line(x1[i] + ddx, y1[i] + ddy, x2[i] - ddx, y2[i] - ddy)
                 else:
-                    self.mirroring_graphics.line(x1[i], y1[i], x2[i], y2[i])
+                    self.graphics.line(x1[i], y1[i], x2[i], y2[i])
 
     def draw_constellation_boundaries(self, constell_catalog, jd, precession_matrix, hl_constellation):
         self.graphics.set_dashed_line(0.6, 1.2)
@@ -1322,7 +1322,7 @@ class SkymapEngine:
                     continue
 
                 if divisions == 1:
-                    self.mirroring_graphics.line(x_start, y_start, x_end, y_end)
+                    self.graphics.line(x_start, y_start, x_end, y_end)
                 else:
                     dd_ra = d_ra / divisions
                     dd_dec = d_dec / divisions
@@ -1336,11 +1336,11 @@ class SkymapEngine:
                         vertices.append((x2, y2))
                         ra1, dec1 = ra2, dec2
                     vertices.append((x_end, y_end))
-                    self.mirroring_graphics.polyline(vertices)
+                    self.graphics.polyline(vertices)
 
     def calc_boundary_divisions(self, level, divs, wh_min, max_angle2, x1, y1, z1, x2, y2, z2, ra1, dec1, ra2, dec2):
         if abs(x2-x1) < wh_min and abs(y2-y1) < wh_min:
-            # self.mirroring_graphics.text_centred((x1+x2)/2, (y1+y2)/2, '{:.1f}'.format(max(abs(x2-x1), abs(y2-y1))))
+            # self.graphics.text_centred((x1+x2)/2, (y1+y2)/2, '{:.1f}'.format(max(abs(x2-x1), abs(y2-y1))))
             return divs
 
         if abs(ra2-ra1) > math.pi:
@@ -1424,7 +1424,7 @@ class SkymapEngine:
             self.graphics.set_fill_rgb(star_color)
 
         r = round(radius, 2)
-        self.mirroring_graphics.circle(x, y, r, DrawMode.FILL)
+        self.graphics.circle(x, y, r, DrawMode.FILL)
 
     def no_mirror_star(self, x, y, radius):
         """
@@ -1441,7 +1441,7 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.open_cluster_linewidth)
         self.graphics.set_dashed_line(0.6, 0.4)
 
-        self.mirroring_graphics.circle(x, y, r)
+        self.graphics.circle(x, y, r)
         if label_ext:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, label_fh)
@@ -1463,7 +1463,7 @@ class SkymapEngine:
         self.graphics.set_linewidth(self.config.galaxy_cluster_linewidth)
         self.graphics.set_dashed_line(0.5, 2.0)
 
-        self.mirroring_graphics.circle(x, y, r)
+        self.graphics.circle(x, y, r)
         if label_ext:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
             self.graphics.set_font(self.graphics.gi_font, label_fh)
@@ -1477,13 +1477,13 @@ class SkymapEngine:
 
     def draw_asterism_label(self, x, y, label, labelpos, d, fh):
         if labelpos == 0 or labelpos == -1:
-            self.mirroring_graphics.text_centred(x, y-d-2*fh/3.0, label)
+            self.graphics.text_centred(x, y-d-2*fh/3.0, label)
         elif labelpos == 1:
-            self.mirroring_graphics.text_centred(x, y+d+fh/3.0, label)
+            self.graphics.text_centred(x, y+d+fh/3.0, label)
         elif labelpos == 2:
-            self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
+            self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
         elif labelpos == 3:
-            self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+            self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
 
     def asterism(self, x, y, radius, label, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
@@ -1496,10 +1496,10 @@ class SkymapEngine:
 
         diff = self.graphics.gi_linewidth/2.0/w2
 
-        self.mirroring_graphics.line(x-diff, y+d+diff, x+d+diff, y-diff)
-        self.mirroring_graphics.line(x+d, y, x, y-d)
-        self.mirroring_graphics.line(x+diff, y-d-diff, x-d-diff, y+diff)
-        self.mirroring_graphics.line(x-d, y, x, y+d)
+        self.graphics.line(x-diff, y+d+diff, x+d+diff, y-diff)
+        self.graphics.line(x+d, y, x, y-d)
+        self.graphics.line(x+diff, y-d-diff, x-d-diff, y+diff)
+        self.graphics.line(x-d, y, x, y+d)
 
         if label_ext:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
@@ -1698,13 +1698,13 @@ class SkymapEngine:
             else:
                 a = 0.5*math.pi
             if labelpos == 0 or labelpos == -1:
-                self.mirroring_graphics.text_right(x+math.sin(a)*r+fh/6.0, y-r, label)
+                self.graphics.text_right(x+math.sin(a)*r+fh/6.0, y-r, label)
             elif labelpos == 1:
-                self.mirroring_graphics.text_left(x-math.sin(a)*r-fh/6.0, y-r, label)
+                self.graphics.text_left(x-math.sin(a)*r-fh/6.0, y-r, label)
             elif labelpos == 2:
-                self.mirroring_graphics.text_right(x+math.sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
+                self.graphics.text_right(x+math.sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
             elif labelpos == 3:
-                self.mirroring_graphics.text_left(x-math.sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
+                self.graphics.text_left(x-math.sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
 
     def circular_object_labelpos(self, x, y, radius=-1.0, label_length=0.0):
         fh = self.graphics.gi_default_font_size
@@ -1740,9 +1740,9 @@ class SkymapEngine:
         self.graphics.set_solid_line()
         self.graphics.set_pen_rgb(self.config.star_cluster_color)
 
-        self.mirroring_graphics.circle(x, y, r)
-        self.mirroring_graphics.line(x-r, y, x+r, y)
-        self.mirroring_graphics.line(x, y-r, x, y+r)
+        self.graphics.circle(x, y, r)
+        self.graphics.line(x-r, y, x+r, y)
+        self.graphics.line(x, y-r, x, y+r)
 
         if label_ext:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
@@ -1769,10 +1769,10 @@ class SkymapEngine:
             d = self.drawingwidth/40.0
         d1 = d+self.graphics.gi_linewidth/2.0
 
-        self.mirroring_graphics.line(x-d1, y+d, x+d1, y+d)
-        self.mirroring_graphics.line(x+d, y+d, x+d, y-d)
-        self.mirroring_graphics.line(x+d1, y-d, x-d1, y-d)
-        self.mirroring_graphics.line(x-d, y-d, x-d, y+d)
+        self.graphics.line(x-d1, y+d, x+d1, y+d)
+        self.graphics.line(x+d, y+d, x+d, y-d)
+        self.graphics.line(x+d1, y-d, x-d1, y-d)
+        self.graphics.line(x-d, y-d, x-d, y+d)
 
         if label_ext:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
@@ -1792,13 +1792,13 @@ class SkymapEngine:
 
     def draw_diffuse_nebula_label(self, x, y, label, labelpos, d, fh):
         if labelpos == 0 or labelpos == -1:
-            self.mirroring_graphics.text_centred(x, y-d-fh/2.0, label)
+            self.graphics.text_centred(x, y-d-fh/2.0, label)
         elif labelpos == 1:
-            self.mirroring_graphics.text_centred(x, y+d+fh/2.0, label)
+            self.graphics.text_centred(x, y+d+fh/2.0, label)
         elif labelpos == 2:
-            self.mirroring_graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
+            self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
         elif labelpos == 3:
-            self.mirroring_graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+            self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
 
     def diffuse_nebula_outlines(self, x, y, x_outl, y_outl, outl_lev, width, height, posangle, label, label_ext,
                                 draw_label, labelpos=''):
@@ -1823,8 +1823,8 @@ class SkymapEngine:
             d = self.drawingwidth/40.0
 
         for i in range(len(x_outl)-1):
-            self.mirroring_graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
-        self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
+            self.graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
+        self.graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
         if draw_label:
             if label_ext:
@@ -1856,8 +1856,8 @@ class SkymapEngine:
         self.graphics.set_pen_rgb((pen_r, pen_g, pen_b))
 
         for i in range(len(x_outl)-1):
-            self.mirroring_graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
-        self.mirroring_graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
+            self.graphics.line(x_outl[i].item(), y_outl[i].item(), x_outl[i+1].item(), y_outl[i+1].item())
+        self.graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
     def diffuse_nebula_labelpos(self, x, y, width=-1.0, height=-1.0, posangle=0.0, label_length=0.0):
         d = 0.5*width
@@ -1889,11 +1889,11 @@ class SkymapEngine:
         self.graphics.set_solid_line()
         self.graphics.set_pen_rgb(self.config.nebula_color)
 
-        self.mirroring_graphics.circle(x, y, 0.75*r)
-        self.mirroring_graphics.line(x-0.75*r, y, x-1.5*r, y)
-        self.mirroring_graphics.line(x+0.75*r, y, x+1.5*r, y)
-        self.mirroring_graphics.line(x, y+0.75*r, x, y+1.5*r)
-        self.mirroring_graphics.line(x, y-0.75*r, x, y-1.5*r)
+        self.graphics.circle(x, y, 0.75*r)
+        self.graphics.line(x-0.75*r, y, x-1.5*r, y)
+        self.graphics.line(x+0.75*r, y, x+1.5*r, y)
+        self.graphics.line(x, y+0.75*r, x, y+1.5*r)
+        self.graphics.line(x, y-0.75*r, x, y-1.5*r)
 
         if label_ext:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
@@ -1917,7 +1917,7 @@ class SkymapEngine:
         self.graphics.set_solid_line()
         self.graphics.set_pen_rgb(self.config.nebula_color)
 
-        self.mirroring_graphics.circle(x, y, r-self.graphics.gi_linewidth/2.0)
+        self.graphics.circle(x, y, r-self.graphics.gi_linewidth/2.0)
 
         if label_ext:
             label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
@@ -1941,21 +1941,21 @@ class SkymapEngine:
         self.graphics.set_solid_line()
         self.graphics.set_pen_rgb(self.config.dso_color)
 
-        self.mirroring_graphics.line(x-r, y+r, x+r, y-r)
-        self.mirroring_graphics.line(x+r, y+r, x-r, y-r)
+        self.graphics.line(x-r, y+r, x+r, y-r)
+        self.graphics.line(x+r, y+r, x-r, y-r)
 
         fh = self.graphics.gi_default_font_size
 
         if label != '':
             self.graphics.set_pen_rgb(self.config.label_color)
             if labelpos == 0:
-                self.mirroring_graphics.text_right(x+r+fh/6.0, y-fh/3.0, label)
+                self.graphics.text_right(x+r+fh/6.0, y-fh/3.0, label)
             elif labelpos ==1:
-                self.mirroring_graphics.text_left(x-r-fh/6.0, y-fh/3.0, label)
+                self.graphics.text_left(x-r-fh/6.0, y-fh/3.0, label)
             elif labelpos == 2:
-                self.mirroring_graphics.text_centred(x, y + r + fh/2.0, label)
+                self.graphics.text_centred(x, y + r + fh/2.0, label)
             else:
-                self.mirroring_graphics.text_centred(x, y - r - fh/2.0, label)
+                self.graphics.text_centred(x, y - r - fh/2.0, label)
 
     def unknown_object_labelpos(self, x, y, radius=-1, label_length=0.0):
         r = radius
