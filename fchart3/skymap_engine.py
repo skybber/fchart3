@@ -834,7 +834,8 @@ class SkymapEngine:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
                 if nzopt or (z1 > 0 and z2 > 0):
                     self.graphics.line(x1, y1, x2, y2)
-                    self.draw_trajectory_tick(x1, y1, x2, y2)
+                    if label2 is not None:
+                        self.draw_trajectory_tick(x1, y1, x2, y2)
                     if i == 1:
                         self.draw_trajectory_tick(x2, y2, x1, y1)
 
@@ -845,7 +846,8 @@ class SkymapEngine:
                     nx = (x2-x1)/n
                     ny = (y2-y1)/n
 
-            labels.append([x2, y2, z2, nx, ny, label2])
+            if label2 is not None:
+                labels.append([x2, y2, z2, nx, ny, label2])
 
             x1, y1, z1 = (x2, y2, z2)
 
@@ -883,10 +885,11 @@ class SkymapEngine:
         dx = x2-x1
         dy = y2-y1
         dr = math.sqrt(dx * dx + dy*dy)
-        ddx = dx * 1.0 / dr
-        ddy = dy * 1.0 / dr
-        self.graphics.set_linewidth(1.5*self.config.constellation_linewidth)
-        self.graphics.line(x2-ddy, y2+ddx, x2+ddy, y2-ddx)
+        if dr > 0:
+            ddx = dx * 1.0 / dr
+            ddy = dy * 1.0 / dr
+            self.graphics.set_linewidth(1.5*self.config.constellation_linewidth)
+            self.graphics.line(x2-ddy, y2+ddx, x2+ddy, y2-ddx)
 
     def magnitude_to_radius(self, magnitude):
         # radius = 0.13*1.35**(int(self.lm_stars)-magnitude)
