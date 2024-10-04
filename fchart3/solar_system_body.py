@@ -37,17 +37,20 @@ class SolarSystemBody(Enum):
 
 
 class SolarSystemBodyObject:
-    def __init__(self, solar_system_body, ra, dec, angular_radius, phase):
+    def __init__(self, solar_system_body, ra, dec, angular_radius, phase, distance):
         self.solar_system_body = solar_system_body
         self.ra = ra
         self.dec = dec
         self.angular_radius = angular_radius
         self.phase = phase
+        self.distance = distance
 
 
 class PlanetMoonObject:
-    def __init__(self, name, ra, dec, mag):
-        self.name = name
+    def __init__(self, planet, moon_name, ra, dec, mag, distance):
+        self.planet = planet
+        self.moon_name = moon_name
         self.ra = ra
         self.dec = dec
         self.mag = mag
+        self.distance = distance

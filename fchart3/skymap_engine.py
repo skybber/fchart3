@@ -55,6 +55,7 @@ from .widget_picker import WidgetPicker
 
 from .precession import compute_precession_matrix
 from .solar_system_body import SolarSystemBody
+from .astrocalc import angular_distance
 
 
 LABELi18N = {
@@ -232,7 +233,7 @@ class SkymapEngine:
         if caption != '':
             self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_default_font_size*2.0)
 
-    def make_map(self, used_catalogs, solsys_bodies=None, jd=None, showing_dsos=None, dso_highlights=None, highlights=None,
+    def make_map(self, used_catalogs, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None,
                  use_optimized_mw=False, transparent=False):
         """ Creates map using given graphics, params and config
@@ -324,8 +325,14 @@ class SkymapEngine:
             if extra_positions:
                 self.draw_extra_objects(extra_positions)
 
+            if planet_moons:
+                self.draw_planet_moons(planet_moons, solsys_bodies, False)
+
             if solsys_bodies:
                 self.draw_solar_system_bodies(solsys_bodies)
+
+            if planet_moons:
+                self.draw_planet_moons(planet_moons, solsys_bodies, True)
 
             if trajectory:
                 self.draw_trajectory(trajectory)
@@ -686,10 +693,45 @@ class SkymapEngine:
             if nzopt or z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
+    def draw_planet_moons(self, planet_moons, solsys_bodies, in_front):
+        if not in_front and not solsys_bodies:
+            return
+
+        nzopt = not self.projection.is_zoptim()
+        self.graphics.set_fill_rgb(self.config.draw_color)
+        self.graphics.set_font(self.graphics.gi_font, 0.8 * self.graphics.gi_default_font_size)
+
+        planet_map = { sl_body.solar_system_body: sl_body for sl_body in solsys_bodies } if solsys_bodies else {}
+
+        for pl_moon in planet_moons:
+            planet = planet_map.get(pl_moon.planet)
+
+            if planet is not None:
+                if in_front:
+                    if pl_moon.distance >= planet.distance:
+                        continue
+                else:
+                    if pl_moon.distance <= planet.distance:
+                        continue
+
+            x, y, z = self.projection.radec_to_xyz(pl_moon.ra, pl_moon.dec)
+
+            if nzopt or z >= 0:
+                r = self.magnitude_to_radius(pl_moon.mag)
+                self.graphics.circle(x, y, r, DrawMode.FILL)
+                pl_moon_ang_dist = angular_distance((pl_moon.ra, pl_moon.dec), (planet.ra, planet.dec))
+
+                if pl_moon_ang_dist > 0.05 * self.fieldsize:
+                    fh = self.graphics.gi_default_font_size
+                    self.graphics.set_pen_rgb(self.config.label_color)
+                    self.graphics.text_centred(x, y + r + 0.75 * fh, pl_moon.moon_name)
+
     def draw_solar_system_bodies(self, solsys_bodies):
         nzopt = not self.projection.is_zoptim()
 
         sun = next(b for b in solsys_bodies if b.solar_system_body == SolarSystemBody.SUN)
+
+        self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size)
 
         for ssb_obj in solsys_bodies:
             rax = ssb_obj.ra

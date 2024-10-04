@@ -25,10 +25,10 @@ def angular_distance(position1, position2):
     """
     if position1[0] == position2[0] and position1[0] == position2[0]:
         return 0.0
-    (start_ra, start_dec) = position1
-    (end_ra, end_dec) = position2
-    a = start_ra-end_ra
-    arg = math.sin(start_dec)*math.sin(end_dec) + math.cos(start_dec)*math.cos(end_dec)*math.cos(a)
+    (ra1, dec1) = position1
+    (ra2, dec2) = position2
+    a = ra1-ra2
+    arg = math.sin(dec1)*math.sin(dec2) + math.cos(dec1)*math.cos(dec2)*math.cos(a)
     return math.acos(arg)
 
 
