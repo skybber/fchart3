@@ -1,5 +1,5 @@
 #    fchart3 draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-2023 fchart authors
+#    Copyright (C) 2005-2024 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from enum import Enum
+
 
 class SolarSystemBody(Enum):
     MERCURY = (1, "Mercury")
@@ -34,6 +35,7 @@ class SolarSystemBody(Enum):
         self._value_ = value
         self.label = label
 
+
 class SolarSystemBodyObject:
     def __init__(self, solar_system_body, ra, dec, angular_radius, phase):
         self.solar_system_body = solar_system_body
@@ -41,3 +43,11 @@ class SolarSystemBodyObject:
         self.dec = dec
         self.angular_radius = angular_radius
         self.phase = phase
+
+
+class PlanetMoonObject:
+    def __init__(self, name, ra, dec, mag):
+        self.name = name
+        self.ra = ra
+        self.dec = dec
+        self.mag = mag
