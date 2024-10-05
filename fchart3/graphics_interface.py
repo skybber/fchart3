@@ -299,7 +299,14 @@ class GraphicsInterface:
 
     def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
         """
-        Draw an elliptic arc from `angle1` to `angle2` with center (x, y) and radii rx (x-axis) and ry (y-axis).
+        Draw an elliptic arc from `angle1` to `angle2` with center (x, y) and radii rx (x-axis) and ry (y-axis)
+        in the current path
+        """
+        pass
+
+    def line_to(self, x, y):
+        """
+        Draw a straight line from the current point to the point (x, y) in the current path
         """
         pass
 

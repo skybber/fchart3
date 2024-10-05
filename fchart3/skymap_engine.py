@@ -744,8 +744,6 @@ class SkymapEngine:
                 color_attr = solar_system_body.name.lower() + '_color'
                 color = getattr(self.config, color_attr)
 
-                self.graphics.set_fill_rgb(color)
-
                 if solar_system_body in (SolarSystemBody.SUN, SolarSystemBody.MOON):
                     fix_r = round(1.75 * self.min_radius, 2)
                 else:
@@ -753,6 +751,9 @@ class SkymapEngine:
 
                 cur_r = ssb_obj.angular_radius * self.drawing_scale
                 r = max(fix_r, cur_r)
+
+                if ssb_obj.solar_system_body == SolarSystemBody.SATURN:
+                    self.draw_ring(x, y, cur_r, color, False)
 
                 moon_scale = 2.0 if ssb_obj.solar_system_body == SolarSystemBody.MOON else 1.0
                 if solar_system_body in [SolarSystemBody.MOON,
@@ -762,14 +763,22 @@ class SkymapEngine:
 
                     self.draw_phase(x, y, r, ssb_obj, sun, color, moon_scale)
                 else:
+                    self.graphics.set_fill_rgb(color)
                     self.graphics.circle(x, y, r, DrawMode.FILL)
+
+                if ssb_obj.solar_system_body == SolarSystemBody.SATURN:
+                    self.draw_ring(x, y, cur_r, color, True)
+                    r_scale = 1.1
+                else:
+                    r_scale = moon_scale
 
                 label = solar_system_body.label
                 if ssb_obj.solar_system_body == SolarSystemBody.MOON:
                     label += "x2"
+
                 fh = self.graphics.gi_default_font_size
                 self.graphics.set_pen_rgb(self.config.label_color)
-                self.graphics.text_centred(x, y + r + 0.75 * fh * moon_scale, label)
+                self.graphics.text_centred(x, y + r + 0.75 * fh * r_scale, label)
 
     def draw_phase(self, x, y, r, ssb_obj, sun, color, moon_scale):
         dk = 0.1
@@ -791,18 +800,59 @@ class SkymapEngine:
 
         self.graphics.begin_path()
 
-        self.graphics.move_to(0, r * moon_scale)
+        scaled_r = r*moon_scale
+        self.graphics.move_to(0, scaled_r)
 
-        rshort = (1 - 2 * illuminated_frac) * r *moon_scale
+        rshort = (1 - 2 * illuminated_frac) * scaled_r
 
-        self.graphics.arc_to(0, 0, r * moon_scale, -math.pi / 2, math.pi / 2)
+        self.graphics.arc_to(0, 0, scaled_r, -math.pi / 2, math.pi / 2)
 
         if illuminated_frac < 0.5:
-            self.graphics.elliptic_arc_to(0, 0, rshort, r*moon_scale, math.pi/2, -math.pi/2)
+            self.graphics.elliptic_arc_to(0, 0, rshort, scaled_r, math.pi/2, -math.pi/2)
         else:
-            self.graphics.elliptic_arc_to(0, 0, -rshort, r*moon_scale, math.pi/2, 3*math.pi/2)
+            self.graphics.elliptic_arc_to(0, 0, -rshort, scaled_r, math.pi/2, 3*math.pi/2)
 
         self.graphics.complete_path(DrawMode.FILL)
+        self.graphics.restore()
+
+    def draw_ring(self, x, y, cur_r, color, is_front):
+        inner_1 = 1.53 * cur_r
+        inner_2 = 1.95 * cur_r
+
+        outer_1 = 2.04 * cur_r
+        outer_2 = 2.28 * cur_r
+
+        r_scale = math.sin(math.pi*0.05)
+
+        ring_r = min(color[0] * 1.1, 1.0)
+        ring_g = min(color[1] * 1.2, 1.0)
+        ring_b = min(color[2] * 1.3, 1.0)
+        self.graphics.set_fill_rgb((ring_r, ring_g, ring_b,))
+
+        self.graphics.save()
+
+        self.graphics.translate(x, y)
+        self.graphics.rotate(0.0)
+
+        self.graphics.begin_path()
+
+        ang_orient = 1.0 if is_front else -1.0
+
+        self.graphics.move_to(inner_1, 0)
+        self.graphics.elliptic_arc_to(0, 0, inner_1, inner_1*r_scale, 0, ang_orient * math.pi)
+        self.graphics.line_to(-inner_2, 0)
+        self.graphics.elliptic_arc_to(0, 0, inner_2, inner_2*r_scale, ang_orient * math.pi, 0)
+        self.graphics.line_to(inner_1, 0)
+        self.graphics.complete_path(DrawMode.FILL)
+
+        self.graphics.begin_path()
+        self.graphics.move_to(outer_1, 0)
+        self.graphics.elliptic_arc_to(0, 0, outer_1, outer_1*r_scale, 0, ang_orient * math.pi)
+        self.graphics.line_to(-outer_2, 0)
+        self.graphics.elliptic_arc_to(0, 0, outer_2, outer_2*r_scale, ang_orient * math.pi, 0)
+        self.graphics.line_to(outer_1, 0)
+        self.graphics.complete_path(DrawMode.FILL)
+
         self.graphics.restore()
 
     def draw_highlights(self, highlights, visible_dso_collector):

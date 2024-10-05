@@ -230,7 +230,6 @@ class CairoDrawing(GraphicsInterface):
         else:
             self.context.arc_negative(x, -y, r, angle1, angle2)
 
-
     def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
         self.context.save()
         scale = ry / rx
@@ -240,6 +239,9 @@ class CairoDrawing(GraphicsInterface):
         else:
             self.context.arc_negative(x, -y, rx, angle1, angle2)
         self.context.restore()
+
+    def line_to(self, x, y):
+        self.context.line_to(x, -y)
 
     def clip_path(self, path):
         (x, y) = path[0]

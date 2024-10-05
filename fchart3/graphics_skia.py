@@ -198,6 +198,9 @@ class SkiaDrawing(GraphicsInterface):
     def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
         pass
 
+    def line_to(self, x, y):
+        pass
+
     def complete_path(self, mode=DrawMode.BORDER):
         pass
 
