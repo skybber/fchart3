@@ -17,6 +17,7 @@
 
 from enum import Enum
 
+
 class SpaceAllocatorType(Enum):
     BOTTOM = 1
     TOP = 2
@@ -75,6 +76,7 @@ class SpaceHorizontalAllocator:
     def get_clip_y(self):
         return self.next_y if self.next_y is not None else self.y
 
+
 class SpaceVerticalAllocator:
     def __init__(self, bottom, top, x, is_left):
         self.bottom, self.top = bottom, top
@@ -126,6 +128,7 @@ class SpaceVerticalAllocator:
 
     def get_clip_x(self):
         return self.next_x if self.next_x is not None else self.x
+
 
 class SpaceWidgetAllocator:
     def __init__(self, x1, y1, x2, y2):
@@ -243,7 +246,6 @@ class SpaceWidgetAllocator:
         result.extend(border2)
         # print('Joined2 {}'.format(result))
         return result
-
 
     def _actualize_borders(self):
         if self.cur_allocator_type == SpaceAllocatorType.BOTTOM:

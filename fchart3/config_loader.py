@@ -38,6 +38,7 @@ FONT_STYLE_ITEMS = ['bayer_label_font_style', 'flamsteed_label_font_style', 'dso
 
 FONT_STYLE_CONVERSION = { 'normal': FontStyle.NORMAL, 'italic': FontStyle.ITALIC, 'bold': FontStyle.BOLD }
 
+
 class ConfigurationLoader:
     def __init__(self, config_file):
         self.config_file = config_file

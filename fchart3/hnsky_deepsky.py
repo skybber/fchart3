@@ -270,7 +270,6 @@ def _parse_hnsky_supplement_line(line, all_dsos):
 
     object.type = dso_type_map.get(obj_type, UNKNOWN)
 
-
     str_length = items[10].strip() if len(items) > 10 else None
 
     if str_length:
@@ -298,6 +297,7 @@ def _parse_hnsky_supplement_line(line, all_dsos):
             object.position_angle = None
 
     return object
+
 
 def import_hnsky_supplement(filename, all_dsos):
     """

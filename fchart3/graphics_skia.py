@@ -29,6 +29,7 @@ A4_HEIGHT_POINTS = 842
 
 SKIA_DEFAULT_FONT_SIZE = 12*POINT
 
+
 class SkiaDrawing(GraphicsInterface):
     """
     A SkiaDrawing - implement Graphics interface using Skia-Python

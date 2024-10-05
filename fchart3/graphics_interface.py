@@ -33,11 +33,13 @@ class DrawMode(Enum):
     FILL = 2
     BOTH = 3
 
+
 class FontStyle(Enum):
     NORMAL = 0
     ITALIC = 1
     BOLD = 2
     ITALIC_BOLD = 3
+
 
 def paper_A(n):
     """

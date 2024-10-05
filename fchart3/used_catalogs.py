@@ -41,7 +41,6 @@ from .vic import import_vic
 from . import deepsky_object as deepsky
 
 
-
 class UsedCatalogs:
     def __init__(self, data_dir, extra_data_dir, supplements=None, limit_magnitude_deepsky=10.0, force_messier=False,
                  force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False,

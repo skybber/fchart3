@@ -29,21 +29,21 @@ class WidgetDsoLegend:
     def draw_dso_legend(self, sky_map_engine, graphics, legend_only):
         fh = graphics.gi_font_size
         # Draw list of symbols
-        legendx  = 0.48*self.drawingwidth
-        legendy  = 0.49*self.drawingwidth
-        legendinc= fh
+        legendx = 0.48*self.drawingwidth
+        legendy = 0.49*self.drawingwidth
+        legendinc = fh
 
         r = fh/3.0
         text_offset = -2.5*r
 
-        toplabels=[('OCL', len(self.language['OCL'])),
-                   ('AST', len(self.language['AST'])),
-                   ('G', len(self.language['G'])),
-                   ('GCL', len(self.language['GCL']))]
-        bottomlabels=[('SNR', len(self.language['SNR'])),
-                      ('N',len(self.language['N'])),
-                      ('PN', len(self.language['PN'])),
-                      ('PG',len(self.language['PG']))]
+        toplabels = [('OCL', len(self.language['OCL'])),
+                     ('AST', len(self.language['AST'])),
+                     ('G', len(self.language['G'])),
+                     ('GCL', len(self.language['GCL']))]
+        bottomlabels = [('SNR', len(self.language['SNR'])),
+                        ('N', len(self.language['N'])),
+                        ('PN', len(self.language['PN'])),
+                        ('PG', len(self.language['PG']))]
 
         def labsort(x,y):
             r = 0
@@ -53,13 +53,13 @@ class WidgetDsoLegend:
                 r = 1
             return r
 
-        toplabels.sort(key = deepsky.cmp_to_key(labsort))
+        toplabels.sort(key=deepsky.cmp_to_key(labsort))
         toplabels.reverse()
         tl = []
         for lab in toplabels:
             tl.append(lab[0])
 
-        bottomlabels.sort(key = deepsky.cmp_to_key(labsort))
+        bottomlabels.sort(key=deepsky.cmp_to_key(labsort))
         bottomlabels.reverse()
         bl = []
         for lab in bottomlabels:
@@ -74,7 +74,7 @@ class WidgetDsoLegend:
         sky_map_engine.galaxy(legendx, legendy - (tl.index('G') + 1)*legendinc, r, -1, 0.0, 7.0, '', '', '')
         graphics.text_left(legendx + text_offset, legendy - (tl.index('G') + 1)*legendinc - fh/3.0, self.language['G'])
 
-        sky_map_engine.globular_cluster(legendx, legendy  - (tl.index('GCL') +1 )*legendinc, r, '', '', '')
+        sky_map_engine.globular_cluster(legendx, legendy - (tl.index('GCL') + 1)*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
 
         legendy = self.legend_margin*self.drawingwidth
@@ -83,7 +83,7 @@ class WidgetDsoLegend:
         graphics.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])
 
         sky_map_engine.planetary_nebula(legendx, -legendy + bl.index('PN')*legendinc, r, '', '', '')
-        graphics.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc -  fh/3.0, self.language['PN'])
+        graphics.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc - fh/3.0, self.language['PN'])
 
         sky_map_engine.diffuse_nebula(legendx, -legendy + bl.index('N')*legendinc, r, -1, 0.0, '', '', '')
         graphics.text_left(legendx + text_offset, -legendy + bl.index('N')*legendinc - fh/3.0, self.language['N'])

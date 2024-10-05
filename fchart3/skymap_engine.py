@@ -24,7 +24,7 @@ try:
     lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
     lang.install()
     _ = lang.gettext
-except:                  
+except:
     _ = gettext.gettext
 
 
@@ -129,6 +129,7 @@ constell_lines_rect1 = None
 constell_lines_rect2 = None
 constell_bound_rect = None
 
+
 class SkymapEngine:
     def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption=''):
         """
@@ -170,7 +171,6 @@ class SkymapEngine:
         self.star_mag_r_shift = 0
         self.projection = None
         self.norm_field_radius = None
-
 
     def set_field(self, ra, dec, fieldradius, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
         self.fieldradius = fieldradius
@@ -564,7 +564,6 @@ class SkymapEngine:
                     if rlong < self.min_radius:
                         rlong = self.min_radius
                 deepsky_list_ext.append((dso, x[i], y[i], rlong))
-
 
     def draw_dso_outlines(self, dso, x, y, rlong, rshort, posangle=None, label=None, label_ext=None,  labelpos=None):
         lev_shift = 0
@@ -1005,7 +1004,7 @@ class SkymapEngine:
         # print("Stars selection {} ms".format(str(time()-tm)), flush=True)
         print(_('{} stars in map.'.format(selection.shape[0])))
         var=str(round(max(selection['mag']), 2))
-        print(_(f'Faintest star : {var}' )) 
+        print(_(f'Faintest star : {var}' ))
 
         # tm = time()
         x, y = self.projection.np_radec_to_xy(selection['ra'], selection['dec'])
@@ -1292,7 +1291,6 @@ class SkymapEngine:
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
 
-
     def draw_constellation_shapes(self, constell_catalog, jd, precession_matrix):
         self.graphics.set_linewidth(self.config.constellation_linewidth)
         self.graphics.set_solid_line()
@@ -1502,10 +1500,6 @@ class SkymapEngine:
             self.w_map_scale.allocate_space(self.space_widget_allocator)
 
     def star(self, x, y, radius, star_color):
-        """
-        Filled circle with boundary. Set fill colour and boundary
-        colour in advance using set_pen_rgb and set_fill_rgb
-        """
         if self.config.star_colors and star_color:
             self.graphics.set_fill_rgb(star_color)
 
@@ -1513,10 +1507,6 @@ class SkymapEngine:
         self.graphics.circle(x, y, r, DrawMode.FILL)
 
     def no_mirror_star(self, x, y, radius):
-        """
-        Filled circle with boundary. Set fill colour and boundary
-        colour in advance using set_pen_rgb and set_fill_rgb
-        """
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         self.graphics.circle(x, y, r, DrawMode.FILL)
 
@@ -1603,10 +1593,6 @@ class SkymapEngine:
             self.draw_asterism_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
 
     def asterism_labelpos(self, x, y, radius=-1, label_length=0.0):
-        """
-        x,y,radius, label_length in mm
-        returns [[start, centre, end],()]
-        """
         r = radius if radius > 0 else self.drawingwidth/40.0
         w2 = 2**0.5
         d = r/2.0*w2
@@ -1635,11 +1621,6 @@ class SkymapEngine:
             self.graphics.text_left(-rlong-fh/6.0, -fh/3.0, label)
 
     def galaxy(self, x, y, rlong, rshort, posangle, mag, label, label_mag, label_ext, labelpos):
-        """
-        If rlong != -1 and rshort == -1 =>   rshort <- rlong
-        if rlong < 0.0 => standard galaxy
-        labelpos can be 0,1,2,3
-        """
         rl = rlong
         rs = rshort
         if rlong <= 0.0:
@@ -1703,15 +1684,6 @@ class SkymapEngine:
         self.graphics.restore()
 
     def galaxy_labelpos(self, x, y, rlong=-1, rshort=-1, posangle=0.0, label_length=0.0):
-        rl = rlong
-        rs = rshort
-        if rlong <= 0.0:
-            rl = self.drawingwidth/40.0
-            rs = rl/2.0
-        if (rlong > 0.0) and (rshort < 0.0):
-            rl = rlong
-            rs = rlong/2.0
-
         p = posangle
         if posangle >= 0.5*math.pi:
             p += math.pi
@@ -2035,7 +2007,7 @@ class SkymapEngine:
             self.graphics.set_pen_rgb(self.config.label_color)
             if labelpos == 0:
                 self.graphics.text_right(x+r+fh/6.0, y-fh/3.0, label)
-            elif labelpos ==1:
+            elif labelpos == 1:
                 self.graphics.text_left(x-r-fh/6.0, y-fh/3.0, label)
             elif labelpos == 2:
                 self.graphics.text_centred(x, y + r + fh/2.0, label)
@@ -2074,22 +2046,19 @@ class SkymapEngine:
         return x1, y1, x2, y2
 
     def find_min_labelpos(self, labelpos_list, label_length, favour_right=False, favour_top=False):
-        pot = 1e+30
+        pot = float('inf')
         result = 0
-        for labelpos_index in range(len(labelpos_list)):
-            [[x1, y1], [x2, y2], [x3, y3]] = labelpos_list[labelpos_index]
+
+        for labelpos_index, (pos1, pos2, pos3) in enumerate(labelpos_list):
+            x2, y2 = pos2
             pot1 = self.label_potential.compute_potential(x2, y2)
-            if favour_right and labelpos_index == 0:
-                pot1 *= 0.6  # favour label right
-            if favour_top and labelpos_index == 2:
-                pot1 *= 0.6  # favour label right
-            # self.label_potential.compute_potential(x1,y1),
-            # self.label_potential.compute_potential(x3,y3)])
+            if (favour_right and labelpos_index == 0) or (favour_top and labelpos_index == 2):
+                pot1 *= 0.6
             if pot1 < pot:
                 pot = pot1
                 result = labelpos_index
 
-        [lx, ly] = labelpos_list[result][1]
+        lx, ly = labelpos_list[result][1]
         self.label_potential.add_position(lx, ly, label_length)
 
         return result

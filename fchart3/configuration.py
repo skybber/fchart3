@@ -68,6 +68,7 @@ DEFAULT_PLUTO_COLOR   = (0.7, 0.6, 0.5)
 DEFAULT_SUN_COLOR     = (1.0, 1.0, 0.0)
 DEFAULT_MOON_COLOR    = (0.8, 0.8, 0.8)
 
+
 class EngineConfiguration:
     def __init__(self):
         self._legend_only = False

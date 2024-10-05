@@ -19,6 +19,7 @@ import numpy as np
 
 from .graphics_interface import DrawMode
 
+
 class WidgetHSpace:
     def __init__(self, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
         self.legend_fontsize = legend_fontsize
