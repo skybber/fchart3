@@ -713,12 +713,12 @@ class SkymapEngine:
                 if pl_moon_ang_dist > 0.02 * self.fieldsize:
                     fh = self.graphics.gi_default_font_size
                     self.graphics.set_pen_rgb(self.config.label_color)
-
+                    r_lab = r if r > 0.8 else 0.8
                     label_length = self.graphics.text_width(pl_moon.moon_name)
-                    labelpos_list = self.planet_labelpos(x, y, r, label_length, 0.75, False)
+                    labelpos_list = self.planet_labelpos(x, y, r_lab, label_length, 0.75, False)
                     labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=2)
 
-                    self.draw_planet_label(x, y, r, pl_moon.moon_name, labelpos, 0.75)
+                    self.draw_planet_label(x, y, r_lab, pl_moon.moon_name, labelpos, 0.75)
 
     def draw_solar_system_bodies(self, solsys_bodies):
         nzopt = not self.projection.is_zoptim()
