@@ -125,6 +125,8 @@ DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*6
 MAG_SCALE_X = [0, 1,   2,   3,   4,    5,    25]
 MAG_SCALE_Y = [0, 1.8, 3.3, 4.7, 6,  7.2,  18.0]
 
+SQRT2 = math.sqrt(2)
+
 constell_lines_rect1 = None
 constell_lines_rect2 = None
 constell_bound_rect = None
@@ -484,7 +486,6 @@ class SkymapEngine:
                 label_ext = '{:.2f}m'.format(dso.mag)
 
             label_length = self.graphics.text_width(label)
-            labelpos = -1
 
             if dso.type == deepsky.G:
                 labelpos_list = self.galaxy_labelpos(x, y, rlong, rshort, posangle, label_length)
@@ -689,7 +690,7 @@ class SkymapEngine:
         self.graphics.set_fill_rgb(self.config.draw_color)
         self.graphics.set_font(self.graphics.gi_font, 0.8 * self.graphics.gi_default_font_size)
 
-        planet_map = { sl_body.solar_system_body: sl_body for sl_body in solsys_bodies } if solsys_bodies else {}
+        planet_map = {sl_body.solar_system_body: sl_body for sl_body in solsys_bodies} if solsys_bodies else {}
 
         for pl_moon in planet_moons:
             planet = planet_map.get(pl_moon.planet)
@@ -714,11 +715,10 @@ class SkymapEngine:
                     self.graphics.set_pen_rgb(self.config.label_color)
 
                     label_length = self.graphics.text_width(pl_moon.moon_name)
-                    labelpos_list = self.circular_object_labelpos(x, y, r, label_length)
-                    labelpos = self.find_min_labelpos(labelpos_list, label_length)
+                    labelpos_list = self.planet_labelpos(x, y, r, label_length, 0.75, False)
+                    labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=2)
 
-                    self.draw_circular_object_label(x, y, r, pl_moon.moon_name, labelpos, fh*0.75)
-                    # self.graphics.text_centred(x, y + r + 0.75 * fh, pl_moon.moon_name)
+                    self.draw_planet_label(x, y, r, pl_moon.moon_name, labelpos, 0.75)
 
     def draw_solar_system_bodies(self, solsys_bodies):
         nzopt = not self.projection.is_zoptim()
@@ -770,16 +770,12 @@ class SkymapEngine:
                 if ssb_obj.solar_system_body == SolarSystemBody.MOON:
                     label += "x2"
 
-                fh = self.graphics.gi_default_font_size
                 self.graphics.set_pen_rgb(self.config.label_color)
 
-                # label_length = self.graphics.text_width(label)
-                # labelpos_list = self.circular_object_labelpos(x, y, r * r_scale, label_length)
-                #
-                # labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_top=True)
-                #
-                # self.draw_circular_object_label(x, y, r * r_scale, label, labelpos, fh)
-                self.graphics.text_centred(x, y + r + 0.75 * fh * r_scale, label)
+                label_length = self.graphics.text_width(label)
+                labelpos_list = self.planet_labelpos(x, y, r * r_scale, label_length, 1.0, True)
+                labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=0)
+                self.draw_planet_label(x, y, r, label, labelpos, 1.0)
 
     def draw_phase(self, x, y, r, ssb_obj, sun, color, moon_scale):
         dk = 0.1
@@ -855,6 +851,59 @@ class SkymapEngine:
         self.graphics.complete_path(DrawMode.FILL)
 
         self.graphics.restore()
+
+    def draw_planet_label(self, x, y, r, label, labelpos, font_scale):
+        fh = self.graphics.gi_default_font_size * font_scale
+        arg = 1.0-2*fh/(3.0*r)
+        if (arg < 1.0) and (arg > -1.0):
+            a = math.acos(arg)
+        else:
+            a = 0.5*math.pi
+
+        if labelpos == 0:
+            self.graphics.text_centred(x, y + r + 0.75 * fh, label)
+        elif labelpos == 1:
+            self.graphics.text_centred(x, y - r - 0.75 * fh, label)
+        elif labelpos == 2:
+            self.graphics.text_right(x+math.sin(a)*r+fh/6.0, y-r, label)
+        elif labelpos == 3:
+            self.graphics.text_left(x-math.sin(a)*r-fh/6.0, y-r, label)
+        elif labelpos == 4:
+            self.graphics.text_right(x+math.sin(a)*r+fh/6.0, y+r-2*fh/3.0, label)
+        elif labelpos == 5:
+            self.graphics.text_left(x-math.sin(a)*r-fh/6.0, y+r-2*fh/3.0, label)
+
+    def planet_labelpos(self, x, y, radius, label_length, font_scale, top_down_only):
+        fh = self.graphics.gi_default_font_size * font_scale
+        r = radius if radius > 0 else self.drawingwidth/40.0
+
+        arg = 1.0-2*fh/(3.0*r)
+
+        if (arg < 1.0) and (arg > -1.0):
+            a = math.acos(arg)
+        else:
+            a = 0.5*math.pi
+
+        label_pos_list = []
+
+        y3 = y + r + 0.75 * fh
+        label_pos_list.append([[x-label_length/2, y3], [x, y3], [x+label_length/2]])
+        y4 = y - r - 0.75 * fh
+        label_pos_list.append([[x-label_length/2, y4], [x, y4], [x+label_length/2]])
+
+        if not top_down_only:
+            x1 = x+math.sin(a)*r+fh/6.0
+            x2 = x-math.sin(a)*r-fh/6.0 - label_length
+            y1 = y-r+fh/3.0
+            y2 = y+r-fh/3.0
+
+            label_pos_list.append(((x1, y1), (x1 + label_length / 2.0, y1), (x1 + label_length, y1)))
+            label_pos_list.append(((x2, y1), (x2 + label_length / 2.0, y1), (x2 + label_length, y1)))
+            label_pos_list.append(((x1, y2), (x1 + label_length / 2.0, y2), (x1 + label_length, y2)))
+            label_pos_list.append(((x2, y2), (x2 + label_length / 2.0, y2), (x2 + label_length, y2)))
+
+        return label_pos_list
+
 
     def draw_highlights(self, highlights, visible_dso_collector):
         # Draw highlighted objects
@@ -964,7 +1013,7 @@ class SkymapEngine:
         else:
             label_pos = 0
 
-        r = self.min_radius * 1.2 / 2**0.5
+        r = self.min_radius * 1.2 / SQRT2
         for x, y, z, nx, ny, label in labels:
             if nzopt or z > 0:
                 if label_pos == 1:
@@ -1060,7 +1109,7 @@ class SkymapEngine:
                         label_length = self.graphics.text_width(slabel)
                         labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
 
-                        labelpos = self.find_min_labelpos(labelpos_list, label_length, True)
+                        labelpos = self.find_min_labelpos(labelpos_list, label_length, 0)
 
                         star_labels.append((xx, yy, rr, labelpos, bsc_star))
 
@@ -1551,26 +1600,15 @@ class SkymapEngine:
         if label_ext:
             self.draw_circular_object_label(x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
 
-    def draw_asterism_label(self, x, y, label, labelpos, d, fh):
-        if labelpos == 0 or labelpos == -1:
-            self.graphics.text_centred(x, y-d-2*fh/3.0, label)
-        elif labelpos == 1:
-            self.graphics.text_centred(x, y+d+fh/3.0, label)
-        elif labelpos == 2:
-            self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
-        elif labelpos == 3:
-            self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
-
     def asterism(self, x, y, radius, label, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
-        w2 = 2**0.5
-        d = r/2.0*w2
+        d = r / SQRT2
 
         self.graphics.set_pen_rgb(self.config.star_cluster_color)
         self.graphics.set_linewidth(self.config.open_cluster_linewidth)
         self.graphics.set_dashed_line(0.6, 0.4)
 
-        diff = self.graphics.gi_linewidth/2.0/w2
+        diff = self.graphics.gi_linewidth / (2 * SQRT2)
 
         self.graphics.line(x-diff, y+d+diff, x+d+diff, y-diff)
         self.graphics.line(x+d, y, x, y-d)
@@ -1592,22 +1630,35 @@ class SkymapEngine:
             self.graphics.set_pen_rgb(self.config.label_color)
             self.draw_asterism_label(x, y, label_ext, self.to_ext_labelpos(labelpos), d, label_fh)
 
+    def draw_asterism_label(self, x, y, label, labelpos, d, fh):
+        if labelpos == 0 or labelpos == -1:
+            self.graphics.text_centred(x, y-d-2*fh/3.0, label)
+        elif labelpos == 1:
+            self.graphics.text_centred(x, y+d+fh/3.0, label)
+        elif labelpos == 2:
+            self.graphics.text_left(x-d-fh/6.0, y-fh/3.0, label)
+        elif labelpos == 3:
+            self.graphics.text_right(x+d+fh/6.0, y-fh/3.0, label)
+
     def asterism_labelpos(self, x, y, radius=-1, label_length=0.0):
         r = radius if radius > 0 else self.drawingwidth/40.0
-        w2 = 2**0.5
-        d = r/2.0*w2
+        d = r / SQRT2
         fh = self.graphics.gi_default_font_size
         label_pos_list = []
-        yy = y-d-2*fh/3.0
-        label_pos_list.append([[x-label_length/2.0, yy], [x, yy], [x+label_length, yy]])
-        yy = y+d+2*fh/3.0
-        label_pos_list.append([[x-label_length/2.0, yy], [x, yy], [x+label_length, yy]])
-        xx = x-d-fh/6.0
+        yy = y - d - 2*fh/3.0
+        label_pos_list.append(((x - label_length / 2.0, yy), (x, yy), (x + label_length, yy)))
+
+        yy = y + d + 2*fh/3.0
+        label_pos_list.append(((x - label_length / 2.0, yy), (x, yy), (x + label_length, yy)))
+
+        xx = x - d - fh/6.0
         yy = y
-        label_pos_list.append([[xx-label_length, yy], [xx-label_length/2.0, yy], [xx, yy]])
-        xx = x+d+fh/6.0
+        label_pos_list.append(((xx - label_length, yy), (xx - label_length / 2.0, yy), (xx, yy)))
+
+        xx = x + d + fh/6.0
         yy = y
-        label_pos_list.append([[xx, yy], [xx+label_length/2.0, yy], [xx+label_length, yy]])
+        label_pos_list.append(((xx, yy), (xx + label_length / 2.0, yy), (xx + label_length, yy)))
+
         return label_pos_list
 
     def draw_galaxy_label(self, x, y, label, labelpos, rlong, rshort, fh):
@@ -1643,7 +1694,7 @@ class SkymapEngine:
                 diff_mag = 0
             if diff_mag > 5:
                 diff_mag = 5
-            dso_intensity = 1.0 if diff_mag > fac else 0.5 + 0.5 * diff_mag / fac;
+            dso_intensity = 1.0 if diff_mag > fac else 0.5 + 0.5 * diff_mag / fac
         else:
             dso_intensity = 1.0
 
@@ -1776,18 +1827,16 @@ class SkymapEngine:
             a = 0.5*math.pi
 
         label_pos_list = []
-        xs = x+math.sin(a)*r+fh/6.0
-        ys = y-r+fh/3.0
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
-        xs = x-math.sin(a)*r-fh/6.0 - label_length
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        x1 = x+math.sin(a)*r+fh/6.0
+        x2 = x-math.sin(a)*r-fh/6.0 - label_length
+        y1 = y-r+fh/3.0
+        y2 = y+r-fh/3.0
 
-        xs = x+math.sin(a)*r+fh/6.0
-        ys = y+r-fh/3.0
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        label_pos_list.append(((x1, y1), (x1 + label_length / 2.0, y1), (x1 + label_length, y1)))
+        label_pos_list.append(((x2, y1), (x2 + label_length / 2.0, y1), (x2 + label_length, y1)))
+        label_pos_list.append(((x1, y2), (x1 + label_length / 2.0, y2), (x1 + label_length, y2)))
+        label_pos_list.append(((x2, y2), (x2 + label_length / 2.0, y2), (x2 + label_length, y2)))
 
-        xs = x-math.sin(a)*r-fh/6.0 - label_length
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
         return label_pos_list
 
     def globular_cluster(self, x, y, radius, label, label_mag, label_ext, labelpos):
@@ -1900,7 +1949,7 @@ class SkymapEngine:
         self.graphics.set_solid_line()
 
         if self.config.light_mode:
-            frac = 4 - 1.5 * outl_lev # no logic, look nice in light mode
+            frac = 4 - 1.5 * outl_lev  # no logic, look nice in light mode
             pen_r = 1.0 - ((1.0 - self.config.nebula_color[0]) / frac)
             pen_g = 1.0 - ((1.0 - self.config.nebula_color[1]) / frac)
             pen_b = 1.0 - ((1.0 - self.config.nebula_color[2]) / frac)
@@ -1924,19 +1973,20 @@ class SkymapEngine:
 
         label_pos_list = []
         xs = x - label_length/2.0
-        ys = y-d-fh/2.0
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        ys = y - d - fh/2.0
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
 
-        ys = y+d+fh/2.0
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        ys = y + d + fh/2.0
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
 
         xs = x - d - fh/6.0 - label_length
         ys = y
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
 
         xs = x + d + fh/6.0
         ys = y
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
+
         return label_pos_list
 
     def planetary_nebula(self, x, y, radius, label, label_mag, label_ext, labelpos):
@@ -1992,7 +2042,7 @@ class SkymapEngine:
         if radius <= 0.0:
             r = self.drawingwidth/40.0
 
-        r /= 2**0.5
+        r /= SQRT2
 
         self.graphics.set_linewidth(self.config.dso_linewidth)
         self.graphics.set_solid_line()
@@ -2019,23 +2069,24 @@ class SkymapEngine:
         if radius <= 0.0:
             r = self.drawingwidth/40.0
         fh = self.graphics.gi_default_font_size
-        r /= 2**0.5
+        r /= SQRT2
         label_pos_list = []
         xs = x + r + fh/6.0
         ys = y
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
 
         xs = x - r - fh/6.0 - label_length
         ys = y
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
 
         xs = x - label_length/2.0
         ys = y + r + fh/2.0
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
 
         xs = x - label_length/2.0
         ys = y - r - fh/2.0
-        label_pos_list.append([[xs, ys], [xs+label_length/2.0, ys], [xs+label_length, ys]])
+        label_pos_list.append(((xs, ys), (xs + label_length / 2.0, ys), (xs + label_length, ys)))
+
         return label_pos_list
 
     def align_rect_coords(self, x1, y1, x2, y2):
@@ -2045,14 +2096,14 @@ class SkymapEngine:
             y1, y2 = y2, y1
         return x1, y1, x2, y2
 
-    def find_min_labelpos(self, labelpos_list, label_length, favour_right=False, favour_top=False):
+    def find_min_labelpos(self, labelpos_list, label_length, favour_right=False, favour_index=-1):
         pot = float('inf')
         result = 0
 
         for labelpos_index, (pos1, pos2, pos3) in enumerate(labelpos_list):
             x2, y2 = pos2
             pot1 = self.label_potential.compute_potential(x2, y2)
-            if (favour_right and labelpos_index == 0) or (favour_top and labelpos_index == 2):
+            if favour_index == labelpos_index:
                 pot1 *= 0.6
             if pot1 < pot:
                 pot = pot1
