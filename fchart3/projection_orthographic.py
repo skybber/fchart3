@@ -20,6 +20,7 @@ import numpy as np
 
 from .projection import ProjectionInterface
 
+
 class ProjectionOrthographic(ProjectionInterface):
     def __init__(self):
         ProjectionInterface.__init__(self)

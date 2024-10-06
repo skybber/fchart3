@@ -20,6 +20,7 @@ import numpy as np
 
 from .projection import ProjectionInterface
 
+
 class ProjectionStereographic(ProjectionInterface):
     def __init__(self):
         ProjectionInterface.__init__(self)

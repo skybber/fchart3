@@ -18,9 +18,11 @@
 from enum import Enum
 import math
 
+
 class ProjectionType(Enum):
     ORTHOGRAPHIC = 1
     STEREOGRAPHIC = 2
+
 
 class ProjectionInterface:
     def __init__(self):

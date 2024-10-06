@@ -31,6 +31,7 @@ A4_HEIGHT_POINTS = 842
 
 CAIRO_DEFAULT_FONT_SIZE = 12 * POINT
 
+
 class CairoDrawing(GraphicsInterface):
     """
     A CairoDrawing - implement Graphics interface using PyCairo
