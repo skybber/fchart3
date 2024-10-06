@@ -37,11 +37,12 @@ class SolarSystemBody(Enum):
 
 
 class SolarSystemBodyObject:
-    def __init__(self, solar_system_body, ra, dec, angular_radius, phase, distance, ring_tilt):
+    def __init__(self, solar_system_body, ra, dec, angular_radius, mag, phase, distance, ring_tilt):
         self.solar_system_body = solar_system_body
         self.ra = ra
         self.dec = dec
         self.angular_radius = angular_radius
+        self.mag = mag
         self.phase = phase
         self.distance = distance
         self.ring_tilt = ring_tilt
