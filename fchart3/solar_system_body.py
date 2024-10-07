@@ -49,10 +49,11 @@ class SolarSystemBodyObject:
 
 
 class PlanetMoonObject:
-    def __init__(self, planet, moon_name, ra, dec, mag, distance):
+    def __init__(self, planet, moon_name, ra, dec, mag, color, distance):
         self.planet = planet
         self.moon_name = moon_name
         self.ra = ra
         self.dec = dec
         self.mag = mag
+        self.color = color
         self.distance = distance

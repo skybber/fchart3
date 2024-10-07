@@ -687,7 +687,6 @@ class SkymapEngine:
             return
 
         nzopt = not self.projection.is_zoptim()
-        self.graphics.set_fill_rgb(self.config.draw_color)
         self.graphics.set_font(self.graphics.gi_font, 0.8 * self.graphics.gi_default_font_size)
 
         planet_map = {sl_body.solar_system_body: sl_body for sl_body in solsys_bodies} if solsys_bodies else {}
@@ -707,6 +706,7 @@ class SkymapEngine:
 
             if nzopt or z >= 0:
                 r = self.magnitude_to_radius(pl_moon.mag)
+                self.graphics.set_fill_rgb(pl_moon.color)
                 self.graphics.circle(x, y, r, DrawMode.FILL)
                 pl_moon_ang_dist = angular_distance((pl_moon.ra, pl_moon.dec), (planet.ra, planet.dec))
 
