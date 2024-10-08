@@ -35,6 +35,13 @@ class SolarSystemBody(Enum):
         self._value_ = value
         self.label = label
 
+    @staticmethod
+    def get_by_name(name: str):
+        for body in SolarSystemBody:
+            if body.label.lower() == name.lower():
+                return body
+        raise ValueError(f"No solar system body found with name: {name}")
+
 
 class SolarSystemBodyObject:
     def __init__(self, solar_system_body, ra, dec, angular_radius, mag, phase, distance, ring_tilt):
