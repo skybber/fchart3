@@ -32,7 +32,6 @@ class SolarSystemBody(Enum):
     MOON    = (11, "Moon")
 
     def __init__(self, value, label):
-        self._value_ = value
         self.label = label
 
     @staticmethod

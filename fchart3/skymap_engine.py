@@ -252,7 +252,7 @@ class SkymapEngine:
         use_optimized_mw - use optimized milky way
         transparent - make chart transparent
         """
-        visible_dso_collector = [] if visible_objects is not None else None
+        visible_objects_collector = [] if visible_objects is not None else None
         self.picked_dso = None
         self.picked_star = None
 
@@ -301,7 +301,7 @@ class SkymapEngine:
                 # print("Equatorial grid within {} s".format(str(time()-tm)), flush=True)
 
             if highlights:
-                self.draw_highlights(highlights, visible_dso_collector)
+                self.draw_highlights(highlights, visible_objects_collector)
 
             if used_catalogs.constellcatalog is not None:
                 # tm = time()
@@ -318,7 +318,7 @@ class SkymapEngine:
 
             if used_catalogs.deepskycatalog is not None:
                 # tm = time()
-                self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector)
+                self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_objects_collector)
                 # print("DSO within {} s".format(str(time()-tm)), flush=True)
 
             if self.picked_dso is None and self.picked_star is not None:
@@ -331,7 +331,7 @@ class SkymapEngine:
                 self.draw_planet_moons(planet_moons, solsys_bodies, False)
 
             if solsys_bodies:
-                self.draw_solar_system_bodies(solsys_bodies)
+                self.draw_solar_system_bodies(solsys_bodies, visible_objects_collector)
 
             if planet_moons:
                 self.draw_planet_moons(planet_moons, solsys_bodies, True)
@@ -354,9 +354,9 @@ class SkymapEngine:
         self.graphics.finish()
         # print("Rest {} ms".format(str(time()-tm)), flush=True)
 
-        if visible_dso_collector is not None:
-            visible_dso_collector.sort(key=lambda x: x[0])
-            for obj in visible_dso_collector:
+        if visible_objects_collector is not None:
+            visible_objects_collector.sort(key=lambda x: x[0])
+            for obj in visible_objects_collector:
                 visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
 
     def draw_caption(self):
@@ -404,7 +404,7 @@ class SkymapEngine:
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
 
-    def draw_deepsky_objects(self, deepsky_catalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_dso_collector):
+    def draw_deepsky_objects(self, deepsky_catalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_objects_collector):
         if not self.config.show_deepsky:
             return
 
@@ -464,7 +464,7 @@ class SkymapEngine:
             if dso_highlights:
                 for dso_highlight in dso_highlights:
                     if dso in dso_highlight.dsos:
-                        self.draw_dso_hightlight(x, y, rlong, label, dso_highlight, visible_dso_collector)
+                        self.draw_dso_hightlight(x, y, rlong, label, dso_highlight, visible_objects_collector)
                         break
 
             rlong = dso.rlong if dso.rlong is not None else self.min_radius
@@ -525,19 +525,19 @@ class SkymapEngine:
             else:
                 self.unknown_object(x, y, rlong, label, label_ext, labelpos)
 
-            if visible_dso_collector is not None:
+            if visible_objects_collector is not None:
                 xs1, ys1 = x-rlong, y-rlong
                 xs2, ys2 = x+rlong, y+rlong
                 if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                     xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                     xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
                     xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-                    visible_dso_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
+                    visible_objects_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
                     if self.picked_dso == dso:
                         pick_xp1, pick_yp1 = self.graphics.to_pixel(-pick_r, -pick_r)
                         pick_xp2, pick_yp2 = self.graphics.to_pixel(pick_r, pick_r)
                         pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
-                        visible_dso_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
+                        visible_objects_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
 
     def calc_deepsky_list_ext(self, precession_matrix, deepsky_list_ext, dso_list):
         if precession_matrix is not None:
@@ -720,7 +720,7 @@ class SkymapEngine:
 
                     self.draw_planet_label(x, y, r_lab, pl_moon.moon_name, labelpos, 0.75)
 
-    def draw_solar_system_bodies(self, solsys_bodies):
+    def draw_solar_system_bodies(self, solsys_bodies, visible_objects_collector):
         nzopt = not self.projection.is_zoptim()
 
         sun = next(b for b in solsys_bodies if b.solar_system_body == SolarSystemBody.SUN)
@@ -773,9 +773,19 @@ class SkymapEngine:
                 self.graphics.set_pen_rgb(self.config.label_color)
 
                 label_length = self.graphics.text_width(label)
-                labelpos_list = self.planet_labelpos(x, y, r * r_scale, label_length, 1.0, True)
+                scaled_r = r * r_scale
+                labelpos_list = self.planet_labelpos(x, y, scaled_r, label_length, 1.0, True)
                 labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=0)
                 self.draw_planet_label(x, y, r, label, labelpos, 1.0)
+
+                if visible_objects_collector is not None:
+                    xs1, ys1 = x - scaled_r, y - scaled_r
+                    xs2, ys2 = x + scaled_r, y + scaled_r
+                    if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
+                        xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
+                        xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
+                        xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
+                        visible_objects_collector.append([r, solar_system_body.label.lower(), xp1, yp1, xp2, yp2])
 
     def draw_phase(self, x, y, r, ssb_obj, sun, color, moon_scale):
         dk = 0.1
@@ -904,8 +914,7 @@ class SkymapEngine:
 
         return label_pos_list
 
-
-    def draw_highlights(self, highlights, visible_dso_collector):
+    def draw_highlights(self, highlights, visible_objects_collector):
         # Draw highlighted objects
         # print('Drawing highlighted objects...')
         fn = self.graphics.gi_default_font_size
@@ -929,16 +938,16 @@ class SkymapEngine:
                         self.graphics.circle(x, y, r)
                         if label:
                             self.draw_circular_object_label(x, y, r, label, fh=highlight_fh)
-                        if object_name and visible_dso_collector is not None:
+                        if object_name and visible_objects_collector is not None:
                             xs1, ys1 = x-r, y-r
                             xs2, ys2 = x+r, y+r
                             if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
                                 xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
                                 xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
                                 xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-                                visible_dso_collector.append([r, object_name, xp1, yp1, xp2, yp2])
+                                visible_objects_collector.append([r, object_name, xp1, yp1, xp2, yp2])
 
-    def draw_dso_hightlight(self, x, y, rlong, dso_name, dso_highligth, visible_dso_collector):
+    def draw_dso_hightlight(self, x, y, rlong, dso_name, dso_highligth, visible_objects_collector):
         self.graphics.set_pen_rgb(dso_highligth.color)
         self.graphics.set_linewidth(dso_highligth.line_width)
         if dso_highligth.dash and len(dso_highligth.dash) == 2:
@@ -950,11 +959,11 @@ class SkymapEngine:
         self.graphics.circle(x, y, r)
         xs1, ys1 = x-r, y-r
         xs2, ys2 = x+r, y+r
-        if visible_dso_collector is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
+        if visible_objects_collector is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
             xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
             xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
             xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-            visible_dso_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
+            visible_objects_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
 
     def draw_trajectory(self, trajectory):
         # Draw extra objects
