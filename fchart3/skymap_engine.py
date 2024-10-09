@@ -778,7 +778,7 @@ class SkymapEngine:
                 labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=0)
                 self.draw_planet_label(x, y, r, label, labelpos, 1.0)
 
-                if visible_objects_collector is not None:
+                if visible_objects_collector is not None and solar_system_body not in [SolarSystemBody.MOON, SolarSystemBody.SUN]:
                     xs1, ys1 = x - scaled_r, y - scaled_r
                     xs2, ys2 = x + scaled_r, y + scaled_r
                     if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
