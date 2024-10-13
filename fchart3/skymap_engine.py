@@ -328,13 +328,13 @@ class SkymapEngine:
                 self.draw_extra_objects(extra_positions)
 
             if planet_moons:
-                self.draw_planet_moons(planet_moons, solsys_bodies, False)
+                self.draw_planet_moons(planet_moons, solsys_bodies, visible_objects_collector, False)
 
             if solsys_bodies:
                 self.draw_solar_system_bodies(solsys_bodies, visible_objects_collector)
 
             if planet_moons:
-                self.draw_planet_moons(planet_moons, solsys_bodies, True)
+                self.draw_planet_moons(planet_moons, solsys_bodies, visible_objects_collector, True)
 
             if trajectory:
                 self.draw_trajectory(trajectory)
@@ -525,19 +525,12 @@ class SkymapEngine:
             else:
                 self.unknown_object(x, y, rlong, label, label_ext, labelpos)
 
-            if visible_objects_collector is not None:
-                xs1, ys1 = x-rlong, y-rlong
-                xs2, ys2 = x+rlong, y+rlong
-                if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
-                    xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
-                    xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                    xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-                    visible_objects_collector.append([rlong, label.replace(' ', ''), xp1, yp1, xp2, yp2])
-                    if self.picked_dso == dso:
-                        pick_xp1, pick_yp1 = self.graphics.to_pixel(-pick_r, -pick_r)
-                        pick_xp2, pick_yp2 = self.graphics.to_pixel(pick_r, pick_r)
-                        pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
-                        visible_objects_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
+            if self.collect_visible_object(visible_objects_collector, x, y, rlong, label):
+                if self.picked_dso == dso:
+                    pick_xp1, pick_yp1 = self.graphics.to_pixel(-pick_r, -pick_r)
+                    pick_xp2, pick_yp2 = self.graphics.to_pixel(pick_r, pick_r)
+                    pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
+                    visible_objects_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
 
     def calc_deepsky_list_ext(self, precession_matrix, deepsky_list_ext, dso_list):
         if precession_matrix is not None:
@@ -682,7 +675,7 @@ class SkymapEngine:
             if nzopt or z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
-    def draw_planet_moons(self, planet_moons, solsys_bodies, in_front):
+    def draw_planet_moons(self, planet_moons, solsys_bodies, visible_objects_collector, in_front):
         if not in_front and not solsys_bodies:
             return
 
@@ -709,16 +702,17 @@ class SkymapEngine:
                 self.graphics.set_fill_rgb(pl_moon.color)
                 self.graphics.circle(x, y, r, DrawMode.FILL)
                 pl_moon_ang_dist = angular_distance((pl_moon.ra, pl_moon.dec), (planet.ra, planet.dec))
+                r_lab = r if r > 0.8 else 0.8
 
                 if pl_moon_ang_dist > 0.02 * self.fieldsize:
-                    fh = self.graphics.gi_default_font_size
                     self.graphics.set_pen_rgb(self.config.label_color)
-                    r_lab = r if r > 0.8 else 0.8
                     label_length = self.graphics.text_width(pl_moon.moon_name)
                     labelpos_list = self.planet_labelpos(x, y, r_lab, label_length, 0.75, False)
                     labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=2)
 
                     self.draw_planet_label(x, y, r_lab, pl_moon.moon_name, labelpos, 0.75)
+
+                self.collect_visible_object(visible_objects_collector, x, y, r_lab, pl_moon.moon_name)
 
     def draw_solar_system_bodies(self, solsys_bodies, visible_objects_collector):
         nzopt = not self.projection.is_zoptim()
@@ -778,14 +772,8 @@ class SkymapEngine:
                 labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=0)
                 self.draw_planet_label(x, y, r, label, labelpos, 1.0)
 
-                if visible_objects_collector is not None and solar_system_body not in [SolarSystemBody.MOON, SolarSystemBody.SUN]:
-                    xs1, ys1 = x - scaled_r, y - scaled_r
-                    xs2, ys2 = x + scaled_r, y + scaled_r
-                    if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
-                        xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
-                        xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                        xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-                        visible_objects_collector.append([r, solar_system_body.label.lower(), xp1, yp1, xp2, yp2])
+                if solar_system_body not in [SolarSystemBody.MOON, SolarSystemBody.SUN]:
+                    self.collect_visible_object(visible_objects_collector, x, y, scaled_r, solar_system_body.label.lower())
 
     def draw_phase(self, x, y, r, ssb_obj, sun, color, moon_scale):
         dk = 0.1
@@ -938,14 +926,7 @@ class SkymapEngine:
                         self.graphics.circle(x, y, r)
                         if label:
                             self.draw_circular_object_label(x, y, r, label, fh=highlight_fh)
-                        if object_name and visible_objects_collector is not None:
-                            xs1, ys1 = x-r, y-r
-                            xs2, ys2 = x+r, y+r
-                            if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
-                                xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
-                                xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-                                xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-                                visible_objects_collector.append([r, object_name, xp1, yp1, xp2, yp2])
+                        self.collect_visible_object(visible_objects_collector, x, y, r, object_name)
 
     def draw_dso_hightlight(self, x, y, rlong, dso_name, dso_highligth, visible_objects_collector):
         self.graphics.set_pen_rgb(dso_highligth.color)
@@ -957,13 +938,7 @@ class SkymapEngine:
 
         r = self.config.font_size
         self.graphics.circle(x, y, r)
-        xs1, ys1 = x-r, y-r
-        xs2, ys2 = x+r, y+r
-        if visible_objects_collector is not None and (self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2)):
-            xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
-            xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
-            xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
-            visible_objects_collector.append([r, dso_name.replace(' ', ''), xp1, yp1, xp2, yp2])
+        self.collect_visible_object(visible_objects_collector, x, y, r, dso_name)
 
     def draw_trajectory(self, trajectory):
         # Draw extra objects
@@ -2122,3 +2097,15 @@ class SkymapEngine:
         self.label_potential.add_position(lx, ly, label_length)
 
         return result
+
+    def collect_visible_object(self, visible_objects_collector, x, y, r, label):
+        if visible_objects_collector is not None:
+            xs1, ys1 = x - r, y - r
+            xs2, ys2 = x + r, y + r
+            if self.graphics.on_screen(xs1, ys1) or self.graphics.on_screen(xs2, ys2):
+                xp1, yp1 = self.graphics.to_pixel(xs1, ys1)
+                xp2, yp2 = self.graphics.to_pixel(xs2, ys2)
+                xp1, yp1, xp2, yp2 = self.align_rect_coords(xp1, yp1, xp2, yp2)
+                visible_objects_collector.append([r, label.replace(' ', ''), xp1, yp1, xp2, yp2])
+                return True
+        return False
