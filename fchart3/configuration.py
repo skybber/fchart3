@@ -68,6 +68,15 @@ DEFAULT_PLUTO_COLOR   = (0.7, 0.6, 0.5)
 DEFAULT_SUN_COLOR     = (1.0, 1.0, 0.0)
 DEFAULT_MOON_COLOR    = (0.8, 0.8, 0.8)
 
+DEFAULT_MERCURY_R_SCALE = 1.0
+DEFAULT_VENUS_R_SCALE   = 1.0
+DEFAULT_MARS_R_SCALE    = 1.0
+DEFAULT_JUPITER_R_SCALE = 1.0
+DEFAULT_SATURN_R_SCALE  = 1.0
+DEFAULT_URANUS_R_SCALE  = 0.6
+DEFAULT_NEPTUNE_R_SCALE = 0.6
+DEFAULT_PLUTO_R_SCALE   = 0.6
+
 
 class EngineConfiguration:
     def __init__(self):
@@ -154,6 +163,14 @@ class EngineConfiguration:
         self._pluto_color = DEFAULT_PLUTO_COLOR
         self._sun_color = DEFAULT_SUN_COLOR
         self._moon_color = DEFAULT_MOON_COLOR
+        self._mercury_r_scale = DEFAULT_MERCURY_R_SCALE
+        self._venus_r_scale = DEFAULT_VENUS_R_SCALE
+        self._mars_r_scale = DEFAULT_MARS_R_SCALE
+        self._jupiter_r_scale = DEFAULT_JUPITER_R_SCALE
+        self._saturn_r_scale = DEFAULT_SATURN_R_SCALE
+        self._uranus_r_scale = DEFAULT_URANUS_R_SCALE
+        self._neptune_r_scale = DEFAULT_NEPTUNE_R_SCALE
+        self._pluto_r_scale = DEFAULT_PLUTO_R_SCALE
 
     @property
     def legend_only(self):
@@ -818,3 +835,66 @@ class EngineConfiguration:
     def moon_color(self, value):
         self._moon_color = value
 
+    @property
+    def mercury_r_scale(self):
+        return self._mercury_r_scale
+
+    @mercury_r_scale.setter
+    def mercury_r_scale(self, value):
+        self._mercury_r_scale = value
+
+    @property
+    def venus_r_scale(self):
+        return self._venus_r_scale
+
+    @venus_r_scale.setter
+    def venus_r_scale(self, value):
+        self._venus_r_scale = value
+
+    @property
+    def mars_r_scale(self):
+        return self._mars_r_scale
+
+    @mars_r_scale.setter
+    def mars_r_scale(self, value):
+        self._mars_r_scale = value
+
+    @property
+    def jupiter_r_scale(self):
+        return self._jupiter_r_scale
+
+    @jupiter_r_scale.setter
+    def jupiter_r_scale(self, value):
+        self._jupiter_r_scale = value
+
+    @property
+    def saturn_r_scale(self):
+        return self._saturn_r_scale
+
+    @saturn_r_scale.setter
+    def saturn_r_scale(self, value):
+        self._saturn_r_scale = value
+
+    @property
+    def uranus_r_scale(self):
+        return self._uranus_r_scale
+
+    @uranus_r_scale.setter
+    def uranus_r_scale(self, value):
+        self._uranus_r_scale = value
+
+    @property
+    def neptune_r_scale(self):
+        return self._neptune_r_scale
+
+    @neptune_r_scale.setter
+    def neptune_r_scale(self, value):
+        self._neptune_r_scale = value
+
+    @property
+    def pluto_r_scale(self):
+        return self._pluto_r_scale
+
+    @pluto_r_scale.setter
+    def pluto_r_scale(self, value):
+        self._pluto_r_scale = value

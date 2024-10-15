@@ -735,7 +735,9 @@ class SkymapEngine:
                 if solar_system_body in (SolarSystemBody.SUN, SolarSystemBody.MOON):
                     fix_r = round(1.75 * self.min_radius, 2)
                 else:
-                    fix_r = round(1.2 * self.min_radius, 2)
+                    r_scale_attr = solar_system_body.name.lower() + '_r_scale'
+                    r_scale_conf = getattr(self.config, r_scale_attr)
+                    fix_r = round(1.2 * r_scale_conf * self.min_radius, 2)
 
                 cur_r = ssb_obj.angular_radius * self.drawing_scale
                 r = max(fix_r, cur_r)
