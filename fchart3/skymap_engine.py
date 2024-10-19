@@ -21,7 +21,7 @@ import os
 
 uilanguage=os.environ.get('fchart3lang')
 try:
-    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang = gettext.translation('messages', localedir='locale', languages=[uilanguage])
     lang.install()
     _ = lang.gettext
 except:
@@ -60,58 +60,58 @@ from .astrocalc import angular_distance
 
 LABELi18N = {
     'h': _('h'),
-    'm':_('m'),
-    's':_('s'),
-    'G':_('Galaxy'),
-    'OCL':_('Open cluster'),
-    'GCL':_('Globular cluster'),
-    'AST':_('Asterism'),
-    'PN':_('Planetary nebula'),
+    'm': _('m'),
+    's': _('s'),
+    'G': _('Galaxy'),
+    'OCL': _('Open cluster'),
+    'GCL': _('Globular cluster'),
+    'AST': _('Asterism'),
+    'PN': _('Planetary nebula'),
     'N': _('Diffuse nebula'),
-    'SNR':_('Supernova remnant'),
-    'PG':_('Part of galaxy')
+    'SNR': _('Supernova remnant'),
+    'PG': _('Part of galaxy')
 }
 
 FR = {
-    'h':'h',
-    'm':'m',
-    's':'s',
-    'G':'Galaxie',
-    'OCL':'Cluster Ouvert',
-    'GCL':'Cluster Globulaire',
-    'AST':'Astérisme',
+    'h': 'h',
+    'm': 'm',
+    's': 's',
+    'G': 'Galaxie',
+    'OCL': 'Cluster Ouvert',
+    'GCL': 'Cluster Globulaire',
+    'AST': 'Astérisme',
     'PN': 'Nébuleuse Planétaire',
     'N': 'Nébuleuse Diffuse',
-    'SNR':'Rémanent de Supernova',
-    'PG':'Partie de Galaxie'
+    'SNR': 'Rémanent de Supernova',
+    'PG': 'Partie de Galaxie'
 }
 
 
 STAR_LABELS = {
-    "alp":"α",
-    "bet":"β",
-    "gam":"γ",
-    "del":"δ",
-    "eps":"ε",
-    "zet":"ζ",
-    "eta":"η",
-    "the":"θ",
-    "iot":"ι",
-    "kap":"κ",
-    "lam":"λ",
-    "mu":"μ",
-    "nu":"ν",
-    "xi":"ξ",
-    "omi":"ο",
-    "pi":"π",
-    "rho":"ρ",
-    "sig":"σ/ς",
-    "tau":"τ",
-    "ups":"υ",
-    "phi":"φ",
-    "chi":"χ",
-    "psi":"ψ",
-    "ome":"ω"
+    "alp": "α",
+    "bet": "β",
+    "gam": "γ",
+    "del": "δ",
+    "eps": "ε",
+    "zet": "ζ",
+    "eta": "η",
+    "the": "θ",
+    "iot": "ι",
+    "kap": "κ",
+    "lam": "λ",
+    "mu": "μ",
+    "nu": "ν",
+    "xi": "ξ",
+    "omi": "ο",
+    "pi": "π",
+    "rho": "ρ",
+    "sig": "σ/ς",
+    "tau": "τ",
+    "ups": "υ",
+    "phi": "φ",
+    "chi": "χ",
+    "psi": "ψ",
+    "ome": "ω"
 }
 
 STARS_IN_SCALE = 10
@@ -170,6 +170,7 @@ class SkymapEngine:
         self.mirroring_graphics = None
         self.picked_dso = None
         self.picked_star = None
+        self.picked_planet_moon = None
         self.star_mag_r_shift = 0
         self.projection = None
         self.norm_field_radius = None
@@ -255,6 +256,7 @@ class SkymapEngine:
         visible_objects_collector = [] if visible_objects is not None else None
         self.picked_dso = None
         self.picked_star = None
+        self.picked_planet_moon = None
 
         if self.mirror_x or self.mirror_y:
             self.mirroring_graphics = MirroringGraphics(self.graphics, self.mirror_x, self.mirror_y)
@@ -276,16 +278,13 @@ class SkymapEngine:
         self.graphics.set_default_font_size(self.config.font_size)
         self.graphics.set_linewidth(self.config.legend_linewidth)
 
-
         if jd is not None:
             precession_matrix = np.linalg.inv(compute_precession_matrix(jd))
         else:
             precession_matrix = None
 
         if not self.config.legend_only:
-
             self.label_potential = LabelPotential(self.get_field_radius_mm())
-            self.picked_star = None
 
             clip_path = self.space_widget_allocator.get_border_path()
             self.graphics.clip_path(clip_path)
@@ -321,20 +320,22 @@ class SkymapEngine:
                 self.draw_deepsky_objects(used_catalogs.deepskycatalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_objects_collector)
                 # print("DSO within {} s".format(str(time()-tm)), flush=True)
 
-            if self.picked_dso is None and self.picked_star is not None:
-                self.draw_picked_star()
-
-            if extra_positions:
-                self.draw_extra_objects(extra_positions)
-
+            planet_moon_positions = None
             if planet_moons:
-                self.draw_planet_moons(planet_moons, solsys_bodies, visible_objects_collector, False)
+                planet_moon_positions = self.calc_planet_moons_positions(planet_moons)
+                self.draw_planet_moons(planet_moon_positions, planet_moons, solsys_bodies, visible_objects_collector, False)
 
             if solsys_bodies:
                 self.draw_solar_system_bodies(solsys_bodies, visible_objects_collector)
 
             if planet_moons:
-                self.draw_planet_moons(planet_moons, solsys_bodies, visible_objects_collector, True)
+                self.draw_planet_moons(planet_moon_positions, planet_moons, solsys_bodies, visible_objects_collector, True)
+
+            if self.picked_dso is None and self.picked_planet_moon is None and self.picked_star is not None:
+                self.draw_picked_star()
+
+            if extra_positions:
+                self.draw_extra_objects(extra_positions)
 
             if trajectory:
                 self.draw_trajectory(trajectory)
@@ -675,7 +676,19 @@ class SkymapEngine:
             if nzopt or z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
-    def draw_planet_moons(self, planet_moons, solsys_bodies, visible_objects_collector, in_front):
+    def calc_planet_moons_positions(self, planet_moons):
+        result = []
+        pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
+        pick_min_r = pick_r ** 2
+        for pl_moon in planet_moons:
+            x, y, z = self.projection.radec_to_xyz(pl_moon.ra, pl_moon.dec)
+            result.append([x, y, z])
+            r = x ** 2 + y ** 2
+            if r < pick_min_r:
+                self.picked_planet_moon = pl_moon
+        return result
+
+    def draw_planet_moons(self, planet_moon_positions, planet_moons, solsys_bodies, visible_objects_collector, in_front):
         if not in_front and not solsys_bodies:
             return
 
@@ -684,7 +697,7 @@ class SkymapEngine:
 
         planet_map = {sl_body.solar_system_body: sl_body for sl_body in solsys_bodies} if solsys_bodies else {}
 
-        for pl_moon in planet_moons:
+        for pl_moon_index, pl_moon in enumerate(planet_moons):
             planet = planet_map.get(pl_moon.planet)
 
             if planet is not None:
@@ -695,7 +708,7 @@ class SkymapEngine:
                     if pl_moon.distance <= planet.distance:
                         continue
 
-            x, y, z = self.projection.radec_to_xyz(pl_moon.ra, pl_moon.dec)
+            x, y, z = planet_moon_positions[pl_moon_index]
 
             if nzopt or z >= 0:
                 r = self.magnitude_to_radius(pl_moon.mag)
@@ -711,6 +724,9 @@ class SkymapEngine:
                     labelpos = self.find_min_labelpos(labelpos_list, label_length, favour_index=2)
 
                     self.draw_planet_label(x, y, r_lab, pl_moon.moon_name, labelpos, 0.75)
+                    if self.picked_planet_moon == pl_moon:
+                        ext_label = '{:.2f}'.format(pl_moon.mag)
+                        self.draw_planet_label(x, y, r_lab, ext_label, self.to_ext_labelpos(labelpos), 0.75)
 
                 self.collect_visible_object(visible_objects_collector, x, y, r_lab, pl_moon.moon_name)
 
@@ -1038,8 +1054,8 @@ class SkymapEngine:
 
         # print("Stars selection {} ms".format(str(time()-tm)), flush=True)
         print(_('{} stars in map.'.format(selection.shape[0])))
-        var=str(round(max(selection['mag']), 2))
-        print(_(f'Faintest star : {var}' ))
+        var = str(round(max(selection['mag']), 2))
+        print(_(f'Faintest star : {var}'))
 
         # tm = time()
         x, y = self.projection.np_radec_to_xy(selection['ra'], selection['dec'])
