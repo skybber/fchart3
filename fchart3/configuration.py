@@ -85,6 +85,7 @@ class EngineConfiguration:
         self._show_flamsteed = True
         self._show_mag_scale_legend = False
         self._show_map_scale_legend = False
+        self._show_numeric_map_scale_legend = False
         self._show_orientation_legend = False
         self._show_dso_legend = False
         self._show_coords_legend = False
@@ -211,6 +212,14 @@ class EngineConfiguration:
     @show_map_scale_legend.setter
     def show_map_scale_legend(self, value):
         self._show_map_scale_legend = value
+
+    @property
+    def show_numeric_map_scale_legend(self):
+        return self._show_numeric_map_scale_legend
+
+    @show_numeric_map_scale_legend.setter
+    def show_numeric_map_scale_legend(self, value):
+        self._show_numeric_map_scale_legend = value
 
     @property
     def show_orientation_legend(self):

@@ -46,6 +46,7 @@ from .projection_stereographic import ProjectionStereographic
 from .space_widget_allocator import SpaceWidgetAllocator
 from .widget_mag_scale import WidgetMagnitudeScale
 from .widget_map_scale import WidgetMapScale
+from .widget_numeric_map_scale import WidgetNumericMapScale
 from .widget_orientation import WidgetOrientation
 from .widget_coords import WidgetCoords
 from .widget_dso_legend import WidgetDsoLegend
@@ -152,6 +153,7 @@ class SkymapEngine:
         self.fieldcentre = None
         self.fieldradius = None
         self.fieldsize = None
+        self.fieldlabel = None
         self.scene_scale = None
         self.drawing_scale = None
         self.legend_fontscale = None
@@ -161,6 +163,7 @@ class SkymapEngine:
         self.space_widget_allocator = None
         self.w_mag_scale = None
         self.w_map_scale = None
+        self.w_numeric_map_scale = None
         self.w_orientation = None
         self.w_coords = None
         self.w_dso_legend = None
@@ -175,9 +178,10 @@ class SkymapEngine:
         self.projection = None
         self.norm_field_radius = None
 
-    def set_field(self, ra, dec, fieldradius, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
+    def set_field(self, ra, dec, fieldradius, fieldlabel, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
         self.fieldradius = fieldradius
         self.fieldcentre = (ra, dec)
+        self.fieldlabel = fieldlabel
 
         wh = max(self.drawingwidth, self.drawingheight)
 
@@ -398,6 +402,8 @@ class SkymapEngine:
             self.w_mag_scale.draw(self.graphics, self.config.legend_only)
         if self.config.show_map_scale_legend:
             self.w_map_scale.draw(self.graphics, self.config.legend_only)
+        if self.config.show_numeric_map_scale_legend:
+            self.w_numeric_map_scale.draw(self.graphics, self.config.legend_only, self.fieldlabel)
         if self.config.show_orientation_legend:
             self.w_orientation.draw(self.graphics, x1, y2, self.config.legend_only)
         if self.config.show_coords_legend:
@@ -1534,6 +1540,13 @@ class SkymapEngine:
                                           legend_linewidth=self.config.legend_linewidth,
                                           color=self.config.draw_color)
 
+
+        self.w_numeric_map_scale = WidgetNumericMapScale(sky_map_engine=self,
+                                          alloc_space_spec='bottom,left',
+                                          legend_fontsize=self.get_legend_font_size(),
+                                          legend_linewidth=self.config.legend_linewidth,
+                                          color=self.config.draw_color)
+
         self.w_orientation = WidgetOrientation(legend_fontsize=self.get_legend_font_size(),
                                                mirror_x=self.mirror_x,
                                                mirror_y=self.mirror_y,
@@ -1549,6 +1562,8 @@ class SkymapEngine:
             self.w_mag_scale.allocate_space(self.space_widget_allocator)
         if self.config.show_map_scale_legend:
             self.w_map_scale.allocate_space(self.space_widget_allocator)
+        if self.config.show_numeric_map_scale_legend:
+            self.w_numeric_map_scale.allocate_space(self.space_widget_allocator)
 
     def star(self, x, y, radius, star_color):
         if self.config.star_colors and star_color:
