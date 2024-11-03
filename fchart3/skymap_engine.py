@@ -185,7 +185,7 @@ class SkymapEngine:
 
         wh = max(self.drawingwidth, self.drawingheight)
 
-        self.fieldsize = fieldradius * math.sqrt(self.drawingwidth**2 + self.drawingheight**2) / wh
+        self.fieldsize = fieldradius * math.hypot(self.drawingwidth, self.drawingheight) / wh
 
         if self.config.no_margin:
             self.scene_scale = (wh - self.config.legend_linewidth) / wh
@@ -343,6 +343,9 @@ class SkymapEngine:
 
             if trajectory:
                 self.draw_trajectory(trajectory)
+
+            if highlights:
+                self.draw_arrow_to_highlight(clip_path, highlights)
 
             self.graphics.reset_clip()
 
@@ -589,7 +592,7 @@ class SkymapEngine:
             ra = (uneb.ra_min + uneb.ra_max) / 2.0
             dec = (uneb.dec_min + uneb.dec_max) / 2.0
             x, y, z = self.projection.radec_to_xyz(ra, dec)
-            if zopt and z <=0:
+            if zopt and z <= 0:
                 continue
             for outl_lev in range(3):
                 outlines = uneb.outlines[outl_lev]
@@ -991,7 +994,7 @@ class SkymapEngine:
 
             nx, ny = (None, None)
             if x1 is not None:
-                n = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+                n = math.hypot(x2-x1, y2-y1)
                 if n != 0:
                     nx = (x2-x1)/n
                     ny = (y2-y1)/n
@@ -1034,7 +1037,7 @@ class SkymapEngine:
     def draw_trajectory_tick(self, x1, y1, x2, y2):
         dx = x2-x1
         dy = y2-y1
-        dr = math.sqrt(dx * dx + dy*dy)
+        dr = math.hypot(dx, dy)
         if dr > 0:
             ddx = dx * 1.0 / dr
             ddy = dy * 1.0 / dr
@@ -1389,7 +1392,7 @@ class SkymapEngine:
                 if self.config.constellation_linespace > 0:
                     dx = x2[i] - x1[i]
                     dy = y2[i] - y1[i]
-                    dr = math.sqrt(dx * dx + dy*dy)
+                    dr = math.hypot(dx, dy)
                     ddx = dx * self.config.constellation_linespace / dr
                     ddy = dy * self.config.constellation_linespace / dr
                     self.graphics.line(x1[i] + ddx, y1[i] + ddy, x2[i] - ddx, y2[i] - ddy)
@@ -1511,7 +1514,7 @@ class SkymapEngine:
         vx2 = x2 - x_center
         vy2 = y2 - y_center
 
-        vec_mul2 = (vx1 * vy2 - vy1 * vx2) / (math.sqrt(vx1**2 + vy1**2) * math.sqrt(vx2**2 + vy2**2))
+        vec_mul2 = (vx1 * vy2 - vy1 * vx2) / (math.hypot(vx1, vy1) * math.hypot(vx2, vy2))
 
         if abs(vec_mul2) < max_angle2:
             return divs
@@ -1542,10 +1545,10 @@ class SkymapEngine:
 
 
         self.w_numeric_map_scale = WidgetNumericMapScale(sky_map_engine=self,
-                                          alloc_space_spec='bottom,left',
-                                          legend_fontsize=self.get_legend_font_size(),
-                                          legend_linewidth=self.config.legend_linewidth,
-                                          color=self.config.draw_color)
+                                                         alloc_space_spec='bottom,left',
+                                                         legend_fontsize=self.get_legend_font_size(),
+                                                         legend_linewidth=self.config.legend_linewidth,
+                                                         color=self.config.draw_color)
 
         self.w_orientation = WidgetOrientation(legend_fontsize=self.get_legend_font_size(),
                                                mirror_x=self.mirror_x,
@@ -2142,3 +2145,120 @@ class SkymapEngine:
                 visible_objects_collector.append([r, label.replace(' ', ''), xp1, yp1, xp2, yp2])
                 return True
         return False
+
+    def draw_arrow_to_highlight(self, clip_path, highlights):
+        for hl_def in highlights:
+            if hl_def.style == 'cross' and len(hl_def.data) == 1:
+                break
+        else:
+            return
+
+        rax, decx, object_name, label = hl_def.data[0]
+        x, y, z = self.projection.radec_to_xyz(rax, decx)
+
+        if self.is_inside_clip_path(clip_path, x, y):
+            return
+
+        arrow_len = 6
+
+        intersection = self.find_intersection(clip_path, x, y)
+        if intersection is None:
+            return
+
+        x_int, y_int = intersection
+
+        direction_x = x
+        direction_y = y
+        norm = math.hypot(direction_x, direction_y)
+        if norm == 0:
+            return
+
+        unit_direction_x = direction_x / norm
+        unit_direction_y = direction_y / norm
+
+        # Calculate the arrow end point
+        arrow_length = arrow_len
+        arrow_end_x = x_int - unit_direction_x * arrow_length
+        arrow_end_y = y_int - unit_direction_y * arrow_length
+
+        print('Intersect {} {} / {} {} {} {}'.format(x, y, x_int, y_int, arrow_end_x, arrow_end_y))
+
+        self.graphics.set_solid_line()
+        self.graphics.set_linewidth(self.config.legend_linewidth * 3)
+        self.graphics.set_pen_rgb(self.config.draw_color)
+
+        self.graphics.line(x_int, y_int, arrow_end_x, arrow_end_y)
+
+        # Optionally, draw arrowhead wings
+        arrowhead_size = 2 * arrow_len / 3  # Adjust as needed
+        angle = math.atan2(unit_direction_y, unit_direction_x)
+        left_wing_angle = angle + math.pi / 6  # 30 degrees
+        right_wing_angle = angle - math.pi / 6  # 30 degrees
+
+        # Left wing of the arrowhead
+        left_wing_x = x_int - arrowhead_size * math.cos(left_wing_angle)
+        left_wing_y = y_int - arrowhead_size * math.sin(left_wing_angle)
+        self.graphics.line(x_int, y_int, left_wing_x, left_wing_y)
+
+        # Right wing of the arrowhead
+        right_wing_x = x_int - arrowhead_size * math.cos(right_wing_angle)
+        right_wing_y = y_int - arrowhead_size * math.sin(right_wing_angle)
+        self.graphics.line(x_int, y_int, right_wing_x, right_wing_y)
+
+        if label is None:
+            label_x = x_int + (arrow_end_x - x_int) / 2
+            label_y = y_int + (arrow_end_y - y_int) / 2
+            self.graphics.text_centered(label_x, label_y, label)
+
+    def is_inside_clip_path(self, clip_path, x, y):
+        x_coords = [point[0] for point in clip_path]
+        y_coords = [point[1] for point in clip_path]
+
+        x_min = min(x_coords)
+        x_max = max(x_coords)
+        y_min = min(y_coords)
+        y_max = max(y_coords)
+
+        return x_min <= x <= x_max and y_min <= y <= y_max
+
+    def find_intersection(self, clip_path, x, y):
+        edges = []
+        n = len(clip_path)
+        for i in range(n):
+            p1 = clip_path[i]
+            p2 = clip_path[(i+1) % n]
+            edges.append((p1, p2))
+
+        intersections = []
+        for p1, p2 in edges:
+            x0, y0 = p1
+            x1, y1 = p2
+
+            if x0 == x1:  # Vertical edge
+                x_edge = x0
+                if x == 0:
+                    continue  # Avoid division by zero; line is vertical
+                t = x_edge / x
+                if t >= 0:
+                    y_int = t * y
+                    y_min = min(y0, y1)
+                    y_max = max(y0, y1)
+                    if y_min <= y_int <= y_max:
+                        intersections.append((t, (x_edge, y_int)))
+            elif y0 == y1:  # Horizontal edge
+                y_edge = y0
+                if y == 0:
+                    continue  # Avoid division by zero; line is horizontal
+                t = y_edge / y
+                if t >= 0:
+                    x_int = t * x
+                    x_min = min(x0, x1)
+                    x_max = max(x0, x1)
+                    if x_min <= x_int <= x_max:
+                        intersections.append((t, (x_int, y_edge)))
+
+        if not intersections:
+            return None
+
+        t_min, intersection_point = min(intersections, key=lambda item: item[0])
+        return intersection_point

@@ -58,7 +58,7 @@ class SpaceHorizontalAllocator:
 
     def get_border_path(self):
         if self.next_y is None:
-            result = [(self.left, self.y),(self.right, self.y)]
+            result = [(self.left, self.y), (self.right, self.y)]
         else:
             result = []
             if self.cur_left != self.left:
