@@ -27,12 +27,12 @@ class WidgetHSpace:
         self.color = color
         self.height = 2.2 * self.legend_fontsize
 
-    def draw(self, graphics, left, right, bottom, legend_only):
+    def draw(self, graphics, left, right, bottom, fill_background):
         graphics.set_solid_line()
         graphics.set_pen_rgb(self.color)
         graphics.set_linewidth(self.legend_linewidth)
 
-        if legend_only and graphics.gi_background_rgb:
+        if fill_background and graphics.gi_background_rgb:
             graphics.save()
             graphics.set_fill_background()
             graphics.rectangle(left, bottom+self.height, right-left, self.height, DrawMode.FILL)

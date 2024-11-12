@@ -26,7 +26,7 @@ class WidgetDsoLegend:
         self.legend_margin = legend_margin
         self.color = color
 
-    def draw_dso_legend(self, sky_map_engine, graphics, legend_only):
+    def draw_dso_legend(self, sky_map_engine, graphics, erase_background):
         fh = graphics.gi_font_size
         # Draw list of symbols
         legendx = 0.48*self.drawingwidth

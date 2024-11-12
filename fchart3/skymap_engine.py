@@ -287,7 +287,7 @@ class SkymapEngine:
         else:
             precession_matrix = None
 
-        if not self.config.legend_only:
+        if self.config.widget_mode != WidgetMode.WIDGET_ONLY:
             self.label_potential = LabelPotential(self.get_field_radius_mm())
 
             clip_path = self.space_widget_allocator.get_border_path()
@@ -389,11 +389,15 @@ class SkymapEngine:
         return self.config.font_size * self.legend_fontscale
 
     def draw_widgets(self):
+        if self.config.widget_mode == WidgetMode.ALLOC_SPACE_ONLY:
+            return
         # Set the font_size for the entire legend
         font_size = self.get_legend_font_size()
         self.graphics.set_font(self.graphics.gi_font, font_size=font_size)
 
         x1, y1, x2, y2 = self.get_field_rect_mm()
+
+        fill_background = self.config.widget_mode in [WidgetMode.WIDGET_ONLY, WidgetMode.NORMAL]
 
         if self.config.fov_telrad:
             self.w_telrad.draw(self.graphics)
@@ -402,17 +406,17 @@ class SkymapEngine:
         if self.config.show_picker and self.config.picker_radius > 0:
             self.w_picker.draw(self.graphics)
         if self.config.show_mag_scale_legend:
-            self.w_mag_scale.draw(self.graphics, self.config.legend_only)
+            self.w_mag_scale.draw(self.graphics, fill_background)
         if self.config.show_map_scale_legend:
-            self.w_map_scale.draw(self.graphics, self.config.legend_only)
+            self.w_map_scale.draw(self.graphics, fill_background)
         if self.config.show_numeric_map_scale_legend:
-            self.w_numeric_map_scale.draw(self.graphics, self.config.legend_only, self.fieldlabel)
+            self.w_numeric_map_scale.draw(self.graphics, fill_background, self.fieldlabel)
         if self.config.show_orientation_legend:
-            self.w_orientation.draw(self.graphics, x1, y2, self.config.legend_only)
+            self.w_orientation.draw(self.graphics, x1, y2, fill_background)
         if self.config.show_coords_legend:
-            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.fieldcentre[0], dec=self.fieldcentre[1], legend_only=self.config.legend_only)
+            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.fieldcentre[0], dec=self.fieldcentre[1], fill_background=fill_background)
         if self.config.show_dso_legend:
-            self.w_dso_legend.draw_dso_legend(self, self.graphics, self.config.legend_only)
+            self.w_dso_legend.draw_dso_legend(self, self.graphics, fill_background)
 
     def draw_deepsky_objects(self, deepsky_catalog, precession_matrix, showing_dsos, dso_highlights, dso_hide_filter, visible_objects_collector):
         if not self.config.show_deepsky:

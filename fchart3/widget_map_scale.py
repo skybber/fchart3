@@ -51,7 +51,7 @@ class WidgetMapScale(WidgetBase):
         fh = self.legend_fontsize * 0.66
         self.width, self.height = self.ruler_length + 2*fh, 2.2 * self.legend_fontsize
 
-    def draw(self, graphics, legend_only):
+    def draw(self, graphics, fill_background):
         fh = self.legend_fontsize * 0.66
 
         x = self.x + self.width - fh
@@ -63,7 +63,7 @@ class WidgetMapScale(WidgetBase):
 
         lw = graphics.gi_linewidth
 
-        if legend_only and graphics.gi_background_rgb:
+        if fill_background and graphics.gi_background_rgb:
             graphics.save()
             graphics.set_fill_background()
             graphics.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)

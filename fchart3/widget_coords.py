@@ -24,7 +24,7 @@ class WidgetCoords:
         self.language = language
         self.color = color
 
-    def draw(self, graphics, left, bottom, ra, dec, legend_only):
+    def draw(self, graphics, left, bottom, ra, dec, fill_background):
         """
         left,bottom are coordinates of the lower left corner of the textbox
         """

@@ -17,6 +17,8 @@
 
 from .graphics_interface import FontStyle
 
+from enum import Enum
+
 
 DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_CONSTELLATION_LINE_SPACE = 3
@@ -78,9 +80,15 @@ DEFAULT_NEPTUNE_R_SCALE = 0.6
 DEFAULT_PLUTO_R_SCALE   = 0.6
 
 
+class WidgetMode(Enum):
+    NORMAL = 1
+    WIDGET_ONLY = 2
+    ALLOC_SPACE_ONLY = 3
+
+
 class EngineConfiguration:
     def __init__(self):
-        self._legend_only = False
+        self._widget_mode = WidgetMode.NORMAL
         self._show_star_labels = True
         self._show_flamsteed = True
         self._show_mag_scale_legend = False
@@ -174,12 +182,12 @@ class EngineConfiguration:
         self._pluto_r_scale = DEFAULT_PLUTO_R_SCALE
 
     @property
-    def legend_only(self):
-        return self._legend_only
+    def widget_mode(self):
+        return self._widget_mode
 
-    @legend_only.setter
-    def legend_only(self, value):
-        self._legend_only = value
+    @widget_mode.setter
+    def widget_mode(self, value):
+        self._widget_mode = value
 
     @property
     def show_star_labels(self):

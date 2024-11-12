@@ -42,7 +42,7 @@ class WidgetMagnitudeScale(WidgetBase):
             self.height = 2.2 * self.legend_fontsize
             self.width = (self.stars_in_scale + 0.6) * self.legend_fontsize
 
-    def draw(self, graphics, legend_only):
+    def draw(self, graphics, fill_background):
         fh = self.legend_fontsize
         mags_in_scale = int(self.lm_stars) - np.arange(self.stars_in_scale)
 
@@ -50,7 +50,7 @@ class WidgetMagnitudeScale(WidgetBase):
         graphics.set_pen_rgb(self.color)
         graphics.set_linewidth(0)
 
-        if legend_only and graphics.gi_background_rgb:
+        if fill_background and graphics.gi_background_rgb:
             graphics.save()
             graphics.set_fill_background()
             graphics.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)

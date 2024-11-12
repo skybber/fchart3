@@ -23,7 +23,7 @@ class WidgetOrientation:
         self.mirror_y = mirror_y
         self.color = color
 
-    def draw(self, graphics, left, top, legend_only):
+    def draw(self, graphics, left, top, fill_background):
         # Draw orientation indication
         dl = self.legend_fontsize
         x = left + dl + 0.2*self.legend_fontsize
