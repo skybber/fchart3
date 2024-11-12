@@ -291,7 +291,11 @@ class SkymapEngine:
             self.label_potential = LabelPotential(self.get_field_radius_mm())
 
             clip_path = self.space_widget_allocator.get_border_path()
-            self.graphics.clip_path(clip_path)
+            if self.config.widget_mode == WidgetMode.ALLOC_SPACE_ONLY:
+                x1, y1, x2, y2 = self.get_field_rect_mm()
+                self.graphics.clip_path([(x2,y2), (x2, y1), (x1, y1), (x1, y2)])
+            else:
+                self.graphics.clip_path(clip_path)
 
             if self.config.show_simple_milky_way:
                 self.draw_milky_way(used_catalogs.milky_way)
