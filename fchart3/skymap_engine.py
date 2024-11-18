@@ -945,7 +945,7 @@ class SkymapEngine:
         nzopt = not self.projection.is_zoptim()
 
         for hl_def in highlights:
-            for rax, decx, object_name, label in hl_def.data:
+            for rax, decx, object_name, label, hl_mag in hl_def.data:
                 x, y, z = self.projection.radec_to_xyz(rax, decx)
                 if nzopt or z >= 0:
                     self.graphics.set_pen_rgb(hl_def.color)
@@ -960,7 +960,13 @@ class SkymapEngine:
                         r = self.config.font_size
                         self.graphics.circle(x, y, r)
                         if label:
+                            self.graphics.set_font(self.graphics.gi_font, highlight_fh, self.config.dso_label_font_style)
                             self.draw_circular_object_label(x, y, r, label, fh=highlight_fh)
+                            if hl_mag is not None:
+                                label_mag = '{:.1f}m'.format(hl_mag)
+                                self.graphics.set_font(self.graphics.gi_font, highlight_fh * 0.8, self.config.dso_label_font_style)
+                                self.draw_circular_object_label(x, y - 0.9 * highlight_fh, r, label_mag, -1, highlight_fh)
+
                         self.collect_visible_object(visible_objects_collector, x, y, r, object_name)
 
     def draw_dso_hightlight(self, x, y, rlong, dso_name, dso_highligth, visible_objects_collector):
