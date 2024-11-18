@@ -2167,7 +2167,7 @@ class SkymapEngine:
         else:
             return
 
-        rax, decx, object_name, label = hl_def.data[0]
+        rax, decx, object_name, label, _ = hl_def.data[0]
         x, y, z = self.projection.radec_to_xyz(rax, decx)
 
         if self.is_inside_clip_path(clip_path, x, y):
