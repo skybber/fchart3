@@ -70,6 +70,7 @@ DEFAULT_PLUTO_COLOR   = (0.7, 0.6, 0.5)
 DEFAULT_SUN_COLOR     = (1.0, 1.0, 0.0)
 DEFAULT_MOON_COLOR    = (0.8, 0.8, 0.8)
 
+DEFAULT_MOON_R_SCALE    = 1
 DEFAULT_MERCURY_R_SCALE = 1.0
 DEFAULT_VENUS_R_SCALE   = 1.0
 DEFAULT_MARS_R_SCALE    = 1.0
@@ -172,6 +173,7 @@ class EngineConfiguration:
         self._pluto_color = DEFAULT_PLUTO_COLOR
         self._sun_color = DEFAULT_SUN_COLOR
         self._moon_color = DEFAULT_MOON_COLOR
+        self._moon_r_scale = DEFAULT_MOON_R_SCALE
         self._mercury_r_scale = DEFAULT_MERCURY_R_SCALE
         self._venus_r_scale = DEFAULT_VENUS_R_SCALE
         self._mars_r_scale = DEFAULT_MARS_R_SCALE
@@ -851,6 +853,14 @@ class EngineConfiguration:
     @moon_color.setter
     def moon_color(self, value):
         self._moon_color = value
+
+    @property
+    def moon_r_scale(self):
+        return self._moon_r_scale
+
+    @moon_r_scale.setter
+    def moon_r_scale(self, value):
+        self._moon_r_scale = value
 
     @property
     def mercury_r_scale(self):

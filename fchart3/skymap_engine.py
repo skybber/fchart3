@@ -778,13 +778,17 @@ class SkymapEngine:
                 if ssb_obj.solar_system_body == SolarSystemBody.SATURN:
                     self.draw_ring(x, y, cur_r, color, ssb_obj.ring_tilt, False)
 
-                moon_scale = 2.0 if ssb_obj.solar_system_body == SolarSystemBody.MOON else 1.0
+                if ssb_obj.solar_system_body == SolarSystemBody.MOON:
+                    body_r_scale = self.config.moon_r_scale
+                else:
+                    body_r_scale = 1.0
+
                 if solar_system_body in [SolarSystemBody.MOON,
                                          SolarSystemBody.MERCURY,
                                          SolarSystemBody.VENUS,
                                          SolarSystemBody.MARS]:
 
-                    self.draw_phase(x, y, r, ssb_obj, sun, color, moon_scale)
+                    self.draw_phase(x, y, r, ssb_obj, sun, color, body_r_scale)
                 else:
                     self.graphics.set_fill_rgb(color)
                     self.graphics.circle(x, y, r, DrawMode.FILL)
@@ -793,11 +797,11 @@ class SkymapEngine:
                     self.draw_ring(x, y, cur_r, color, ssb_obj.ring_tilt, True)
                     r_scale = 1.1
                 else:
-                    r_scale = moon_scale
+                    r_scale = body_r_scale
 
                 label = solar_system_body.label
-                if ssb_obj.solar_system_body == SolarSystemBody.MOON:
-                    label += "x2"
+                if ssb_obj.solar_system_body == SolarSystemBody.MOON and body_r_scale != 1.0:
+                    label += 'x{:.1f}'.format(body_r_scale)
 
                 self.graphics.set_pen_rgb(self.config.label_color)
 
@@ -810,10 +814,10 @@ class SkymapEngine:
                 if solar_system_body not in [SolarSystemBody.MOON, SolarSystemBody.SUN]:
                     self.collect_visible_object(visible_objects_collector, x, y, scaled_r, solar_system_body.label.lower())
 
-    def draw_phase(self, x, y, r, ssb_obj, sun, color, moon_scale):
+    def draw_phase(self, x, y, r, ssb_obj, sun, color, body_r_scale):
         dk = 0.1
         self.graphics.set_fill_rgb((color[0] * dk, color[1] * dk, color[2] * dk,))
-        self.graphics.circle(x, y, r*moon_scale, DrawMode.FILL)
+        self.graphics.circle(x, y, r * body_r_scale, DrawMode.FILL)
 
         illuminated_frac = (1 + math.cos(ssb_obj.phase)) / 2
 
@@ -830,7 +834,7 @@ class SkymapEngine:
 
         self.graphics.begin_path()
 
-        scaled_r = r*moon_scale
+        scaled_r = r * body_r_scale
         self.graphics.move_to(0, scaled_r)
 
         rshort = (1 - 2 * illuminated_frac) * scaled_r
