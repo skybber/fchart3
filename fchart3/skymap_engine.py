@@ -776,7 +776,7 @@ class SkymapEngine:
                 r = max(fix_r, cur_r)
 
                 if ssb_obj.solar_system_body == SolarSystemBody.SATURN:
-                    self.draw_ring(x, y, cur_r, color, ssb_obj.ring_tilt, False)
+                    self.draw_ring(x, y, cur_r, color, ssb_obj.ring_tilt, ssb_obj.north_pole_pa, False)
 
                 if ssb_obj.solar_system_body == SolarSystemBody.MOON:
                     body_r_scale = self.config.moon_r_scale
@@ -794,7 +794,7 @@ class SkymapEngine:
                     self.graphics.circle(x, y, r, DrawMode.FILL)
 
                 if ssb_obj.solar_system_body == SolarSystemBody.SATURN:
-                    self.draw_ring(x, y, cur_r, color, ssb_obj.ring_tilt, True)
+                    self.draw_ring(x, y, cur_r, color, ssb_obj.ring_tilt, ssb_obj.north_pole_pa, True)
                     r_scale = 1.1
                 else:
                     r_scale = body_r_scale
@@ -849,7 +849,7 @@ class SkymapEngine:
         self.graphics.complete_path(DrawMode.FILL)
         self.graphics.restore()
 
-    def draw_ring(self, x, y, cur_r, color, ring_tilt, is_front):
+    def draw_ring(self, x, y, cur_r, color, ring_tilt, north_pole_pa, is_front):
         inner_1 = 1.53 * cur_r
         inner_2 = 1.95 * cur_r
 
@@ -866,7 +866,11 @@ class SkymapEngine:
         self.graphics.save()
 
         self.graphics.translate(x, y)
-        self.graphics.rotate(0.0)
+
+        if north_pole_pa is not None:
+            self.graphics.rotate(north_pole_pa)
+        else:
+            self.graphics.rotate(0.0)
 
         self.graphics.begin_path()
 
