@@ -20,6 +20,7 @@ import gettext
 import os
 
 uilanguage=os.environ.get('fchart3lang')
+
 try:
     lang = gettext.translation('messages', localedir='locale', languages=[uilanguage])
     lang.install()
@@ -868,6 +869,10 @@ class SkymapEngine:
         self.graphics.translate(x, y)
 
         if north_pole_pa is not None:
+            if self.mirror_y:
+                north_pole_pa = -north_pole_pa
+            if self.mirror_x:
+                north_pole_pa = math.pi - north_pole_pa
             self.graphics.rotate(north_pole_pa)
         else:
             self.graphics.rotate(0.0)
