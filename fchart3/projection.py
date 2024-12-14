@@ -93,27 +93,3 @@ class ProjectionInterface:
         float: The direction or angle of the declination change.
         """
         pass
-
-    def pos_angle(self, ra1, dec1, ra2, dec2):
-        """
-        Calculate the position angle between two celestial points (ra1, dec1) and (ra2, dec2),
-        using their projected Cartesian coordinates.
-
-        Returns:
-        float
-            Position angle in radians, measured counterclockwise from the north (positive y-axis).
-        """
-        dr = ra2 - ra1
-        pos_angle = math.atan2(math.sin(dr), math.cos(dec1) * math.tan(dec2) - math.sin(dec1) * math.cos(dr))
-        pos_angle += math.pi
-
-        x, y = self.radec_to_xy(ra1, dec1)
-
-        x_north, y_north = self.radec_to_xy(0, math.pi / 2)  # Dec = +90° (π/2 radians)
-
-        dx = x_north - x
-        dy = y_north - y
-
-        angle_to_north = math.atan2(dx, dy)
-
-        return pos_angle + angle_to_north - math.pi / 2

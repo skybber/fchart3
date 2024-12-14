@@ -274,6 +274,19 @@ def rect_to_sphere(x1, x2, x3):
     return ra, dec
 
 
+def pos_angle(ra1, dec1, ra2, dec2):
+    """
+    Calculate the position angle between two points.
+    Returns:
+    float: The position angle (in radians).
+    """
+    delta_ra = ra2 - ra1
+    a = math.atan2(math.sin(delta_ra), math.cos(dec1) * math.tan(dec2) - math.sin(dec1) * math.cos(delta_ra))
+    a += math.pi
+    a = a % (2 * math.pi)
+    return a
+
+
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
            'rad2dms', 'rad2hms',
            'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm', 'radec_to_lmz',

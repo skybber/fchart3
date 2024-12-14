@@ -57,7 +57,7 @@ from .widget_picker import WidgetPicker
 
 from .precession import compute_precession_matrix
 from .solar_system_body import SolarSystemBody
-from .astrocalc import angular_distance
+from .astrocalc import angular_distance, pos_angle
 
 
 LABELi18N = {
@@ -825,7 +825,11 @@ class SkymapEngine:
         if illuminated_frac < 0.01:
             return
 
-        sun_angle = self.projection.pos_angle(ssb_obj.ra, ssb_obj.dec, sun.ra, sun.dec)
+        sun_angle = pos_angle(ssb_obj.ra, ssb_obj.dec, sun.ra, sun.dec) - math.pi/2
+
+        if sun_angle < 0:
+            sun_angle += 2 * math.pi
+
 
         self.graphics.set_fill_rgb(color)
         self.graphics.save()
