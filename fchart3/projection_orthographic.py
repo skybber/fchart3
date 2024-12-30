@@ -24,77 +24,77 @@ from .projection import ProjectionInterface
 class ProjectionOrthographic(ProjectionInterface):
     def __init__(self):
         ProjectionInterface.__init__(self)
-        self.sin_dec0 = None
-        self.cos_dec0 = None
+        self.sin_theta0 = None
+        self.cos_theta0 = None
 
     def set_fieldcentre(self, fieldcentre):
         ProjectionInterface.set_fieldcentre(self, fieldcentre)
-        self.sin_dec0 = math.sin(fieldcentre[1])
-        self.cos_dec0 = math.cos(fieldcentre[1])
+        self.sin_theta0 = math.sin(fieldcentre[1])
+        self.cos_theta0 = math.cos(fieldcentre[1])
 
     def is_zoptim(self):
         return True
 
-    def radec_to_xy(self, ra, dec):
-        ra0, dec0 = self.fieldcentre
-        delta_ra = ra - ra0
+    def celestial_to_xy(self, phi, theta):
+        phi0, theta0 = self.fieldcentre
+        delta_phi = phi - phi0
 
-        sin_dec = math.sin(dec)
-        cos_dec = math.cos(dec)
-        cos_delta_ra = math.cos(delta_ra)
+        sin_theta = math.sin(theta)
+        cos_theta = math.cos(theta)
+        cos_delta_phi = math.cos(delta_phi)
 
-        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+        sin_theta0, cos_theta0 = self.sin_theta0, self.cos_theta0
 
-        x = -cos_dec*math.sin(delta_ra)*self.scale_x
-        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y
+        x = -cos_theta*math.sin(delta_phi)*self.scale_x
+        y = (sin_theta*cos_theta0 - cos_theta*cos_delta_phi*sin_theta0)*self.scale_y
         return x, y
 
-    def radec_to_xyz(self, ra, dec):
-        ra0, dec0 = self.fieldcentre
-        delta_ra = ra - ra0
+    def celestial_to_xyz(self, phi, theta):
+        phi0, theta0 = self.fieldcentre
+        delta_phi = phi - phi0
 
-        sin_dec = math.sin(dec)
-        cos_dec = math.cos(dec)
-        cos_delta_ra = math.cos(delta_ra)
+        sin_theta = math.sin(theta)
+        cos_theta = math.cos(theta)
+        cos_delta_phi = math.cos(delta_phi)
 
-        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+        sin_theta0, cos_theta0 = self.sin_theta0, self.cos_theta0
 
-        z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-        x = -cos_dec*math.sin(delta_ra)*self.scale_x if z>0 else 0
-        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y if z>0 else 0
+        z = sin_theta*sin_theta0 + cos_theta*cos_theta0*cos_delta_phi
+        x = -cos_theta*math.sin(delta_phi)*self.scale_x if z>0 else 0
+        y = (sin_theta*cos_theta0 - cos_theta*cos_delta_phi*sin_theta0)*self.scale_y if z>0 else 0
         return x, y, z
 
-    def np_radec_to_xy(self, ra, dec):
-        ra0, dec0 = self.fieldcentre
-        delta_ra = ra - ra0
+    def np_celestial_to_xy(self, phi, theta):
+        phi0, theta0 = self.fieldcentre
+        delta_phi = phi - phi0
 
-        sin_dec = np.sin(dec)
-        cos_dec = np.cos(dec)
-        cos_delta_ra = np.cos(delta_ra)
+        sin_theta = np.sin(theta)
+        cos_theta = np.cos(theta)
+        cos_delta_phi = np.cos(delta_phi)
 
-        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+        sin_theta0, cos_theta0 = self.sin_theta0, self.cos_theta0
 
-        x = -cos_dec*np.sin(delta_ra)*self.scale_x
-        y = (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y
+        x = -cos_theta*np.sin(delta_phi)*self.scale_x
+        y = (sin_theta*cos_theta0 - cos_theta*cos_delta_phi*sin_theta0)*self.scale_y
         return x, y
 
-    def np_radec_to_xyz(self, ra, dec):
-        ra0, dec0 = self.fieldcentre
-        delta_ra = ra - ra0
+    def np_celestial_to_xyz(self, phi, theta):
+        phi0, theta0 = self.fieldcentre
+        delta_phi = phi - phi0
 
-        sin_dec = np.sin(dec)
-        cos_dec = np.cos(dec)
-        cos_delta_ra = np.cos(delta_ra)
+        sin_theta = np.sin(theta)
+        cos_theta = np.cos(theta)
+        cos_delta_phi = np.cos(delta_phi)
 
-        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
+        sin_theta0, cos_theta0 = self.sin_theta0, self.cos_theta0
 
-        z = sin_dec*sin_dec0 + cos_dec*cos_dec0*cos_delta_ra
-        x = np.where(z>0, -cos_dec*np.sin(delta_ra)*self.scale_x, 0)
-        y = np.where(z>0, (sin_dec*cos_dec0 - cos_dec*cos_delta_ra*sin_dec0)*self.scale_y, 0)
+        z = sin_theta*sin_theta0 + cos_theta*cos_theta0*cos_delta_phi
+        x = np.where(z>0, -cos_theta*np.sin(delta_phi)*self.scale_x, 0)
+        y = np.where(z>0, (sin_theta*cos_theta0 - cos_theta*cos_delta_phi*sin_theta0)*self.scale_y, 0)
         return x,y,z
 
-    def direction_ddec(self, ra, dec):
-        ra0, dec0 = self.fieldcentre
-        sin_dec0, cos_dec0 = self.sin_dec0, self.cos_dec0
-        angle = math.atan2(-math.sin(dec)*math.sin(ra-ra0), math.cos(dec)*cos_dec0 + math.sin(dec)*sin_dec0*math.cos(ra-ra0))
+    def direction_dtheta(self, phi, theta):
+        phi0, theta0 = self.fieldcentre
+        sin_theta0, cos_theta0 = self.sin_theta0, self.cos_theta0
+        angle = math.atan2(-math.sin(theta) * math.sin(phi - phi0), math.cos(theta) * cos_theta0 + math.sin(theta) * sin_theta0 * math.cos(phi - phi0))
         return angle

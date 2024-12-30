@@ -200,7 +200,7 @@ class SkymapEngine:
         self.projection = self._create_projection(projection_type)
         self.projection.set_fieldcentre((0, 0))
         self.projection.set_scale(1.0, 1.0)
-        self.norm_field_radius, _ = self.projection.radec_to_xy(fieldradius, 0)
+        self.norm_field_radius, _ = self.projection.celestial_to_xy(fieldradius, 0)
         self.drawing_scale = self.scene_scale*wh / 2.0 / abs(self.norm_field_radius)
         self.projection.set_fieldcentre(self.fieldcentre)
         mulx = -1 if mirror_x else 1
@@ -494,7 +494,7 @@ class SkymapEngine:
                 rshort = rlong
             rlong = rlong*self.drawing_scale
             rshort = rshort*self.drawing_scale
-            posangle = dso.position_angle+self.projection.direction_ddec(dso.ra, dso.dec)+0.5*np.pi
+            posangle = dso.position_angle+self.projection.direction_dtheta(dso.ra, dso.dec)+0.5*np.pi
 
             if rlong <= self.min_radius:
                 rshort *= self.min_radius/rlong
@@ -531,7 +531,7 @@ class SkymapEngine:
                 self.planetary_nebula(x, y, rlong, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.OC:
                 if self.config.show_nebula_outlines and dso.outlines is not None:
-                    has_outlines = self.draw_dso_outlines(dso, x, y, rlong, rshort)
+                    self.draw_dso_outlines(dso, x, y, rlong, rshort)
                 self.open_cluster(x, y, rlong, label, label_mag, label_ext, labelpos)
             elif dso.type == deepsky.GC:
                 self.globular_cluster(x, y, rlong, label, label_mag, label_ext, labelpos)
@@ -565,7 +565,7 @@ class SkymapEngine:
                 ra_ar[i] = dso.ra
                 dec_ar[i] = dso.dec
 
-        x, y, z = self.projection.np_radec_to_xyz(ra_ar, dec_ar)
+        x, y, z = self.projection.np_celestial_to_xyz(ra_ar, dec_ar)
         nzopt = not self.projection.is_zoptim()
 
         for i, dso in enumerate(dso_list):
@@ -587,7 +587,7 @@ class SkymapEngine:
             if outlines_ar:
                 has_outlines = True
                 for outlines in outlines_ar:
-                    x_outl, y_outl = self.projection.np_radec_to_xy(outlines[0], outlines[1])
+                    x_outl, y_outl = self.projection.np_celestial_to_xy(outlines[0], outlines[1])
                     self.diffuse_nebula_outlines(x, y, x_outl, y_outl, outl_lev+lev_shift, 2.0*rlong, 2.0*rshort, posangle,
                                                  label, label_ext, draw_label, labelpos)
                     draw_label = False
@@ -600,7 +600,7 @@ class SkymapEngine:
         for uneb in unknown_nebulas:
             ra = (uneb.ra_min + uneb.ra_max) / 2.0
             dec = (uneb.dec_min + uneb.dec_max) / 2.0
-            x, y, z = self.projection.radec_to_xyz(ra, dec)
+            x, y, z = self.projection.celestial_to_xyz(ra, dec)
             if zopt and z <= 0:
                 continue
             for outl_lev in range(3):
@@ -609,11 +609,11 @@ class SkymapEngine:
                     continue
                 for outl in outlines:
                     if not zopt or z > 0:
-                        x_outl, y_outl = self.projection.np_radec_to_xy(outl[0], outl[1])
+                        x_outl, y_outl = self.projection.np_celestial_to_xy(outl[0], outl[1])
                         self.unknown_diffuse_nebula_outlines(x_outl, y_outl, outl_lev)
 
     def draw_milky_way(self, milky_way_lines):
-        x, y, z = self.projection.np_radec_to_xyz(milky_way_lines[:, 0], milky_way_lines[:, 1])
+        x, y, z = self.projection.np_celestial_to_xyz(milky_way_lines[:, 0], milky_way_lines[:, 1])
         self.graphics.set_pen_rgb(self.config.milky_way_color)
         self.graphics.set_fill_rgb(self.config.milky_way_color)
         self.graphics.set_linewidth(self.config.milky_way_linewidth)
@@ -646,7 +646,7 @@ class SkymapEngine:
 
         mw_points = enhanced_milky_way.mw_points
 
-        x, y, z = self.projection.np_radec_to_xyz(mw_points[:, 0], mw_points[:, 1])
+        x, y, z = self.projection.np_celestial_to_xyz(mw_points[:, 0], mw_points[:, 1])
 
         self.graphics.set_linewidth(0)
         fd = self.config.enhanced_milky_way_fade
@@ -690,7 +690,7 @@ class SkymapEngine:
         # print('Drawing extra objects...')
         nzopt = not self.projection.is_zoptim()
         for rax, decx, label, labelpos in extra_positions:
-            x, y, z = self.projection.radec_to_xyz(rax, decx)
+            x, y, z = self.projection.celestial_to_xyz(rax, decx)
             if nzopt or z >= 0:
                 self.unknown_object(x, y, self.min_radius, label, labelpos)
 
@@ -699,7 +699,7 @@ class SkymapEngine:
         pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
         pick_min_r = pick_r ** 2
         for pl_moon in planet_moons:
-            x, y, z = self.projection.radec_to_xyz(pl_moon.ra, pl_moon.dec)
+            x, y, z = self.projection.celestial_to_xyz(pl_moon.ra, pl_moon.dec)
             result.append([x, y, z])
             r = x ** 2 + y ** 2
             if r < pick_min_r:
@@ -760,7 +760,7 @@ class SkymapEngine:
             decx = ssb_obj.dec
             solar_system_body = ssb_obj.solar_system_body
 
-            x, y, z = self.projection.radec_to_xyz(rax, decx)
+            x, y, z = self.projection.celestial_to_xyz(rax, decx)
 
             if nzopt or z >= 0:
                 color_attr = solar_system_body.name.lower() + '_color'
@@ -963,7 +963,7 @@ class SkymapEngine:
 
         for hl_def in highlights:
             for rax, decx, object_name, label, hl_mag in hl_def.data:
-                x, y, z = self.projection.radec_to_xyz(rax, decx)
+                x, y, z = self.projection.celestial_to_xyz(rax, decx)
                 if nzopt or z >= 0:
                     self.graphics.set_pen_rgb(hl_def.color)
                     self.graphics.set_linewidth(hl_def.line_width)
@@ -1012,7 +1012,7 @@ class SkymapEngine:
 
         for i in range(0, len(trajectory)):
             rax2, decx2, label2 = trajectory[i]
-            x2, y2, z2 = self.projection.radec_to_xyz(rax2, decx2)
+            x2, y2, z2 = self.projection.celestial_to_xyz(rax2, decx2)
 
             if i > 0:
                 self.graphics.set_linewidth(self.config.constellation_linewidth)
@@ -1098,7 +1098,7 @@ class SkymapEngine:
         print(_(f'Faintest star : {var}'))
 
         # tm = time()
-        x, y = self.projection.np_radec_to_xy(selection['ra'], selection['dec'])
+        x, y = self.projection.np_celestial_to_xy(selection['ra'], selection['dec'])
 
         # print("Stars view positioning {} ms".format(str(time()-tm)), flush=True)
 
@@ -1285,8 +1285,8 @@ class SkymapEngine:
         nzopt = not self.projection.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.projection.radec_to_xyz(self.fieldcentre[0] + agg_ra, dec)
-            x22, y22, z22 = self.projection.radec_to_xyz(self.fieldcentre[0] - agg_ra, dec)
+            x12, y12, z12 = self.projection.celestial_to_xyz(self.fieldcentre[0] + agg_ra, dec)
+            x22, y22, z22 = self.projection.celestial_to_xyz(self.fieldcentre[0] - agg_ra, dec)
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 self.graphics.line(x11, y11, x12, y12)
                 self.graphics.line(x21, y21, x22, y22)
@@ -1353,8 +1353,8 @@ class SkymapEngine:
         nzopt = not self.projection.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.projection.radec_to_xyz(ra, self.fieldcentre[1] + agg_dec)
-            x22, y22, z22 = self.projection.radec_to_xyz(ra, self.fieldcentre[1] - agg_dec)
+            x12, y12, z12 = self.projection.celestial_to_xyz(ra, self.fieldcentre[1] + agg_dec)
+            x22, y22, z22 = self.projection.celestial_to_xyz(ra, self.fieldcentre[1] - agg_dec)
             if x11 is not None:
                 if nzopt or (z11 > 0 and z12 > 0):
                     self.graphics.line(x11, y11, x12, y12)
@@ -1404,8 +1404,8 @@ class SkymapEngine:
         else:
             constell_lines = constell_catalog.all_constell_lines
 
-        x1, y1, z1 = self.projection.np_radec_to_xyz(constell_lines[:, 0], constell_lines[:, 1])
-        x2, y2, z2 = self.projection.np_radec_to_xyz(constell_lines[:, 2], constell_lines[:, 3])
+        x1, y1, z1 = self.projection.np_celestial_to_xyz(constell_lines[:, 0], constell_lines[:, 1])
+        x2, y2, z2 = self.projection.np_celestial_to_xyz(constell_lines[:, 2], constell_lines[:, 3])
 
         nzopt = not self.projection.is_zoptim()
 
@@ -1447,7 +1447,7 @@ class SkymapEngine:
         else:
             constell_boundaries = constell_catalog.boundaries_points
 
-        x, y, z = self.projection.np_radec_to_xyz(constell_boundaries[:,0], constell_boundaries[:,1])
+        x, y, z = self.projection.np_celestial_to_xyz(constell_boundaries[:,0], constell_boundaries[:,1])
 
         hl_constellation = hl_constellation.upper() if hl_constellation else None
 
@@ -1507,7 +1507,7 @@ class SkymapEngine:
                     for i in range(divisions-1):
                         dec2 = dec1 + dd_dec
                         ra2 = ra1 + dd_ra
-                        x2, y2 = self.projection.radec_to_xy(ra2, dec2)
+                        x2, y2 = self.projection.celestial_to_xy(ra2, dec2)
                         vertices.append((x2, y2))
                         ra1, dec1 = ra2, dec2
                     vertices.append((x_end, y_end))
@@ -1524,7 +1524,7 @@ class SkymapEngine:
             ra_center = (ra1 + ra2) / 2
         dec_center = (dec1 + dec2) /2
 
-        x_center, y_center = self.projection.radec_to_xy(ra_center, dec_center)
+        x_center, y_center = self.projection.celestial_to_xy(ra_center, dec_center)
 
         if level == 1:
             c1 = self.graphics.cohen_sutherland_encode(x1, y1)
@@ -2185,7 +2185,7 @@ class SkymapEngine:
             return
 
         rax, decx, object_name, label, _ = hl_def.data[0]
-        x, y, z = self.projection.radec_to_xyz(rax, decx)
+        x, y, z = self.projection.celestial_to_xyz(rax, decx)
 
         if self.is_inside_clip_path(clip_path, x, y):
             return

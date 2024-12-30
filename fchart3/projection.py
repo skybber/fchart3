@@ -46,48 +46,45 @@ class ProjectionInterface:
     def is_zoptim(self):
         pass
 
-    def radec_to_xy(self, ra, dec):
+    def celestial_to_xy(self, phi, theta):
         """
-        Convert right ascension (RA) and declination (Dec) to 2D Cartesian coordinates (x, y) for the current projection.
+        Convert celestial coordinates to 2D Cartesian coordinates (x, y) for the current projection.
 
         Returns:
         tuple: (x, y) coordinates in the projected 2D plane.
         """
         pass
 
-    def radec_to_xyz(self, ra, dec):
+    def celestial_to_xyz(self, phi, theta):
         """
-        Convert right ascension (RA) and declination (Dec) to 3D Cartesian coordinates (x, y, z).
+        Convert celestial coordinates to 3D Cartesian coordinates (x, y, z).
 
         Returns:
         tuple: (x, y, z) coordinates in 3D space.
         """
         pass
 
-    def np_radec_to_xy(self, ra, dec):
+    def np_celestial_to_xy(self, phi, theta):
         """
-        Convert right ascension (RA) and declination (Dec) relative to the north pole to 2D Cartesian coordinates (x, y).
-        This is often used in polar or other specialized projections.
+        Numpy version of celestial coordinates conversion to 2D Cartesian coordinates (x, y).
 
         Returns:
-        tuple: (x, y) coordinates in the projected 2D plane relative to the north pole.
+        tuple: (x, y) coordinates in the projected 2D plane
         """
         pass
 
-    def np_radec_to_xyz(self, ra, dec):
+    def np_celestial_to_xyz(self, phi, theta):
         """
-        Convert right ascension (RA) and declination (Dec) relative to the north pole to 3D Cartesian coordinates (x, y, z).
-        Useful for polar projections or north pole-centric coordinate systems.
+        Numpy version of celestial coordinates conversion to 3D Cartesian coordinates (x, y, z).
 
         Returns:
-        tuple: (x, y, z) coordinates in 3D space relative to the north pole.
+        tuple: (x, y, z) coordinates in 3D space
         """
         pass
 
-    def direction_ddec(self, ra, dec):
+    def direction_dtheta(self, phi, theta):
         """
-        Determine the direction of the change in declination (dDec) for a celestial object at a given right ascension (RA) and declination (Dec).
-        This is useful for determining gradients or the direction of motion in sky charts.
+        Determine the direction of the change in theta for a celestial object at a given phi, theta
 
         Returns:
         float: The direction or angle of the declination change.
