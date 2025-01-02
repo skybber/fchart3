@@ -316,6 +316,7 @@ TRIANGLE_CENTER_FACTOR = math.sqrt(0.5**2 + EQUILATERAL_TRIANGLE_CENTER_SIDE_DIS
 
 MAS2RAD = 4.8481368110953594e-9
 
+
 def _convert_stars1_v3_helper(stars1_v3, bsc_hip_map):
     dim = len(stars1_v3)
 
@@ -426,14 +427,13 @@ STAR3_DT = np.dtype([('x01', np.uint8, (4,)),
 NORTH = (0.0, 0.0, 1.0)
 
 
-class ZoneData:
-    __slots__ = 'center'
-
-
 ZoneDataNp = np.dtype([('center', (np.float32, 3))])
 
 
 class GeodesicGaiaBinFileReader(GeodesicBinFileReader):
+    def __init__(self):
+        GeodesicBinFileReader.__init__(self, True)
+
     def get_star_rec_size(self):
         if self.file_type == 2:
             return 16   # Star2
@@ -449,12 +449,8 @@ class GeodesicStarGaiaCatalogComponent:
         self._file_opened = False
         self._nr_of_zones = 0
         self._star_blocks = None
-        self._zone_data_ar = None
         self.star_position_scale = 0.0
         self.triangle_size = 0.0
-
-    def to_np_arrays(self):
-        self._zone_data_ar = np.array([(zd.center,) for zd in self._zone_data_ar], dtype=ZoneDataNp)
 
     @property
     def level(self):
@@ -480,16 +476,12 @@ class GeodesicStarGaiaCatalogComponent:
             print("Header read error for deep star catalog {}, disabling it!".format(self.file_name))
             return False
 
-        self._nr_of_zones = GeodesicGrid.nr_of_zones(self._data_reader.level)
+        self._nr_of_zones = GeodesicGrid.nr_of_zones(self._data_reader.level) + 1
         self._star_blocks = [None] * self._nr_of_zones
-        self._zone_data_ar = [ZoneData() for _ in range(self._nr_of_zones)]
         self._file_opened = True
         return self._file_opened
 
     def init_triangle(self, index, c0, c1, c2):
-        z = self._zone_data_ar[index]
-        z.center = vector_norm_add3(c0, c1, c2)
-
         d1 = vector_length(vector_sub(c0, c1))
         d2 = vector_length(vector_sub(c1, c2))
         d3 = vector_length(vector_sub(c2, c0))
@@ -504,8 +496,7 @@ class GeodesicStarGaiaCatalogComponent:
             return STAR2_GAIA_DT
         return STAR3_GAIA_DT
 
-    def _convert_zone_stars(self, zone_stars, zone_data, bsc_hip_map):
-        mag_table = self._data_reader.get_mag_table()
+    def _convert_zone_stars(self, zone_stars, bsc_hip_map):
         if self._data_reader.file_type == 0:
             return _convert_stars1_v3_helper(zone_stars, bsc_hip_map)
         elif self._data_reader.file_type == 1:
@@ -531,7 +522,7 @@ class GeodesicStarGaiaCatalogComponent:
                 if self._data_reader.byteswap:
                     zone_stars.byteswap
 
-                zone_stars = self._convert_zone_stars(zone_stars, self._zone_data_ar[zone], bsc_hip_map)
+                zone_stars = self._convert_zone_stars(zone_stars, bsc_hip_map)
             else:
                 zone_stars = []
 
@@ -573,9 +564,6 @@ class GeodesicStarGaiaCatalog(StarCatalog):
         self._geodesic_grid = GeodesicGrid(self._max_geodesic_grid_level)
         self._geodesic_grid.visit_triangles(self._max_geodesic_grid_level, self.init_triangle)
 
-        for cat_comp in self._cat_components:
-            cat_comp.to_np_arrays()
-
         self.search_result = GeodesicSearchResult(self._max_geodesic_grid_level)
 
         if len(self._cat_components) > 0:
@@ -599,14 +587,20 @@ class GeodesicStarGaiaCatalog(StarCatalog):
         while zone != -1:
             zone_stars = self._cat_components[lev].get_zone_stars(zone)
             # print('Level={} Zone={} Len={}'.format(lev, zone, len(zone_stars)))
-            if len(zone_stars) > 0:
-                mag = zone_stars['mag']
-                scal_dot = zone_stars['x']*field_rect3[0] + zone_stars['y']*field_rect3[1] + zone_stars['z']*field_rect3[2]
-                zone_stars = zone_stars[np.logical_and(mag <= lm_stars, scal_dot > cos_radius)]
-                if len(zone_stars) > 0:
-                    stars.append(zone_stars)
+            selected_zone_stars = self._select_stars_from_zone(zone_stars, lm_stars, field_rect3, cos_radius)
+            if selected_zone_stars is not None:
+                stars.append(selected_zone_stars)
             zone = iterator.next()
         return stars
+
+    def _select_stars_from_zone(self, zone_stars, lm_stars, field_rect3, cos_radius):
+        if len(zone_stars) > 0:
+            mag = zone_stars['mag']
+            scal_dot = zone_stars['x'] * field_rect3[0] + zone_stars['y'] * field_rect3[1] + zone_stars['z'] * field_rect3[2]
+            zone_stars = zone_stars[np.logical_and(mag <= lm_stars, scal_dot > cos_radius)]
+            if len(zone_stars) > 0:
+                return zone_stars
+        return None
 
     @property
     def max_geodesic_grid_level(self):
@@ -657,6 +651,11 @@ class GeodesicStarGaiaCatalog(StarCatalog):
                 stars = self._select_stars_from_zones(border_iterator, lev, lm_stars, field_rect3, cos_radius)
                 if len(stars) > 0:
                     tmp_arr += stars
+
+                glob_zone_stars = self._cat_components[lev].get_zone_stars(GeodesicGrid.nr_of_zones(lev))
+                sel_glob_zone_stars = self._select_stars_from_zone(glob_zone_stars, lm_stars, field_rect3, cos_radius)
+                if sel_glob_zone_stars is not None:
+                    tmp_arr.append(sel_glob_zone_stars)
 
         rect_stars = np.concatenate(tmp_arr, axis=0) if len(tmp_arr) > 0 else None
 

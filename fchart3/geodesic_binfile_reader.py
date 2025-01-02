@@ -26,18 +26,22 @@ FILE_MAGIC_NATIVE = 0x835f040b
 
 
 def _swap32(i):
-    return struct.unpack("<I", struct.pack(">I", i))[0]
+    return struct.unpack("<I", struct.pack(">I", i))[0] if i is not None else None
 
 
 def _swap16(i):
-    return struct.unpack("<H", struct.pack(">H", i))[0]
+    return struct.unpack("<H", struct.pack(">H", i))[0] if i is not None else None
+
+
+def _swap_float32(f):
+    return struct.unpack("<f", struct.pack(">f", f))[0] if f is not None else None
 
 
 class GeodesicBinFileReader:
     """
     Stellarium bin file reader. Reads data organized into geodesic grid.
     """
-    def __init__(self):
+    def __init__(self, is_gaia):
         self.byteswap = False
         self.level = None
         self.file = None
@@ -52,6 +56,8 @@ class GeodesicBinFileReader:
         self._mag_table = None
         self._index_offset = None
         self._index_count = None
+        self._epoch_jd = None
+        self._is_gaia = is_gaia
 
     @property
     def mag_min_mag(self):
@@ -94,8 +100,12 @@ class GeodesicBinFileReader:
         self._minor = struct.unpack('I', self.file.read(4))[0]
         self.level = struct.unpack('I', self.file.read(4))[0]
         self._mag_min = struct.unpack('i', self.file.read(4))[0]
-        self._mag_range = struct.unpack('I', self.file.read(4))[0]
-        self._mag_steps = struct.unpack('I', self.file.read(4))[0]
+        if self._is_gaia:
+            self._epoch_jd = struct.unpack('f', self.file.read(4))[0]
+            print('Epoch: {}'.format(self._epoch_jd), flush=True)
+        else:
+            self._mag_range = struct.unpack('I', self.file.read(4))[0]
+            self._mag_steps = struct.unpack('I', self.file.read(4))[0]
 
         self._byte_swap = (self._magic == FILE_MAGIC_OTHER_ENDIAN)
 
@@ -107,6 +117,7 @@ class GeodesicBinFileReader:
             self._mag_min = _swap32(self._mag_min)
             self._mag_range = _swap32(self._mag_range)
             self._mag_steps = _swap32(self._mag_steps)
+            self._epoch_jd = _swap_float32(self._epoch_jd)
         elif self._magic != FILE_MAGIC and self._magic != FILE_MAGIC_NATIVE:
             raise ValueError("Invalid file magic=0x{:02X}!".format(self._magic))
 
@@ -114,6 +125,9 @@ class GeodesicBinFileReader:
             raise ValueError("Invalid file type={}!".format(hex(self.file_type)))
 
         nr_of_zones = GeodesicGrid.nr_of_zones(self.level)
+
+        if self._is_gaia:
+            nr_of_zones += 1  # gaia catalog has last special zone
 
         self.nr_of_stars = 0
 
