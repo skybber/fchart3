@@ -58,11 +58,7 @@ class GeodesicBinFileReader:
         return self._mag_min / 1000.0
 
     def get_star_rec_size(self):
-        if self.file_type == 2:
-            return 6    # Star2
-        if self.file_type == 1:
-            return 10   # Star1
-        return 28       # Star0
+        pass
 
     def open_file(self, file_name):
         self.file = None

@@ -158,110 +158,143 @@ COLOR_TABLE = (
 )
 
 """
-STAR1_DT:
+STAR1_GAIA_DT:
               _______________
-    0    hip |               |
-    1        |               |
-    2        |_______________|
-    3   cIds |_______________|
-    4     x0 |               |
-    5        |               |
-    6        |               |
-    7        |_______________|
-    8     x1 |               |
-    9        |               |
-    10       |               |
-    11       |_______________|
-    12    bV |_______________|
-    13   mag |_______________|
-    14 spInt |               |
-    15       |_______________|
-    16   dx0 |               |
-    17       |               |
-    18       |               |
-    19       |_______________|
-    20   dx1 |               |
-    21       |               |
-    22       |               |
-    23       |_______________|
-    24   plx |               |
-    25       |               |
-    26       |               |
-    27       |_______________|
-
-    componentIds         8
-    hip                  24
-
-    int32 x0            32
-    int32 x1            32
-
-    uint8 bV            8
-    uint8 mag           8
-    uint16 spInt        16
-
-    int32 dx0,dx1,plx   32
+    0  gaia_id|               |
+    1         |               |
+    2         |               |
+    3         |               |
+    4         |               |
+    5         |               |
+    6         |               |
+    7         |_______________|
+    8       x0|               |
+    9         |               |
+    10        |               |
+    11        |_______________|
+    12      x1|               |
+    13        |               |
+    14        |               |
+    15        |_______________|
+    16      x2|               |
+    17        |               |
+    18        |               |
+    19        |_______________|
+    20     dx0|               |
+    21        |               |
+    22        |               |
+    23        |_______________|
+    24     dx1|               |
+    25        |               |
+    26        |               |
+    27        |_______________|
+    28     dx2|               |
+    29        |               |
+    30        |               |
+    31        |_______________|
+    32     b_v|_______________|
+    34    vmag|_______________|
+    36     plx|_______________|
+    38 plx_err|_______________|
+    40      rv|_______________|
+    42   spInt|_______________|
+    44 objtype|_______________|
+    45     hip|               |
+    46        |               |
+    47        |_______________|
 """
 
-STAR1_DT = np.dtype([('hip', np.uint8, (3,)),
-                     ('cIds', np.uint8),
-                     ('x0', np.int32),
-                     ('x1', np.int32),
-                     ('bv', np.uint8),
-                     ('mag', np.uint8),
-                     ('spInt', np.uint16),
-                     ('dx0', np.int32),
-                     ('dx1', np.int32),
-                     ('plx', np.int32),
-                    ])
+STAR1_GAIA_DT = np.dtype([
+    ("gaia_id",  np.int64),
+    ("x0",       np.int32),
+    ("x1",       np.int32),
+    ("x2",       np.int32),
+    ("dx0",      np.int32),
+    ("dx1",      np.int32),
+    ("dx2",      np.int32),
+    ("b_v",      np.int16),
+    ("vmag",     np.int16),
+    ("plx",      np.uint16),
+    ("plx_err",  np.uint16),
+    ("rv",       np.int16),
+    ("spInt",    np.uint16),
+    ("objtype",  np.uint8),
+    ("hip",      np.uint8, (3,)),
+])
 
 """
-STAR2_DT
+STAR2_GAIA_DT:
               _______________
-    0     x0 |               |
-    1        |_______        |
-    2     x1 |       |_______|
-    3        |               |
-    4        |_______________|
-    5    dx0 |___            |
-    6    dx1 |   |___________|
-    7        |_______        |
-    8     bV |_______|_______|
-    9    mag |_________|_____| bV
-
-    int x0          :20
-    int x1          :20
-    int dx0         :14
-    int dx1         :14
-    unsigned int bV :7
-    unsigned int mag:5
+    0  gaia_id|               |
+    1         |               |
+    2         |               |
+    3         |               |
+    4         |               |
+    5         |               |
+    6         |               |
+    7         |_______________|
+    8       x0|               |
+    9         |               |
+    10        |               |
+    11        |_______________|
+    12      x1|               |
+    13        |               |
+    14        |               |
+    15        |_______________|
+    16     dx0|               |
+    17        |               |
+    18        |               |
+    19        |_______________|
+    20     dx1|               |
+    21        |               |
+    22        |               |
+    23        |_______________|
+    24     b_v|_______________|
+    26    vmag|_______________|
+    28     plx|_______________|
+    30 plx_err|_______________|
 """
-STAR2_DT = np.dtype([('x01', np.uint8, (5,)),
-                     ('dx01', np.uint8, (3,)),
-                     ('bvdx1', np.uint8),
-                     ('magbv', np.uint8),
-                    ])
 
+STAR2_GAIA_DT = np.dtype([
+    ("gaia_id", np.int64),
+    ("x0",      np.int32),
+    ("x1",      np.int32),
+    ("dx0",     np.int32),
+    ("dx1",     np.int32),
+    ("b_v",     np.int16),
+    ("vmag",    np.int16),
+    ("plx",     np.uint16),
+    ("plx_err", np.uint16),
+])
 
 """
 STAR3_DT
               _______________
-    0     x0 |               |
-    1        |___________    |
-    2     x1 |           |___|
-    3        |_______        |
-    4     bV |_______|_______|
-    5    mag |_________|_____| bV
-
-    int x0               :18
-    int x1               :18
-    unsigned int bV      :7
-    unsigned int mag     :5
+    0  gaia_id|               |
+    1         |               |
+    2         |               |
+    3         |               |
+    4         |               |
+    5         |               |
+    6         |               |
+    7         |_______________|
+    8      x0 |               |
+    9         |               |
+    10        |_______________|
+    11     x1 |               |
+    12        |               |
+    13        |_______________|
+    14     b_v|_______________|
+    15    vmag|_______________|
 """
-STAR3_DT = np.dtype([('x01', np.uint8, (4,)),
-                     ('bvx1', np.uint8),
-                     ('magbv', np.uint8),
-                    ])
 
+STAR3_GAIA_DT = np.dtype([
+    ("gaia_id", np.int64),
+    ("x0",      np.uint8, (3,)),
+    ("x1",      np.uint8, (3,)),
+    ("b_v",     np.uint8),
+    ("vmag",    np.uint8),
+])
 
 RECT_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
                                   ('y', np.float32),
@@ -270,7 +303,6 @@ RECT_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
                                   ('bvind', np.uint8),
                                   ('bsc', np.dtype(object))
                                   ])
-
 
 EQ_ZONE_STARDATA_DT = np.dtype([('ra', np.float32),
                                 ('dec', np.float32),
@@ -282,40 +314,35 @@ EQ_ZONE_STARDATA_DT = np.dtype([('ra', np.float32),
 EQUILATERAL_TRIANGLE_CENTER_SIDE_DIST = math.sqrt(3)/6
 TRIANGLE_CENTER_FACTOR = math.sqrt(0.5**2 + EQUILATERAL_TRIANGLE_CENTER_SIDE_DIST**2)
 
-use_precalc_star_position_scale = False
-use_precalc_triangle_size = False
+MAS2RAD = 4.8481368110953594e-9
 
+def _convert_stars1_v3_helper(stars1_v3, bsc_hip_map):
+    dim = len(stars1_v3)
 
-def set_use_precalc_star_position_scale(val):
-    global use_precalc_star_position_scale
-    use_precalc_star_position_scale = val
+    x = stars1_v3['x0'] / 2.e9
+    y = stars1_v3['x1'] / 2.e9
+    z = stars1_v3['x2'] / 2.e9
 
+    float_vmag = stars1_v3['vmag'] / 1000.0
+    bv_index = ((stars1_v3['b_v'] / 1000.0 + 0.5) * 31.75).astype(np.int32)
+    bv_index = np.clip(bv_index, 0, 127).astype(np.uint8)
 
-def set_use_precalc_triangle_size(val):
-    global use_precalc_triangle_size
-    use_precalc_triangle_size = val
-
-
-def _convert_stars1_helper(stars1, zone_data, mag_table, bsc_hip_map):
-    dim = len(stars1)
-
-    rectJ2000 = get_J2000_pos(zone_data, stars1['x0'].reshape(dim, 1), stars1['x1'].reshape(dim, 1))
-
-    zone_stars = np.core.records.fromarrays( \
-        [ \
-            rectJ2000[:,0],
-            rectJ2000[:,1],
-            rectJ2000[:,2],
-            mag_table[stars1['mag']],
-            stars1['bv'],
-            np.empty(dim, np.dtype(object)),
-        ], \
-        dtype=RECT_ZONE_STARDATA_DT)
+    zone_stars = np.core.records.fromarrays(
+        [
+            x,
+            y,
+            z,
+            float_vmag,
+            bv_index,
+            np.empty(dim, dtype=object),
+        ],
+        dtype=RECT_ZONE_STARDATA_DT
+    )
 
     if bsc_hip_map:
-        hip_col = stars1['hip']
+        hip_col = stars1_v3['hip']
         for i in range(dim):
-            hip = hip_col[i][0] | hip_col[i][1].astype(np.uint32)<<8  | hip_col[i][2].astype(np.uint32)<<16
+            hip = hip_col[i][0] | (hip_col[i][1].astype(np.uint32) << 8) | (hip_col[i][2].astype(np.uint32) << 16)
             if hip != 0:
                 bsc_star = bsc_hip_map.get(hip)
                 if bsc_star:
@@ -324,57 +351,69 @@ def _convert_stars1_helper(stars1, zone_data, mag_table, bsc_hip_map):
     return zone_stars
 
 
-def _convert_stars2_helper(stars2, zone_data, mag_table):
-    dim = len(stars2)
+def _convert_stars2_v3_helper(stars2_v3):
+    dim = len(stars2_v3)
 
-    ix01 = stars2['x01']
+    ra_rad = stars2_v3['x0'] * MAS2RAD
+    dec_rad = stars2_v3['x1'] * MAS2RAD
 
-    x0 = (ix01[:,0].astype(np.uint32) | ix01[:,1].astype(np.uint32)<<8 | (ix01[:,2] & 0xF).astype(np.uint32)<<16) << 12
-    x0 = x0.astype(np.int32) >> 12
+    x, y, z = np_sphere_to_rect(ra_rad, dec_rad)
 
-    x1 = (ix01[:,2]>>4 | ix01[:,3].astype(np.uint32)<<4 | ix01[:,4].astype(np.uint32)<<12) << 12
-    x1 = x1.astype(np.int32) >> 12
+    float_vmag = stars2_v3['vmag'] / 1000.0
+    bv_index = ((stars2_v3['b_v'] / 1000.0 + 0.5) * 31.75).astype(np.int32)
+    bv_index = np.clip(bv_index, 0, 127).astype(np.uint8)
 
-    rectJ2000 = get_J2000_pos(zone_data, x0.reshape(dim, 1), x1.reshape(dim, 1))
-
-    zone_stars = np.core.records.fromarrays( \
-        [ \
-            rectJ2000[:,0],
-            rectJ2000[:,1],
-            rectJ2000[:,2],
-            mag_table[stars2['magbv']>>3],
-            stars2['bvdx1']>>4 | (stars2['magbv']&0x7)<<4,
-            np.empty(dim, np.dtype(object)),
-        ], \
-        dtype=RECT_ZONE_STARDATA_DT)
+    zone_stars = np.core.records.fromarrays(
+        [
+            x,
+            y,
+            z,
+            float_vmag,
+            bv_index,
+            np.empty(dim, dtype=object),
+        ],
+        dtype=RECT_ZONE_STARDATA_DT
+    )
 
     return zone_stars
 
 
-def _convert_stars3_helper(stars3, zone_data, mag_table):
-    dim = len(stars3)
+def _convert_stars3_v3_helper(stars3_v3):
+    dim = len(stars3_v3)
 
-    ix01 = stars3['x01']
-    ibvx1 = stars3['bvx1']
+    x0_arr = (
+        stars3_v3['x0'][:, 0].astype(np.uint32)
+        | (stars3_v3['x0'][:, 1].astype(np.uint32) << 8)
+        | (stars3_v3['x0'][:, 2].astype(np.uint32) << 16)
+    )
+    x1_arr = (
+        stars3_v3['x1'][:, 0].astype(np.uint32)
+        | (stars3_v3['x1'][:, 1].astype(np.uint32) << 8)
+        | (stars3_v3['x1'][:, 2].astype(np.uint32) << 16)
+    )
 
-    x0 = (ix01[:,0] | ix01[:,1].astype(np.uint32)<<8 | (ix01[:,2] & 0x3).astype(np.uint32)<<16) << 14
-    x0 = x0.astype(np.int32) >> 14
+    ra_rad = x0_arr * 100.0 * MAS2RAD
+    dec_rad = (x1_arr - (90.0 * 36000.0)) * 100.0 * MAS2RAD
 
-    x1 = (ix01[:,2]>>2 | ix01[:,3].astype(np.uint32)<<6 | (ibvx1&0xf).astype(np.uint32)<<14) << 14
-    x1 = x1.astype(np.int32) >> 14
+    x, y, z = np_sphere_to_rect(ra_rad, dec_rad)
 
-    rectJ2000 = get_J2000_pos(zone_data, x0.reshape(dim, 1), x1.reshape(dim, 1))
+    vmag_milli = stars3_v3['vmag'] * 20 + 16000
+    float_mag = vmag_milli / 1000.0
 
-    zone_stars = np.core.records.fromarrays( \
-        [ \
-            rectJ2000[:,0],
-            rectJ2000[:,1],
-            rectJ2000[:,2],
-            mag_table[stars3['magbv']>>3],
-            (stars3['magbv']&0x7)<<4 | stars3['bvx1']>>4,
-            np.empty(dim, np.dtype(object)),
-        ], \
-        dtype=RECT_ZONE_STARDATA_DT)
+    bv_index = ((stars3_v3['b_v'] * 0.025 - 1 + 0.5) * 31.75).astype(np.int32)
+    bv_index = np.clip(bv_index, 0, 127).astype(np.uint8)
+
+    zone_stars = np.core.records.fromarrays(
+        [
+            x,
+            y,
+            z,
+            float_mag,
+            bv_index,
+            np.empty(dim, dtype=object),
+        ],
+        dtype=RECT_ZONE_STARDATA_DT
+    )
 
     return zone_stars
 
@@ -388,28 +427,22 @@ NORTH = (0.0, 0.0, 1.0)
 
 
 class ZoneData:
-    __slots__ = 'center', 'axis0', 'axis1'
+    __slots__ = 'center'
 
 
-ZoneDataNp = np.dtype([('center', (np.float32, 3)),
-                       ('axis0', (np.float32, 3)),
-                       ('axis1', (np.float32, 3))])
+ZoneDataNp = np.dtype([('center', (np.float32, 3))])
 
 
-def get_J2000_pos(zone_data, star_X0, star_X1):
-    return (zone_data['axis0'] * star_X0) + (star_X1 * zone_data['axis1']) + zone_data['center']
-
-
-class GeodesicNomadBinFileReader(GeodesicBinFileReader):
+class GeodesicGaiaBinFileReader(GeodesicBinFileReader):
     def get_star_rec_size(self):
         if self.file_type == 2:
-            return 6    # Star2
+            return 16   # Star2
         if self.file_type == 1:
-            return 10   # Star1
-        return 28       # Star0
+            return 32   # Star1
+        return 48       # Star0
 
 
-class GeodesicStarCatalogComponent:
+class GeodesicStarGaiaCatalogComponent:
     def __init__(self, file_name):
         self._data_reader = None
         self.file_name = file_name
@@ -421,7 +454,7 @@ class GeodesicStarCatalogComponent:
         self.triangle_size = 0.0
 
     def to_np_arrays(self):
-        self._zone_data_ar = np.array([(zd.center, zd.axis0, zd.axis1) for zd in self._zone_data_ar], dtype=ZoneDataNp)
+        self._zone_data_ar = np.array([(zd.center,) for zd in self._zone_data_ar], dtype=ZoneDataNp)
 
     @property
     def level(self):
@@ -436,7 +469,7 @@ class GeodesicStarCatalogComponent:
         return self._data_reader.nr_of_stars
 
     def load_data_file(self):
-        self._data_reader = GeodesicNomadBinFileReader()
+        self._data_reader = GeodesicGaiaBinFileReader()
         self._data_reader.open_file(self.file_name)
         if not self._data_reader.file:
             print("Failed to open star catalog {}, disabling it.".format(self.file_name))
@@ -454,86 +487,31 @@ class GeodesicStarCatalogComponent:
         return self._file_opened
 
     def init_triangle(self, index, c0, c1, c2):
-        global use_precalc_star_position_scale
         z = self._zone_data_ar[index]
         z.center = vector_norm_add3(c0, c1, c2)
-        z.axis0 = vector_norm_cross(NORTH, z.center)
-        z.axis1 = vector_cross(z.center, z.axis0)
 
-        if not use_precalc_triangle_size:
-            d1 = vector_length(vector_sub(c0, c1))
-            d2 = vector_length(vector_sub(c1, c2))
-            d3 = vector_length(vector_sub(c2, c0))
-            dmax = max(d1, d2, d3)
-            if dmax > self.triangle_size:
-                self.triangle_size = dmax
-
-        if not use_precalc_star_position_scale:
-            # Initialize star_position_scale. This scale is used to multiply stars position
-            # encoded as integers so that it optimize precision over the triangle.
-            # It has to be computed for each triangle because the relative orientation of the 2 axis is different for each triangle.
-            sc0 = vector_sub(c0,z.center)
-            mu0 = vector_dot(sc0, z.axis0)
-            mu1 = vector_dot(sc0, z.axis1)
-            f = 1.0-mu0*mu0-mu1*mu1
-            h = mu0*mu0/f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-            h = mu1*mu1/f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-
-            sc1 = vector_sub(c1,z.center)
-            mu0 = vector_dot(sc1, z.axis0)
-            mu1 = vector_dot(sc1, z.axis1)
-            f = 1.0-mu0*mu0-mu1*mu1
-            h = mu0*mu0/f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-            h = mu1*mu1/f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-
-            sc2 = vector_sub(c2,z.center)
-            mu0 = vector_dot(sc2, z.axis0)
-            mu1 = vector_dot(sc2, z.axis1)
-            f = 1.0-mu0*mu0-mu1*mu1
-            h = mu0*mu0/f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-            h = mu1*mu1/f
-            if self.star_position_scale < h:
-                self.star_position_scale = h
-
-    def scale_axis(self):
-        if self._data_reader.file_type == 0:
-            star_max_pos_val = 0x7FFFFFFF
-        elif self._data_reader.file_type == 1:
-            star_max_pos_val = (1 << 19)-1
-        else:
-            star_max_pos_val = (1 << 17)-1
-
-        self.star_position_scale = math.sqrt(self.star_position_scale) / star_max_pos_val
-
-        for z in self._zone_data_ar:
-            z.axis0 = np.array(vector_scal_dot(self.star_position_scale, z.axis0))
-            z.axis1 = np.array(vector_scal_dot(self.star_position_scale, z.axis1))
+        d1 = vector_length(vector_sub(c0, c1))
+        d2 = vector_length(vector_sub(c1, c2))
+        d3 = vector_length(vector_sub(c2, c0))
+        dmax = max(d1, d2, d3)
+        if dmax > self.triangle_size:
+            self.triangle_size = dmax
 
     def _get_data_format(self):
         if self._data_reader.file_type == 0:
-            return STAR1_DT
+            return STAR1_GAIA_DT
         if self._data_reader.file_type == 1:
-            return STAR2_DT
-        return STAR3_DT
+            return STAR2_GAIA_DT
+        return STAR3_GAIA_DT
 
     def _convert_zone_stars(self, zone_stars, zone_data, bsc_hip_map):
         mag_table = self._data_reader.get_mag_table()
         if self._data_reader.file_type == 0:
-            return _convert_stars1_helper(zone_stars, zone_data, mag_table, bsc_hip_map)
+            return _convert_stars1_v3_helper(zone_stars, bsc_hip_map)
         elif self._data_reader.file_type == 1:
-            return _convert_stars2_helper(zone_stars, zone_data, mag_table)
+            return _convert_stars2_v3_helper(zone_stars)
         else:
-            return _convert_stars3_helper(zone_stars, zone_data, mag_table)
+            return _convert_stars3_v3_helper(zone_stars)
 
     def load_static_stars(self, bsc_hip_map):
         for zone in range(self._nr_of_zones):
@@ -568,9 +546,9 @@ class GeodesicStarCatalogComponent:
             self._star_blocks[i] = None
 
 
-class GeodesicStarCatalog(StarCatalog):
+class GeodesicStarGaiaCatalog(StarCatalog):
     """
-    Star catalog composed of GeodesicStarCatalogComponent. Each component represents one level of Geodesic tree.
+    Star catalog composed of GeodesicStarGaiaCatalogComponent. Each component represents one level of Geodesic tree.
     """
     # @profile
     def __init__(self, data_dir, extra_data_dir, bsc_hip_map):
@@ -596,7 +574,6 @@ class GeodesicStarCatalog(StarCatalog):
         self._geodesic_grid.visit_triangles(self._max_geodesic_grid_level, self.init_triangle)
 
         for cat_comp in self._cat_components:
-            cat_comp.scale_axis()
             cat_comp.to_np_arrays()
 
         self.search_result = GeodesicSearchResult(self._max_geodesic_grid_level)
@@ -611,7 +588,7 @@ class GeodesicStarCatalog(StarCatalog):
     def _load_gsc_component(self, data_dir, file_regex):
         files = glob.glob(os.path.join(data_dir, file_regex))
         if len(files) > 0:
-            cat_comp = GeodesicStarCatalogComponent(files[0])
+            cat_comp = GeodesicStarGaiaCatalogComponent(files[0])
             if cat_comp.load_data_file():
                 return cat_comp
         return None
@@ -718,6 +695,6 @@ class GeodesicStarCatalog(StarCatalog):
 if __name__ == '__main__':
     data_dir='./data/catalogs/'
     tm = time()
-    cat = GeodesicStarCatalog(data_dir, None)
+    cat = GeodesicStarGaiaCatalog(data_dir, None)
     print("Loaded in : " + str(time()-tm) + "ms")
     print("Done")
