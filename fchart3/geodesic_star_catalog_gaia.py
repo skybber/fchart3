@@ -268,7 +268,7 @@ STAR2_GAIA_DT = np.dtype([
 ])
 
 """
-STAR3_DT
+STAR2_GAIA_DT
               _______________
     0  gaia_id|               |
     1         |               |
@@ -296,6 +296,8 @@ STAR3_GAIA_DT = np.dtype([
     ("vmag",    np.uint8),
 ])
 
+
+
 RECT_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
                                   ('y', np.float32),
                                   ('z', np.float32),
@@ -318,27 +320,20 @@ MAS2RAD = 4.8481368110953594e-9
 
 
 def _convert_stars1_v3_helper(stars1_v3, bsc_hip_map):
-    dim = len(stars1_v3)
+    dim = stars1_v3.shape[0]
 
-    x = stars1_v3['x0'] / 2.e9
-    y = stars1_v3['x1'] / 2.e9
-    z = stars1_v3['x2'] / 2.e9
+    zone_stars = np.empty(dim, dtype=RECT_ZONE_STARDATA_DT)
 
-    float_vmag = stars1_v3['vmag'] / 1000.0
-    bv_index = ((stars1_v3['b_v'] / 1000.0 + 0.5) * 31.75).astype(np.int32)
-    bv_index = np.clip(bv_index, 0, 127).astype(np.uint8)
+    zone_stars['x'] = stars1_v3['x0'] / 2e9
+    zone_stars['y'] = stars1_v3['x1'] / 2e9
+    zone_stars['z'] = stars1_v3['x2'] / 2e9
+    zone_stars['mag'] = stars1_v3['vmag'] / 1000.0
 
-    zone_stars = np.core.records.fromarrays(
-        [
-            x,
-            y,
-            z,
-            float_vmag,
-            bv_index,
-            np.empty(dim, dtype=object),
-        ],
-        dtype=RECT_ZONE_STARDATA_DT
-    )
+    bv_tmp = (stars1_v3['b_v'] / 1000.0 + 0.5) * 31.75
+    np.clip(bv_tmp, 0, 127, out=bv_tmp)  # in-place clip
+    zone_stars['bvind'] = bv_tmp.astype(np.uint8)
+
+    # zone_stars['bsc'] = np.empty(dim, dtype=object)
 
     if bsc_hip_map:
         hip_col = stars1_v3['hip']
@@ -360,21 +355,19 @@ def _convert_stars2_v3_helper(stars2_v3):
 
     x, y, z = np_sphere_to_rect(ra_rad, dec_rad)
 
-    float_vmag = stars2_v3['vmag'] / 1000.0
-    bv_index = ((stars2_v3['b_v'] / 1000.0 + 0.5) * 31.75).astype(np.int32)
-    bv_index = np.clip(bv_index, 0, 127).astype(np.uint8)
+    zone_stars = np.empty(dim, dtype=RECT_ZONE_STARDATA_DT)
 
-    zone_stars = np.core.records.fromarrays(
-        [
-            x,
-            y,
-            z,
-            float_vmag,
-            bv_index,
-            np.empty(dim, dtype=object),
-        ],
-        dtype=RECT_ZONE_STARDATA_DT
-    )
+    zone_stars['x'] = x
+    zone_stars['y'] = y
+    zone_stars['z'] = z
+
+    zone_stars['mag'] = stars2_v3['vmag'] / 1000.0
+
+    bv_tmp = (stars2_v3['b_v'] / 1000.0 + 0.5) * 31.75
+    np.clip(bv_tmp, 0, 127, out=bv_tmp)
+    zone_stars['bvind'] = bv_tmp.astype(np.uint8)
+
+    zone_stars['bsc'] = np.empty(dim, dtype=object)
 
     return zone_stars
 
@@ -383,14 +376,14 @@ def _convert_stars3_v3_helper(stars3_v3):
     dim = len(stars3_v3)
 
     x0_arr = (
-        stars3_v3['x0'][:, 0].astype(np.uint32)
-        | (stars3_v3['x0'][:, 1].astype(np.uint32) << 8)
-        | (stars3_v3['x0'][:, 2].astype(np.uint32) << 16)
+            stars3_v3['x0'][:, 0].astype(np.uint32)
+            | (stars3_v3['x0'][:, 1].astype(np.uint32) << 8)
+            | (stars3_v3['x0'][:, 2].astype(np.uint32) << 16)
     )
     x1_arr = (
-        stars3_v3['x1'][:, 0].astype(np.uint32)
-        | (stars3_v3['x1'][:, 1].astype(np.uint32) << 8)
-        | (stars3_v3['x1'][:, 2].astype(np.uint32) << 16)
+            stars3_v3['x1'][:, 0].astype(np.uint32)
+            | (stars3_v3['x1'][:, 1].astype(np.uint32) << 8)
+            | (stars3_v3['x1'][:, 2].astype(np.uint32) << 16)
     )
 
     ra_rad = x0_arr * 100.0 * MAS2RAD
@@ -401,28 +394,21 @@ def _convert_stars3_v3_helper(stars3_v3):
     vmag_milli = stars3_v3['vmag'] * 20 + 16000
     float_mag = vmag_milli / 1000.0
 
-    bv_index = ((stars3_v3['b_v'] * 0.025 - 1 + 0.5) * 31.75).astype(np.int32)
-    bv_index = np.clip(bv_index, 0, 127).astype(np.uint8)
+    bv_tmp = (stars3_v3['b_v'] * 0.025 - 1 + 0.5) * 31.75
+    np.clip(bv_tmp, 0, 127, out=bv_tmp)
+    bv_index = bv_tmp.astype(np.uint8)
 
-    zone_stars = np.core.records.fromarrays(
-        [
-            x,
-            y,
-            z,
-            float_mag,
-            bv_index,
-            np.empty(dim, dtype=object),
-        ],
-        dtype=RECT_ZONE_STARDATA_DT
-    )
+    zone_stars = np.empty(dim, dtype=RECT_ZONE_STARDATA_DT)
+
+    zone_stars['x'] = x
+    zone_stars['y'] = y
+    zone_stars['z'] = z
+    zone_stars['mag'] = float_mag
+    zone_stars['bvind'] = bv_index
+    zone_stars['bsc'] = np.empty(dim, dtype=object)
 
     return zone_stars
 
-
-STAR3_DT = np.dtype([('x01', np.uint8, (4,)),
-                     ('bvx1', np.uint8),
-                     ('magbv', np.uint8),
-                    ])
 
 NORTH = (0.0, 0.0, 1.0)
 
