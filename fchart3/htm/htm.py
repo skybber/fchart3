@@ -64,8 +64,8 @@ class HTM(htmc.HTMC):
             The htm index
         """
 
-        ra  = numpy.array(ra,  dtype='f8', ndmin=1, copy=False)
-        dec = numpy.array(dec, dtype='f8', ndmin=1, copy=False)
+        ra  = (numpy.asarray(ra,  dtype='f8'))
+        dec = numpy.asarray(dec, dtype='f8')
 
         if ra.size != dec.size:
             raise ValueError("ra and dec must be the same size")
@@ -198,11 +198,11 @@ class HTM(htmc.HTMC):
 
         """
 
-        ra1=numpy.array(ra1, dtype='f8', ndmin=1, copy=False)
-        dec1=numpy.array(dec1, dtype='f8', ndmin=1, copy=False)
-        ra2=numpy.array(ra2, dtype='f8', ndmin=1, copy=False)
-        dec2=numpy.array(dec2, dtype='f8', ndmin=1, copy=False)
-        radius=numpy.array(radius, dtype='f8', ndmin=1, copy=False)
+        ra1=numpy.asarray(ra1, dtype='f8')
+        dec1=numpy.asarray(dec1, dtype='f8')
+        ra2=numpy.asarray(ra2, dtype='f8')
+        dec2=numpy.asarray(dec2, dtype='f8')
+        radius=numpy.asarray(radius, dtype='f8')
 
         if (ra1.size != dec1.size
                 or ra2.size != ra2.size):
@@ -638,10 +638,10 @@ class HTM(htmc.HTMC):
         else:
             verb=0
 
-        ra1 = numpy.array(ra1, dtype='f8', ndmin=1, copy=False)
-        dec1 = numpy.array(dec1, dtype='f8', ndmin=1, copy=False)
-        ra2 = numpy.array(ra2, dtype='f8', ndmin=1, copy=False)
-        dec2 = numpy.array(dec2, dtype='f8', ndmin=1, copy=False)
+        ra1 = numpy.asarray(ra1, dtype='f8')
+        dec1 = numpy.asarray(dec1, dtype='f8')
+        ra2 = numpy.asarray(ra2, dtype='f8')
+        dec2 = numpy.asarray(dec2, dtype='f8')
 
 
 
@@ -653,7 +653,7 @@ class HTM(htmc.HTMC):
                              "got %d,%d and %d,%d" % stup)
 
         if scale is not None:
-            scale = numpy.array(scale, dtype='f8', ndmin=1, copy=False)
+            scale = numpy.asarray(scale, dtype='f8')
             if scale.size != 1 and scale.size != ra1.size:
                 raise ValueError("scale size (%d) != 1 and"
                                  " != ra1,dec1 size (%d)" % (scale.size,ra1.size))
@@ -664,7 +664,7 @@ class HTM(htmc.HTMC):
             minid = htmid2.min()
             maxid = htmid2.max()
         else:
-            htmid2 = numpy.array(htmid,dtype='i8',ndmin=1,copy=False)
+            htmid2 = numpy.asarray(htmid,dtype='i8')
             if htmid2.size != ra2.size:
                 raise ValueError("htmid2 size %d != "
                                  "ra size %d" % (htmid2.size,ra2.size))
@@ -676,7 +676,7 @@ class HTM(htmc.HTMC):
         if htmrev2 is None:
             hist2, htmrev2 = stat.histogram(htmid2-minid,rev=True)
 
-        minmax_ids = numpy.array([minid, maxid], dtype='i8')
+        minmax_ids = numpy.asarray([minid, maxid], dtype='i8')
 
         counts = self.cbincount(
             rmin,rmax,nbin,
@@ -716,8 +716,8 @@ class Matcher(htmc.Matcher):
     """
     def __init__(self, depth, ra, dec):
 
-        ra=numpy.array(ra, dtype='f8', ndmin=1, copy=False)
-        dec=numpy.array(dec, dtype='f8', ndmin=1, copy=False)
+        ra=numpy.asarray(ra, dtype='f8')
+        dec=numpy.asarray(dec, dtype='f8')
 
         if ra.size != dec.size:
             raise ValueError("ra size (%d) != "
@@ -770,9 +770,9 @@ class Matcher(htmc.Matcher):
         if file= is sent then then number of matches is returned.
         """
 
-        ra=numpy.array(ra, dtype='f8', ndmin=1, copy=False)
-        dec=numpy.array(dec, dtype='f8', ndmin=1, copy=False)
-        radius=numpy.array(radius, dtype='f8', ndmin=1, copy=False)
+        ra=numpy.asarray(ra, dtype='f8')
+        dec=numpy.asarray(dec, dtype='f8')
+        radius=numpy.asarray(radius, dtype='f8')
 
         if ra.size != dec.size:
             raise ValueError("ra size (%d) != "
