@@ -29,6 +29,15 @@ A4_HEIGHT_POINTS = 842
 
 SKIA_DEFAULT_FONT_SIZE = 12*POINT
 
+_TYPEFACE_CACHE = {}
+
+
+def get_cached_typeface(font_name):
+    """Returns a cached skia.Typeface for the given font_name."""
+    if font_name not in _TYPEFACE_CACHE:
+        _TYPEFACE_CACHE[font_name] = skia.Typeface(font_name)
+    return _TYPEFACE_CACHE[font_name]
+
 
 class SkiaDrawing(GraphicsInterface):
     """
@@ -103,7 +112,7 @@ class SkiaDrawing(GraphicsInterface):
         old_size = self.gi_font_size
         super().set_font(font, font_size, font_style)
         if self.font_default is None or old_size != font_size:
-            self.font_default = skia.Font(skia.Typeface('NotoSans'), font_size)
+            self.font_default = skia.Font(get_cached_typeface('NotoSans-Regular'), font_size)
 
     def set_linewidth(self, linewidth):
         super().set_linewidth(linewidth)
