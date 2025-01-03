@@ -418,7 +418,7 @@ ZoneDataNp = np.dtype([('center', (np.float32, 3))])
 
 class GeodesicGaiaBinFileReader(GeodesicBinFileReader):
     def __init__(self):
-        GeodesicBinFileReader.__init__(self, True)
+        super().__init__(True)
 
     def get_star_rec_size(self):
         if self.file_type == 2:

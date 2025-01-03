@@ -402,7 +402,7 @@ def get_J2000_pos(zone_data, star_X0, star_X1):
 
 class GeodesicNomadBinFileReader(GeodesicBinFileReader):
     def __init__(self):
-        GeodesicBinFileReader.__init__(self, False)
+        super().__init__(False)
 
     def get_star_rec_size(self):
         if self.file_type == 2:

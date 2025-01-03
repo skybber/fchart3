@@ -49,7 +49,7 @@ class CairoDrawing(GraphicsInterface):
         :param avif_quality: avif quality
         :param avif_speed: avif speed
         """
-        GraphicsInterface.__init__(self, (width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
+        super().__init__((width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
 
         self.fobj = fobj
         self.format = format
@@ -108,15 +108,15 @@ class CairoDrawing(GraphicsInterface):
             self.context.fill()
 
     def save(self):
-        GraphicsInterface.save(self)
+        super().save()
         self.context.save()
 
     def restore(self):
-        GraphicsInterface.restore(self)
+        super().restore()
         self.context.restore()
 
     def set_font(self, font='Arial', font_size=CAIRO_DEFAULT_FONT_SIZE, font_style=FontStyle.NORMAL):
-        GraphicsInterface.set_font(self, font, font_size, font_style)
+        super().set_font(font, font_size, font_style)
         self.context.set_font_size(self.gi_font_size)
         cairo_slant = cairo.FONT_SLANT_ITALIC if (self.gi_font_style == FontStyle.ITALIC) != 0 else cairo.FONT_SLANT_NORMAL
         cairo_weight = cairo.FONT_WEIGHT_BOLD if (self.gi_font_style == FontStyle.BOLD) != 0 else cairo.FONT_WEIGHT_NORMAL
@@ -126,14 +126,14 @@ class CairoDrawing(GraphicsInterface):
             self.context.select_font_face(self.gi_font, cairo_slant, cairo_weight)
 
     def set_linewidth(self, linewidth):
-        GraphicsInterface.set_linewidth(self,linewidth)
+        super().set_linewidth(linewidth)
         self.context.set_line_width(linewidth)
 
     def set_solid_line(self):
-        GraphicsInterface.set_solid_line(self)
+        super().set_solid_line()
 
     def set_dashed_line(self, on, off, start=0.0):
-        GraphicsInterface.set_dashed_line(self, on, off, start)
+        super().set_dashed_line(on, off, start)
 
     def line(self, x1, y1, x2, y2):
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])

@@ -24,7 +24,7 @@ from .graphics_interface import DrawMode
 class WidgetMapScale(WidgetBase):
 
     def __init__(self, sky_map_engine, alloc_space_spec, drawingscale, maxlength, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
-        WidgetBase.__init__(self, sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
+        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
         self.drawingscale = drawingscale
         self.maxlength = maxlength
         self.legend_fontsize = legend_fontsize

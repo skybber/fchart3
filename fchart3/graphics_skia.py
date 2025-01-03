@@ -45,7 +45,7 @@ class SkiaDrawing(GraphicsInterface):
         :param landscape: True if orientation of page is landscape
         :param tolerance: Cairo context drawing tolerance, use it for speedup of graphics operations
         """
-        GraphicsInterface.__init__(self, (width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
+        super().__init__((width / DPMM_IMG if pixels else width) , (height / DPMM_IMG if pixels else height))
 
         self.fobj = fobj
         self.format = format
@@ -92,31 +92,31 @@ class SkiaDrawing(GraphicsInterface):
             self.canvas.clear(skia.Color4f(self.gi_background_rgb[0], self.gi_background_rgb[1], self.gi_background_rgb[2], 1.0))
 
     def save(self):
-        GraphicsInterface.save(self)
+        super().save()
         self.canvas.save()
 
     def restore(self):
-        GraphicsInterface.restore(self)
+        super().restore()
         self.canvas.restore()
 
     def set_font(self, font='Arial', font_size=SKIA_DEFAULT_FONT_SIZE, font_style=FontStyle.NORMAL):
         old_size = self.gi_font_size
-        GraphicsInterface.set_font(self, font, font_size, font_style)
+        super().set_font(font, font_size, font_style)
         if self.font_default is None or old_size != font_size:
             self.font_default = skia.Font(skia.Typeface('NotoSans'), font_size)
 
     def set_linewidth(self, linewidth):
-        GraphicsInterface.set_linewidth(self, linewidth)
+        super().set_linewidth(linewidth)
         self.paint_default.setStrokeWidth(linewidth)
         self.paint_dash.setStrokeWidth(linewidth)
 
     def set_solid_line(self):
-        GraphicsInterface.set_solid_line(self)
+        super().set_solid_line()
 
     def set_dashed_line(self, on, off, start=0.0):
-        GraphicsInterface.set_dashed_line(self, on, off, start)
+        super().set_dashed_line(on, off, start)
 
-    def line(self, x1,y1,x2,y2):
+    def line(self, x1, y1, x2, y2):
         paint = self._get_paint()
         paint.setColor4f(skia.Color4f(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2]))
         paint.setStyle(skia.Paint.kStroke_Style)
@@ -146,7 +146,7 @@ class SkiaDrawing(GraphicsInterface):
         path.moveTo(vertices[0][0], -vertices[0][1])
         for v in vertices[1:]:
             path.lineTo(v[0], -v[1])
-        self._set_color_and_stroke_style(self.paint_default)
+        self._set_color_and_stroke_style(self.paint_default, DrawMode.BORDER)
         self.canvas.drawPath(path, self.paint_default)
 
     def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):

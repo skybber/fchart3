@@ -22,7 +22,7 @@ from .graphics_interface import DrawMode
 class WidgetNumericMapScale(WidgetBase):
 
     def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
-        WidgetBase.__init__(self, sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
+        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
         self.legend_fontsize = legend_fontsize
         self.legend_linewidth = legend_linewidth
         self.alloc_space_spec = alloc_space_spec

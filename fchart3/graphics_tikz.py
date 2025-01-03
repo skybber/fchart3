@@ -76,7 +76,7 @@ class TikZDrawing(GraphicsInterface):
         :param height: height in mm
         :param landscape: True if orientation of page is landscape
         """
-        GraphicsInterface.__init__(self, width , height)
+        super().__init__(width , height)
 
         if isinstance(fobj, str):
             self.close_fobj = True
@@ -101,27 +101,27 @@ class TikZDrawing(GraphicsInterface):
         pass
 
     def save(self):
-        GraphicsInterface.save(self)
+        super().save()
         self.scope_stack.append({'shift':[0,0], 'rotate':0, 'flushed':False})
 
     def restore(self):
-        GraphicsInterface.restore(self)
+        super().restore()
         last = self.scope_stack.pop()
         if last['flushed']:
             self.fobj.write('\end{scope}\n')
 
 
     def set_font(self, font='Arial', font_size=12*POINT, font_style=FontStyle.NORMAL):
-        GraphicsInterface.set_font(self, font, font_size, font_style)
+        super().set_font(font, font_size, font_style)
 
     def set_linewidth(self, linewidth):
-        GraphicsInterface.set_linewidth(self, linewidth)
+        super().set_linewidth(linewidth)
 
     def set_solid_line(self):
-        GraphicsInterface.set_solid_line(self)
+        super().set_solid_line()
 
     def set_dashed_line(self, on, off, start=0.0):
-        GraphicsInterface.set_dashed_line(self, on, off, start)
+        super().set_dashed_line(on, off, start)
         self.fobj.write('\\tikzstyle {{mydashed}} = [dashed, dash pattern = on {}mm off {}mm]\n'.format(on, off))
 
     def line(self, x1, y1, x2, y2):

@@ -23,7 +23,7 @@ from .projection import ProjectionInterface
 
 class ProjectionStereographic(ProjectionInterface):
     def __init__(self):
-        ProjectionInterface.__init__(self)
+        super().__init__()
         self.sin_theta0 = None
         self.cos_theta0 = None
 
