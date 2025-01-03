@@ -410,12 +410,6 @@ def _convert_stars3_v3_helper(stars3_v3):
     return zone_stars
 
 
-NORTH = (0.0, 0.0, 1.0)
-
-
-ZoneDataNp = np.dtype([('center', (np.float32, 3))])
-
-
 class GeodesicGaiaBinFileReader(GeodesicBinFileReader):
     def __init__(self):
         super().__init__(True)
