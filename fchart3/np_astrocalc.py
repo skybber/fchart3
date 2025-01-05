@@ -174,8 +174,45 @@ def np_rect_to_sphere(x1, x2, x3):
     return (ra, dec)
 
 
+def np_radec_to_horizontal(lst, sincos_lat, ra, dec):
+    """
+    Convert Equatorial coordinates (ra, dec) to Horizontal coordinates (Alt, Az).
+    :param lst: Local Sidereal Time in radians (scalar or array)
+    :param sincos_lat: precomputed array of sin+cos of observer's latitude [sin_lat, cos_lat]
+    :param ra: Right Ascension in radians (array)
+    :param dec: Declination in radians (array)
+    :return: (Alt, Az) in radians (arrays)
+    """
+    hour_angle = (lst - ra) % (2 * np.pi)
+
+    sin_lat = sincos_lat[0]
+    cos_lat = sincos_lat[1]
+
+    sin_dec = np.sin(dec)
+    cos_dec = np.cos(dec)
+    sin_ha = np.sin(hour_angle)
+    cos_ha = np.cos(hour_angle)
+
+    sin_alt = sin_dec * sin_lat + cos_dec * cos_lat * cos_ha
+    alt = np.arcsin(sin_alt)
+
+    cos_alt = np.sqrt(np.maximum(0.0, 1.0 - sin_alt ** 2))
+    cos_alt = np.where(np.abs(cos_alt) < 1e-15, np.cos(alt), cos_alt)
+
+    arg = (sin_dec - sin_lat * sin_alt) / (cos_lat * cos_alt)
+
+    az = np.where(arg <= -1.0, np.pi, np.where(arg >= 1.0, 0.0, np.arccos(arg)))
+
+    az = np.where((sin_ha > 0.0) & (np.abs(az) > 1e-15), 2.0 * np.pi - az, az)
+
+    az = (2 * np.pi - az) % (2 * np.pi)
+
+    return alt, az
+
+
 __all__ = ['np_angular_distance',
            'np_lm_to_radec', 'np_radec_to_lm', 'np_radec_to_lmz',
            'np_radec_to_xyz', 'np_radec_to_xy', 'np_direction_ddec',
-           'np_sphere_to_rect', 'np_rect_to_sphere'
+           'np_sphere_to_rect', 'np_rect_to_sphere',
+           'np_radec_to_horizontal'
            ]

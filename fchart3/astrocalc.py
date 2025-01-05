@@ -287,9 +287,54 @@ def pos_angle(ra1, dec1, ra2, dec2):
     return a
 
 
+def radec_to_horizontal(lst, sincos_lat, ra, dec):
+    """
+    Convert Equatorial coordinates (ra, dec) to Horizontal coordinates (Alt, Az).
+    :param lst: Local Sidereal Time in radians
+    :param sincos_lat: precomputed array of sin+cos of observer's latitude
+    :param ra: Right Ascension in radians
+    :param dec: Declination in radians
+    :return: (Alt, Az) in radians
+    """
+
+    hour_angle = (lst - ra) % (2 * math.pi)
+
+    sin_lat = sincos_lat[0]
+    cos_lat = sincos_lat[1]
+    sin_dec = math.sin(dec)
+    cos_dec = math.cos(dec)
+    sin_ha = math.sin(hour_angle)
+    cos_ha = math.cos(hour_angle)
+
+    sin_alt = sin_dec * sin_lat + cos_dec * cos_lat * cos_ha
+    alt = math.asin(sin_alt)
+
+    cos_alt = math.sqrt(max(0.0, 1.0 - sin_alt*sin_alt))
+    if abs(cos_alt) < 1e-15:
+        cos_alt = math.cos(alt)
+
+    arg = (sin_dec - sin_lat * sin_alt) / (cos_lat * cos_alt)
+
+    if arg <= -1.0:
+        az = math.pi
+    elif arg >= 1.0:
+        az = 0.0
+    else:
+        az = math.acos(arg)
+
+    if sin_ha > 0.0 and abs(az) > 1e-15:
+        az = 2.0 * math.pi - az
+
+    az = (2 * math.pi - az) % (2 * math.pi)
+
+    return alt, az
+
+
+
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
            'rad2dms', 'rad2hms',
            'hms2rad', 'dms2rad', 'lm_to_radec', 'radec_to_lm', 'radec_to_lmz',
            'radec_to_xyz', 'radec_to_xy', 'direction_ddec',
-           'sphere_to_rect', 'rect_to_sphere'
+           'sphere_to_rect', 'rect_to_sphere',
+           'radec_to_horizontal'
            ]
