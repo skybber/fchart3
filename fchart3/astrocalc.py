@@ -330,6 +330,50 @@ def radec_to_horizontal(lst, sincos_lat, ra, dec):
     return alt, az
 
 
+def horizontal_to_radec(lst, sincos_lat, alt, az):
+    """
+    Invert the transformation done by radec_to_horizontal(...).
+    Given horizontal coordinates (alt, az) and local sidereal time (lst),
+    recover equatorial coordinates (ra, dec).
+
+    :param lst: Local Sidereal Time [radians]
+    :param sincos_lat: (sin(latitude), cos(latitude))
+    :param alt: altitude [radians]
+    :param az:  azimuth [radians] as returned by radec_to_horizontal
+    :return: (ra, dec) in radians
+    """
+    sin_lat, cos_lat = sincos_lat
+
+    sin_alt = math.sin(alt)
+    cos_alt = math.cos(alt)
+
+    sin_dec = sin_lat * sin_alt + cos_lat * cos_alt * math.cos(az)
+
+    if sin_dec > 1.0:
+        sin_dec = 1.0
+    elif sin_dec < -1.0:
+        sin_dec = -1.0
+
+    dec = math.asin(sin_dec)
+
+    cos_dec = math.cos(dec)
+    denom = cos_dec * cos_lat
+    if abs(denom) < 1.0e-15:
+        hour_angle = 0.0
+    else:
+        cos_ha = (sin_alt - sin_dec * sin_lat) / denom
+        cos_ha = max(-1.0, min(1.0, cos_ha))
+
+        sin_ha = math.sqrt(max(0.0, 1.0 - cos_ha*cos_ha))
+        if az >= math.pi:
+            sin_ha = -sin_ha
+
+        hour_angle = math.atan2(sin_ha, cos_ha)
+
+    ra = (lst - hour_angle) % (2.0 * math.pi)
+
+    return ra, dec
+
 
 __all__ = ['angular_distance', 'justify_angle', 'rad2hms_t','rad2dms_t',
            'rad2dms', 'rad2hms',

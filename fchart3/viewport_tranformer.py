@@ -17,25 +17,28 @@
 
 import math
 
-from .astrocalc import radec_to_horizontal
+from .astrocalc import radec_to_horizontal, horizontal_to_radec
 from .np_astrocalc import np_radec_to_horizontal
 
 
 class ViewportTransformer:
     def __init__(self, projection):
         self.projection = projection
-        self.fld_ra = None
-        self.fld_dec = None
+        self.centre_phi = None
+        self.centre_theta = None
         self.obs_lst = None
         self.obs_sincos_lat = None
 
-    def set_fieldcentre(self, ra, dec):
+    def set_celestial_fieldcentre(self, phi, theta):
         """
         Set the center of the projection, typically in equatorial coordinates (RA, Dec).
         """
-        self.fld_ra = ra
-        self.fld_dec = dec
-        self._update_proj_fieldcentre()
+        self.centre_phi = phi
+        self.centre_theta = theta
+        self.projection.set_fieldcentre((phi, theta))
+
+    def get_equatorial_fieldcentre(self):
+        return horizontal_to_radec(self.obs_lst, self.obs_sincos_lat, self.centre_theta, self.centre_phi)
 
     def set_observer(self, lst, lat):
         """
@@ -47,15 +50,6 @@ class ViewportTransformer:
         else:
             self.obs_lst = None
             self.obs_sincos_lat = None
-        self._update_proj_fieldcentre()
-
-    def _update_proj_fieldcentre(self):
-        if self.fld_ra is not None and self.fld_dec is not None:
-            phi = self.fld_ra
-            theta = self.fld_dec
-            if self.obs_lst is not None:
-                theta, phi = radec_to_horizontal(self.obs_lst, self.obs_sincos_lat, phi, theta)
-            self.projection.set_fieldcentre((phi, theta))
 
     def set_scale(self, scale_x, scale_y):
         """

@@ -152,7 +152,8 @@ class SkymapEngine:
         self.lm_stars = lm_stars
         self.lm_deepsky = lm_deepsky
 
-        self.fieldcentre = None
+        self.fieldcentre_celestial = None
+        self.fieldcentre_equatorial = None
         self.observer = (None, None)
         self.fieldradius = None
         self.fieldsize = None
@@ -181,9 +182,10 @@ class SkymapEngine:
         self.transf = None
         self.norm_field_radius = None
 
-    def set_field(self, ra, dec, fieldradius, fieldlabel, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
+    def set_field(self, phi, theta, fieldradius, fieldlabel, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
         self.fieldradius = fieldradius
-        self.fieldcentre = (ra, dec)
+        self.fieldcentre_celestial = (phi, theta)
+        self.fieldcentre_equatorial = (phi, theta)
         self.fieldlabel = fieldlabel
 
         wh = max(self.drawingwidth, self.drawingheight)
@@ -205,11 +207,11 @@ class SkymapEngine:
             proj = ProjectionStereographic()
 
         self.transf = ViewportTransformer(proj)
-        self.transf.set_fieldcentre(0, 0)
+        self.transf.set_celestial_fieldcentre(0, 0)
         self.transf.set_scale(1.0, 1.0)
         self.norm_field_radius, _ = self.transf.equatorial_to_xy(fieldradius, 0)
         self.drawing_scale = self.scene_scale*wh / 2.0 / abs(self.norm_field_radius)
-        self.transf.set_fieldcentre(self.fieldcentre[0], self.fieldcentre[1])
+        self.transf.set_celestial_fieldcentre(self.fieldcentre_celestial[0], self.fieldcentre_celestial[1])
         mulx = -1 if mirror_x else 1
         muly = -1 if mirror_y else 1
         self.mirror_x = mirror_x
@@ -218,8 +220,9 @@ class SkymapEngine:
 
     def set_observer(self, lst, lat):
         self.observer = (lst, lat)
-        if self.transf is not None:
-            self.transf.set_observer(lst, lat)
+        self.transf.set_observer(lst, lat)
+        c_ra, c_dec = self.transf.get_equatorial_fieldcentre()
+        self.fieldcentre_equatorial = (c_ra, c_dec)
 
     def set_configuration(self, config):
         self.config = config
@@ -424,7 +427,7 @@ class SkymapEngine:
         if self.config.show_orientation_legend:
             self.w_orientation.draw(self.graphics, x1, y2, fill_background)
         if self.config.show_coords_legend:
-            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.fieldcentre[0], dec=self.fieldcentre[1], fill_background=fill_background)
+            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.fieldcentre_celestial[0], dec=self.fieldcentre_celestial[1], fill_background=fill_background)
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, fill_background)
 
@@ -435,7 +438,7 @@ class SkymapEngine:
         # Draw deep sky
         # print('Drawing deepsky...')
 
-        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre, self.fieldsize, self.lm_deepsky)
+        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre_equatorial, self.fieldsize, self.lm_deepsky)
 
         filtered_showing_dsos = []
 
@@ -657,9 +660,9 @@ class SkymapEngine:
         fd = self.config.enhanced_milky_way_fade
 
         if use_optimized_mw:
-            selected_polygons = enhanced_milky_way.select_opti_polygons(self.fieldcentre, self.fieldsize)
+            selected_polygons = enhanced_milky_way.select_opti_polygons(self.fieldcentre_equatorial, self.fieldsize)
         else:
-            selected_polygons = enhanced_milky_way.select_polygons(self.fieldcentre, self.fieldsize)
+            selected_polygons = enhanced_milky_way.select_polygons(self.fieldcentre_equatorial, self.fieldsize)
 
         fr_x1, fr_y1, fr_x2, fr_y2 = self.get_field_rect_mm()
 
@@ -1092,7 +1095,7 @@ class SkymapEngine:
         # print('Drawing stars...')
 
         pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
-        selection = star_catalog.select_stars(self.fieldcentre, self.fieldsize, self.lm_stars, precession_matrix)
+        selection = star_catalog.select_stars(self.fieldcentre_equatorial, self.fieldsize, self.lm_stars, precession_matrix)
         if selection is None or len(selection) == 0:
             print(_('No stars found.'))
             return
@@ -1270,8 +1273,8 @@ class SkymapEngine:
                 break
             prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
-        dec_min = self.fieldcentre[1] - self.fieldradius
-        dec_max = self.fieldcentre[1] + self.fieldradius
+        dec_min = self.fieldcentre_celestial[1] - self.fieldradius
+        dec_max = self.fieldcentre_celestial[1] + self.fieldradius
 
         label_fmt = '{}°' if grid_minutes >= 60 else '{}°{:02d}\''
 
@@ -1290,8 +1293,8 @@ class SkymapEngine:
         nzopt = not self.transf.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.transf.equatorial_to_xyz(self.fieldcentre[0] + agg_ra, dec)
-            x22, y22, z22 = self.transf.equatorial_to_xyz(self.fieldcentre[0] - agg_ra, dec)
+            x12, y12, z12 = self.transf.equatorial_to_xyz(self.fieldcentre_celestial[0] + agg_ra, dec)
+            x22, y22, z22 = self.transf.equatorial_to_xyz(self.fieldcentre_celestial[0] - agg_ra, dec)
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 self.graphics.line(x11, y11, x12, y12)
                 self.graphics.line(x21, y21, x22, y22)
@@ -1317,7 +1320,7 @@ class SkymapEngine:
 
     def draw_grid_ra(self):
         prev_steps, prev_grid_minutes = (None, None)
-        fc_cos = math.cos(self.fieldcentre[1])
+        fc_cos = math.cos(self.fieldcentre_celestial[1])
         for grid_minutes in RA_GRID_SCALE:
             steps = self.fieldradius / (fc_cos * (math.pi * grid_minutes / (12 * 60)))
             if steps < GRID_DENSITY:
@@ -1327,7 +1330,7 @@ class SkymapEngine:
                 break
             prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
-        max_visible_dec = self.fieldcentre[1]+self.fieldradius if self.fieldcentre[1] > 0 else self.fieldcentre[1]-self.fieldradius;
+        max_visible_dec = self.fieldcentre_celestial[1]+self.fieldradius if self.fieldcentre_celestial[1] > 0 else self.fieldcentre_celestial[1]-self.fieldradius;
         if max_visible_dec >= math.pi/2 or max_visible_dec <= -math.pi/2:
             ra_size = 2*math.pi
         else:
@@ -1346,7 +1349,7 @@ class SkymapEngine:
 
         while ra_minutes < 24*60:
             ra = math.pi * ra_minutes / (12*60)
-            if abs(self.fieldcentre[0]-ra) < ra_size or abs(self.fieldcentre[0]-2*math.pi-ra) < ra_size or abs(2*math.pi+self.fieldcentre[0]-ra) < ra_size:
+            if abs(self.fieldcentre_celestial[0]-ra) < ra_size or abs(self.fieldcentre_celestial[0]-2*math.pi-ra) < ra_size or abs(2*math.pi+self.fieldcentre_celestial[0]-ra) < ra_size:
                 self.draw_grid_ra_line(ra, ra_minutes, label_fmt)
             ra_minutes += grid_minutes
 
@@ -1358,8 +1361,8 @@ class SkymapEngine:
         nzopt = not self.transf.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.transf.equatorial_to_xyz(ra, self.fieldcentre[1] + agg_dec)
-            x22, y22, z22 = self.transf.equatorial_to_xyz(ra, self.fieldcentre[1] - agg_dec)
+            x12, y12, z12 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_celestial[1] + agg_dec)
+            x22, y22, z22 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_celestial[1] - agg_dec)
             if x11 is not None:
                 if nzopt or (z11 > 0 and z12 > 0):
                     self.graphics.line(x11, y11, x12, y12)
@@ -1371,7 +1374,7 @@ class SkymapEngine:
             if y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
                 label = self.grid_ra_label(ra_minutes, label_fmt)
                 self.graphics.save()
-                if self.fieldcentre[1] <= 0:
+                if self.fieldcentre_celestial[1] <= 0:
                     x = (x12-x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
                     self.mirroring_graphics.translate(x, self.drawingheight/2)
                     text_ang = math.atan2(y11-y12, x11-x12)
