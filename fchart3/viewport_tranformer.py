@@ -114,3 +114,12 @@ class ViewportTransformer:
         if self.obs_lst is not None:
             theta, phi = np_radec_to_horizontal(self.obs_lst, self.obs_sincos_lat, phi, theta)
         return self.projection.direction_dtheta(phi, theta)
+
+    def horizontal_to_xyz(self, az, alt):
+        """
+        Convert horizontal coordinates to 3D Cartesian coordinates (x, y, z).
+
+        Returns:
+        tuple: (x, y, z) coordinates in 3D space.
+        """
+        return self.projection.celestial_to_xyz(az, alt)

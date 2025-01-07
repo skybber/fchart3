@@ -154,6 +154,7 @@ class SkymapEngine:
 
         self.fieldcentre_celestial = None
         self.fieldcentre_equatorial = None
+        self.is_equatorial = False
         self.observer = (None, None)
         self.fieldradius = None
         self.fieldsize = None
@@ -220,6 +221,7 @@ class SkymapEngine:
 
     def set_observer(self, lst, lat):
         self.observer = (lst, lat)
+        self.is_equatorial = lst is not None and lat is not None
         self.transf.set_observer(lst, lat)
         c_ra, c_dec = self.transf.get_equatorial_fieldcentre()
         self.fieldcentre_equatorial = (c_ra, c_dec)
@@ -360,6 +362,9 @@ class SkymapEngine:
             if highlights:
                 self.draw_arrow_to_highlight(clip_path, highlights)
 
+            if self.config.show_horizont and self.is_equatorial:
+                self.draw_horizont()
+
             self.graphics.reset_clip()
 
         # print('Drawing legend')
@@ -427,7 +432,7 @@ class SkymapEngine:
         if self.config.show_orientation_legend:
             self.w_orientation.draw(self.graphics, x1, y2, fill_background)
         if self.config.show_coords_legend:
-            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.fieldcentre_celestial[0], dec=self.fieldcentre_celestial[1], fill_background=fill_background)
+            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.fieldcentre_equatorial[0], dec=self.fieldcentre_equatorial[1], fill_background=fill_background)
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, fill_background)
 
@@ -1273,8 +1278,8 @@ class SkymapEngine:
                 break
             prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
-        dec_min = self.fieldcentre_celestial[1] - self.fieldradius
-        dec_max = self.fieldcentre_celestial[1] + self.fieldradius
+        dec_min = self.fieldcentre_equatorial[1] - self.fieldradius
+        dec_max = self.fieldcentre_equatorial[1] + self.fieldradius
 
         label_fmt = '{}°' if grid_minutes >= 60 else '{}°{:02d}\''
 
@@ -1293,8 +1298,8 @@ class SkymapEngine:
         nzopt = not self.transf.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.transf.equatorial_to_xyz(self.fieldcentre_celestial[0] + agg_ra, dec)
-            x22, y22, z22 = self.transf.equatorial_to_xyz(self.fieldcentre_celestial[0] - agg_ra, dec)
+            x12, y12, z12 = self.transf.equatorial_to_xyz(self.fieldcentre_equatorial[0] + agg_ra, dec)
+            x22, y22, z22 = self.transf.equatorial_to_xyz(self.fieldcentre_equatorial[0] - agg_ra, dec)
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 self.graphics.line(x11, y11, x12, y12)
                 self.graphics.line(x21, y21, x22, y22)
@@ -1320,7 +1325,7 @@ class SkymapEngine:
 
     def draw_grid_ra(self):
         prev_steps, prev_grid_minutes = (None, None)
-        fc_cos = math.cos(self.fieldcentre_celestial[1])
+        fc_cos = math.cos(self.fieldcentre_equatorial[1])
         for grid_minutes in RA_GRID_SCALE:
             steps = self.fieldradius / (fc_cos * (math.pi * grid_minutes / (12 * 60)))
             if steps < GRID_DENSITY:
@@ -1330,7 +1335,7 @@ class SkymapEngine:
                 break
             prev_steps, prev_grid_minutes = (steps, grid_minutes)
 
-        max_visible_dec = self.fieldcentre_celestial[1]+self.fieldradius if self.fieldcentre_celestial[1] > 0 else self.fieldcentre_celestial[1]-self.fieldradius;
+        max_visible_dec = self.fieldcentre_equatorial[1]+self.fieldradius if self.fieldcentre_equatorial[1] > 0 else self.fieldcentre_equatorial[1]-self.fieldradius;
         if max_visible_dec >= math.pi/2 or max_visible_dec <= -math.pi/2:
             ra_size = 2*math.pi
         else:
@@ -1349,7 +1354,7 @@ class SkymapEngine:
 
         while ra_minutes < 24*60:
             ra = math.pi * ra_minutes / (12*60)
-            if abs(self.fieldcentre_celestial[0]-ra) < ra_size or abs(self.fieldcentre_celestial[0]-2*math.pi-ra) < ra_size or abs(2*math.pi+self.fieldcentre_celestial[0]-ra) < ra_size:
+            if abs(self.fieldcentre_equatorial[0]-ra) < ra_size or abs(self.fieldcentre_equatorial[0]-2*math.pi-ra) < ra_size or abs(2*math.pi+self.fieldcentre_equatorial[0]-ra) < ra_size:
                 self.draw_grid_ra_line(ra, ra_minutes, label_fmt)
             ra_minutes += grid_minutes
 
@@ -1361,8 +1366,8 @@ class SkymapEngine:
         nzopt = not self.transf.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_celestial[1] + agg_dec)
-            x22, y22, z22 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_celestial[1] - agg_dec)
+            x12, y12, z12 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_equatorial[1] + agg_dec)
+            x22, y22, z22 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_equatorial[1] - agg_dec)
             if x11 is not None:
                 if nzopt or (z11 > 0 and z12 > 0):
                     self.graphics.line(x11, y11, x12, y12)
@@ -1374,7 +1379,7 @@ class SkymapEngine:
             if y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
                 label = self.grid_ra_label(ra_minutes, label_fmt)
                 self.graphics.save()
-                if self.fieldcentre_celestial[1] <= 0:
+                if self.fieldcentre_equatorial[1] <= 0:
                     x = (x12-x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
                     self.mirroring_graphics.translate(x, self.drawingheight/2)
                     text_ang = math.atan2(y11-y12, x11-x12)
@@ -1559,6 +1564,34 @@ class SkymapEngine:
             return divs
 
         return self.calc_boundary_divisions(level+1, divs * 2, wh_min, max_angle2, x1, y1, 1, x_center, y_center, 1, ra1, dec1, ra_center, dec_center)
+
+    def draw_horizont(self):
+        self.graphics.save()
+        self.graphics.set_linewidth(self.config.horizont_linewidth)
+        self.graphics.set_solid_line()
+        self.graphics.set_pen_rgb(self.config.horizont_color)
+
+        daz = self.fieldradius / 10
+        x11, y11, z11 = (None, None, None)
+        agg_az = 0
+        nzopt = not self.transf.is_zoptim()
+
+        alt = 0
+
+        while True:
+            x12, y12, z12 = self.transf.horizontal_to_xyz(self.fieldcentre_celestial[0] + agg_az, alt)
+            x22, y22, z22 = self.transf.horizontal_to_xyz(self.fieldcentre_celestial[0] - agg_az, 0)
+            if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
+                self.graphics.line(x11, y11, x12, y12)
+                self.graphics.line(x21, y21, x22, y22)
+            agg_az = agg_az + daz
+            if agg_az > math.pi:
+                break
+            if y11 is not None and x12 < -self.drawingwidth/2:
+                break
+            x11, y11, z11 = (x12, y12, z12)
+            x21, y21, z21 = (x22, y22, z22)
+        self.graphics.restore()
 
     def create_widgets(self):
         left, bottom, right, top = self.get_field_rect_mm()

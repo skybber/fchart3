@@ -29,11 +29,13 @@ DEFAULT_NEBULA_LINEWIDTH = 0.3
 DEFAULT_DSO_LINEWIDTH = 0.2
 DEFAULT_LEGEND_LINEWIDTH = 0.2
 DEFAULT_GRID_LINEWIDTH = 0.2
+DEFAULT_HORIZONT_LINEWIDTH = 1.5
 DEFAULT_HIGHLIGHT_LINEWIDTH = 0.3
 DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
 DEFAULT_TELRAD_LINEWIDTH = 0.3
 DEFAULT_PICKER_LINEWIDTH = 0.4
 DEFAULT_EYEPIECE_LINEWIDTH = 0.3
+
 DEFAULT_ENHANCED_MILKY_WAY_FADE = (0.0, 0.4, 0.0, 0.4, 0.0, 0.4)
 
 DEFAULT_BACKGROUND_COLOR = (1.0, 1.0, 1.0)
@@ -46,6 +48,7 @@ DEFAULT_MILKY_WAY_COLOR = (0.1, 0.1, 0.1)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
 DEFAULT_DSO_HIGHLIGHT_COLOR = (0.1, 0.2, 0.4)
 DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
+DEFAULT_HORIZONT_COLOR = (0.31, 0.31, 0.25)
 DEFAULT_TELRAD_COLOR = (0.5, 0.0, 0.0)
 DEFAULT_EYEPIECE_COLOR = (0.5, 0.3, 0.0)
 DEFAULT_PICKER_COLOR = (0.5, 0.5, 0.0)
@@ -110,6 +113,7 @@ class EngineConfiguration:
         self._show_picker = False
         self._show_dso_mag = False
         self._show_star_mag = False
+        self._show_horizont = False
         self._fov_telrad = False
         self._eyepiece_fov = None
         self._star_colors = False
@@ -126,6 +130,7 @@ class EngineConfiguration:
         self._star_cluster_color = DEFAULT_DSO_COLOR
         self._galaxy_cluster_color = DEFAULT_DSO_COLOR
         self._grid_color = DEFAULT_GRID_COLOR
+        self._horizont_color = DEFAULT_HORIZONT_COLOR
         self._constellation_linewidth = DEFAULT_CONSTELLATION_LINEWIDTH
         self._constellation_border_linewidth = DEFAULT_CONSTELLATION_BORDER_LINEWIDTH
         self._constellation_linespace = DEFAULT_CONSTELLATION_LINE_SPACE
@@ -135,6 +140,7 @@ class EngineConfiguration:
         self._dso_linewidth = DEFAULT_DSO_LINEWIDTH
         self._legend_linewidth = DEFAULT_LEGEND_LINEWIDTH
         self._grid_linewidth = DEFAULT_GRID_LINEWIDTH
+        self._horizont_linewidth = DEFAULT_HORIZONT_LINEWIDTH
         self._no_margin = False
         self._font = DEFAULT_FONT
         self._font_size = DEFAULT_FONT_SIZE
@@ -351,6 +357,14 @@ class EngineConfiguration:
         self._show_star_mag = value
 
     @property
+    def show_horizont(self):
+        return self._show_horizont
+
+    @show_horizont.setter
+    def show_horizont(self, value):
+        self._show_horizont = value
+
+    @property
     def fov_telrad(self):
         return self._fov_telrad
 
@@ -487,6 +501,14 @@ class EngineConfiguration:
         self._grid_color = value
 
     @property
+    def horizont_color(self):
+        return self._horizont_color
+
+    @horizont_color.setter
+    def horizont_color(self, value):
+        self._horizont_color = value
+
+    @property
     def constellation_linewidth(self):
         return self._constellation_linewidth
 
@@ -549,6 +571,14 @@ class EngineConfiguration:
     @grid_linewidth.setter
     def grid_linewidth(self, value):
         self._grid_linewidth = value
+
+    @property
+    def horizont_linewidth(self):
+        return self._horizont_linewidth
+
+    @horizont_linewidth.setter
+    def horizont_linewidth(self, value):
+        self._horizont_linewidth = value
 
     @property
     def no_margin(self):
