@@ -1360,22 +1360,35 @@ class SkymapEngine:
 
     def draw_grid_ra_line(self, ra, ra_minutes, label_fmt):
         ddec = self.fieldradius / 10
-        x11, y11, z11 = (None, None, None)
-        x21, y21, z21 = (None, None, None)
-        agg_dec = 0
+
+        x11, y11, z11 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_equatorial[1])
+        x21, y21, z21 = x11, y11, z11
+
+        dec11 = dec21 = self.fieldcentre_equatorial[1]
         nzopt = not self.transf.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_equatorial[1] + agg_dec)
-            x22, y22, z22 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_equatorial[1] - agg_dec)
-            if x11 is not None:
+            dec12 = dec11 + ddec
+            if dec12 >= math.pi/2 and dec11 <= math.pi/2:
+                dec12 = math.pi/2
+            if dec12 <= math.pi/2:
+                x12, y12, z12 = self.transf.equatorial_to_xyz(ra, dec12)
                 if nzopt or (z11 > 0 and z12 > 0):
                     self.graphics.line(x11, y11, x12, y12)
+
+            dec22 = dec21 - ddec
+            if dec22 <= -math.pi/2 and dec21 >= -math.pi/2:
+                dec22 = -math.pi/2
+            if dec22 >= -math.pi/2:
+                x22, y22, z22 = self.transf.equatorial_to_xyz(ra, dec22)
                 if nzopt or (z21 > 0 and z22 > 0):
                     self.graphics.line(x21, y21, x22, y22)
-            agg_dec = agg_dec + ddec
-            if agg_dec > math.pi/2:
+
+            if dec12 >= math.pi/2 and dec22 <= -math.pi/2:
                 break
+
+            dec11, dec21 = dec12, dec22
+
             if y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
                 label = self.grid_ra_label(ra_minutes, label_fmt)
                 self.graphics.save()
