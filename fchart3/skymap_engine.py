@@ -134,6 +134,17 @@ constell_lines_rect1 = None
 constell_lines_rect2 = None
 constell_bound_rect = None
 
+CARDINAL_DIRECTIONS = [
+    ("N", 0),
+    ("NW", math.pi / 4),
+    ("W", math.pi / 2),
+    ("SW", math.pi / 2 + math.pi / 4),
+    ("S", math.pi),
+    ("SE", math.pi + math.pi / 4),
+    ("E", 3 * math.pi / 2),
+    ("NE", 3 * math.pi / 2 + math.pi / 4),
+]
+
 
 class SkymapEngine:
     def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption=''):
@@ -1604,7 +1615,24 @@ class SkymapEngine:
                 break
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
+
         self.graphics.restore()
+
+        label_fh = self.config.cardinal_directions_font_scale * self.graphics.gi_default_font_size
+        self.graphics.set_font(self.graphics.gi_font, label_fh)
+
+        for label, azimuth in CARDINAL_DIRECTIONS:
+            x, y, z = self.transf.horizontal_to_xyz(azimuth, 0)
+            if z > 0:
+                x_up, y_up, _ = self.transf.horizontal_to_xyz(azimuth, pi/20)
+                self.graphics.save()
+                self.graphics.set_pen_rgb(self.config.cardinal_directions_color)
+                self.graphics.translate(x, y)
+                text_ang = math.atan2(x_up-x, y_up-y)
+                self.graphics.rotate(-text_ang)
+                self.graphics.text_centred(0, label_fh, label)
+                self.graphics.restore()
+
 
     def create_widgets(self):
         left, bottom, right, top = self.get_field_rect_mm()

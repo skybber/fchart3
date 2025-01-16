@@ -60,6 +60,8 @@ DEFAULT_BAYER_LABEL_FONT_SCALE = 1.2
 DEFAULT_FLAMSTEED_LABEL_FONT_SCALE = 0.9
 DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE = 1.1
 DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE = 1.0
+DEFAULT_CARDINAL_DIRECTIONS_FONT_SCALE = 1.3
+DEFAULT_CARDINAL_DIRECTIONS_COLOR = (0.8, 0.2, 0.102)
 
 DEFAULT_MERCURY_COLOR = (0.5, 0.5, 0.5)
 DEFAULT_VENUS_COLOR   = (0.9, 0.8, 0.6)
@@ -166,6 +168,8 @@ class EngineConfiguration:
         self._dso_label_font_style = FontStyle.NORMAL
         self._outlined_dso_label_font_scale = DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE
         self._highlight_label_font_scale = DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE
+        self._cardinal_directions_font_scale = DEFAULT_CARDINAL_DIRECTIONS_FONT_SCALE
+        self._cardinal_directions_color = DEFAULT_CARDINAL_DIRECTIONS_COLOR
         self._star_mag_shift = 0
         self._flamsteed_numbers_only = False
         self._mercury_color = DEFAULT_MERCURY_COLOR
@@ -787,6 +791,22 @@ class EngineConfiguration:
     @highlight_label_font_scale.setter
     def highlight_label_font_scale(self, value):
         self._highlight_label_font_scale = value
+
+    @property
+    def cardinal_directions_font_scale(self):
+        return self._cardinal_directions_font_scale
+
+    @cardinal_directions_font_scale.setter
+    def cardinal_directions_font_scale(self, value):
+        self._cardinal_directions_font_scale = value
+
+    @property
+    def cardinal_directions_color(self):
+        return self._cardinal_directions_color
+
+    @cardinal_directions_color.setter
+    def cardinal_directions_color(self, value):
+        self._cardinal_directions_color = value
 
     @property
     def flamsteed_numbers_only(self):
