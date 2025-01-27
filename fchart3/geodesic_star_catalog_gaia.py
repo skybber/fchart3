@@ -338,7 +338,8 @@ def _convert_stars1_v3_helper(stars1_v3, bsc_hip_map):
     if bsc_hip_map:
         hip_col = stars1_v3['hip']
         for i in range(dim):
-            hip = hip_col[i][0] | (hip_col[i][1].astype(np.uint32) << 8) | (hip_col[i][2].astype(np.uint32) << 16)
+            combined_hip = hip_col[i][0] | (hip_col[i][1].astype(np.uint32) << 8) | (hip_col[i][2].astype(np.uint32) << 16)
+            hip = combined_hip >> 5
             if hip != 0:
                 bsc_star = bsc_hip_map.get(hip)
                 if bsc_star:
