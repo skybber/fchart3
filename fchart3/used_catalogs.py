@@ -77,7 +77,8 @@ class UsedCatalogs:
         self._messierlist.sort(key=lambda x: x.messier)
         self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
         self._milky_way = import_milky_way(os.path.join(data_dir, 'milkyway.dat'))
-        self._enhanced_milky_way = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced2.dat'), enhanced_mw_optim_max_col_diff)
+        self._enhanced_milky_way_10k = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced_10k.dat'), enhanced_mw_optim_max_col_diff)
+        self._enhanced_milky_way_30k = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced_30k.dat'), enhanced_mw_optim_max_col_diff)
 
     def free_mem(self):
         self._starcatalog.free_mem()
@@ -115,8 +116,12 @@ class UsedCatalogs:
         return self._milky_way
 
     @property
-    def enhanced_milky_way(self):
-        return self._enhanced_milky_way
+    def enhanced_milky_way_10k(self):
+        return self._enhanced_milky_way_10k
+
+    @property
+    def enhanced_milky_way_30k(self):
+        return self._enhanced_milky_way_30k
 
     def lookup_dso(self, dso_name):
         index = 0

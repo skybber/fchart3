@@ -166,7 +166,8 @@ class EngineConfiguration:
         self._show_deepsky = True
         self._show_dso_legend = False
         self._show_dso_mag = False
-        self._show_enhanced_milky_way = False
+        self._show_enhanced_milky_way_10k = False
+        self._show_enhanced_milky_way_30k = False
         self._show_equatorial_grid = False
         self._show_field_border = False
         self._show_flamsteed = True
@@ -770,12 +771,20 @@ class EngineConfiguration:
         self._show_dso_mag = value
 
     @property
-    def show_enhanced_milky_way(self):
-        return self._show_enhanced_milky_way
+    def show_enhanced_milky_way_10k(self):
+        return self._show_enhanced_milky_way_10k
 
-    @show_enhanced_milky_way.setter
-    def show_enhanced_milky_way(self, value):
-        self._show_enhanced_milky_way = value
+    @show_enhanced_milky_way_10k.setter
+    def show_enhanced_milky_way_10k(self, value):
+        self._show_enhanced_milky_way_10k = value
+
+    @property
+    def show_enhanced_milky_way_30k(self):
+        return self._show_enhanced_milky_way_30k
+
+    @show_enhanced_milky_way_30k.setter
+    def show_enhanced_milky_way_30k(self, value):
+        self._show_enhanced_milky_way_30k = value
 
     @property
     def show_equatorial_grid(self):

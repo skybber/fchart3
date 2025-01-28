@@ -321,8 +321,10 @@ class SkymapEngine:
 
             if self.config.show_simple_milky_way:
                 self.draw_milky_way(used_catalogs.milky_way)
-            elif self.config.show_enhanced_milky_way:
-                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way, use_optimized_mw)
+            elif self.config.show_enhanced_milky_way_10k:
+                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way_10k, use_optimized_mw)
+            elif self.config.show_enhanced_milky_way_30k:
+                self.draw_enhanced_milky_way(used_catalogs.enhanced_milky_way_30k, use_optimized_mw)
 
             if self.config.show_equatorial_grid:
                 # tm = time()
