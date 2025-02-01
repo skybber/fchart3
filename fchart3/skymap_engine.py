@@ -1115,16 +1115,19 @@ class SkymapEngine:
         pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
         selection = star_catalog.select_stars(self.fieldcentre_equatorial, self.fieldsize, self.lm_stars, precession_matrix)
         if selection is None or len(selection) == 0:
-            print(_('No stars found.'))
+            print('No stars found.')
             return
 
         # print("Stars selection {} ms".format(str(time()-tm)), flush=True)
-        print(_('{} stars in map.'.format(selection.shape[0])))
+        print('{} stars in map.'.format(selection.shape[0]))
         var = str(round(max(selection['mag']), 2))
-        print(_(f'Faintest star : {var}'))
+        print(f'Faintest star : {var}')
 
         # tm = time()
-        x, y = self.transf.np_equatorial_to_xy(selection['ra'], selection['dec'])
+        points_3d = np.column_stack([selection['x'],
+                                     selection['y'],
+                                     selection['z']])
+        x, y, _ = self.transf.np_unit3d_to_xy(points_3d)
 
         # print("Stars view positioning {} ms".format(str(time()-tm)), flush=True)
 

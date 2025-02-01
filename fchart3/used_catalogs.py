@@ -30,7 +30,6 @@ import numpy as np
 
 from .astrocalc import sphere_to_rect
 from .constellation import ConstellationCatalog
-from .geodesic_star_catalog import GeodesicStarCatalog
 from .geodesic_star_catalog_gaia import GeodesicStarGaiaCatalog
 from .deepsky_catalog import DeepskyCatalog
 from .hnsky_deepsky import import_hnsky_deepsky, import_hnsky_supplement
@@ -45,16 +44,13 @@ from . import deepsky_object as deepsky
 class UsedCatalogs:
     def __init__(self, data_dir, extra_star_data_dir, supplements=None, limit_magnitude_deepsky=10.0, force_messier=False,
                  force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False,
-                 enhanced_mw_optim_max_col_diff=None, use_gaia=False):
+                 enhanced_mw_optim_max_col_diff=None):
         # Read basic catalogs
         self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'constellationship_western.fab',
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
-        if use_gaia:
-            self._starcatalog = GeodesicStarGaiaCatalog(extra_star_data_dir, None, self._constellcatalog.bsc_hip_map)
-        else:
-            self._starcatalog = GeodesicStarCatalog(data_dir, extra_star_data_dir, self._constellcatalog.bsc_hip_map)
+        self._starcatalog = GeodesicStarGaiaCatalog(data_dir, extra_star_data_dir, self._constellcatalog.bsc_hip_map)
 
         self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog, supplements)
 

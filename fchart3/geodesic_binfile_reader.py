@@ -20,6 +20,7 @@ import os
 
 from .geodesic_grid import *
 
+
 FILE_MAGIC_OTHER_ENDIAN = 0x0a045f83
 FILE_MAGIC = 0x835f040a
 FILE_MAGIC_NATIVE = 0x835f040b
@@ -147,12 +148,4 @@ class GeodesicBinFileReader:
             self._index_count[i] = nrecs
             self._index_offset[i] = index_offset_start + self.nr_of_stars * star_rec_size
             self.nr_of_stars += nrecs
-
-
-if __name__ == '__main__':
-    fname = './data/catalogs/stars_0_0v0_8.cat'
-    reader = GeodesicBinFileReader()
-    reader.open_file(fname)
-    reader.read_header()
-    print("Done")
 

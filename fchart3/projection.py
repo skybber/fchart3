@@ -16,7 +16,6 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from enum import Enum
-import math
 
 
 class ProjectionType(Enum):
@@ -35,6 +34,13 @@ class ProjectionInterface:
         Set the center of the projection, typically in celestial coordinates (RA, Dec).
         """
         self.fieldcentre = fieldcentre
+
+    def set_r_obs(self, r_obs):
+        """
+        Sets rotation matrix of observer
+        :param r_obs: observer's rotation matrix
+        """
+        pass
 
     def set_scale(self, scale_x, scale_y):
         """
@@ -88,5 +94,29 @@ class ProjectionInterface:
 
         Returns:
         float: The direction or angle of the declination change.
+        """
+        pass
+
+    def np_unit3d_to_xy_matrix(self, points_3d):
+        """
+        Converts a 3D unit vector to its corresponding 2D projection in the XY-plane.
+        :rtype: numpy.ndarray
+        """
+        pass
+
+    def np_unit3d_to_xy(self, points_3d):
+        """
+        Convert 3D points in unit space to 2D points on the XY plane.
+
+        This method processes an array of 3D points and transforms them
+        to 2D points lying on the XY plane. It can be used in scenarios
+        where data is represented in three-dimensional space and a projection
+        to two dimensions is required for further processing or visualization.
+
+        :param points_3d: A numpy array containing the 3D coordinates
+            to be transformed. Each row represents a 3D point, typically
+            with shape (n, 3).
+        :return: A numpy array containing the 2D projected points limited
+            to the XY plane, typically with shape (n, 2).
         """
         pass

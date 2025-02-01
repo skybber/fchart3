@@ -268,7 +268,7 @@ STAR2_GAIA_DT = np.dtype([
 ])
 
 """
-STAR2_GAIA_DT
+STAR3_GAIA_DT
               _______________
     0  gaia_id|               |
     1         |               |
@@ -306,8 +306,9 @@ RECT_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
                                   ('bsc', np.dtype(object))
                                   ])
 
-EQ_ZONE_STARDATA_DT = np.dtype([('ra', np.float32),
-                                ('dec', np.float32),
+D3_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
+                                ('y', np.float32),
+                                ('z', np.float32),
                                 ('mag', np.float32),
                                 ('bvind', np.uint8),
                                 ('bsc', np.dtype(object))
@@ -646,20 +647,19 @@ class GeodesicStarGaiaCatalog(StarCatalog):
         if precession_matrix is not None:
             mat_rect_stars = np.column_stack((rect_stars['x'], rect_stars['y'], rect_stars['z']))
             mat_rect_stars = np.matmul(mat_rect_stars, precession_matrix)
-            ra, dec = np_rect_to_sphere(mat_rect_stars[:,[0]], mat_rect_stars[:,[1]], mat_rect_stars[:,[2]])
         else:
-            dim = len(rect_stars)
-            ra, dec = np_rect_to_sphere(rect_stars['x'].reshape(dim, 1), rect_stars['y'].reshape(dim, 1), rect_stars['z'].reshape(dim, 1))
+            mat_rect_stars = np.column_stack((rect_stars['x'], rect_stars['y'], rect_stars['z']))
 
         eq_stars = np.core.records.fromarrays(
             [
-                ra[:, 0],
-                dec[:, 0],
+                mat_rect_stars[:, 0],  # x
+                mat_rect_stars[:, 1],  # y
+                mat_rect_stars[:, 2],  # z
                 rect_stars['mag'],
                 rect_stars['bvind'],
                 rect_stars['bsc'],
             ],
-            dtype=EQ_ZONE_STARDATA_DT)
+            dtype=D3_ZONE_STARDATA_DT)
 
         return eq_stars
 

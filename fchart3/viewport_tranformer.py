@@ -15,17 +15,19 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import math
-
 from .astrocalc import radec_to_horizontal, horizontal_to_radec
-from .np_astrocalc import np_radec_to_horizontal
+from .np_astrocalc import np_radec_to_horizontal, np_build_rotation_matrix_obs
+
+import math
 
 
 class ViewportTransformer:
     def __init__(self, projection):
         self.projection = projection
+
         self.centre_phi = None
         self.centre_theta = None
+
         self.obs_lst = None
         self.obs_sincos_lat = None
 
@@ -47,9 +49,12 @@ class ViewportTransformer:
         if lst is not None and lat is not None:
             self.obs_lst = lst
             self.obs_sincos_lat = (math.sin(lat), math.cos(lat))
+            r_obs = np_build_rotation_matrix_obs(lst, lat)
+            self.projection.set_r_obs(r_obs)
         else:
             self.obs_lst = None
             self.obs_sincos_lat = None
+            self.projection.set_r_obs(None)
 
     def set_scale(self, scale_x, scale_y):
         """
@@ -123,3 +128,6 @@ class ViewportTransformer:
         tuple: (x, y, z) coordinates in 3D space.
         """
         return self.projection.celestial_to_xyz(az, alt)
+
+    def np_unit3d_to_xy(self, points_3d):
+        return self.projection.np_unit3d_to_xy(points_3d)

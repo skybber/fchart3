@@ -210,9 +210,82 @@ def np_radec_to_horizontal(lst, sincos_lat, ra, dec):
     return alt, az
 
 
+def np_build_rotation_matrix_equatorial(phi0, theta0):
+    """
+    Builds a rotation matrix based on equatorial spherical coordinates (phi0, theta0).
+    The matrix is constructed from the given angles, representing a rotation that aligns
+    the z-axis with a unit vector defined by the spherical angles. The function ensures that
+    an appropriate orthonormal basis is created with well-defined x, y, and z axes.
+
+    :param phi0: Longitude angle in radians. Specifies the azimuthal position.
+    :type phi0: float
+    :param theta0: Latitude angle in radians. Specifies the altitude position.
+    :type theta0: float
+    :return: A 3x3 rotation matrix where each row represents the orthonormal basis vectors.
+    :rtype: numpy.ndarray
+    """
+    cos_t0 = np.cos(theta0)
+    sin_t0 = np.sin(theta0)
+    cos_p0 = np.cos(phi0)
+    sin_p0 = np.sin(phi0)
+
+    center = np.array([
+        cos_t0 * cos_p0,
+        cos_t0 * sin_p0,
+        sin_t0
+    ], dtype=float)
+
+    x_temp = np.array([0, 0, 1], dtype=float)
+
+    ex = np.cross(x_temp, center)
+    ex /= np.linalg.norm(ex)
+
+    ey = np.cross(center, ex)
+
+    R = np.vstack([ex, ey, center])
+    return R
+
+
+def np_build_rotation_matrix_obs(lst, lat):
+    """
+    Build a 3x3 rotation matrix that transforms a 3D vector in the
+    (RA,Dec) equatorial frame into the local horizontal frame,
+    given the observer's local sidereal time (lst) and latitude.
+
+    Convention (for this example):
+      - +z = up (zenith),
+      - +x = north,
+      - +y = east.  (Az increases toward the east from north.)
+
+    Steps (applied right-to-left to a column vector v):
+      1) Rz(LST): rotate around z-axis by +LST,
+      2) Ry(lat - π/2): rotate around y-axis by (lat - 90 deg).
+
+    So the final transform is  R_obs = Ry(lat - π/2) @ Rz(LST).
+    """
+    st_corr = -lst + np.pi
+    cos_l = np.cos(st_corr)
+    sin_l = np.sin(st_corr)
+    Rz = np.array([
+        [cos_l, -sin_l, 0],
+        [sin_l, cos_l, 0],
+        [0, 0, 1]
+    ])
+
+    alpha = (np.pi / 2) - lat
+    cos_a = np.cos(alpha)
+    sin_a = np.sin(alpha)
+    Ry = np.array([
+        [cos_a, 0, sin_a],
+        [0, 1, 0],
+        [-sin_a, 0, cos_a]
+    ])
+
+    return Ry @ Rz
+
 __all__ = ['np_angular_distance',
            'np_lm_to_radec', 'np_radec_to_lm', 'np_radec_to_lmz',
            'np_radec_to_xyz', 'np_radec_to_xy', 'np_direction_ddec',
            'np_sphere_to_rect', 'np_rect_to_sphere',
-           'np_radec_to_horizontal'
+           'np_radec_to_horizontal', 'np_build_rotation_matrix_equatorial'
            ]
