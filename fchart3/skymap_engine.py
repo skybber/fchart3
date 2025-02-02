@@ -584,11 +584,8 @@ class SkymapEngine:
             mat_rect_dso = np.matmul(mat_rect_dso, precession_matrix)
             ra_ar, dec_ar = np_rect_to_sphere(mat_rect_dso[:,[0]], mat_rect_dso[:,[1]], mat_rect_dso[:,[2]])
         else:
-            ra_ar = np.empty([len(dso_list)])
-            dec_ar = np.empty([len(dso_list)])
-            for i, dso in enumerate(dso_list):
-                ra_ar[i] = dso.ra
-                dec_ar[i] = dso.dec
+            ra_ar = np.array([dso.ra for dso in dso_list])
+            dec_ar = np.array([dso.dec for dso in dso_list])
 
         x, y, z = self.transf.np_equatorial_to_xyz(ra_ar, dec_ar)
         nzopt = not self.transf.is_zoptim()
