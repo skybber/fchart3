@@ -15,7 +15,6 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-
 import gettext
 import os
 
@@ -2294,12 +2293,9 @@ class SkymapEngine:
         unit_direction_x = direction_x / norm
         unit_direction_y = direction_y / norm
 
-        # Calculate the arrow end point
         arrow_length = arrow_len
         arrow_end_x = x_int - unit_direction_x * arrow_length
         arrow_end_y = y_int - unit_direction_y * arrow_length
-
-        print('Intersect {} {} / {} {} {} {}'.format(x, y, x_int, y_int, arrow_end_x, arrow_end_y))
 
         self.graphics.set_solid_line()
         self.graphics.set_linewidth(self.config.legend_linewidth * 3)
@@ -2307,26 +2303,23 @@ class SkymapEngine:
 
         self.graphics.line(x_int, y_int, arrow_end_x, arrow_end_y)
 
-        # Optionally, draw arrowhead wings
-        arrowhead_size = 2 * arrow_len / 3  # Adjust as needed
+        arrowhead_size = 2 * arrow_len / 3
         angle = math.atan2(unit_direction_y, unit_direction_x)
-        left_wing_angle = angle + math.pi / 6  # 30 degrees
-        right_wing_angle = angle - math.pi / 6  # 30 degrees
+        left_wing_angle = angle + math.pi / 6
+        right_wing_angle = angle - math.pi / 6
 
-        # Left wing of the arrowhead
         left_wing_x = x_int - arrowhead_size * math.cos(left_wing_angle)
         left_wing_y = y_int - arrowhead_size * math.sin(left_wing_angle)
         self.graphics.line(x_int, y_int, left_wing_x, left_wing_y)
 
-        # Right wing of the arrowhead
         right_wing_x = x_int - arrowhead_size * math.cos(right_wing_angle)
         right_wing_y = y_int - arrowhead_size * math.sin(right_wing_angle)
         self.graphics.line(x_int, y_int, right_wing_x, right_wing_y)
 
-        if label is None:
+        if label is not None:
             label_x = x_int + (arrow_end_x - x_int) / 2
             label_y = y_int + (arrow_end_y - y_int) / 2
-            self.graphics.text_centered(label_x, label_y, label)
+            self.graphics.text_centred(label_x, label_y, label)
 
     def is_inside_clip_path(self, clip_path, x, y):
         x_coords = [point[0] for point in clip_path]
