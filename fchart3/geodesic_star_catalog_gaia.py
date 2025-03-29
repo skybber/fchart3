@@ -303,7 +303,7 @@ RECT_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
                                   ('z', np.float32),
                                   ('mag', np.float32),
                                   ('bvind', np.uint8),
-                                  ('bsc', np.dtype(object))
+                                  ('hip', np.uint32)
                                   ])
 
 D3_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
@@ -311,7 +311,7 @@ D3_ZONE_STARDATA_DT = np.dtype([('x', np.float32),
                                 ('z', np.float32),
                                 ('mag', np.float32),
                                 ('bvind', np.uint8),
-                                ('bsc', np.dtype(object))
+                                ('hip', np.uint32)
                                 ])
 
 EQUILATERAL_TRIANGLE_CENTER_SIDE_DIST = math.sqrt(3)/6
@@ -320,7 +320,7 @@ TRIANGLE_CENTER_FACTOR = math.sqrt(0.5**2 + EQUILATERAL_TRIANGLE_CENTER_SIDE_DIS
 MAS2RAD = 4.8481368110953594e-9
 
 
-def _convert_stars1_v3_helper(stars1_v3, bsc_hip_map):
+def _convert_stars1_v3_helper(stars1_v3):
     dim = stars1_v3.shape[0]
 
     zone_stars = np.empty(dim, dtype=RECT_ZONE_STARDATA_DT)
@@ -334,17 +334,12 @@ def _convert_stars1_v3_helper(stars1_v3, bsc_hip_map):
     np.clip(bv_tmp, 0, 127, out=bv_tmp)  # in-place clip
     zone_stars['bvind'] = bv_tmp.astype(np.uint8)
 
-    # zone_stars['bsc'] = np.empty(dim, dtype=object)
-
-    if bsc_hip_map:
-        hip_col = stars1_v3['hip']
-        for i in range(dim):
-            combined_hip = hip_col[i][0] | (hip_col[i][1].astype(np.uint32) << 8) | (hip_col[i][2].astype(np.uint32) << 16)
-            hip = combined_hip >> 5
-            if hip != 0:
-                bsc_star = bsc_hip_map.get(hip)
-                if bsc_star:
-                    zone_stars[i]['bsc'] = bsc_star
+    hip_col = stars1_v3['hip']
+    for i in range(dim):
+        combined_hip = hip_col[i][0] | (hip_col[i][1].astype(np.uint32) << 8) | (hip_col[i][2].astype(np.uint32) << 16)
+        hip = combined_hip >> 5
+        if hip != 0:
+            zone_stars[i]['hip'] = hip
 
     return zone_stars
 
@@ -369,7 +364,7 @@ def _convert_stars2_v3_helper(stars2_v3):
     np.clip(bv_tmp, 0, 127, out=bv_tmp)
     zone_stars['bvind'] = bv_tmp.astype(np.uint8)
 
-    zone_stars['bsc'] = np.empty(dim, dtype=object)
+    zone_stars['hip'] = np.zeros(dim, dtype=np.uint32)
 
     return zone_stars
 
@@ -407,7 +402,7 @@ def _convert_stars3_v3_helper(stars3_v3):
     zone_stars['z'] = z
     zone_stars['mag'] = float_mag
     zone_stars['bvind'] = bv_index
-    zone_stars['bsc'] = np.empty(dim, dtype=object)
+    zone_stars['hip'] = np.zeros(dim, dtype=np.uint32)
 
     return zone_stars
 
@@ -478,19 +473,19 @@ class GeodesicStarGaiaCatalogComponent:
             return STAR2_GAIA_DT
         return STAR3_GAIA_DT
 
-    def _convert_zone_stars(self, zone_stars, bsc_hip_map):
+    def _convert_zone_stars(self, zone_stars):
         if self._data_reader.file_type == 0:
-            return _convert_stars1_v3_helper(zone_stars, bsc_hip_map)
+            return _convert_stars1_v3_helper(zone_stars)
         elif self._data_reader.file_type == 1:
             return _convert_stars2_v3_helper(zone_stars)
         else:
             return _convert_stars3_v3_helper(zone_stars)
 
-    def load_static_stars(self, bsc_hip_map):
+    def load_static_stars(self):
         for zone in range(self._nr_of_zones):
-            self.get_zone_stars(zone, bsc_hip_map=bsc_hip_map)
+            self.get_zone_stars(zone)
 
-    def get_zone_stars(self, zone, bsc_hip_map=None):
+    def get_zone_stars(self, zone):
         if not self._file_opened:
             return None
         zone_stars = self._star_blocks[zone]
@@ -504,7 +499,7 @@ class GeodesicStarGaiaCatalogComponent:
                 if self._data_reader.byteswap:
                     zone_stars.byteswap
 
-                zone_stars = self._convert_zone_stars(zone_stars, bsc_hip_map)
+                zone_stars = self._convert_zone_stars(zone_stars)
             else:
                 zone_stars = []
 
@@ -524,7 +519,7 @@ class GeodesicStarGaiaCatalog(StarCatalog):
     Star catalog composed of GeodesicStarGaiaCatalogComponent. Each component represents one level of Geodesic tree.
     """
     # @profile
-    def __init__(self, data_dir, extra_data_dir, bsc_hip_map):
+    def __init__(self, data_dir, extra_data_dir):
         # tm = time()
         self._cat_components = []
         max_file_num = 8
@@ -549,9 +544,7 @@ class GeodesicStarGaiaCatalog(StarCatalog):
         self.search_result = GeodesicSearchResult(self._max_geodesic_grid_level)
 
         if len(self._cat_components) > 0:
-            self._cat_components[0].load_static_stars(bsc_hip_map)
-
-        self._geodesic_grid.to_np_arrays()
+            self._cat_components[0].load_static_stars()
 
         # print("#################### Geodesic star catalog within {} s".format(str(time()-tm)), flush=True)
 
@@ -657,7 +650,7 @@ class GeodesicStarGaiaCatalog(StarCatalog):
                 mat_rect_stars[:, 2],  # z
                 rect_stars['mag'],
                 rect_stars['bvind'],
-                rect_stars['bsc'],
+                rect_stars['hip'],
             ],
             dtype=D3_ZONE_STARDATA_DT)
 

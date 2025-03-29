@@ -50,7 +50,7 @@ class UsedCatalogs:
                                                data_dir+os.sep + 'constellationship_western.fab',
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
-        self._starcatalog = GeodesicStarGaiaCatalog(data_dir, extra_star_data_dir, self._constellcatalog.bsc_hip_map)
+        self._starcatalog = GeodesicStarGaiaCatalog(data_dir, extra_star_data_dir)
 
         self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog, supplements)
 
@@ -75,6 +75,7 @@ class UsedCatalogs:
         self._milky_way = import_milky_way(os.path.join(data_dir, 'milkyway.dat'))
         self._enhanced_milky_way_10k = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced_10k.dat'), enhanced_mw_optim_max_col_diff)
         self._enhanced_milky_way_30k = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced_30k.dat'), enhanced_mw_optim_max_col_diff)
+        self._bsc_hip_map = self._constellcatalog.bsc_hip_map
 
     def free_mem(self):
         self._starcatalog.free_mem()
@@ -118,6 +119,10 @@ class UsedCatalogs:
     @property
     def enhanced_milky_way_30k(self):
         return self._enhanced_milky_way_30k
+
+    @property
+    def bsc_hip_map(self):
+        return self._bsc_hip_map
 
     def lookup_dso(self, dso_name):
         index = 0

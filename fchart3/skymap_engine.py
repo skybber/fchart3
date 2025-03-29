@@ -343,7 +343,7 @@ class SkymapEngine:
 
             if used_catalogs.starcatalog is not None:
                 # tm = time()
-                self.draw_stars(used_catalogs.starcatalog, precession_matrix)
+                self.draw_stars(used_catalogs.starcatalog, used_catalogs.bsc_hip_map, precession_matrix)
                 # print("Stars within {} s".format(str(time()-tm)), flush=True)
 
             if used_catalogs.deepskycatalog is not None:
@@ -1104,7 +1104,7 @@ class SkymapEngine:
         radius = 0.1 * 1.33 ** mag_s + self.star_mag_r_shift
         return radius
 
-    def draw_stars(self, star_catalog, precession_matrix):
+    def draw_stars(self, star_catalog, bsc_hip_map, precession_matrix):
         # Select and draw stars
         # print('Drawing stars...')
 
@@ -1128,7 +1128,7 @@ class SkymapEngine:
         # print("Stars view positioning {} ms".format(str(time()-tm)), flush=True)
 
         mag = selection['mag']
-        bsc = selection['bsc']
+        hip = selection['hip']
 
         indices = np.argsort(mag)
         magsorted = mag[indices]
@@ -1155,30 +1155,32 @@ class SkymapEngine:
             if pick_r > 0 and abs(xx) < pick_r and abs(yy) < pick_r:
                 r = xx**2 + yy**2
                 if r < pick_min_r:
-                    self.picked_star = (xx, yy, rr, mag[index], bsc[index])
+                    bsc_star = bsc_hip_map.get(hip[index]) if hip[index] > 0 else None
+                    self.picked_star = (xx, yy, rr, mag[index], bsc_star)
                     pick_min_r = r
             elif self.config.show_star_mag:
                 star_mag_defs.append((xx, yy, rr, mag[index], star_color))
             elif self.config.show_star_labels:
-                bsc_star = selection[index]['bsc']
-                if bsc_star is not None:
-                    if isinstance(bsc_star, str):
-                        slabel = bsc_star
-                    else:
-                        slabel = bsc_star.greek
+                if hip[index] > 0:
+                    bsc_star = bsc_hip_map.get(hip[index])
+                    if bsc_star is not None:
+                        if isinstance(bsc_star, str):
+                            slabel = bsc_star
+                        else:
+                            slabel = bsc_star.greek
+                            if slabel:
+                                slabel = STAR_LABELS[slabel] + bsc_star.greek_no
+                            elif self.config.show_flamsteed:
+                                slabel = bsc_star.flamsteed
+                                if slabel and self.config.flamsteed_numbers_only:
+                                    slabel = slabel.split()[0]
                         if slabel:
-                            slabel = STAR_LABELS[slabel] + bsc_star.greek_no
-                        elif self.config.show_flamsteed:
-                            slabel = bsc_star.flamsteed
-                            if slabel and self.config.flamsteed_numbers_only:
-                                slabel = slabel.split()[0]
-                    if slabel:
-                        label_length = self.graphics.text_width(slabel)
-                        labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
+                            label_length = self.graphics.text_width(slabel)
+                            labelpos_list = self.circular_object_labelpos(xx, yy, rr, label_length)
 
-                        labelpos = self.find_min_labelpos(labelpos_list, label_length, 0)
+                            labelpos = self.find_min_labelpos(labelpos_list, label_length, 0)
 
-                        star_labels.append((xx, yy, rr, labelpos, bsc_star))
+                            star_labels.append((xx, yy, rr, labelpos, bsc_star))
 
         if len(star_mag_defs) > 0:
             self.graphics.set_font(self.graphics.gi_font, 0.8*self.graphics.gi_default_font_size)
@@ -1201,16 +1203,16 @@ class SkymapEngine:
 
     def draw_picked_star(self):
         if self.picked_star is not None:
-            x, y, r, mag, bsc = self.picked_star
+            x, y, r, mag, bsc_star = self.picked_star
             self.graphics.set_font(self.graphics.gi_font, 0.9*self.graphics.gi_default_font_size)
             label = str(mag)
-            if bsc is not None:
-                if bsc.greek:
-                    label += '(' + STAR_LABELS[bsc.greek] + bsc.greek_no + ' ' + bsc.constellation.capitalize() + ')'
-                elif bsc.flamsteed:
-                    label += '(' + str(bsc.flamsteed) + ')'
-                elif bsc.HD is not None:
-                    label += '(HD' + str(bsc.HD) + ')'
+            if bsc_star is not None:
+                if bsc_star.greek:
+                    label += '(' + STAR_LABELS[bsc_star.greek] + bsc_star.greek_no + ' ' + bsc_star.constellation.capitalize() + ')'
+                elif bsc_star.flamsteed:
+                    label += '(' + str(bsc_star.flamsteed) + ')'
+                elif bsc_star.HD is not None:
+                    label += '(HD' + str(bsc_star.HD) + ')'
             self.draw_circular_object_label(x, y, r, label)
 
     def draw_stars_labels(self, star_labels):
