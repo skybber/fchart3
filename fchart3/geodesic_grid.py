@@ -186,12 +186,14 @@ class GeodesicGrid:
         # tm = time()
         self.max_level = level
         if level >= 0:
-            self._triangles = [None] * (level+1)
-            self._triangle_centers = [None] * (level+1)
+            self._triangles = []
+            self._triangle_centers = []
             nr_of_triangles = 20
             for i in range(level+1):
-                self._triangles[i] = [None] * nr_of_triangles
-                self._triangle_centers[i] = [None] * nr_of_triangles
+                tri_array = np.zeros((nr_of_triangles, 3, 3), dtype=np.float32)
+                ctr_array = np.zeros((nr_of_triangles, 3), dtype=np.float32)
+                self._triangles.append(tri_array)
+                self._triangle_centers.append(ctr_array)
                 nr_of_triangles *= 4
             for i in range(20):
                 corners = icosahedron_triangles[i]
@@ -200,10 +202,6 @@ class GeodesicGrid:
             self._triangles = None
         # print("#################### Geodesic grid within {} s".format(str(time()-tm)), flush=True)
 
-    def to_np_arrays(self):
-        for i in range(self.max_level+1):
-            self._triangles[i] = np.array(self._triangles[i], dtype=np.float32)
-            self._triangle_centers[i] = np.array(self._triangle_centers[i], dtype=np.float32)
 
     def get_triangle_corners(self, lev, index):
         h0, h1, h2 = None, None, None
