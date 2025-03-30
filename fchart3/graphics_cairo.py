@@ -167,6 +167,14 @@ class CairoDrawing(GraphicsInterface):
         self.context.close_path()
         self._draw_element(mode)
 
+    def polygons_indexed(self, x, y, polygons, mode=DrawMode.BORDER):
+        for polygon in polygons:
+            self.context.move_to(x[polygon[0]], -y[polygon[0]])
+            for i in polygon[1:]:
+                self.context.line_to(x[i], -y[i])
+        self.context.close_path()
+        self._draw_element(mode)
+
     def ellipse(self, x, y, rlong, rshort, posangle, mode=DrawMode.BORDER):
         self.context.save()
         scale = rshort/rlong
@@ -181,7 +189,7 @@ class CairoDrawing(GraphicsInterface):
     def _draw_element(self, mode):
         if mode == DrawMode.BORDER:
             self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
-            if  self.gi_dash_style is None:
+            if self.gi_dash_style is None:
                 self.context.set_dash([])
             else:
                 self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])

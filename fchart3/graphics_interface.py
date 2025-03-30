@@ -237,7 +237,13 @@ class GraphicsInterface:
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
         """
-        Draw a poligon with specified vertices
+        Draw a polygon with specified vertices
+        """
+        pass
+
+    def polygons_indexed(self, x, y, polygons, mode=DrawMode.BORDER):
+        """
+        Draw a polygon with given by indexes of vertices
         """
         pass
 

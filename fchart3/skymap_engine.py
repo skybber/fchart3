@@ -17,6 +17,7 @@
 
 import gettext
 import os
+from collections import defaultdict
 
 uilanguage=os.environ.get('fchart3lang')
 
@@ -682,6 +683,10 @@ class SkymapEngine:
 
         total_polygons = 0
         zopt = self.transf.is_zoptim()
+        polygons = []
+        poly_buckets = [[] for _ in range(256)]
+        rgb_buckets = [None for _ in range(256)]
+
         for polygon_index in selected_polygons:
             if use_optimized_mw:
                 polygon, rgb = enhanced_milky_way.mw_opti_polygons[polygon_index]
@@ -691,17 +696,45 @@ class SkymapEngine:
             if zopt and any(z[i] < 0 for i in polygon):
                 continue
 
-            xy_polygon = [(x[i], y[i]) for i in polygon]
-            for xp, yp in xy_polygon:
-                if (xp >= fr_x1) and (xp <= fr_x2) and (yp >= fr_y1) and (yp <= fr_y2):
+            for i in polygon:
+                if (x[i] >= fr_x1) and (x[i] <= fr_x2) and (y[i] >= fr_y1) and (y[i] <= fr_y2):
                     break
             else:
                 continue
 
-            frgb = (fd[0] + rgb[0] * fd[1], fd[2] + rgb[1] * fd[3], fd[4] + rgb[2] * fd[5])
+            polygons.append(polygon)
             total_polygons += 1
-            self.graphics.set_fill_rgb(frgb)
-            self.graphics.polygon(xy_polygon, DrawMode.FILL)
+
+            r_f = fd[0] + rgb[0] * fd[1]
+            g_f = fd[2] + rgb[1] * fd[3]
+            b_f = fd[4] + rgb[2] * fd[5]
+
+            brightness = max(r_f, g_f, b_f)
+            bucket_index = int(round(brightness * 255))
+
+            if bucket_index < 0:
+                bucket_index = 0
+            elif bucket_index > 255:
+                bucket_index = 255
+
+            poly_buckets[bucket_index].append(polygon)
+            if rgb_buckets[bucket_index] is None:
+                rgb_buckets[bucket_index] = [r_f, g_f, b_f]
+            else:
+                rgb_buckets[bucket_index][0] += r_f
+                rgb_buckets[bucket_index][1] += g_f
+                rgb_buckets[bucket_index][2] += b_f
+
+        for i in range(256):
+            polygons = poly_buckets[i]
+
+            if not polygons:
+                continue
+            r = rgb_buckets[i][0] / len(polygons)
+            g = rgb_buckets[i][1] / len(polygons)
+            b = rgb_buckets[i][2] / len(polygons)
+            self.graphics.set_fill_rgb((r, g, b))
+            self.graphics.polygons_indexed(x, y, polygons, DrawMode.FILL)
 
         self.graphics.antialias_on()
         tmp = str(time()-tm)
