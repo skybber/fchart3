@@ -139,7 +139,7 @@ class CairoDrawing(GraphicsInterface):
         self.context.set_source_rgb(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2])
         self.context.move_to(x1, -y1)
         self.context.line_to(x2, -y2)
-        if  self.gi_dash_style is None:
+        if self.gi_dash_style is None:
             self.context.set_dash([])
         else:
             self.context.set_dash(self.gi_dash_style[0], self.gi_dash_style[1])
