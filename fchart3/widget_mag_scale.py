@@ -48,6 +48,7 @@ class WidgetMagnitudeScale(WidgetBase):
 
         graphics.set_solid_line()
         graphics.set_pen_rgb(self.color)
+        graphics.set_fill_rgb(self.color)
         graphics.set_linewidth(0)
 
         if fill_background and graphics.gi_background_rgb:
