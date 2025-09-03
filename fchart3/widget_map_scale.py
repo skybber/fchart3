@@ -52,6 +52,8 @@ class WidgetMapScale(WidgetBase):
         self.width, self.height = self.ruler_length + 2*fh, 2.2 * self.legend_fontsize
 
     def draw(self, graphics, fill_background):
+        if self.x is None or self.y is None:
+            return
         fh = self.legend_fontsize * 0.66
 
         x = self.x + self.width - fh

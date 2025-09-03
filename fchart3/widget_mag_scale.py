@@ -43,6 +43,8 @@ class WidgetMagnitudeScale(WidgetBase):
             self.width = (self.stars_in_scale + 0.6) * self.legend_fontsize
 
     def draw(self, graphics, fill_background):
+        if self.x is None or self.y is None:
+            return
         fh = self.legend_fontsize
         mags_in_scale = int(self.lm_stars) - np.arange(self.stars_in_scale)
 
