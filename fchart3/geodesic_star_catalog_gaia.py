@@ -497,7 +497,7 @@ class GeodesicStarGaiaCatalogComponent:
                 zone_stars = np.fromfile(data_file, self._get_data_format(), records)
 
                 if self._data_reader.byteswap:
-                    zone_stars.byteswap
+                    zone_stars.byteswap(inplace=True)
 
                 zone_stars = self._convert_zone_stars(zone_stars)
             else:
@@ -619,13 +619,13 @@ class GeodesicStarGaiaCatalog(StarCatalog):
                 inside_iterator = GeodesicSearchInsideIterator(self.search_result, lev)
                 stars = self._select_stars_from_zones(inside_iterator, lev, lm_stars, field_rect3, cos_radius)
                 if len(stars) > 0:
-                    tmp_arr += stars
+                    tmp_arr.extend(stars)
 
                 # print('Border iterator')
                 border_iterator = GeodesicSearchBorderIterator(self.search_result, lev)
                 stars = self._select_stars_from_zones(border_iterator, lev, lm_stars, field_rect3, cos_radius)
                 if len(stars) > 0:
-                    tmp_arr += stars
+                    tmp_arr.extend(stars)
 
                 glob_zone_stars = self._cat_components[lev].get_zone_stars(GeodesicGrid.nr_of_zones(lev))
                 sel_glob_zone_stars = self._select_stars_from_zone(glob_zone_stars, lm_stars, field_rect3, cos_radius)
