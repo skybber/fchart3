@@ -198,7 +198,9 @@ class GeodesicGrid:
                 self._init_triangle(0, i, icosahedron_corners[corners[0]], icosahedron_corners[corners[1]], icosahedron_corners[corners[2]])
         else:
             self._triangles = None
-        # print("#################### Geodesic grid within {} s".format(str(time()-tm)), flush=True)
+
+        self.to_np_arrays()
+        import gc; gc.collect()
 
     def to_np_arrays(self):
         for i in range(self.max_level+1):
