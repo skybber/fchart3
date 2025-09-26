@@ -693,13 +693,11 @@ class SkymapEngine:
             else:
                 polygon, rgb = enhanced_milky_way.mw_polygons[polygon_index]
 
-            if zopt and any(z[i] < 0 for i in polygon):
+            if zopt and np.min(z[polygon]) < 0:
                 continue
 
-            for i in polygon:
-                if (x[i] >= fr_x1) and (x[i] <= fr_x2) and (y[i] >= fr_y1) and (y[i] <= fr_y2):
-                    break
-            else:
+            px, py = x[polygon], y[polygon]
+            if (px.max() < fr_x1) or (px.min() > fr_x2) or (py.max() < fr_y1) or (py.min() > fr_y2):
                 continue
 
             polygons.append(polygon)
