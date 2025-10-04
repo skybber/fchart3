@@ -333,6 +333,7 @@ def _convert_stars1_v3_helper(stars1_v3):
     bv_tmp = (stars1_v3['b_v'] / 1000.0 + 0.5) * 31.75
     np.clip(bv_tmp, 0, 127, out=bv_tmp)  # in-place clip
     zone_stars['bvind'] = bv_tmp.astype(np.uint8)
+    zone_stars['hip'] = np.zeros(dim, dtype=np.uint32)
 
     hip_col = stars1_v3['hip']
     for i in range(dim):
