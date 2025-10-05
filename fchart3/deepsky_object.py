@@ -54,10 +54,14 @@ TYPENAME = ['Unknown', 'G', 'N', 'PN', 'OC', 'GC', 'PG', 'xxx', 'xxx', 'AST', 'x
 
 
 class DeepskyObject:
+    __slots__ = (
+        'cat', 'name', 'all_names', 'synonyms', 'type', 'ra', 'dec', 'x', 'y', 'z',
+        'mag', 'rlong', 'rshort', 'position_angle', 'messier', 'master_object', 'visible', '_label', 'outlines'
+    )
 
-    __slots__ = 'cat', 'name', 'all_names', 'synonyms', 'type', 'ra', 'dec', 'x', 'y', 'z', \
-                'mag', 'rlong', 'rshort', 'position_angle', 'messier', 'master_object', 'visible', '_label', \
-                'outlines'
+    _DEFAULT_CAT = 'NGC'
+    _PA_DEFAULT = np.pi * 0.5
+    _EMPTY_TUPLE = ()
 
     def __init__(self):
         """
@@ -95,10 +99,11 @@ class DeepskyObject:
         - messier        number in messier list (default: -1)
         - visible        True if object is visible on the map
         """
-        self.cat = 'NGC'
+        self.cat = self._DEFAULT_CAT
         self.name = ''
-        self.all_names = []
-        self.synonyms = []
+        self.all_names = self._EMPTY_TUPLE
+        self.synonyms = self._EMPTY_TUPLE
+
         self.type = UNKNOWN
         self.ra = -1.0
         self.dec = 0.0
@@ -108,45 +113,71 @@ class DeepskyObject:
         self.mag = -100.0
         self.rlong = -1.0
         self.rshort = -1.0
-        self.position_angle = 90.0*np.pi/180.0
+        self.position_angle = self._PA_DEFAULT
         self.messier = -1
         self.master_object = None
         self.visible = True
         self._label = None
         self.outlines = None
 
+    def add_name(self, n: str):
+        if self.all_names is self._EMPTY_TUPLE:
+            self.all_names = [n]
+        else:
+            self.all_names.append(n)
+        self._label = None
+
+    def add_synonym(self, cat_name_tuple):
+        if self.synonyms is self._EMPTY_TUPLE:
+            self.synonyms = [cat_name_tuple]
+        else:
+            self.synonyms.append(cat_name_tuple)
+
+    def set_names_sorted(self):
+        if not self.all_names:
+            self.all_names = self._EMPTY_TUPLE
+        elif isinstance(self.all_names, list):
+            self.all_names.sort()
+            self.all_names = tuple(self.all_names)
+        self._label = None
+
     def label(self):
         if not self._label:
             if self.messier > 0:
-                self._label = 'M '+str(self.messier)
+                self._label = f'M {self.messier}'
             elif self.cat == 'NGC':
-                self.all_names.sort()
-                self._label = '-'.join(self.all_names)
+                if isinstance(self.all_names, list):
+                    names = sorted(self.all_names)
+                else:
+                    names = self.all_names
+                self._label = '-'.join(names)
             elif self.cat == 'Sh2':
-                self._label = self.cat + '-' + '-'.join(self.all_names)
+                if isinstance(self.all_names, list):
+                    names = sorted(self.all_names)
+                else:
+                    names = self.all_names
+                self._label = self.cat + '-' + '-'.join(names)
             else:
-                self._label = self.cat + ' ' + '-'.join(self.all_names)
+                if isinstance(self.all_names, list):
+                    names = sorted(self.all_names)
+                else:
+                    names = self.all_names
+                self._label = self.cat + ' ' + '-'.join(names)
         return self._label
 
     def __str__(self):
         s = ''
-        rah, ram, ras, sign = rad2hms_t(self.ra)
-        decd, decm, decs, sign = rad2dms_t(self.dec)
+        rah, ram, ras, sign_ra = rad2hms_t(self.ra)
+        decd, decm, decs, sign_dec = rad2dms_t(self.dec)
 
-        cat = self.cat
-        name = self.name
-        if self.messier > 0:
-            cat = 'M'
-            name = str(self.messier)
+        cat = 'M' if self.messier > 0 else self.cat
+        name = str(self.messier) if self.messier > 0 else self.name
 
         s += cat.ljust(8)+' '+name.rjust(8)
         s += '  '
         s += str(rah).rjust(3)+str(ram).rjust(3)+str(int(ras+0.5)).rjust(3)
         s += '  '
-        if sign >= 0:
-            s += '+'
-        else:
-            s += '-'
+        s += ('+' if sign_dec >= 0 else '-')
         s += str(decd).rjust(2)+str(decm).rjust(3)+str(int(decs+0.5)).rjust(3)
         if self.mag > -90:
             s += ' '+str(self.mag).rjust(6)+' '
@@ -162,7 +193,6 @@ class DeepskyObject:
             s += '      '
 
         s += ' '+TYPENAME[self.type].ljust(8)
-
         return s
 
 

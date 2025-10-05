@@ -132,10 +132,10 @@ def import_pgc_deepsky(pgc_dat_file, pgc_update_file, show_catalogs, all_dsos):
 
             if ugc_name:
                 pgc_dso.cat, pgc_dso.name = parse_catalog_name(ugc_name)
-                pgc_dso.synonyms.append((pgc_dso.cat, pgc_dso.name))
+                pgc_dso.add_synonym((pgc_dso.cat, pgc_dso.name))
                 all_dsos[ugc_name] = pgc_dso
 
-            pgc_dso.all_names = [pgc_dso.name]
+            pgc_dso.add_name(pgc_dso.name)
 
             pgc_dso.visible = True
 

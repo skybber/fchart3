@@ -140,16 +140,16 @@ def _parse_hnsky_line(line, show_catalogs, all_dsos):
             if not has_cat:
                 object.cat = cat
                 object.name = name
-                object.all_names = [name]
+                object.add_name(name)
                 has_cat = True
             else:
                 if cat == 'Abell' and (object.cat == 'PK' or object.cat == 'Sh2-') or \
                    cat == 'UGC' and object.cat == 'PGC':
-                    object.all_names = [name]
+                    object.add_name(name)
                     object.name, name = name, object.name
                     object.cat, cat = cat, object.cat
 
-                object.synonyms.append((cat, name))
+                object.add_synonym((cat, name))
 
             if cat == 'M' and name.isdigit():
                 object.messier = int(name)
@@ -243,16 +243,16 @@ def _parse_hnsky_supplement_line(line, all_dsos):
             if not has_cat:
                 object.cat = cat
                 object.name = name
-                object.all_names = [name]
+                object.add_name(name)
                 has_cat = True
             else:
                 if cat == 'Abell' and (object.cat == 'PK' or object.cat == 'Sh2-') or \
                         cat == 'UGC' and object.cat == 'PGC':
-                    object.all_names = [name]
+                    object.add_name(name)
                     object.name, name = name, object.name
                     object.cat, cat = cat, object.cat
 
-                object.synonyms.append((cat, name))
+                object.add_synonym((cat, name))
 
             if cat == 'M' and name.isdigit():
                 object.messier = int(name)

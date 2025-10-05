@@ -50,7 +50,7 @@ def import_vic(filename):
             object = DeepskyObject()
             object.cat = 'VIC'
             object.name = str(row_id)
-            object.all_names = [object.name]
+            object.add_name(object.name)
             object.type = STARS
             rhs,rms,rss = row['RA'].split(',')
             object.ra = pi * (float(rhs) + float(rms)/60.0) / 12.0
