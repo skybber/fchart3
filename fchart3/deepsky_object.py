@@ -56,7 +56,7 @@ TYPENAME = ['Unknown', 'G', 'N', 'PN', 'OC', 'GC', 'PG', 'xxx', 'xxx', 'AST', 'x
 class DeepskyObject:
     __slots__ = (
         'cat', 'name', 'all_names', 'synonyms', 'type', 'ra', 'dec', 'x', 'y', 'z',
-        'mag', 'rlong', 'rshort', 'position_angle', 'messier', 'master_object', 'visible', '_label', 'outlines'
+        'mag', 'rlong', 'rshort', 'position_angle', 'messier', 'master_object', 'visible', 'outlines'
     )
 
     _DEFAULT_CAT = 'NGC'
@@ -117,7 +117,6 @@ class DeepskyObject:
         self.messier = -1
         self.master_object = None
         self.visible = True
-        self._label = None
         self.outlines = None
 
     def add_name(self, n: str):
@@ -125,7 +124,6 @@ class DeepskyObject:
             self.all_names = [n]
         else:
             self.all_names.append(n)
-        self._label = None
 
     def add_synonym(self, cat_name_tuple):
         if self.synonyms is self._EMPTY_TUPLE:
@@ -139,31 +137,29 @@ class DeepskyObject:
         elif isinstance(self.all_names, list):
             self.all_names.sort()
             self.all_names = tuple(self.all_names)
-        self._label = None
 
     def label(self):
-        if not self._label:
-            if self.messier > 0:
-                self._label = f'M {self.messier}'
-            elif self.cat == 'NGC':
-                if isinstance(self.all_names, list):
-                    names = sorted(self.all_names)
-                else:
-                    names = self.all_names
-                self._label = '-'.join(names)
-            elif self.cat == 'Sh2':
-                if isinstance(self.all_names, list):
-                    names = sorted(self.all_names)
-                else:
-                    names = self.all_names
-                self._label = self.cat + '-' + '-'.join(names)
+        if self.messier > 0:
+            label = f'M {self.messier}'
+        elif self.cat == 'NGC':
+            if isinstance(self.all_names, list):
+                names = sorted(self.all_names)
             else:
-                if isinstance(self.all_names, list):
-                    names = sorted(self.all_names)
-                else:
-                    names = self.all_names
-                self._label = self.cat + ' ' + '-'.join(names)
-        return self._label
+                names = self.all_names
+            label = '-'.join(names)
+        elif self.cat == 'Sh2':
+            if isinstance(self.all_names, list):
+                names = sorted(self.all_names)
+            else:
+                names = self.all_names
+            label = self.cat + '-' + '-'.join(names)
+        else:
+            if isinstance(self.all_names, list):
+                names = sorted(self.all_names)
+            else:
+                names = self.all_names
+            label = self.cat + ' ' + '-'.join(names)
+        return label
 
     def __str__(self):
         s = ''
