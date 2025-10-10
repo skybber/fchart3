@@ -1412,6 +1412,9 @@ class SkymapEngine:
         dec11 = dec21 = self.fieldcentre_equatorial[1]
         nzopt = not self.transf.is_zoptim()
 
+        x12 = y12 = z12 = None
+        x22 = y22 = z22 = None
+
         while True:
             dec12 = dec11 + ddec
             if dec12 >= math.pi/2 and dec11 <= math.pi/2:
@@ -1434,7 +1437,7 @@ class SkymapEngine:
 
             dec11, dec21 = dec12, dec22
 
-            if y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
+            if y12 is not None and y22 is not None and y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
                 label = self.grid_ra_label(ra_minutes, label_fmt)
                 self.graphics.save()
                 if self.fieldcentre_equatorial[1] <= 0:
@@ -1450,8 +1453,10 @@ class SkymapEngine:
                 self.graphics.text_right(2*fh/3, fh/3, label)
                 self.graphics.restore()
                 break
-            x11, y11, z11 = (x12, y12, z12)
-            x21, y21, z21 = (x22, y22, z22)
+            if y12 is not None:
+                x11, y11, z11 = (x12, y12, z12)
+            if y22 is not None:
+                x21, y21, z21 = (x22, y22, z22)
 
     def draw_constellation_shapes(self, constell_catalog, jd, precession_matrix):
         self.graphics.set_linewidth(self.config.constellation_linewidth)
