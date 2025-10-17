@@ -169,6 +169,7 @@ class EngineConfiguration:
         self._show_enhanced_milky_way_10k = False
         self._show_enhanced_milky_way_30k = False
         self._show_equatorial_grid = False
+        self._show_horizontal_grid = False
         self._show_field_border = False
         self._show_flamsteed = True
         self._show_horizont = False
@@ -793,6 +794,14 @@ class EngineConfiguration:
     @show_equatorial_grid.setter
     def show_equatorial_grid(self, value):
         self._show_equatorial_grid = value
+
+    @property
+    def show_horizontal_grid(self):
+        return self._show_horizontal_grid
+
+    @show_horizontal_grid.setter
+    def show_horizontal_grid(self, value):
+        self._show_horizontal_grid = value
 
     @property
     def show_field_border(self):

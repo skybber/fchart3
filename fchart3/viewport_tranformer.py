@@ -29,7 +29,11 @@ class ViewportTransformer:
         self.centre_theta = None
 
         self.obs_lst = None
+        self.obs_lat = None
         self.obs_sincos_lat = None
+        self.grid_lst = None
+        self.grid_lat = None
+        self.grid_sincos_lat = None
 
     def set_celestial_fieldcentre(self, phi, theta):
         """
@@ -48,6 +52,7 @@ class ViewportTransformer:
         """
         if lst is not None and lat is not None:
             self.obs_lst = lst
+            self.obs_lat = lat
             self.obs_sincos_lat = (math.sin(lat), math.cos(lat))
             r_obs = np_build_rotation_matrix_obs(lst, lat)
             self.projection.set_r_obs(r_obs)
@@ -55,6 +60,19 @@ class ViewportTransformer:
             self.obs_lst = None
             self.obs_sincos_lat = None
             self.projection.set_r_obs(None)
+
+    def set_grid_observer(self, lst, lat):
+        """
+        Sets the observer's location and time parameters (lst, lat) for grid transformation
+        """
+        if lst is not None and lat is not None:
+            self.grid_lst = lst
+            self.grid_lat = lat
+            self.grid_sincos_lat = (math.sin(lat), math.cos(lat))
+        else:
+            self.grid_lst = None
+            self.grid_lat = None
+            self.grid_sincos_lat = None
 
     def set_scale(self, scale_x, scale_y):
         """
@@ -131,3 +149,20 @@ class ViewportTransformer:
 
     def np_unit3d_to_xy(self, points_3d):
         return self.projection.np_unit3d_to_xy(points_3d)
+
+    def grid_equatorial_to_horizontal(self, ra, dec):
+        """
+        Convert equatorial coordinates (RA, Dec) to horizontal coordinates (az, alt)
+        using the dedicated grid observer.
+        """
+        alt, az = radec_to_horizontal(self.grid_lst, self.grid_sincos_lat, ra, dec)
+        return az, alt
+
+    def grid_horizontal_to_equatorial(self, az, alt):
+        """
+        Convert horizontal coordinates (az, alt) to equatorial coordinates (RA, Dec)
+        using the dedicated grid observer.
+        """
+        ra, dec = horizontal_to_radec(self.grid_lst, self.grid_sincos_lat, alt, az)
+        return ra, dec
+

@@ -17,7 +17,6 @@
 
 import gettext
 import os
-from collections import defaultdict
 
 uilanguage=os.environ.get('fchart3lang')
 
@@ -166,7 +165,6 @@ class SkymapEngine:
         self.fieldcentre_celestial = None
         self.fieldcentre_equatorial = None
         self.is_equatorial = False
-        self.observer = (None, None)
         self.fieldradius = None
         self.fieldsize = None
         self.fieldlabel = None
@@ -230,12 +228,14 @@ class SkymapEngine:
         self.mirror_y = mirror_y
         self.transf.set_scale(self.drawing_scale*mulx, self.drawing_scale*muly)
 
-    def set_observer(self, lst, lat):
+    def set_observer(self, lst, lat, is_equatorial):
         self.observer = (lst, lat)
-        self.is_equatorial = lst is not None and lat is not None
-        self.transf.set_observer(lst, lat)
-        c_ra, c_dec = self.transf.get_equatorial_fieldcentre()
-        self.fieldcentre_equatorial = (c_ra, c_dec)
+        self.is_equatorial = is_equatorial
+        if not is_equatorial:
+            self.transf.set_observer(lst, lat)
+            c_ra, c_dec = self.transf.get_equatorial_fieldcentre()
+            self.fieldcentre_equatorial = (c_ra, c_dec)
+        self.transf.set_grid_observer(lst, lat)
 
     def set_configuration(self, config):
         self.config = config
@@ -331,6 +331,11 @@ class SkymapEngine:
                 self.draw_grid_equatorial()
                 # print("Equatorial grid within {} s".format(str(time()-tm)), flush=True)
 
+            if self.config.show_horizontal_grid:
+                # tm = time()
+                self.draw_grid_horizontal()
+                # print("Equatorial grid within {} s".format(str(time()-tm)), flush=True)
+
             if highlights:
                 self.draw_highlights(highlights, visible_objects_collector)
 
@@ -375,7 +380,7 @@ class SkymapEngine:
             if highlights:
                 self.draw_arrow_to_highlight(clip_path, highlights)
 
-            if self.config.show_horizont and self.is_equatorial:
+            if self.config.show_horizont and not self.is_equatorial:
                 self.draw_horizont()
 
             self.graphics.reset_clip()
@@ -1283,18 +1288,6 @@ class SkymapEngine:
         if self.config.show_constellation_shapes:
             self.draw_constellation_shapes(constell_catalog, jd, precession_matrix)
 
-    def draw_grid_equatorial(self):
-        # print('Drawing equatorial grid...')
-        self.graphics.save()
-        self.graphics.set_linewidth(self.config.grid_linewidth)
-        self.graphics.set_solid_line()
-        self.graphics.set_pen_rgb(self.config.grid_color)
-
-        self.draw_grid_dec()
-        self.draw_grid_ra()
-
-        self.graphics.restore()
-
     def grid_dec_label(self, dec_minutes, label_fmt):
         deg = abs(int(dec_minutes/60))
         minutes = abs(dec_minutes) - deg * 60
@@ -1306,157 +1299,261 @@ class SkymapEngine:
             prefix = ''
         return prefix + label_fmt.format(deg, minutes)
 
-    def grid_ra_label(self, ra_minutes, label_fmt):
-        hrs = int(ra_minutes/60)
-        mins = int(ra_minutes) % 60
-        secs = int(ra_minutes % 1 * 60)
-        return label_fmt.format(hrs, mins, secs)
+    def grid_ra_label(self, ra_minutes, fmt_token):
+        hrs = int(ra_minutes // 60)
+        mins = int(ra_minutes % 60)
+        secs = int(round((ra_minutes - int(ra_minutes)) * 60))
 
-    def draw_grid_dec(self):
-        prev_steps, prev_grid_minutes = (None, None)
-        for grid_minutes in DEC_GRID_SCALE:
-            steps = self.fieldradius / (math.pi * grid_minutes / (180 * 60))
+        if secs == 60:
+            secs = 0
+            mins += 1
+        if mins == 60:
+            mins = 0
+            hrs = (hrs + 1) % 24
+
+        if fmt_token == 'H':
+            return f'{hrs}h'
+        elif fmt_token == 'HM':
+            return f'{hrs}h{mins:02d}m'
+        else:  # 'HMS'
+            return f'{hrs}h{mins:02d}m{secs:02d}s'
+
+    def draw_grid_generic(self, *,
+                          to_xyz,
+                          centre_u, centre_v,
+                          u_scale_list, v_scale_list,
+                          u_label_fmt_fn, v_label_fmt_fn,
+                          cos_of_v,
+                          u_period=2 * math.pi,
+                          v_min=-math.pi / 2, v_max=+math.pi / 2,
+                          v_label_edge='left',
+                          u_label_edges='auto',
+                          u_arcmin_per_unit=1.0,
+                          u_total_minutes=360 * 60,
+                          is_eq_grid=True
+                          ):
+        self.graphics.save()
+        self.graphics.set_linewidth(self.config.grid_linewidth)
+        self.graphics.set_solid_line()
+        self.graphics.set_pen_rgb(self.config.grid_color)
+
+        prev_steps, prev_v_minutes = (None, None)
+        for v_minutes in v_scale_list:
+            steps = self.fieldradius / (math.pi * v_minutes / (180 * 60))
             if steps < GRID_DENSITY:
-                if prev_steps is not None:
-                    if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
-                        grid_minutes = prev_grid_minutes
+                if prev_steps is not None and (prev_steps - GRID_DENSITY) < (GRID_DENSITY - steps):
+                    v_minutes = prev_v_minutes
                 break
-            prev_steps, prev_grid_minutes = (steps, grid_minutes)
+            prev_steps, prev_v_minutes = (steps, v_minutes)
 
-        dec_min = self.fieldcentre_equatorial[1] - self.fieldradius
-        dec_max = self.fieldcentre_equatorial[1] + self.fieldradius
+        v_label_fmt = '{}°' if v_minutes >= 60 else '{}°{:02d}\''
 
-        label_fmt = '{}°' if grid_minutes >= 60 else '{}°{:02d}\''
+        v_min_vis = centre_v - self.fieldradius
+        v_max_vis = centre_v + self.fieldradius
 
-        dec_minutes = -90*60 + grid_minutes
+        v_minutes_cur = int(round(v_min * 180 * 60 / math.pi)) + v_minutes
+        while v_minutes_cur < int(round(v_max * 180 * 60 / math.pi)):
+            v = math.pi * v_minutes_cur / (180 * 60)
+            if (v > v_min_vis) and (v < v_max_vis):
+                self.draw_single_parallel(to_xyz, centre_u, v, v_minutes_cur, v_label_fmt, v_label_fmt_fn, v_label_edge)
+            v_minutes_cur += v_minutes
 
-        while dec_minutes < 90*60:
-            dec = math.pi * dec_minutes / (180*60)
-            if (dec > dec_min) and (dec < dec_max):
-                self.draw_grid_dec_line(dec, dec_minutes, label_fmt)
-            dec_minutes += grid_minutes
+        prev_steps, prev_u_minutes = (None, None)
+        fc_cos = cos_of_v(centre_v)
+        for u_minutes in u_scale_list:
+            du_rad = math.pi * (u_minutes * u_arcmin_per_unit) / (180.0 * 60.0)
+            steps = self.fieldradius / max(1e-9, (fc_cos * du_rad))
+            if steps < GRID_DENSITY:
+                if prev_steps is not None and (prev_steps - GRID_DENSITY) < (GRID_DENSITY - steps):
+                    u_minutes = prev_u_minutes
+                break
+            prev_steps, prev_u_minutes = (steps, u_minutes)
 
-    def draw_grid_dec_line(self, dec, dec_minutes, label_fmt):
-        dra = self.fieldradius / 10
-        x11, y11, z11 = (None, None, None)
-        agg_ra = 0
+        max_visible_v = centre_v + self.fieldradius if centre_v > 0 else centre_v - self.fieldradius
+        if max_visible_v >= math.pi/2 or max_visible_v <= -math.pi/2:
+            u_size = u_period
+        else:
+            u_size = self.fieldradius / max(1e-6, cos_of_v(max_visible_v))
+            if u_size > u_period:
+                u_size = u_period
+
+        if is_eq_grid:
+            if u_minutes >= 60:
+                u_label_fmt = 'H'
+            elif u_minutes >= 1:
+                u_label_fmt = 'HM'
+            else:
+                u_label_fmt = 'HMS'
+        else:
+            u_label_fmt = '{}°' if u_minutes >= 60 else '{}°{:02d}\''
+
+        u_minutes_cur = 0
+        while u_minutes_cur < u_total_minutes:
+            u = (math.pi * (u_minutes_cur * u_arcmin_per_unit) / (180.0 * 60.0)) % u_period
+            if abs((centre_u - u + u_period / 2.0) % u_period - u_period / 2.0) < u_size:
+                self.draw_single_meridian(to_xyz, u, u_minutes_cur, u_label_fmt, u_label_fmt_fn, u_label_edges, centre_v)
+            u_minutes_cur += u_minutes
+
+        self.graphics.restore()
+
+    def draw_single_parallel(self, to_xyz, centre_u, v, v_minutes, label_fmt, label_fmt_fn, label_edge):
+        du = self.fieldradius / 10.0
+        x11 = y11 = z11 = None
+        x21 = y21 = z21 = None
+        agg_u = 0.0
         nzopt = not self.transf.is_zoptim()
 
         while True:
-            x12, y12, z12 = self.transf.equatorial_to_xyz(self.fieldcentre_equatorial[0] + agg_ra, dec)
-            x22, y22, z22 = self.transf.equatorial_to_xyz(self.fieldcentre_equatorial[0] - agg_ra, dec)
+            x12, y12, z12 = to_xyz(centre_u + agg_u, v)
+            x22, y22, z22 = to_xyz(centre_u - agg_u, v)
+
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 self.graphics.line(x11, y11, x12, y12)
                 self.graphics.line(x21, y21, x22, y22)
-            agg_ra = agg_ra + dra
-            if agg_ra > math.pi:
+
+            agg_u += du
+            if agg_u > math.pi:
                 break
-            if y11 is not None and x12 < -self.drawingwidth/2:
-                y = (y12-y11) * (self.drawingwidth/2 + x11) / (x11 - x12) + y11
-                label = self.grid_dec_label(dec_minutes, label_fmt)
+
+            if y11 is not None and x12 < -self.drawingwidth / 2:
+                y = (y12 - y11) * (self.drawingwidth / 2 + x11) / (x11 - x12) + y11
+                label = label_fmt_fn(v_minutes, label_fmt)
                 self.graphics.save()
-                self.mirroring_graphics.translate(-self.drawingwidth/2,y)
-                text_ang = math.atan2(y11-y12, x11-x12)
+                self.mirroring_graphics.translate(-self.drawingwidth / 2, y)
+                text_ang = math.atan2(y11 - y12, x11 - x12)
                 self.mirroring_graphics.rotate(text_ang)
                 fh = self.graphics.gi_default_font_size
-                if dec >= 0:
-                    self.graphics.text_right(2*fh/3, +fh/3, label)
+                if v >= 0:
+                    self.graphics.text_right(2 * fh / 3, +fh / 3, label)
                 else:
-                    self.graphics.text_right(2*fh/3, -fh, label)
+                    self.graphics.text_right(2 * fh / 3, -fh, label)
                 self.graphics.restore()
                 break
+
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
 
-    def draw_grid_ra(self):
-        prev_steps, prev_grid_minutes = (None, None)
-        fc_cos = math.cos(self.fieldcentre_equatorial[1])
-        for grid_minutes in RA_GRID_SCALE:
-            steps = self.fieldradius / (fc_cos * (math.pi * grid_minutes / (12 * 60)))
-            if steps < GRID_DENSITY:
-                if prev_steps is not None:
-                    if prev_steps-GRID_DENSITY < GRID_DENSITY-steps:
-                        grid_minutes = prev_grid_minutes
-                break
-            prev_steps, prev_grid_minutes = (steps, grid_minutes)
-
-        max_visible_dec = self.fieldcentre_equatorial[1]+self.fieldradius if self.fieldcentre_equatorial[1] > 0 else self.fieldcentre_equatorial[1]-self.fieldradius;
-        if max_visible_dec >= math.pi/2 or max_visible_dec <= -math.pi/2:
-            ra_size = 2*math.pi
-        else:
-            ra_size = self.fieldradius / math.cos(max_visible_dec)
-            if ra_size > 2*math.pi:
-                ra_size = 2*math.pi
-
-        if grid_minutes >= 60:
-            label_fmt = '{}h'
-        elif grid_minutes >= 1:
-            label_fmt = '{}h{:02d}m'
-        else:
-            label_fmt = '{}h{:02d}m{:02d}s'
-
-        ra_minutes = 0
-
-        while ra_minutes < 24*60:
-            ra = math.pi * ra_minutes / (12*60)
-            if abs(self.fieldcentre_equatorial[0]-ra) < ra_size or abs(self.fieldcentre_equatorial[0]-2*math.pi-ra) < ra_size or abs(2*math.pi+self.fieldcentre_equatorial[0]-ra) < ra_size:
-                self.draw_grid_ra_line(ra, ra_minutes, label_fmt)
-            ra_minutes += grid_minutes
-
-    def draw_grid_ra_line(self, ra, ra_minutes, label_fmt):
-        ddec = self.fieldradius / 10
-
-        x11, y11, z11 = self.transf.equatorial_to_xyz(ra, self.fieldcentre_equatorial[1])
+    def draw_single_meridian(self, to_xyz, u, u_minutes, label_fmt, label_fmt_fn, label_edges, centre_v):
+        dv = self.fieldradius / 10.0
+        x11, y11, z11 = to_xyz(u, centre_v)
         x21, y21, z21 = x11, y11, z11
-
-        dec11 = dec21 = self.fieldcentre_equatorial[1]
+        v11 = v21 = centre_v
         nzopt = not self.transf.is_zoptim()
 
         x12 = y12 = z12 = None
         x22 = y22 = z22 = None
 
         while True:
-            dec12 = dec11 + ddec
-            if dec12 >= math.pi/2 and dec11 <= math.pi/2:
-                dec12 = math.pi/2
-            if dec12 <= math.pi/2:
-                x12, y12, z12 = self.transf.equatorial_to_xyz(ra, dec12)
+            v12 = v11 + dv
+            if v12 >= math.pi/2 and v11 <= math.pi/2:
+                v12 = math.pi/2
+            if v12 <= math.pi/2:
+                x12, y12, z12 = to_xyz(u, v12)
                 if nzopt or (z11 > 0 and z12 > 0):
                     self.graphics.line(x11, y11, x12, y12)
 
-            dec22 = dec21 - ddec
-            if dec22 <= -math.pi/2 and dec21 >= -math.pi/2:
-                dec22 = -math.pi/2
-            if dec22 >= -math.pi/2:
-                x22, y22, z22 = self.transf.equatorial_to_xyz(ra, dec22)
+            v22 = v21 - dv
+            if v22 <= -math.pi/2 and v21 >= -math.pi/2:
+                v22 = -math.pi/2
+            if v22 >= -math.pi/2:
+                x22, y22, z22 = to_xyz(u, v22)
                 if nzopt or (z21 > 0 and z22 > 0):
                     self.graphics.line(x21, y21, x22, y22)
 
-            if dec12 >= math.pi/2 and dec22 <= -math.pi/2:
+            if v12 >= math.pi/2 and v22 <= -math.pi/2:
                 break
 
-            dec11, dec21 = dec12, dec22
+            v11, v21 = v12, v22
 
             if y12 is not None and y22 is not None and y12 > self.drawingheight/2 and y22 < -self.drawingheight/2:
-                label = self.grid_ra_label(ra_minutes, label_fmt)
+                label = label_fmt_fn(u_minutes, label_fmt)
                 self.graphics.save()
-                if self.fieldcentre_equatorial[1] <= 0:
-                    x = (x12-x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
-                    self.mirroring_graphics.translate(x, self.drawingheight/2)
-                    text_ang = math.atan2(y11-y12, x11-x12)
-                else:
-                    x = (x22-x21) * (-self.drawingheight/2 - y21) / (y22 - y21) + x21
-                    self.mirroring_graphics.translate(x, -self.drawingheight/2)
-                    text_ang = math.atan2(y21-y22, x21-x22)
-                self.mirroring_graphics.rotate(text_ang)
                 fh = self.graphics.gi_default_font_size
-                self.graphics.text_right(2*fh/3, fh/3, label)
+                top = (label_edges == 'top') or (label_edges == 'auto' and centre_v > 0)
+                if not top:
+                    x = (x12 - x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
+                    self.mirroring_graphics.translate(x, self.drawingheight/2)
+                    text_ang = math.atan2(y11 - y12, x11 - x12)
+                else:
+                    x = (x22 - x21) * (-self.drawingheight/2 - y21) / (y22 - y21) + x21
+                    self.mirroring_graphics.translate(x, -self.drawingheight/2)
+                    text_ang = math.atan2(y21 - y22, x21 - x22)
+                self.mirroring_graphics.rotate(text_ang)
+                self.graphics.text_right(2 * fh / 3, fh / 3, label)
                 self.graphics.restore()
                 break
             if y12 is not None:
                 x11, y11, z11 = (x12, y12, z12)
             if y22 is not None:
                 x21, y21, z21 = (x22, y22, z22)
+
+    def grid_alt_label(self, alt_minutes, label_fmt):
+        deg = abs(int(alt_minutes/60))
+        minutes = abs(alt_minutes) - deg * 60
+        prefix = '+' if alt_minutes > 0 else ('-' if alt_minutes < 0 else '')
+        return prefix + label_fmt.format(deg, minutes)
+
+    def grid_az_label(self, az_minutes, label_fmt):
+        az_deg = (az_minutes / 60) % 360
+        deg = int(az_deg)
+        minutes = int(round((az_deg - deg) * 60))
+        if minutes == 60:
+            deg = (deg + 1) % 360
+            minutes = 0
+        return label_fmt.format(deg, minutes)
+
+    def draw_grid_equatorial(self):
+        def to_xyz(ra, dec):
+            return self.transf.equatorial_to_xyz(ra, dec)
+
+        self.draw_grid_generic(
+            to_xyz=to_xyz,
+            centre_u=self.fieldcentre_equatorial[0],
+            centre_v=self.fieldcentre_equatorial[1],
+            u_scale_list=[m for m in RA_GRID_SCALE],
+            v_scale_list=[m for m in DEC_GRID_SCALE],
+            u_label_fmt_fn=self.grid_ra_label,
+            v_label_fmt_fn=self.grid_dec_label,
+            cos_of_v=math.cos,
+            u_period=2 * math.pi,
+            v_min=-math.pi / 2, v_max=+math.pi / 2,
+            v_label_edge='left',
+            u_label_edges='auto',
+            u_arcmin_per_unit=15.0,
+            u_total_minutes=24 * 60,
+            is_eq_grid=True
+        )
+
+    def draw_grid_horizontal(self):
+        if self.is_equatorial:
+            def to_xyz(az, alt):
+                ra, dec = self.transf.grid_horizontal_to_equatorial(az, alt)
+                return self.transf.equatorial_to_xyz(ra, dec)
+            ra_c, dec_c = self.fieldcentre_equatorial
+            az_c, alt_c = self.transf.grid_equatorial_to_horizontal(ra_c, dec_c)
+        else:
+            def to_xyz(az, alt):
+                return self.transf.horizontal_to_xyz(az, alt)
+            ra_c, dec_c = self.fieldcentre_equatorial
+            az_c, alt_c = self.transf.grid_equatorial_to_horizontal(ra_c, dec_c)
+
+        AZ_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 2*60, 5*60, 10*60, 15*60, 30*60, 45*60, 60*60]
+
+        self.draw_grid_generic(
+            to_xyz=to_xyz,
+            centre_u=az_c,
+            centre_v=alt_c,
+            u_scale_list=AZ_GRID_SCALE,
+            v_scale_list=DEC_GRID_SCALE,
+            u_label_fmt_fn=self.grid_az_label,
+            v_label_fmt_fn=self.grid_alt_label,
+            cos_of_v=math.cos,
+            u_period=2 * math.pi,
+            v_min=-math.pi / 2, v_max=+math.pi / 2,
+            v_label_edge='left',
+            u_label_edges='auto',
+            is_eq_grid=False
+        )
 
     def draw_constellation_shapes(self, constell_catalog, jd, precession_matrix):
         self.graphics.set_linewidth(self.config.constellation_linewidth)
@@ -1671,7 +1768,6 @@ class SkymapEngine:
                 self.graphics.rotate(-text_ang)
                 self.graphics.text_centred(0, label_fh, label)
                 self.graphics.restore()
-
 
     def create_widgets(self):
         left, bottom, right, top = self.get_field_rect_mm()

@@ -160,6 +160,9 @@ class RuntimeSettings:
         argumentparser.add_argument('--show-equatorial-grid', dest='show_equatorial_grid', action='store_true', default=None,
                                     help='Show equatorial grid.')
 
+        argumentparser.add_argument('--show-horizontal-grid', dest='show_horizontal_grid', action='store_true', default=None,
+                                    help='Show horizontal grid.')
+
         argumentparser.add_argument('--hide-constellation-shapes', dest='show_constellation_shapes', action='store_false', default=None,
                                     help='Hide constellation shapes.')
 
@@ -224,7 +227,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--linewidth-legend', dest='legend_linewidth', nargs='?', action='store', type=float, default=None,
                                     help='Line width of the legend (default: 0.2)')
         argumentparser.add_argument('--linewidth-grid', dest='grid_linewidth', nargs='?', action='store', type=float, default=None,
-                                    help='Line width of the equatorial grid (default: 0.1)')
+                                    help='Line width of the equatorial/horizontal grid (default: 0.1)')
         argumentparser.add_argument('--linewidth-telrad', dest='telrad_linewidth', nargs='?', action='store', type=float, default=None,
                                     help='Telrad line width (default: 0.3)')
 
