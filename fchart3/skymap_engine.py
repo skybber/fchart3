@@ -229,7 +229,6 @@ class SkymapEngine:
         self.transf.set_scale(self.drawing_scale*mulx, self.drawing_scale*muly)
 
     def set_observer(self, lst, lat, is_equatorial):
-        self.observer = (lst, lat)
         self.is_equatorial = is_equatorial
         if not is_equatorial:
             self.transf.set_observer(lst, lat)
@@ -1388,9 +1387,11 @@ class SkymapEngine:
             u_label_fmt = '{}°' if u_minutes >= 60 else '{}°{:02d}\''
 
         u_minutes_cur = 0
+
         while u_minutes_cur < u_total_minutes:
             u = (math.pi * (u_minutes_cur * u_arcmin_per_unit) / (180.0 * 60.0)) % u_period
-            if abs((centre_u - u + u_period / 2.0) % u_period - u_period / 2.0) < u_size:
+            du = ((u - centre_u + u_period / 2.0) % u_period) - u_period / 2.0
+            if abs(du) <= u_size + 1e-6:
                 self.draw_single_meridian(to_xyz, u, u_minutes_cur, u_label_fmt, u_label_fmt_fn, u_label_edges, centre_v)
             u_minutes_cur += u_minutes
 
@@ -1494,7 +1495,7 @@ class SkymapEngine:
         return prefix + label_fmt.format(deg, minutes)
 
     def grid_az_label(self, az_minutes, label_fmt):
-        az_deg = (az_minutes / 60) % 360
+        az_deg = (-(az_minutes / 60)) % 360
         deg = int(az_deg)
         minutes = int(round((az_deg - deg) * 60))
         if minutes == 60:
@@ -1525,17 +1526,15 @@ class SkymapEngine:
         )
 
     def draw_grid_horizontal(self):
+        ra_c, dec_c = self.fieldcentre_equatorial
+        az_c, alt_c = self.transf.grid_equatorial_to_horizontal(ra_c, dec_c)
         if self.is_equatorial:
             def to_xyz(az, alt):
                 ra, dec = self.transf.grid_horizontal_to_equatorial(az, alt)
                 return self.transf.equatorial_to_xyz(ra, dec)
-            ra_c, dec_c = self.fieldcentre_equatorial
-            az_c, alt_c = self.transf.grid_equatorial_to_horizontal(ra_c, dec_c)
         else:
             def to_xyz(az, alt):
                 return self.transf.horizontal_to_xyz(az, alt)
-            ra_c, dec_c = self.fieldcentre_equatorial
-            az_c, alt_c = self.transf.grid_equatorial_to_horizontal(ra_c, dec_c)
 
         AZ_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 2*60, 5*60, 10*60, 15*60, 30*60, 45*60, 60*60]
 

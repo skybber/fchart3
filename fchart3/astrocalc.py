@@ -342,18 +342,13 @@ def horizontal_to_radec(lst, sincos_lat, alt, az):
     :param az:  azimuth [radians] as returned by radec_to_horizontal
     :return: (ra, dec) in radians
     """
+    az = az % (2 * math.pi)
     sin_lat, cos_lat = sincos_lat
-
     sin_alt = math.sin(alt)
     cos_alt = math.cos(alt)
 
     sin_dec = sin_lat * sin_alt + cos_lat * cos_alt * math.cos(az)
-
-    if sin_dec > 1.0:
-        sin_dec = 1.0
-    elif sin_dec < -1.0:
-        sin_dec = -1.0
-
+    sin_dec = max(-1.0, min(1.0, sin_dec))
     dec = math.asin(sin_dec)
 
     cos_dec = math.cos(dec)
@@ -371,7 +366,6 @@ def horizontal_to_radec(lst, sincos_lat, alt, az):
         hour_angle = math.atan2(sin_ha, cos_ha)
 
     ra = (lst - hour_angle) % (2.0 * math.pi)
-
     return ra, dec
 
 
