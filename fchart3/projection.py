@@ -25,15 +25,15 @@ class ProjectionType(Enum):
 
 class ProjectionInterface:
     def __init__(self):
-        self.fieldcentre = None
+        self.field_center = None
         self.scale_x = None
         self.scale_y = None
 
-    def set_fieldcentre(self, fieldcentre):
+    def set_field_center(self, field_center):
         """
         Set the center of the projection, typically in celestial coordinates (RA, Dec).
         """
-        self.fieldcentre = fieldcentre
+        self.field_center = field_center
 
     def set_r_obs(self, r_obs):
         """

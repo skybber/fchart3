@@ -585,11 +585,11 @@ class GeodesicStarGaiaCatalog(StarCatalog):
     def init_triangle(self, lev, index, c0, c1, c2):
         self._cat_components[lev].init_triangle(index, c0, c1, c2)
 
-    def select_stars(self, fieldcentre, radius, lm_stars, precession_matrix):
+    def select_stars(self, field_center, radius, lm_stars, precession_matrix):
         """
         Return an array containing of items [[ra, dec, mag], [ra, dec, mag]...]
-        for all stars in the field centered around field centre with given radius,
-        field centre and radius.
+        for all stars in the field centered around field center with given radius,
+        field center and radius.
         """
         tmp_arr = []
 
@@ -600,7 +600,7 @@ class GeodesicStarGaiaCatalog(StarCatalog):
             max_search_level += 1
 
         if max_search_level >= 0:
-            field_rect3 = sphere_to_rect(fieldcentre[0], fieldcentre[1])
+            field_rect3 = sphere_to_rect(field_center[0], field_center[1])
 
             lev_spherical_caps = []
             # print('Radius: {}'.format(radius/np.pi*180.0))

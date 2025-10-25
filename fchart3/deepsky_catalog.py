@@ -49,8 +49,8 @@ class DeepskyCatalog:
             else:
                 self.dso_blocks[index].append(dso_list[i])
 
-    def select_deepsky(self, fieldcentre, radius, lm_deepsky):
-        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
+    def select_deepsky(self, field_center, radius, lm_deepsky):
+        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * field_center[0], RAD2DEG * field_center[1], RAD2DEG * radius)
         selection = []
         mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
 

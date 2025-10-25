@@ -235,8 +235,8 @@ class EnhancedMilkyWay:
             end_point = e[2]
         return res_edges
 
-    def select_polygons(self, fieldcentre, radius):
-        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
+    def select_polygons(self, field_center, radius):
+        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * field_center[0], RAD2DEG * field_center[1], RAD2DEG * radius)
         selection = []
         mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
 
@@ -247,8 +247,8 @@ class EnhancedMilkyWay:
 
         return selection
 
-    def select_opti_polygons(self, fieldcentre, radius):
-        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * fieldcentre[0], RAD2DEG * fieldcentre[1], RAD2DEG * radius)
+    def select_opti_polygons(self, field_center, radius):
+        intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * field_center[0], RAD2DEG * field_center[1], RAD2DEG * radius)
         selection = []
         mask = 1 << (self.sky_mesh.get_depth() * 2 + 3)
 

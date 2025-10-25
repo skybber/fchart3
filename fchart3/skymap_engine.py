@@ -57,7 +57,7 @@ from .widget_picker import WidgetPicker
 
 from .precession import compute_precession_matrix
 from .solar_system_body import SolarSystemBody
-from .viewport_tranformer import ViewportTransformer
+from .viewport_transformer import ViewportTransformer
 
 
 LABELi18N = {
@@ -73,21 +73,6 @@ LABELi18N = {
     'SNR': _('Supernova remnant'),
     'PG': _('Part of galaxy')
 }
-
-FR = {
-    'h': 'h',
-    'm': 'm',
-    's': 's',
-    'G': 'Galaxie',
-    'OCL': 'Cluster Ouvert',
-    'GCL': 'Cluster Globulaire',
-    'AST': 'Astérisme',
-    'PN': 'Nébuleuse Planétaire',
-    'N': 'Nébuleuse Diffuse',
-    'SNR': 'Rémanent de Supernova',
-    'PG': 'Partie de Galaxie'
-}
-
 
 STAR_LABELS = {
     "alp": "α",
@@ -129,10 +114,6 @@ MAG_SCALE_Y = [0, 1.8, 3.3, 4.7, 6,  7.2,  18.0]
 
 SQRT2 = math.sqrt(2)
 
-constell_lines_rect1 = None
-constell_lines_rect2 = None
-constell_bound_rect = None
-
 CARDINAL_DIRECTIONS = [
     ("N", 0),
     ("NW", math.pi / 4),
@@ -162,8 +143,8 @@ class SkymapEngine:
         self.lm_stars = lm_stars
         self.lm_deepsky = lm_deepsky
 
-        self.fieldcentre_celestial = None
-        self.fieldcentre_equatorial = None
+        self.center_celestial = None
+        self.center_equatorial = None
         self.is_equatorial = False
         self.fieldradius = None
         self.fieldsize = None
@@ -191,11 +172,15 @@ class SkymapEngine:
         self.star_mag_r_shift = 0
         self.transf = None
         self.norm_field_radius = None
+        self.constell_lines_rect1 = None
+        self.constell_lines_rect2 = None
+        self.constell_bound_rect = None
+
 
     def set_field(self, phi, theta, fieldradius, fieldlabel, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
         self.fieldradius = fieldradius
-        self.fieldcentre_celestial = (phi, theta)
-        self.fieldcentre_equatorial = (phi, theta)
+        self.center_celestial = (phi, theta)
+        self.center_equatorial = (phi, theta)
         self.fieldlabel = fieldlabel
 
         wh = max(self.drawingwidth, self.drawingheight)
@@ -217,11 +202,11 @@ class SkymapEngine:
             proj = ProjectionStereographic()
 
         self.transf = ViewportTransformer(proj)
-        self.transf.set_celestial_fieldcentre(0, 0)
+        self.transf.set_celestial_center(0, 0)
         self.transf.set_scale(1.0, 1.0)
         self.norm_field_radius, _ = self.transf.equatorial_to_xy(fieldradius, 0)
         self.drawing_scale = self.scene_scale*wh / 2.0 / abs(self.norm_field_radius)
-        self.transf.set_celestial_fieldcentre(self.fieldcentre_celestial[0], self.fieldcentre_celestial[1])
+        self.transf.set_celestial_center(self.center_celestial[0], self.center_celestial[1])
         mulx = -1 if mirror_x else 1
         muly = -1 if mirror_y else 1
         self.mirror_x = mirror_x
@@ -232,8 +217,8 @@ class SkymapEngine:
         self.is_equatorial = is_equatorial
         if not is_equatorial:
             self.transf.set_observer(lst, lat)
-            c_ra, c_dec = self.transf.get_equatorial_fieldcentre()
-            self.fieldcentre_equatorial = (c_ra, c_dec)
+            c_ra, c_dec = self.transf.get_equatorial_center()
+            self.center_equatorial = (c_ra, c_dec)
         self.transf.set_grid_observer(lst, lat)
 
     def set_configuration(self, config):
@@ -262,7 +247,7 @@ class SkymapEngine:
             self.graphics.set_dimensions(self.drawingwidth,self.drawingheight + self.legend_fontscale*self.graphics.gi_default_font_size*2.0)
 
     def make_map(self, used_catalogs, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
-                 dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=[], visible_objects=None,
+                 dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=None, visible_objects=None,
                  use_optimized_mw=False, transparent=False):
         """ Creates map using given graphics, params and config
         used_catalogs - UsedCatalogs data structure
@@ -380,7 +365,7 @@ class SkymapEngine:
                 self.draw_arrow_to_highlight(clip_path, highlights)
 
             if self.config.show_horizont and not self.is_equatorial:
-                self.draw_horizont()
+                self.draw_horizon()
 
             self.graphics.reset_clip()
 
@@ -449,7 +434,7 @@ class SkymapEngine:
         if self.config.show_orientation_legend:
             self.w_orientation.draw(self.graphics, x1, y2, fill_background)
         if self.config.show_coords_legend:
-            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.fieldcentre_equatorial[0], dec=self.fieldcentre_equatorial[1], fill_background=fill_background)
+            self.w_coords.draw(self.graphics, left=x2-font_size/2, bottom=y2-font_size, ra=self.center_equatorial[0], dec=self.center_equatorial[1], fill_background=fill_background)
         if self.config.show_dso_legend:
             self.w_dso_legend.draw_dso_legend(self, self.graphics, fill_background)
 
@@ -460,11 +445,11 @@ class SkymapEngine:
         # Draw deep sky
         # print('Drawing deepsky...')
 
-        deepsky_list = deepsky_catalog.select_deepsky(self.fieldcentre_equatorial, self.fieldsize, self.lm_deepsky)
+        deepsky_list = deepsky_catalog.select_deepsky(self.center_equatorial, self.fieldsize, self.lm_deepsky)
 
         filtered_showing_dsos = []
 
-        dso_hide_filter_set = { dso for dso in dso_hide_filter }  if dso_hide_filter else {}
+        dso_hide_filter_set = {dso for dso in dso_hide_filter} if dso_hide_filter else {}
 
         if showing_dsos:
             for dso in showing_dsos:
@@ -679,9 +664,9 @@ class SkymapEngine:
         fd = self.config.enhanced_milky_way_fade
 
         if use_optimized_mw:
-            selected_polygons = enhanced_milky_way.select_opti_polygons(self.fieldcentre_equatorial, self.fieldsize)
+            selected_polygons = enhanced_milky_way.select_opti_polygons(self.center_equatorial, self.fieldsize)
         else:
-            selected_polygons = enhanced_milky_way.select_polygons(self.fieldcentre_equatorial, self.fieldsize)
+            selected_polygons = enhanced_milky_way.select_polygons(self.center_equatorial, self.fieldsize)
 
         fr_x1, fr_y1, fr_x2, fr_y2 = self.get_field_rect_mm()
 
@@ -1144,7 +1129,7 @@ class SkymapEngine:
         # print('Drawing stars...')
 
         pick_r = self.config.picker_radius if self.config.picker_radius > 0 else 0
-        selection = star_catalog.select_stars(self.fieldcentre_equatorial, self.fieldsize, self.lm_stars, precession_matrix)
+        selection = star_catalog.select_stars(self.center_equatorial, self.fieldsize, self.lm_stars, precession_matrix)
         if selection is None or len(selection) == 0:
             print('No stars found.')
             return
@@ -1319,7 +1304,7 @@ class SkymapEngine:
 
     def draw_grid_generic(self, *,
                           to_xyz,
-                          centre_u, centre_v,
+                          center_u, center_v,
                           u_scale_list, v_scale_list,
                           u_label_fmt_fn, v_label_fmt_fn,
                           cos_of_v,
@@ -1347,18 +1332,18 @@ class SkymapEngine:
 
         v_label_fmt = '{}°' if v_minutes >= 60 else '{}°{:02d}\''
 
-        v_min_vis = centre_v - self.fieldradius
-        v_max_vis = centre_v + self.fieldradius
+        v_min_vis = center_v - self.fieldradius
+        v_max_vis = center_v + self.fieldradius
 
         v_minutes_cur = int(round(v_min * 180 * 60 / math.pi)) + v_minutes
         while v_minutes_cur < int(round(v_max * 180 * 60 / math.pi)):
             v = math.pi * v_minutes_cur / (180 * 60)
             if (v > v_min_vis) and (v < v_max_vis):
-                self.draw_single_parallel(to_xyz, centre_u, v, v_minutes_cur, v_label_fmt, v_label_fmt_fn, v_label_edge)
+                self.draw_single_parallel(to_xyz, center_u, v, v_minutes_cur, v_label_fmt, v_label_fmt_fn, v_label_edge)
             v_minutes_cur += v_minutes
 
         prev_steps, prev_u_minutes = (None, None)
-        fc_cos = cos_of_v(centre_v)
+        fc_cos = cos_of_v(center_v)
         for u_minutes in u_scale_list:
             du_rad = math.pi * (u_minutes * u_arcmin_per_unit) / (180.0 * 60.0)
             steps = self.fieldradius / max(1e-9, (fc_cos * du_rad))
@@ -1368,7 +1353,7 @@ class SkymapEngine:
                 break
             prev_steps, prev_u_minutes = (steps, u_minutes)
 
-        max_visible_v = centre_v + self.fieldradius if centre_v > 0 else centre_v - self.fieldradius
+        max_visible_v = center_v + self.fieldradius if center_v > 0 else center_v - self.fieldradius
         if max_visible_v >= math.pi/2 or max_visible_v <= -math.pi/2:
             u_size = u_period
         else:
@@ -1390,14 +1375,14 @@ class SkymapEngine:
 
         while u_minutes_cur < u_total_minutes:
             u = (math.pi * (u_minutes_cur * u_arcmin_per_unit) / (180.0 * 60.0)) % u_period
-            du = ((u - centre_u + u_period / 2.0) % u_period) - u_period / 2.0
+            du = ((u - center_u + u_period / 2.0) % u_period) - u_period / 2.0
             if abs(du) <= u_size + 1e-6:
-                self.draw_single_meridian(to_xyz, u, u_minutes_cur, u_label_fmt, u_label_fmt_fn, u_label_edges, centre_v)
+                self.draw_single_meridian(to_xyz, u, u_minutes_cur, u_label_fmt, u_label_fmt_fn, u_label_edges, center_v)
             u_minutes_cur += u_minutes
 
         self.graphics.restore()
 
-    def draw_single_parallel(self, to_xyz, centre_u, v, v_minutes, label_fmt, label_fmt_fn, label_edge):
+    def draw_single_parallel(self, to_xyz, center_u, v, v_minutes, label_fmt, label_fmt_fn, label_edge):
         du = self.fieldradius / 10.0
         x11 = y11 = z11 = None
         x21 = y21 = z21 = None
@@ -1405,8 +1390,8 @@ class SkymapEngine:
         nzopt = not self.transf.is_zoptim()
 
         while True:
-            x12, y12, z12 = to_xyz(centre_u + agg_u, v)
-            x22, y22, z22 = to_xyz(centre_u - agg_u, v)
+            x12, y12, z12 = to_xyz(center_u + agg_u, v)
+            x22, y22, z22 = to_xyz(center_u - agg_u, v)
 
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 self.graphics.line(x11, y11, x12, y12)
@@ -1422,6 +1407,8 @@ class SkymapEngine:
                 self.graphics.save()
                 self.mirroring_graphics.translate(-self.drawingwidth / 2, y)
                 text_ang = math.atan2(y11 - y12, x11 - x12)
+                if self.mirror_y:
+                    text_ang = -text_ang
                 self.mirroring_graphics.rotate(text_ang)
                 fh = self.graphics.gi_default_font_size
                 if v >= 0:
@@ -1434,11 +1421,11 @@ class SkymapEngine:
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
 
-    def draw_single_meridian(self, to_xyz, u, u_minutes, label_fmt, label_fmt_fn, label_edges, centre_v):
+    def draw_single_meridian(self, to_xyz, u, u_minutes, label_fmt, label_fmt_fn, label_edges, center_v):
         dv = self.fieldradius / 10.0
-        x11, y11, z11 = to_xyz(u, centre_v)
+        x11, y11, z11 = to_xyz(u, center_v)
         x21, y21, z21 = x11, y11, z11
-        v11 = v21 = centre_v
+        v11 = v21 = center_v
         nzopt = not self.transf.is_zoptim()
 
         x12 = y12 = z12 = None
@@ -1470,17 +1457,23 @@ class SkymapEngine:
                 label = label_fmt_fn(u_minutes, label_fmt)
                 self.graphics.save()
                 fh = self.graphics.gi_default_font_size
-                top = (label_edges == 'top') or (label_edges == 'auto' and centre_v > 0)
+                top = (label_edges == 'top') or (label_edges == 'auto' and center_v > 0)
                 if not top:
-                    x = (x12 - x11) * (self.drawingheight/2 - y11) / (y12 - y11) + x11
-                    self.mirroring_graphics.translate(x, self.drawingheight/2)
+                    x = (x12 - x11) * (self.drawingheight / 2 - y11) / (y12 - y11) + x11
+                    self.mirroring_graphics.translate(x, self.drawingheight / 2)
                     text_ang = math.atan2(y11 - y12, x11 - x12)
                 else:
-                    x = (x22 - x21) * (-self.drawingheight/2 - y21) / (y22 - y21) + x21
-                    self.mirroring_graphics.translate(x, -self.drawingheight/2)
+                    x = (x22 - x21) * (-self.drawingheight / 2 - y21) / (y22 - y21) + x21
+                    self.mirroring_graphics.translate(x, -self.drawingheight / 2)
                     text_ang = math.atan2(y21 - y22, x21 - x22)
+                if self.mirror_x:
+                    text_ang = -text_ang
                 self.mirroring_graphics.rotate(text_ang)
-                self.graphics.text_right(2 * fh / 3, fh / 3, label)
+                if self.mirror_x:
+                    self.graphics.text_left(-2 * fh / 3, fh / 3, label)
+                else:
+                    self.graphics.text_right(2 * fh / 3, fh / 3, label)
+
                 self.graphics.restore()
                 break
             if y12 is not None:
@@ -1509,8 +1502,8 @@ class SkymapEngine:
 
         self.draw_grid_generic(
             to_xyz=to_xyz,
-            centre_u=self.fieldcentre_equatorial[0],
-            centre_v=self.fieldcentre_equatorial[1],
+            center_u=self.center_equatorial[0],
+            center_v=self.center_equatorial[1],
             u_scale_list=[m for m in RA_GRID_SCALE],
             v_scale_list=[m for m in DEC_GRID_SCALE],
             u_label_fmt_fn=self.grid_ra_label,
@@ -1526,7 +1519,7 @@ class SkymapEngine:
         )
 
     def draw_grid_horizontal(self):
-        ra_c, dec_c = self.fieldcentre_equatorial
+        ra_c, dec_c = self.center_equatorial
         az_c, alt_c = self.transf.grid_equatorial_to_horizontal(ra_c, dec_c)
         if self.is_equatorial:
             def to_xyz(az, alt):
@@ -1540,8 +1533,8 @@ class SkymapEngine:
 
         self.draw_grid_generic(
             to_xyz=to_xyz,
-            centre_u=az_c,
-            centre_v=alt_c,
+            center_u=az_c,
+            center_v=alt_c,
             u_scale_list=AZ_GRID_SCALE,
             v_scale_list=DEC_GRID_SCALE,
             u_label_fmt_fn=self.grid_az_label,
@@ -1559,18 +1552,16 @@ class SkymapEngine:
         self.graphics.set_solid_line()
         self.graphics.set_pen_rgb(self.config.constellation_lines_color)
 
-        global constell_lines_rect1, constell_lines_rect2
-
         if jd is not None:
-            if constell_lines_rect1 is None:
+            if self.constell_lines_rect1 is None:
                 points = constell_catalog.all_constell_lines
                 xr1, yr1, zr1 = np_sphere_to_rect(points[:,0], points[:,1])
-                constell_lines_rect1 = np.column_stack((xr1, yr1, zr1))
+                self.constell_lines_rect1 = np.column_stack((xr1, yr1, zr1))
                 xr2, yr2, zr2 = np_sphere_to_rect(points[:,2], points[:,3])
-                constell_lines_rect2 = np.column_stack((xr2, yr2, zr2))
-            prec_rect1 = np.matmul(constell_lines_rect1, precession_matrix)
+                self.constell_lines_rect2 = np.column_stack((xr2, yr2, zr2))
+            prec_rect1 = np.matmul(self.constell_lines_rect1, precession_matrix)
             ra1, dec1 = np_rect_to_sphere(prec_rect1[:,[0]], prec_rect1[:,[1]], prec_rect1[:,[2]])
-            prec_rect2 = np.matmul(constell_lines_rect2, precession_matrix)
+            prec_rect2 = np.matmul(self.constell_lines_rect2, precession_matrix)
             ra2, dec2 = np_rect_to_sphere(prec_rect2[:,[0]], prec_rect2[:,[1]], prec_rect2[:,[2]])
             constell_lines = np.column_stack((ra1, dec1, ra2, dec2))
         else:
@@ -1605,15 +1596,13 @@ class SkymapEngine:
     def draw_constellation_boundaries(self, constell_catalog, jd, precession_matrix, hl_constellation):
         self.graphics.set_dashed_line(0.6, 1.2)
 
-        global constell_bound_rect
-
         if jd is not None:
-            if constell_bound_rect is None:
+            if self.constell_bound_rect is None:
                 points = constell_catalog.boundaries_points
                 xr, yr, zr = np_sphere_to_rect(points[:,0], points[:,1])
-                constell_bound_rect = np.column_stack((xr, yr, zr))
+                self.constell_bound_rect = np.column_stack((xr, yr, zr))
 
-            prec_rect = np.matmul(constell_bound_rect, precession_matrix)
+            prec_rect = np.matmul(self.constell_bound_rect, precession_matrix)
             ra, dec = np_rect_to_sphere(prec_rect[:,[0]], prec_rect[:,[1]], prec_rect[:,[2]])
             constell_boundaries = np.column_stack((ra, dec))
         else:
@@ -1724,7 +1713,7 @@ class SkymapEngine:
 
         return self.calc_boundary_divisions(level+1, divs * 2, wh_min, max_angle2, x1, y1, 1, x_center, y_center, 1, ra1, dec1, ra_center, dec_center)
 
-    def draw_horizont(self):
+    def draw_horizon(self):
         self.graphics.save()
         self.graphics.set_linewidth(self.config.horizont_linewidth)
         self.graphics.set_solid_line()
@@ -1738,8 +1727,8 @@ class SkymapEngine:
         alt = 0
 
         while True:
-            x12, y12, z12 = self.transf.horizontal_to_xyz(self.fieldcentre_celestial[0] + agg_az, alt)
-            x22, y22, z22 = self.transf.horizontal_to_xyz(self.fieldcentre_celestial[0] - agg_az, 0)
+            x12, y12, z12 = self.transf.horizontal_to_xyz(self.center_celestial[0] + agg_az, alt)
+            x22, y22, z22 = self.transf.horizontal_to_xyz(self.center_celestial[0] - agg_az, 0)
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 self.graphics.line(x11, y11, x12, y12)
                 self.graphics.line(x21, y21, x22, y22)
@@ -1759,7 +1748,7 @@ class SkymapEngine:
         for label, azimuth in CARDINAL_DIRECTIONS:
             x, y, z = self.transf.horizontal_to_xyz(azimuth, 0)
             if z > 0:
-                x_up, y_up, _ = self.transf.horizontal_to_xyz(azimuth, pi/20)
+                x_up, y_up, _ = self.transf.horizontal_to_xyz(azimuth, math.pi/20)
                 self.graphics.save()
                 self.graphics.set_pen_rgb(self.config.cardinal_directions_color)
                 self.graphics.translate(x, y)
@@ -1826,6 +1815,14 @@ class SkymapEngine:
         r = int((radius + self.graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
         self.graphics.circle(x, y, r, DrawMode.FILL)
 
+    def set_label_font(self, extended, style=None, scale=1.0):
+        if extended:
+            fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
+        else:
+            fh = self.graphics.gi_default_font_size * scale
+        self.graphics.set_font(self.graphics.gi_font, fh, style or self.config.dso_label_font_style)
+        return fh
+
     def open_cluster(self, x, y, radius, label, label_mag, label_ext, labelpos):
         r = radius if radius > 0 else self.drawingwidth/40.0
 
@@ -1834,12 +1831,7 @@ class SkymapEngine:
         self.graphics.set_dashed_line(0.6, 0.4)
 
         self.graphics.circle(x, y, r)
-        if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
+        label_fh = self.set_label_font(label_ext)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:
@@ -1856,12 +1848,7 @@ class SkymapEngine:
         self.graphics.set_dashed_line(0.5, 2.0)
 
         self.graphics.circle(x, y, r)
-        if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = None
-            self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
+        label_fh = self.set_label_font(label_ext)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:
@@ -1882,12 +1869,7 @@ class SkymapEngine:
         self.graphics.line(x+diff, y-d-diff, x-d-diff, y+diff)
         self.graphics.line(x-d, y, x, y+d)
 
-        if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
+        label_fh = self.set_label_font(label_ext)
 
         if label:
             self.graphics.set_pen_rgb(self.config.label_color)
@@ -1983,13 +1965,7 @@ class SkymapEngine:
             self.graphics.set_pen_rgb((self.config.label_color[0]*dso_intensity,
                                        self.config.label_color[1]*dso_intensity,
                                        self.config.label_color[2]*dso_intensity))
-            if label_ext:
-                label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            else:
-                label_fh = self.graphics.gi_default_font_size
-
-            self.graphics.set_font(self.graphics.gi_font, label_fh, self.config.dso_label_font_style)
-
+            label_fh = self.set_label_font(label_ext)
             if label:
                 self.draw_galaxy_label(x, y, label, labelpos, rlong, rshort, label_fh)
             if label_ext:
@@ -2117,12 +2093,7 @@ class SkymapEngine:
         self.graphics.line(x-r, y, x+r, y)
         self.graphics.line(x, y-r, x, y+r)
 
-        if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh, self.config.dso_label_font_style)
+        label_fh = self.set_label_font(label_ext)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:
@@ -2147,12 +2118,7 @@ class SkymapEngine:
         self.graphics.line(x+d1, y-d, x-d1, y-d)
         self.graphics.line(x-d, y-d, x-d, y+d)
 
-        if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
+        label_fh = self.set_label_font(label_ext)
 
         self.graphics.set_pen_rgb(self.config.label_color)
         if label:
@@ -2200,11 +2166,7 @@ class SkymapEngine:
         self.graphics.line(x_outl[len(x_outl)-1].item(), y_outl[len(x_outl)-1].item(), x_outl[0].item(), y_outl[0].item())
 
         if draw_label:
-            if label_ext:
-                label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            else:
-                label_fh = self.graphics.gi_default_font_size * self.config.outlined_dso_label_font_scale
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
+            label_fh = self.set_label_font(label_ext, scale=self.config.outlined_dso_label_font_scale)
             self.graphics.set_pen_rgb(self.config.label_color)
             if label:
                 self.draw_diffuse_nebula_label(x, y, label, labelpos, d, label_fh)
@@ -2269,12 +2231,7 @@ class SkymapEngine:
         self.graphics.line(x, y+0.75*r, x, y+1.5*r)
         self.graphics.line(x, y-0.75*r, x, y-1.5*r)
 
-        if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh, self.config.dso_label_font_style)
+        label_fh = self.set_label_font(label_ext)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
 
@@ -2293,12 +2250,7 @@ class SkymapEngine:
 
         self.graphics.circle(x, y, r-self.graphics.gi_linewidth/2.0)
 
-        if label_ext:
-            label_fh = self.config.ext_label_font_scale * self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, label_fh)
-        else:
-            label_fh = self.graphics.gi_default_font_size
-            self.graphics.set_font(self.graphics.gi_font, self.graphics.gi_default_font_size, self.config.dso_label_font_style)
+        label_fh = self.set_label_font(label_ext, style=self.config.dso_label_font_style)
 
         self.draw_circular_object_label(x, y, r, label, labelpos, label_fh)
         if label_ext:

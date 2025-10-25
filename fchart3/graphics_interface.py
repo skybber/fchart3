@@ -231,7 +231,7 @@ class GraphicsInterface:
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         """
-        Draw a circle with centre at (x,y) and radius r.
+        Draw a circle with center at (x,y) and radius r.
         """
         pass
 
@@ -255,7 +255,7 @@ class GraphicsInterface:
 
     def ellipse(self, x, y, rlong, rshort, position_angle, mode=DrawMode.BORDER):
         """
-        Draw an ellipse with centre at (x,y) and long radius rlong and
+        Draw an ellipse with a center at (x,y) and long radius rlong and
         short radius rshort. position_angle is the angle between the
         long axis and the positive x-axis in radians.
         """

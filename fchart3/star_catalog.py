@@ -51,5 +51,5 @@ class StarObject:
 
 
 class StarCatalog():
-    def select_stars(self, fieldcentre, radius, lm_stars):
+    def select_stars(self, field_center, radius, lm_stars):
         pass

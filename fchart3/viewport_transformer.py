@@ -25,8 +25,8 @@ class ViewportTransformer:
     def __init__(self, projection):
         self.projection = projection
 
-        self.centre_phi = None
-        self.centre_theta = None
+        self.center_phi = None
+        self.center_theta = None
 
         self.obs_lst = None
         self.obs_lat = None
@@ -35,16 +35,16 @@ class ViewportTransformer:
         self.grid_lat = None
         self.grid_sincos_lat = None
 
-    def set_celestial_fieldcentre(self, phi, theta):
+    def set_celestial_center(self, phi, theta):
         """
         Set the center of the projection, typically in equatorial coordinates (RA, Dec).
         """
-        self.centre_phi = phi
-        self.centre_theta = theta
-        self.projection.set_fieldcentre((phi, theta))
+        self.center_phi = phi
+        self.center_theta = theta
+        self.projection.set_field_center((phi, theta))
 
-    def get_equatorial_fieldcentre(self):
-        return horizontal_to_radec(self.obs_lst, self.obs_sincos_lat, self.centre_theta, self.centre_phi)
+    def get_equatorial_center(self):
+        return horizontal_to_radec(self.obs_lst, self.obs_sincos_lat, self.center_theta, self.center_phi)
 
     def set_observer(self, lst, lat):
         """

@@ -132,50 +132,50 @@ def hms2rad(h, m=0, s=0, sign=1):
     return sign*(h + m/60.0 + s/3600.0)*math.pi/12.0
 
 
-def lm_to_radec(lm, fieldcentre):
+def lm_to_radec(lm, field_center):
     """
     Inverse of SIN projection. Converts lm (l, m) with respect to
-    a fieldcentre (alpha0, delta0) to equatorial coordinates (alpha,
+    a field_center (alpha0, delta0) to equatorial coordinates (alpha,
     delta). All units are in radians. lm is a tuple:
-    (l,m). Fieldcentre is a tuple (alpha0, delta0). The routine
+    (l,m). Fieldcenter is a tuple (alpha0, delta0). The routine
     returns a tuple (alpha, delta). The formulae are taken from
     Greisen 1983: AIPS Memo 27, 'Non-linear Coordinate Systems in
     AIPS'
     """
     (l, m) = lm
-    (alpha0, delta0) = fieldcentre
+    (alpha0, delta0) = field_center
     alpha = alpha0 + math.atan2(l,(math.cos(delta0)*math.sqrt(1-l*l -m*m) - m*math.sin(delta0)))
     delta = math.asin((m*math.cos(delta0) + math.sin(delta0)*math.sqrt(1-l*l - m*m)))
     return alpha, delta
 
 
-def radec_to_lm(radec, fieldcentre):
+def radec_to_lm(radec, field_center):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
-    a fieldcentre (alpha0, delta0) to direction cosines (l, m). All
-    units are in radians. radec is a tuple (alpha, delta), Fieldcentre
+    a field_center (alpha0, delta0) to direction cosines (l, m). All
+    units are in radians. radec is a tuple (alpha, delta), Fieldcenter
     is a tuple (alpha0, delta0). The routine returns a tuple (l,m).
     The formulae are taken from Greisen 1983: AIPS Memo 27,
     'Non-linear Coordinate Systems in AIPS'
     """
     (ra, dec) = radec
-    (ra0, dec0) = fieldcentre
+    (ra0, dec0) = field_center
     delta_ra = ra - ra0
     l = math.cos(dec)*math.sin(delta_ra)
     m = math.sin(dec)*math.cos(dec0) - math.cos(dec)*math.cos(delta_ra)*math.sin(dec0)
     return l, m
 
 
-def radec_to_lmz(ra, dec, fieldcentre):
+def radec_to_lmz(ra, dec, field_center):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
-    a fieldcentre (alpha0, delta0) to direction cosines (l, m, z). All
-    units are in radians. radec is a tuple (alpha, delta), Fieldcentre
+    a field_center (alpha0, delta0) to direction cosines (l, m, z). All
+    units are in radians. radec is a tuple (alpha, delta), Fieldcenter
     is a tuple (alpha0, delta0). The routine returns a tuple (l,m,z).
     The formulae are taken from Greisen 1983: AIPS Memo 27,
     'Non-linear Coordinate Systems in AIPS'
     """
-    (ra0, dec0) = fieldcentre
+    (ra0, dec0) = field_center
     delta_ra = ra - ra0
 
     sin_dec = math.sin(dec)
@@ -190,16 +190,16 @@ def radec_to_lmz(ra, dec, fieldcentre):
     return l, m, z
 
 
-def radec_to_xyz(ra, dec, fieldcentre, scale, fc_sincos_dec):
+def radec_to_xyz(ra, dec, field_center, scale, fc_sincos_dec):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
-    a fieldcentre (alpha0, delta0) to coordinates (x, y, z). All
-    units are in radians. radec is a tuple (alpha, delta), Fieldcentre
+    a field_center (alpha0, delta0) to coordinates (x, y, z). All
+    units are in radians. radec is a tuple (alpha, delta), Fieldcenter
     is a tuple (alpha0, delta0). The routine returns a tuple (x,y,z).
     The formulae are taken from Greisen 1983: AIPS Memo 27,
     'Non-linear Coordinate Systems in AIPS'
     """
-    (ra0, dec0) = fieldcentre
+    (ra0, dec0) = field_center
     delta_ra = ra - ra0
 
     sin_dec = math.sin(dec)
@@ -214,16 +214,16 @@ def radec_to_xyz(ra, dec, fieldcentre, scale, fc_sincos_dec):
     return x, y, z
 
 
-def radec_to_xy(ra, dec, fieldcentre, scale, fc_sincos_dec):
+def radec_to_xy(ra, dec, field_center, scale, fc_sincos_dec):
     """
     SIN projection. Converts radec (alpha, delta) with respect to
-    a fieldcentre (alpha0, delta0) to coordinates (x, y, z). All
-    units are in radians. radec is a tuple (alpha, delta), Fieldcentre
+    a field_center (alpha0, delta0) to coordinates (x, y, z). All
+    units are in radians. radec is a tuple (alpha, delta), Fieldcenter
     is a tuple (alpha0, delta0). The routine returns a tuple (x,y,z).
     The formulae are taken from Greisen 1983: AIPS Memo 27,
     'Non-linear Coordinate Systems in AIPS'
     """
-    (ra0, dec0) = fieldcentre
+    (ra0, dec0) = field_center
     delta_ra = ra - ra0
 
     sin_dec = math.sin(dec)
@@ -237,7 +237,7 @@ def radec_to_xy(ra, dec, fieldcentre, scale, fc_sincos_dec):
     return x, y
 
 
-def direction_ddec(radec, fieldcentre, fc_sincos_dec):
+def direction_ddec(radec, field_center, fc_sincos_dec):
     """
     Gives the angle between true north and map north on any
     location in a SIN projection. Positive means that the true north
@@ -246,7 +246,7 @@ def direction_ddec(radec, fieldcentre, fc_sincos_dec):
     ra, dec , ra0 and dec0 are in radians
     """
 
-    (ra0, dec0) = fieldcentre
+    (ra0, dec0) = field_center
     (ra, dec) = radec
 
     cos_dec0 = fc_sincos_dec[1]  # math.cos(dec0)

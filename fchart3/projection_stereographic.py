@@ -30,10 +30,10 @@ class ProjectionStereographic(ProjectionInterface):
         self._R = None
         self._R_obs = None
 
-    def set_fieldcentre(self, fieldcentre):
-        super().set_fieldcentre(fieldcentre)
-        self.sin_theta0 = math.sin(fieldcentre[1])
-        self.cos_theta0 = math.cos(fieldcentre[1])
+    def set_field_center(self, field_center):
+        super().set_field_center(field_center)
+        self.sin_theta0 = math.sin(field_center[1])
+        self.cos_theta0 = math.cos(field_center[1])
         self.update_matrix_transform()
 
     def set_r_obs(self, r_obs):
@@ -48,7 +48,7 @@ class ProjectionStereographic(ProjectionInterface):
         return False
 
     def celestial_to_xy(self, phi, theta):
-        phi0, theta0 = self.fieldcentre
+        phi0, theta0 = self.field_center
         delta_phi = phi - phi0
 
         sin_theta = math.sin(theta)
@@ -63,7 +63,7 @@ class ProjectionStereographic(ProjectionInterface):
         return x, y
 
     def celestial_to_xyz(self, phi, theta):
-        phi0, theta0 = self.fieldcentre
+        phi0, theta0 = self.field_center
         delta_phi = phi - phi0
 
         sin_theta = math.sin(theta)
@@ -84,7 +84,7 @@ class ProjectionStereographic(ProjectionInterface):
         return x, y, z
 
     def np_celestial_to_xy(self, phi, theta):
-        phi0, theta0 = self.fieldcentre
+        phi0, theta0 = self.field_center
         delta_phi = phi - phi0
 
         sin_theta = np.sin(theta)
@@ -100,7 +100,7 @@ class ProjectionStereographic(ProjectionInterface):
         return x, y
 
     def np_celestial_to_xyz(self, phi, theta):
-        phi0, theta0 = self.fieldcentre
+        phi0, theta0 = self.field_center
         delta_phi = phi - phi0
 
         sin_theta = np.sin(theta)
@@ -117,13 +117,13 @@ class ProjectionStereographic(ProjectionInterface):
         return x, y, z
 
     def direction_dtheta(self, phi, theta):
-        phi0, theta0 = self.fieldcentre
+        phi0, theta0 = self.field_center
         sin_theta0, cos_theta0 = self.sin_theta0, self.cos_theta0
         angle = math.atan2(-math.sin(theta) * math.sin(phi - phi0), math.cos(theta) * cos_theta0 + math.sin(theta) * sin_theta0 * math.cos(phi - phi0))
         return angle
 
     def update_matrix_transform(self):
-        phi0, theta0 = self.fieldcentre
+        phi0, theta0 = self.field_center
         if phi0 is None or theta0 is None:
             self._R = None
             return

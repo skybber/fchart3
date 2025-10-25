@@ -152,7 +152,7 @@ class UsedCatalogs:
 
         name = dso_name[index:].upper().rstrip().lstrip()
 
-        # determine ra, dec of fieldcentre
+        # determine ra, dec of field_center
         found_dso = None
         cat_upper = cat.upper()
         if cat_upper != 'M':
