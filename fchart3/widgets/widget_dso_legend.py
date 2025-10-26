@@ -15,22 +15,22 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from . import deepsky_object as deepsky
+from fchart3 import deepsky_object as deepsky
 
 
 class WidgetDsoLegend:
 
-    def __init__(self, language, drawingwidth, legend_margin, color=(0, 0, 0)):
+    def __init__(self, language, drawing_width, legend_margin, color=(0, 0, 0)):
         self.language = language
-        self.drawingwidth = drawingwidth
+        self.drawing_width = drawing_width
         self.legend_margin = legend_margin
         self.color = color
 
     def draw_dso_legend(self, sky_map_engine, graphics, erase_background):
         fh = graphics.gi_font_size
         # Draw list of symbols
-        legendx = 0.48*self.drawingwidth
-        legendy = 0.49*self.drawingwidth
+        legendx = 0.48*self.drawing_width
+        legendy = 0.49*self.drawing_width
         legendinc = fh
 
         r = fh/3.0
@@ -77,7 +77,7 @@ class WidgetDsoLegend:
         sky_map_engine.globular_cluster(legendx, legendy - (tl.index('GCL') + 1)*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
 
-        legendy = self.legend_margin*self.drawingwidth
+        legendy = self.legend_margin*self.drawing_width
 
         sky_map_engine.supernova_remnant(legendx, -legendy + bl.index('SNR')*legendinc, r, '', '', '')
         graphics.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])

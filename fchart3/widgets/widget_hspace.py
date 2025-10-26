@@ -15,42 +15,25 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from .widget_base import WidgetBase
-from .graphics_interface import DrawMode
+from fchart3.graphics_interface import DrawMode
 
 
-class WidgetNumericMapScale(WidgetBase):
-
-    def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
-        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
+class WidgetHSpace:
+    def __init__(self, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
         self.legend_fontsize = legend_fontsize
         self.legend_linewidth = legend_linewidth
-        self.alloc_space_spec = alloc_space_spec
         self.color = color
-        self.x, self.y = None, None
-        self.width, self.height = 6 * self.legend_fontsize, 2.2 * self.legend_fontsize
+        self.height = 2.2 * self.legend_fontsize
 
-    def draw(self, graphics, fill_background, label):
-        if self.x is None or self.y is None:
-            return
-        fh = self.legend_fontsize
-
+    def draw(self, graphics, left, right, bottom, fill_background):
         graphics.set_solid_line()
         graphics.set_pen_rgb(self.color)
-        graphics.set_linewidth(0)
+        graphics.set_linewidth(self.legend_linewidth)
 
         if fill_background and graphics.gi_background_rgb:
             graphics.save()
             graphics.set_fill_background()
-            graphics.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)
+            graphics.rectangle(left, bottom+self.height, right-left, self.height, DrawMode.FILL)
             graphics.restore()
 
-        old_fontsize = graphics.gi_font_size
-        graphics.set_font(graphics.gi_font, fh)
-        x = self.x + 0.8 * fh
-        y = self.y - self.height + (self.height - 0.66*fh) / 2
-        graphics.text_right(x, y, label)
-
-        graphics.set_font(graphics.gi_font, old_fontsize)
-
-        self.draw_bounding_rect(graphics)
+        graphics.line(left, bottom+self.height, right, bottom+self.height)

@@ -22,10 +22,10 @@ Generate findchart for Crab Nebula:
 `fchart3 M1`
 
 Generate complex chart of M39 (m39.pdf) region:
-`fchart3 -width 190 -height 270 -fieldsize 40 -limstar 9 -limdso 9 --show-nebula-outlines --show-enhanced-milky-way --font-style-bayer bold --font-style-dso italic --flamsteed-numbers-only --show-equatorial-grid --hide-map-orientation-legend --hide-map-scale-legend m39`
+`fchart3 -width 190 -height 270 -field_size 40 -limstar 9 -limdso 9 --show-nebula-outlines --show-enhanced-milky-way --font-style-bayer bold --font-style-dso italic --flamsteed-numbers-only --show-equatorial-grid --hide-map-orientation-legend --hide-map-scale-legend m39`
 
 Generate complex chart for M39 (m39.tikz) region with output to TIKZ format.
-`fchart3 -f m39.tikz -width 190 -height 270 -fieldsize 40 -limstar 9 -limdso 9 --show-nebula-outlines --show-enhanced-milky-way --font-style-bayer bold --font-style-dso italic --flamsteed-numbers-only --show-equatorial-grid --hide-map-orientation-legend --hide-map-scale-legend m39`
+`fchart3 -f m39.tikz -width 190 -height 270 -field_size 40 -limstar 9 -limdso 9 --show-nebula-outlines --show-enhanced-milky-way --font-style-bayer bold --font-style-dso italic --flamsteed-numbers-only --show-equatorial-grid --hide-map-orientation-legend --hide-map-scale-legend m39`
 
 ### Previous Projects
 The sources of the original project fcharts can be found at:

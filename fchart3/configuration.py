@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from .graphics_interface import FontStyle
+from .graphics import FontStyle
 
 from enum import Enum
 
@@ -168,11 +168,12 @@ class EngineConfiguration:
         self._show_dso_mag = False
         self._show_enhanced_milky_way_10k = False
         self._show_enhanced_milky_way_30k = False
+        self._use_optimized_mw = False
         self._show_equatorial_grid = False
         self._show_horizontal_grid = False
         self._show_field_border = False
         self._show_flamsteed = True
-        self._show_horizont = False
+        self._show_horizon = False
         self._show_mag_scale_legend = False
         self._show_map_scale_legend = False
         self._show_nebula_outlines = False
@@ -788,6 +789,14 @@ class EngineConfiguration:
         self._show_enhanced_milky_way_30k = value
 
     @property
+    def use_optimized_mw(self):
+        return self._use_optimized_mw
+
+    @use_optimized_mw.setter
+    def use_optimized_mw(self, value):
+        self._use_optimized_mw = value
+
+    @property
     def show_equatorial_grid(self):
         return self._show_equatorial_grid
 
@@ -820,12 +829,12 @@ class EngineConfiguration:
         self._show_flamsteed = value
 
     @property
-    def show_horizont(self):
-        return self._show_horizont
+    def show_horizon(self):
+        return self._show_horizon
 
-    @show_horizont.setter
-    def show_horizont(self, value):
-        self._show_horizont = value
+    @show_horizon.setter
+    def show_horizon(self, value):
+        self._show_horizon = value
 
     @property
     def show_mag_scale_legend(self):

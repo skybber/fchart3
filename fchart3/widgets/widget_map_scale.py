@@ -18,7 +18,7 @@
 import numpy as np
 
 from .widget_base import WidgetBase
-from .graphics_interface import DrawMode
+from fchart3.graphics_interface import DrawMode
 
 
 class WidgetMapScale(WidgetBase):

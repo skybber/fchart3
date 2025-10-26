@@ -20,13 +20,13 @@ import numpy as np
 
 
 class LabelPotential:
-    def __init__(self, fieldradius):
+    def __init__(self, field_radius):
         """
-        fieldradius in mm
+        field_radius in mm
         deepskylist [(x,y,size), (x,y,size),...]
         x,y, size in mm
         """
-        self.fieldradius  = fieldradius
+        self.field_radius  = field_radius
         self.positions = np.empty((0, 2))
         self.sizes = np.empty(0)
 
@@ -57,7 +57,7 @@ class LabelPotential:
         p = self.sizes*sr
         if edge_opt:
             ss = np.sum(self.sizes)
-            rf = ((x**2+y**2)**0.5 - self.fieldradius)**-3
+            rf = ((x**2+y**2)**0.5 - self.field_radius)**-3
             value = np.sum(p) + ss*rf
         else:
             value = np.sum(p)

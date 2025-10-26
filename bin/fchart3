@@ -557,7 +557,7 @@ if __name__ == '__main__':
             exit(-1)
 
     used_catalogs = UsedCatalogs(data_dir,
-                                 extra_data_dir=settings.parser.extra_data_dir,
+                                 extra_star_data_dir=settings.parser.extra_data_dir,
                                  limit_magnitude_deepsky=settings.parser.limit_magnitude_deepsky,
                                  force_messier=settings.parser.force_messier,
                                  force_asterisms=settings.parser.force_asterisms,
@@ -610,8 +610,8 @@ if __name__ == '__main__':
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
                 engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limit_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration(config_file))
-                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0, mirror_x=settings.parser.mirror_x,
-                                 mirror_y=settings.parser.mirror_y)
+                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0, "", mirror_x=settings.parser.mirror_x,
+                             mirror_y=settings.parser.mirror_y)
                 engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 engine.set_active_constellation(object.constellation)

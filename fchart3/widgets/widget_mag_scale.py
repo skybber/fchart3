@@ -18,7 +18,7 @@
 import numpy as np
 
 from .widget_base import WidgetBase
-from .graphics_interface import DrawMode
+from fchart3.graphics_interface import DrawMode
 
 
 class WidgetMagnitudeScale(WidgetBase):
@@ -66,13 +66,17 @@ class WidgetMagnitudeScale(WidgetBase):
             legendy = self.y - self.height + np.arange(self.stars_in_scale)*fh + 0.5*fh
 
             for i in range(len(legendy)):
-                self.engine.no_mirror_star(self.x+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
+                self.no_mirror_star(graphics, self.x+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
                 graphics.text_right(self.x+1.2*fh, legendy[i], str(mags_in_scale[i]))
         else:
             graphics.set_font(graphics.gi_font, fh * 0.66)
             legendx = self.x + np.arange(self.stars_in_scale)*fh + 0.5*fh
             for i in range(self.stars_in_scale):
-                self.engine.no_mirror_star(legendx[i] + 0.6 * fh, self.y-self.height + 0.66*fh, legendr[-i-1])
+                self.no_mirror_star(graphics, legendx[i] + 0.6 * fh, self.y-self.height + 0.66*fh, legendr[-i-1])
                 graphics.text_centred(legendx[i] + 0.6 * fh, self.y-self.height + 1.6*fh, str(mags_in_scale[-i-1]))
 
         self.draw_bounding_rect(graphics)
+
+    def no_mirror_star(self, graphics, x, y, radius):
+        r = int((radius + graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
+        graphics.circle(x, y, r, DrawMode.FILL)

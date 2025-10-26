@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from .graphics_interface import FontStyle
+from .graphics import FontStyle
 
 FLOAT_ITEMS = ['constellation_linewidth', 'constellation_border_linewidth', 'nebula_linewidth',
                'open_cluster_linewidth', 'galaxy_cluster_linewidth', 'dso_linewidth', 'milky_way_linewidth',

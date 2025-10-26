@@ -15,31 +15,8 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-__doc__ = """
-skymap_engine contains the SkymapEngine class that draws maps of the sky,
-given a StarCatalog and DeepskyCatalog. 
-"""
+from .projection import *
+from .projection_orthographic import *
+from .projection_stereographic import *
 
-import os
-
-_ROOT = os.path.abspath(os.path.dirname(__file__))
-
-
-def get_data(path):
-    return os.path.join(_ROOT, 'data', path)
-
-
-def get_catalogs_dir():
-    return os.path.join(get_data('catalogs'))
-
-
-from .config_loader import *
-from .skymap_engine import *
-from .configuration import *
-from .solar_system_body import *
-from .used_catalogs import *
-from .graphics import *
-from .highlight_definition import *
-from .dso_highlight_definition import *
-from .projections import *
-
+__all__ = [k for k in globals() if not k.startswith("_")]

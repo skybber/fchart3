@@ -46,13 +46,13 @@ class UsedCatalogs:
                  force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False,
                  enhanced_mw_optim_max_col_diff=None):
         # Read basic catalogs
-        self._constellcatalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
+        self._constell_catalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
                                                data_dir+os.sep + 'constellationship_western.fab',
                                                data_dir+os.sep + 'constbndJ2000.dat',
                                                data_dir+os.sep + 'cross-id.dat')
-        self._starcatalog = GeodesicStarGaiaCatalog(data_dir, extra_star_data_dir)
+        self._star_catalog = GeodesicStarGaiaCatalog(data_dir, extra_star_data_dir)
 
-        self._deeplist, self._unknown_nebulas = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog, supplements)
+        self._deeplist, self._unknown_nebulae = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog, supplements)
 
         # Apply magnitude selection to deepsky list, build Messier list
         self._reduced_deeplist = []
@@ -71,30 +71,30 @@ class UsedCatalogs:
                 self._reduced_deeplist.append(dso)
 
         self._messierlist.sort(key=lambda x: x.messier)
-        self._deepskycatalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
+        self._deepsky_catalog = DeepskyCatalog(self._reduced_deeplist, force_messier)
         self._milky_way = import_milky_way(os.path.join(data_dir, 'milkyway.dat'))
         self._enhanced_milky_way_10k = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced_10k.dat'), enhanced_mw_optim_max_col_diff)
         self._enhanced_milky_way_30k = EnhancedMilkyWay(os.path.join(data_dir, 'milkyway_enhanced_30k.dat'), enhanced_mw_optim_max_col_diff)
-        self._bsc_hip_map = self._constellcatalog.bsc_hip_map
+        self._bsc_hip_map = self._constell_catalog.bsc_hip_map
 
     def free_mem(self):
-        self._starcatalog.free_mem()
+        self._star_catalog.free_mem()
 
     @property
     def messierlist(self):
         return self._messierlist
 
     @property
-    def starcatalog(self):
-        return self._starcatalog
+    def star_catalog(self):
+        return self._star_catalog
 
     @property
-    def constellcatalog(self):
-        return self._constellcatalog
+    def constell_catalog(self):
+        return self._constell_catalog
 
     @property
-    def deepskycatalog(self):
-        return self._deepskycatalog
+    def deepsky_catalog(self):
+        return self._deepsky_catalog
 
     @property
     def deeplist(self):
@@ -105,8 +105,8 @@ class UsedCatalogs:
         return self._reduced_deeplist
 
     @property
-    def unknown_nebulas(self):
-        return self._unknown_nebulas
+    def unknown_nebulae(self):
+        return self._unknown_nebulae
 
     @property
     def milky_way(self):
@@ -235,7 +235,7 @@ class UsedCatalogs:
 
         all_lvl_outlines = import_outlines_catgen(os.path.join(data_dir, 'outlines_catgen.dat'))
 
-        unknown_nebulas = []
+        unknown_nebulae = []
         unknown_nebula_map = {}
 
         for i in range(3):
@@ -253,8 +253,8 @@ class UsedCatalogs:
                         if not uneb:
                             uneb = deepsky.UnknownNebula()
                             unknown_nebula_map[name] = uneb
-                            unknown_nebulas.append(uneb)
+                            unknown_nebulae.append(uneb)
                         for outlines in outlines_ar:
                             uneb.add_outlines(i, self._convert_outlines_to_np_arr(outlines))
 
-        return deeplist, unknown_nebulas
+        return deeplist, unknown_nebulae
