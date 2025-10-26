@@ -266,9 +266,6 @@ class SkymapEngine:
             self.renderers["deepsky"].draw(ctx, state)
             self.renderers["planets"].draw(ctx, state)
 
-            if not self.is_equatorial:
-                self.renderers["horizon"].draw(ctx, state)
-
             self.renderers["extras"].draw(ctx, state)
 
             if state.picked_dso is None and state.picked_planet_moon is None and state.picked_star is not None:
@@ -276,7 +273,9 @@ class SkymapEngine:
 
             self.renderers["trajectory"].draw(ctx, state)
             self.renderers["arrow"].draw(ctx, state)
-            self.renderers["horizon"].draw(ctx, state)
+            if not self.is_equatorial:
+                self.renderers["horizon"].draw(ctx, state)
+
 
             self.gfx.reset_clip()
 
