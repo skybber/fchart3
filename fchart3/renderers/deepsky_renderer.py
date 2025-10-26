@@ -18,8 +18,8 @@
 import numpy as np
 import math
 
-from fchart3.np_astrocalc import *
-from fchart3 import deepsky_object as deepsky
+from ..np_astrocalc import *
+from .. import deepsky_object as deepsky
 
 from .base_renderer import BaseRenderer, SQRT2
 
@@ -525,7 +525,6 @@ class DeepskyRenderer(BaseRenderer):
 
     def diffuse_nebula_labelpos(self, ctx, x, y, width=-1.0, height=-1.0, posangle=0.0, label_length=0.0):
         gfx = ctx.gfx
-        cfg = ctx.cfg
 
         d = 0.5*width
         if width < 0.0:

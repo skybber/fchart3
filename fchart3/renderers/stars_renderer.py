@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from fchart3.graphics_interface import DrawMode
+from ..graphics import DrawMode
 
 from .base_renderer import BaseRenderer
 

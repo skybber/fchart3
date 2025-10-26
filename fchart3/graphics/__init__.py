@@ -20,5 +20,3 @@ from .graphics_cairo import CairoDrawing
 from .graphics_skia import SkiaDrawing
 from .graphics_tikz import TikZDrawing
 from .mirroring_graphics import MirroringGraphics
-
-__all__ = [k for k in globals() if not k.startswith("_")]

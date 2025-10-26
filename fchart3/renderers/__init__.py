@@ -28,20 +28,3 @@ from .nebulae_outlines_renderer import NebulaeOutlinesRenderer
 from .planets_renderer import PlanetsRenderer
 from .stars_renderer import StarsRenderer
 from .trajectory_renderer import TrajectoryRenderer
-
-__all__ = [
-    "BaseRenderer",
-    "ArrowRenderer",
-    "ConstellationsRenderer",
-    "DeepskyRenderer",
-    "GridRenderer",
-    "HighlightsRenderer",
-    "HorizonRenderer",
-    "ExtrasRenderer",
-    "MilkyWayRenderer",
-    "NebulaeOutlinesRenderer",
-    "PlanetsRenderer",
-    "StarsRenderer",
-    "TrajectoryRenderer",
-    "interp_magnitude_to_radius"
-]

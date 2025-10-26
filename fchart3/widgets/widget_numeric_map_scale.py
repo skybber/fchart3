@@ -16,7 +16,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from .widget_base import WidgetBase
-from fchart3.graphics_interface import DrawMode
+from ..graphics import DrawMode
 
 
 class WidgetNumericMapScale(WidgetBase):

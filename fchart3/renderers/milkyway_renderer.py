@@ -22,7 +22,7 @@ import os
 
 from .base_renderer import BaseRenderer
 
-from fchart3.graphics_interface import DrawMode
+from ..graphics import DrawMode
 
 
 uilanguage = os.environ.get('fchart3lang')

@@ -19,7 +19,7 @@ import math
 
 import numpy as np
 
-from fchart3.np_astrocalc import *
+from ..np_astrocalc import *
 from .base_renderer import BaseRenderer
 
 

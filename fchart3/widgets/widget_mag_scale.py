@@ -18,7 +18,7 @@
 import numpy as np
 
 from .widget_base import WidgetBase
-from fchart3.graphics_interface import DrawMode
+from ..graphics import DrawMode
 
 
 class WidgetMagnitudeScale(WidgetBase):

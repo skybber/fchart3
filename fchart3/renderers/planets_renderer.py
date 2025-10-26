@@ -17,9 +17,9 @@
 
 import math
 
-from fchart3.astrocalc import angular_distance, pos_angle
-from fchart3.solar_system_body import SolarSystemBody
-from fchart3.graphics_interface import DrawMode
+from ..astrocalc import angular_distance, pos_angle
+from ..solar_system_body import SolarSystemBody
+from ..graphics import DrawMode
 
 from .base_renderer import BaseRenderer
 

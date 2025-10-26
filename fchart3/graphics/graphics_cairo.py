@@ -20,7 +20,7 @@ from math import pi
 import cairo
 import PIL.Image as Image
 
-from .graphics_interface import INCH, DPMM, POINT, GraphicsInterface, DrawMode, FontStyle
+from .graphics_interface import *
 
 DPI_IMG = 100.0
 DPMM_IMG = DPI_IMG/INCH

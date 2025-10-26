@@ -17,7 +17,7 @@
 
 from math import pi
 
-from .graphics_interface import DrawMode
+from .graphics_interface import *
 
 
 class MirroringGraphics:

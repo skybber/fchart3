@@ -19,6 +19,7 @@ from .label_potential import *
 from .constellation import *
 from .configuration import *
 
+from .graphics import *
 from .projections import *
 from .precession import compute_precession_matrix
 from .viewport_transformer import ViewportTransformer
