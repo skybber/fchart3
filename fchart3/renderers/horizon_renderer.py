@@ -41,9 +41,9 @@ class HorizonRenderer(BaseRenderer):
         gfx = ctx.gfx
         cfg = ctx.cfg
         gfx.save()
-        gfx.set_linewidth(cfg.horizont_linewidth)
+        gfx.set_linewidth(cfg.horizon_linewidth)
         gfx.set_solid_line()
-        gfx.set_pen_rgb(cfg.horizont_color)
+        gfx.set_pen_rgb(cfg.horizon_color)
 
         daz = ctx.field_radius / 10
         x11, y11, z11 = (None, None, None)
@@ -82,5 +82,3 @@ class HorizonRenderer(BaseRenderer):
                 gfx.rotate(-text_ang)
                 gfx.text_centred(0, label_fh, label)
                 gfx.restore()
-
-

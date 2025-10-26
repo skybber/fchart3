@@ -246,10 +246,8 @@ class PlanetsRenderer(BaseRenderer):
         gfx = ctx.gfx
         fh = gfx.gi_default_font_size * font_scale
         arg = 1.0-2*fh/(3.0*r)
-        if (arg < 1.0) and (arg > -1.0):
-            a = math.acos(arg)
-        else:
-            a = 0.5*math.pi
+        arg = max(-1.0, min(1.0, arg))
+        a = math.acos(arg)
 
         if labelpos == 0:
             gfx.text_centred(x, y + r + 0.75 * fh, label)
@@ -279,9 +277,9 @@ class PlanetsRenderer(BaseRenderer):
         label_pos_list = []
 
         y3 = y + r + 0.75 * fh
-        label_pos_list.append([[x-label_length/2, y3], [x, y3], [x+label_length/2]])
+        label_pos_list.append(((x-label_length/2, y3), (x, y3), (x+label_length/2, y3)))
         y4 = y - r - 0.75 * fh
-        label_pos_list.append([[x-label_length/2, y4], [x, y4], [x+label_length/2]])
+        label_pos_list.append(((x-label_length/2, y4), (x, y4), (x+label_length/2, y4)))
 
         if not top_down_only:
             x1 = x+math.sin(a)*r+fh/6.0
@@ -306,6 +304,7 @@ class PlanetsRenderer(BaseRenderer):
             r = x ** 2 + y ** 2
             if r < pick_min_r:
                 state.picked_planet_moon = pl_moon
+                pick_min_r = r
         return result
 
 

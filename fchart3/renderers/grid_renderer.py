@@ -19,20 +19,24 @@ import math
 
 from .base_renderer import BaseRenderer
 
-GRID_DENSITY = 4
+MIN_GRID_DENSITY = 4
 RA_GRID_SCALE = [0.25, 0.5, 1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
 DEC_GRID_SCALE = [1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 5*60, 10*60, 15*60, 20*60, 30*60, 45*60, 60*60]
+EPS = 1e-9
 
 
 class GridRenderer(BaseRenderer):
     def draw(self, ctx, state):
-        if ctx.cfg.show_equatorial_grid:
+        cfg = ctx.cfg
+        if cfg.show_equatorial_grid:
             self.draw_grid_equatorial(ctx)
 
-        if ctx.cfg.show_horizontal_grid:
+        if cfg.show_horizontal_grid:
             self.draw_grid_horizontal(ctx)
 
     def draw_grid_equatorial(self, ctx):
+        if not ctx.center_equatorial:
+            return
         def to_xyz(ra, dec):
             return ctx.transf.equatorial_to_xyz(ra, dec)
 
@@ -110,8 +114,8 @@ class GridRenderer(BaseRenderer):
         prev_steps, prev_v_minutes = (None, None)
         for v_minutes in v_scale_list:
             steps = ctx.field_radius / (math.pi * v_minutes / (180 * 60))
-            if steps < GRID_DENSITY:
-                if prev_steps is not None and (prev_steps - GRID_DENSITY) < (GRID_DENSITY - steps):
+            if steps < MIN_GRID_DENSITY:
+                if prev_steps is not None and (prev_steps - MIN_GRID_DENSITY) < (MIN_GRID_DENSITY - steps):
                     v_minutes = prev_v_minutes
                 break
             prev_steps, prev_v_minutes = (steps, v_minutes)
@@ -132,9 +136,9 @@ class GridRenderer(BaseRenderer):
         fc_cos = cos_of_v(center_v)
         for u_minutes in u_scale_list:
             du_rad = math.pi * (u_minutes * u_arcmin_per_unit) / (180.0 * 60.0)
-            steps = ctx.field_radius / max(1e-9, (fc_cos * du_rad))
-            if steps < GRID_DENSITY:
-                if prev_steps is not None and (prev_steps - GRID_DENSITY) < (GRID_DENSITY - steps):
+            steps = ctx.field_radius / max(EPS, (fc_cos * du_rad))
+            if steps < MIN_GRID_DENSITY:
+                if prev_steps is not None and (prev_steps - MIN_GRID_DENSITY) < (MIN_GRID_DENSITY - steps):
                     u_minutes = prev_u_minutes
                 break
             prev_steps, prev_u_minutes = (steps, u_minutes)
@@ -143,7 +147,7 @@ class GridRenderer(BaseRenderer):
         if max_visible_v >= math.pi/2 or max_visible_v <= -math.pi/2:
             u_size = u_period
         else:
-            u_size = ctx.field_radius / max(1e-6, cos_of_v(max_visible_v))
+            u_size = ctx.field_radius / max(EPS, cos_of_v(max_visible_v))
             if u_size > u_period:
                 u_size = u_period
 
@@ -176,7 +180,8 @@ class GridRenderer(BaseRenderer):
         agg_u = 0.0
         nzopt = not ctx.transf.is_zoptim()
 
-        while True:
+        iter_count = 0
+        while agg_u <= math.pi and iter_count < 1000:
             x12, y12, z12 = to_xyz(center_u + agg_u, v)
             x22, y22, z22 = to_xyz(center_u - agg_u, v)
 
@@ -185,8 +190,7 @@ class GridRenderer(BaseRenderer):
                 gfx.line(x21, y21, x22, y22)
 
             agg_u += du
-            if agg_u > math.pi:
-                break
+            iter_count += 1
 
             if y11 is not None and x12 < -ctx.drawing_width / 2:
                 y = (y12 - y11) * (ctx.drawing_width / 2 + x11) / (x11 - x12) + y11

@@ -130,8 +130,8 @@ class EngineConfiguration:
         self._highlight_color = DEFAULT_DSO_HIGHLIGHT_COLOR
         self._highlight_label_font_scale = DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE
         self._highlight_linewidth = DEFAULT_HIGHLIGHT_LINEWIDTH
-        self._horizont_color = DEFAULT_HORIZONT_COLOR
-        self._horizont_linewidth = DEFAULT_HORIZONT_LINEWIDTH
+        self._horizon_color = DEFAULT_HORIZONT_COLOR
+        self._horizon_linewidth = DEFAULT_HORIZONT_LINEWIDTH
         self._jupiter_color = DEFAULT_JUPITER_COLOR
         self._jupiter_r_scale = DEFAULT_JUPITER_R_SCALE
         self._label_color = DEFAULT_LABEL_COLOR
@@ -485,20 +485,20 @@ class EngineConfiguration:
         self._highlight_linewidth = value
 
     @property
-    def horizont_color(self):
-        return self._horizont_color
+    def horizon_color(self):
+        return self._horizon_color
 
-    @horizont_color.setter
-    def horizont_color(self, value):
-        self._horizont_color = value
+    @horizon_color.setter
+    def horizon_color(self, value):
+        self._horizon_color = value
 
     @property
-    def horizont_linewidth(self):
-        return self._horizont_linewidth
+    def horizon_linewidth(self):
+        return self._horizon_linewidth
 
-    @horizont_linewidth.setter
-    def horizont_linewidth(self, value):
-        self._horizont_linewidth = value
+    @horizon_linewidth.setter
+    def horizon_linewidth(self, value):
+        self._horizon_linewidth = value
 
     @property
     def jupiter_color(self):

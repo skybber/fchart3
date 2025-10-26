@@ -142,15 +142,15 @@ class MilkyWayRenderer(BaseRenderer):
                 rgb_buckets[bucket_index][2] += b_f
 
         for i in range(256):
-            polygons = poly_buckets[i]
+            bucket_polygons = poly_buckets[i]
 
-            if not polygons:
+            if not bucket_polygons:
                 continue
-            r = rgb_buckets[i][0] / len(polygons)
-            g = rgb_buckets[i][1] / len(polygons)
-            b = rgb_buckets[i][2] / len(polygons)
+            r = rgb_buckets[i][0] / len(bucket_polygons)
+            g = rgb_buckets[i][1] / len(bucket_polygons)
+            b = rgb_buckets[i][2] / len(bucket_polygons)
             gfx.set_fill_rgb((r, g, b))
-            gfx.polygons_indexed(x, y, polygons, DrawMode.FILL)
+            gfx.polygons_indexed(x, y, bucket_polygons, DrawMode.FILL)
 
         gfx.antialias_on()
         tmp = str(time()-tm)

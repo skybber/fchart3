@@ -18,7 +18,7 @@
 import numpy as np
 import math
 
-from ..np_astrocalc import *
+from ..np_astrocalc import np_rect_to_sphere
 from .. import deepsky_object as deepsky
 
 from .base_renderer import BaseRenderer, SQRT2
@@ -65,7 +65,7 @@ class DeepskyRenderer(BaseRenderer):
         if pick_r > 0:
             pick_min_r = pick_r**2
             for dso, x, y, rlong in deepsky_list_ext:
-                if pick_r > 0 and abs(x) < pick_r and abs(y) < pick_r:
+                if abs(x) < pick_r and abs(y) < pick_r:
                     r = x*x + y*y
                     if r < pick_min_r:
                         state.picked_dso = dso
@@ -77,14 +77,14 @@ class DeepskyRenderer(BaseRenderer):
 
             label = dso.label()
             if cfg.show_dso_mag and dso.mag is not None and dso.mag != -100 and dso.mag < 30:
-                label_mag = '{:.1f}'.format(dso.mag)
+                label_mag = f'{dso.mag:.1f}'
             else:
                 label_mag = None
 
             if ctx.dso_highlights:
                 for dso_highlight in ctx.dso_highlights:
                     if dso in dso_highlight.dsos:
-                        self.draw_dso_hightlight(ctx, state, x, y, rlong, label, dso_highlight, state.visible_objects_collector)
+                        self.draw_dso_highlight(ctx, state, x, y, rlong, label, dso_highlight, state.visible_objects_collector)
                         break
 
             rlong = dso.rlong if dso.rlong is not None else ctx.min_radius
@@ -103,7 +103,7 @@ class DeepskyRenderer(BaseRenderer):
 
             label_ext = None
             if dso == state.picked_dso and dso.mag < 30.0:
-                label_ext = '{:.2f}m'.format(dso.mag)
+                label_mag = f'{dso.mag:.2f}m'
 
             label_length = gfx.text_width(label)
 
@@ -650,7 +650,7 @@ class DeepskyRenderer(BaseRenderer):
 
         return label_pos_list
 
-    def draw_dso_hightlight(self, ctx, state, x, y, rlong, dso_name, dso_highligth, visible_objects_collector):
+    def draw_dso_highlight(self, ctx, state, x, y, rlong, dso_name, dso_highligth, visible_objects_collector):
         gfx = ctx.gfx
         cfg = ctx.cfg
 

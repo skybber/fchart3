@@ -28,27 +28,26 @@ class ExtrasRenderer(BaseRenderer):
         for rax, decx, label, labelpos in extra_positions:
             x, y, z = ctx.transf.equatorial_to_xyz(rax, decx)
             if nzopt or z >= 0:
-                self.unknown_object(ctx, x, y, self.min_radius, label, labelpos)
+                self.unknown_object(ctx, x, y, ctx.min_radius, label, labelpos)
                 
     def unknown_object(self, ctx, x, y, radius, label, label_ext, labelpos):
         gfx = ctx.gfx
-        r = radius
-        if radius <= 0.0:
-            r = ctx.drawing_width/40.0
+        cfg = ctx.cfg
 
+        r = radius if radius > 0.0 else ctx.drawing_width / 40.0
         r /= SQRT2
 
-        gfx.set_linewidth(ctx.cfg.dso_linewidth)
+        gfx.set_linewidth(cfg.dso_linewidth)
         gfx.set_solid_line()
-        gfx.set_pen_rgb(ctx.cfg.dso_color)
+        gfx.set_pen_rgb(cfg.dso_color)
 
         gfx.line(x-r, y+r, x+r, y-r)
         gfx.line(x+r, y+r, x-r, y-r)
 
         fh = gfx.gi_default_font_size
 
-        if label != '':
-            gfx.set_pen_rgb(ctx.cfg.label_color)
+        if label:
+            gfx.set_pen_rgb(cfg.label_color)
             if labelpos == 0:
                 gfx.text_right(x+r+fh/6.0, y-fh/3.0, label)
             elif labelpos == 1:

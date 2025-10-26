@@ -22,45 +22,44 @@ from .base_renderer import BaseRenderer, SQRT2
 
 class TrajectoryRenderer(BaseRenderer):
     def draw(self, ctx, state):
-        if ctx.trajectory is not None:
+        if ctx.trajectory:
             self.draw_trajectory(ctx, ctx.trajectory)
 
     def draw_trajectory(self, ctx, trajectory):
         gfx = ctx.gfx
         cfg = ctx.cfg
+
         gfx.set_pen_rgb(cfg.dso_color)
         gfx.set_solid_line()
 
         fh = gfx.gi_default_font_size
-        x1, y1, z1 = (None, None, None)
         nzopt = not ctx.transf.is_zoptim()
 
+        x1 = y1 = z1 = None
         labels = []
 
-        for i in range(0, len(trajectory)):
-            rax2, decx2, label2 = trajectory[i]
-            x2, y2, z2 = ctx.transf.equatorial_to_xyz(rax2, decx2)
+        for i, (ra2, dec2, label2) in enumerate(trajectory):
+            x2, y2, z2 = ctx.transf.equatorial_to_xyz(ra2, dec2)
 
-            if i > 0:
+            if i > 0 and (nzopt or (z1 > 0 and z2 > 0)):
                 gfx.set_linewidth(cfg.constellation_linewidth)
-                if nzopt or (z1 > 0 and z2 > 0):
-                    gfx.line(x1, y1, x2, y2)
-                    if label2 is not None:
-                        self.draw_trajectory_tick(gfx, cfg, x1, y1, x2, y2)
-                    if i == 1:
-                        self.draw_trajectory_tick(gfx, cfg, x2, y2, x1, y1)
+                gfx.line(x1, y1, x2, y2)
+                if label2:
+                    self.draw_trajectory_tick(gfx, cfg, x1, y1, x2, y2)
+                if i == 1:
+                    self.draw_trajectory_tick(gfx, cfg, x2, y2, x1, y1)
 
-            nx, ny = (None, None)
+            nx = ny = None
             if x1 is not None:
-                n = math.hypot(x2 - x1, y2 - y1)
-                if n != 0:
-                    nx = (x2 - x1) / n
-                    ny = (y2 - y1) / n
+                dx, dy = (x2 - x1), (y2 - y1)
+                n = math.hypot(dx, dy)
+                if n > 0:
+                    nx, ny = dx / n, dy / n
 
             if label2 is not None:
-                labels.append([x2, y2, z2, nx, ny, label2])
+                labels.append((x2, y2, z2, nx, ny, label2))
 
-            x1, y1, z1 = (x2, y2, z2)
+            x1, y1, z1 = x2, y2, z2
 
         sum_x, sum_y = (0, 0)
         for _, _, _, nx, ny, _ in labels:
@@ -83,22 +82,31 @@ class TrajectoryRenderer(BaseRenderer):
             label_pos = 0
 
         r = ctx.min_radius * 1.2 / SQRT2
+        gfx.set_font(gfx.gi_font, fh)
         for x, y, z, nx, ny, label in labels:
-            if nzopt or z > 0:
-                if label_pos == 1:
-                    gfx.text_centred(x, y + r + fh, label)
-                elif label_pos == 2:
-                    gfx.text_right(x + r + fh / 4, y - fh / 2, label)
-                else:
-                    gfx.text_centred(x, y - r - fh / 2.0, label)
+            if not (nzopt or z > 0):
+                continue
+            if label_pos == 1:
+                gfx.text_centred(x, y + r + fh, label)
+            elif label_pos == 2:
+                gfx.text_right(x + r + fh / 4.0, y - fh / 2.0, label)
+            else:
+                gfx.text_centred(x, y - r - fh / 2.0, label)
 
     def draw_trajectory_tick(self, gfx, cfg, x1, y1, x2, y2):
         dx = x2 - x1
         dy = y2 - y1
         dr = math.hypot(dx, dy)
-        if dr > 0:
-            ddx = dx * 1.0 / dr
-            ddy = dy * 1.0 / dr
-            gfx.set_linewidth(1.5 * cfg.constellation_linewidth)
-            gfx.line(x2 - ddy, y2 + ddx, x2 + ddy, y2 - ddx)
+        if dr <= 0:
+            return
 
+        lw = cfg.constellation_linewidth
+        tlen = max(2.5 * lw, 0.6)
+        ddx = dx / dr
+        ddy = dy / dr
+
+        px = -ddy
+        py = ddx
+
+        gfx.set_linewidth(1.5 * lw)
+        gfx.line(x2 - px * tlen, y2 - py * tlen, x2 + px * tlen, y2 + py * tlen)
