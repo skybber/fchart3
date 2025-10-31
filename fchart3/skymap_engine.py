@@ -65,9 +65,10 @@ BASE_SCALE = 0.98
 
 class SkymapEngine:
     def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption=''):
-        self.init_renderers()
+        self.create_renderers()
         self.gfx = graphics
         self.cfg = EngineConfiguration()
+        self.transf = None
 
         self.caption = caption
         self.language = language
@@ -92,25 +93,9 @@ class SkymapEngine:
         self.mirror_y = False
 
         self.space_widget_allocator = None
-        self.widgets = {}
+        self.widgets = None
 
-        self.transf = None
         self.norm_field_radius = None
-
-    def init_renderers(self):
-        self.renderers = {}
-        self.renderers["arrow"] = ArrowRenderer()
-        self.renderers["constellations"] = ConstellationsRenderer()
-        self.renderers["deepsky"] = DeepskyRenderer()
-        self.renderers["grid"] = GridRenderer()
-        self.renderers["extras"] = ExtrasRenderer()
-        self.renderers["highlights"] = HighlightsRenderer()
-        self.renderers["horizon"] = HorizonRenderer()
-        self.renderers["milkyway"] = MilkyWayRenderer()
-        self.renderers["nebulae_outlines"] = NebulaeOutlinesRenderer()
-        self.renderers["stars"] = StarsRenderer()
-        self.renderers["planets"] = PlanetsRenderer()
-        self.renderers["trajectory"] = TrajectoryRenderer()
 
     def set_field(self, phi, theta, field_radius, field_label=None, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
         self.field_radius = field_radius
@@ -339,9 +324,26 @@ class SkymapEngine:
         if self.cfg.show_dso_legend:
             self.widgets["dso_legend"].draw_dso_legend(self, self.gfx, fill_background)
 
+    def create_renderers(self):
+        self.renderers = {}
+        self.renderers["arrow"] = ArrowRenderer()
+        self.renderers["constellations"] = ConstellationsRenderer()
+        self.renderers["deepsky"] = DeepskyRenderer()
+        self.renderers["grid"] = GridRenderer()
+        self.renderers["extras"] = ExtrasRenderer()
+        self.renderers["highlights"] = HighlightsRenderer()
+        self.renderers["horizon"] = HorizonRenderer()
+        self.renderers["milkyway"] = MilkyWayRenderer()
+        self.renderers["nebulae_outlines"] = NebulaeOutlinesRenderer()
+        self.renderers["stars"] = StarsRenderer()
+        self.renderers["planets"] = PlanetsRenderer()
+        self.renderers["trajectory"] = TrajectoryRenderer()
+
     def create_widgets(self):
         left, bottom, right, top = self.get_field_rect_mm()
         self.space_widget_allocator = SpaceWidgetAllocator(left, bottom, right, top)
+
+        self.widgets = {}
 
         self.widgets["mag_scale"] = WidgetMagnitudeScale(sky_map_engine=self,
                                                          alloc_space_spec='bottom,left',

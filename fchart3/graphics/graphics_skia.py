@@ -63,8 +63,11 @@ class SkiaDrawing(GraphicsInterface):
         self.canvas = None
         self.sfc_width = None
         self.sfc_height = None
+        self.base_save_count = None
         self.tolerance = tolerance
+        self.dash_cache = {}
         self.set_origin(self.gi_width/2.0, self.gi_height/2.0)
+        self.jpg_quality = jpg_quality
 
     def new(self):
         if self.format in ['png', 'jpg']:
@@ -75,25 +78,30 @@ class SkiaDrawing(GraphicsInterface):
             self.canvas = self.surface.getCanvas()
             self.canvas.scale(DPMM_IMG, DPMM_IMG)
             self.canvas.translate(self.gi_origin_x, self.gi_origin_y)
+            self.base_save_count = self.canvas.getSaveCount()
         else:
+            self.document = skia.PDF.MakeDocument(self.fobj)
             if self.landscape:
-                self.sfc_width = A4_HEIGHT_POINTS
-                self.sfc_height = A4_WIDTH_POINTS
-                self.document = skia.PDF.MakeDocument(self.fobj)
-                self.canvas = document.page(self.sfc_width, self.sfc_height)
-                self.canvas.scale(DPMM, DPMM)
-                self.canvas.translate(self.gi_origin_x*DPMM + 15*DPMM, self.gi_origin_y*DPMM + (210-self.gi_height)*DPMM/2)
+                self.sfc_width, self.sfc_height = A4_HEIGHT_POINTS, A4_WIDTH_POINTS
             else:
-                self.sfc_width = A4_WIDTH_POINTS
-                self.sfc_height = A4_HEIGHT_POINTS
-                self.document = skia.PDF.MakeDocument(self.fobj)
-                self.canvas = document.page(self.sfc_width, self.sfc_height)
-                self.canvas.scale(DPMM, DPMM)
-                self.canvas.translate(self.gi_origin_x*DPMM + (210-self.gi_width)*DPMM/2, self.gi_origin_y*DPMM + 15*DPMM)
+                self.sfc_width, self.sfc_height = A4_WIDTH_POINTS, A4_HEIGHT_POINTS
+
+            self.canvas = self.document.beginPage(self.sfc_width, self.sfc_height)
+            self.canvas.scale(DPMM, DPMM)
+            if self.landscape:
+                self.canvas.translate(self.gi_origin_x * DPMM + 15 * DPMM,
+                                      self.gi_origin_y * DPMM + (210 - self.gi_height) * DPMM / 2)
+            else:
+                self.canvas.translate(self.gi_origin_x * DPMM + (210 - self.gi_width) * DPMM / 2,
+                                      self.gi_origin_y * DPMM + 15 * DPMM)
+
+            self.base_save_count = self.canvas.getSaveCount()
+
         self.paint_default = skia.Paint(AntiAlias=True)
         self.paint_dash = skia.Paint(AntiAlias=True)
         self.paint_text = skia.Paint(AntiAlias=True)
         self.font_default = None
+        self.path = None
 
     def clear(self):
         return
@@ -108,11 +116,28 @@ class SkiaDrawing(GraphicsInterface):
         super().restore()
         self.canvas.restore()
 
+    def _to_skia_fontstyle(self, style_flags):
+        bold = (style_flags & FontStyle.BOLD) != 0
+        italic = (style_flags & FontStyle.ITALIC) != 0
+        if bold and italic:
+            return skia.FontStyle.BoldItalic()
+        if bold:
+            return skia.FontStyle.Bold()
+        if italic:
+            return skia.FontStyle.Italic()
+        return skia.FontStyle.Normal()
+
     def set_font(self, font='Arial', font_size=SKIA_DEFAULT_FONT_SIZE, font_style=FontStyle.NORMAL):
         old_size = self.gi_font_size
         super().set_font(font, font_size, font_style)
         if self.font_default is None or old_size != font_size:
-            self.font_default = skia.Font(get_cached_typeface('NotoSans-Regular'), font_size)
+            try:
+                tf = skia.Typeface.MakeFromName(self.gi_font, self._to_skia_fontstyle(self.gi_font_style))
+                if tf is None:  # fallback
+                    tf = skia.Typeface('NotoSans-Regular')
+            except Exception:
+                tf = skia.Typeface('NotoSans-Regular')
+            self.font_default = skia.Font(tf, self.gi_font_size)
 
     def set_linewidth(self, linewidth):
         super().set_linewidth(linewidth)
@@ -131,10 +156,11 @@ class SkiaDrawing(GraphicsInterface):
         paint.setStyle(skia.Paint.kStroke_Style)
         self.canvas.drawLine((x1,-y1), (x2,-y2), paint)
 
-    def rectangle(self,x,y,width,height, mode=DrawMode.BORDER):
+    def rectangle(self, x, y, width, height, mode=DrawMode.BORDER):
         paint = self._get_paint()
         self._set_color_and_stroke_style(paint, mode)
-        self.canvas.drawRect(skia.Rec(x, -y, width, height), paint)
+        rect = skia.Rect.MakeXYWH(x, -y, width, height)
+        self.canvas.drawRect(rect, paint)
 
     def circle(self, x, y, r, mode=DrawMode.BORDER):
         paint = self._get_paint()
@@ -150,6 +176,36 @@ class SkiaDrawing(GraphicsInterface):
         self._set_color_and_stroke_style(self.paint_default, mode)
         self.canvas.drawPath(path, self.paint_default)
 
+    def polygons_indexed(self, x, y, polygons, mode=DrawMode.BORDER):
+        path = skia.Path()
+        for poly in polygons:
+            if not poly:
+                continue
+            path.moveTo(x[poly[0]], -y[poly[0]])
+            for i in poly[1:]:
+                path.lineTo(x[i], -y[i])
+        path.close()
+
+        if mode == DrawMode.BORDER:
+            paint = self._get_paint()
+            paint.setStyle(skia.Paint.kStroke_Style)
+            paint.setColor4f(skia.Color4f(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2], 1.0))
+            self.canvas.drawPath(path, paint)
+        elif mode == DrawMode.FILL:
+            paint = self._get_paint()
+            paint.setStyle(skia.Paint.kFill_Style)
+            paint.setColor4f(skia.Color4f(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2], 1.0))
+            self.canvas.drawPath(path, paint)
+        else:
+            fill = skia.Paint(AntiAlias=True)
+            fill.setStyle(skia.Paint.kFill_Style)
+            fill.setColor4f(skia.Color4f(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2], 1.0))
+            self.canvas.drawPath(path, fill)
+            stroke = self._get_paint()
+            stroke.setStyle(skia.Paint.kStroke_Style)
+            stroke.setColor4f(skia.Color4f(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2], 1.0))
+            self.canvas.drawPath(path, stroke)
+
     def polyline(self, vertices):
         path = skia.Path()
         path.moveTo(vertices[0][0], -vertices[0][1])
@@ -161,12 +217,10 @@ class SkiaDrawing(GraphicsInterface):
     def ellipse(self,x,y,rlong,rshort, posangle, mode=DrawMode.BORDER):
         self.canvas.save()
         paint = self._get_paint()
-        paint.setColor4f(skia.Color4f(self.gi_pen_rgb[0], self.gi_pen_rgb[1], self.gi_pen_rgb[2]))
-        paint.setStyle(skia.Paint.kStroke_Style)
-        rect = skia.Rect(-rlong, -rshort, rlong, rshort)
-        self.canvas.translate(x, -y)
-        self.canvas.rotate(-180.0*posangle/pi)
         self._set_color_and_stroke_style(paint, mode)
+        self.canvas.translate(x, -y)
+        self.canvas.rotate(-180.0 * posangle / pi)
+        rect = skia.Rect.MakeLTRB(-rlong, -rshort, rlong, rshort)
         self.canvas.drawOval(rect, paint)
         self.canvas.restore()
 
@@ -194,38 +248,98 @@ class SkiaDrawing(GraphicsInterface):
         self.canvas.rotate(-180.0*angle/pi)
 
     def move_to(self, x, y):
-        pass
+        if self.path is None:
+            self.begin_path()
+        self.path.moveTo(x, -y)
 
     def clip_path(self, path):
-        pass
+        p = skia.Path()
+        p.moveTo(path[0][0], -path[0][1])
+        for x, y in path[1:]:
+            p.lineTo(x, -y)
+        p.close()
+        self.canvas.clipPath(p, doAntiAlias=True)
 
     def begin_path(self):
-        pass
+        self.path = skia.Path()
 
     def arc_to(self, x, y, r, angle1, angle2):
-        pass
+        if self.path is None:
+            self.begin_path()
+        start_deg = angle1 * 180.0 / pi
+        sweep_deg = (angle2 - angle1) * 180.0 / pi
+        oval = skia.Rect.MakeLTRB(x - r, -(y + r), x + r, -(y - r))
+        self.path.addArc(oval, start_deg, sweep_deg)
 
     def elliptic_arc_to(self, x, y, rx, ry, angle1, angle2):
-        pass
+        if self.path is None:
+            self.begin_path()
+        start_deg = angle1 * 180.0 / pi
+        sweep_deg = (angle2 - angle1) * 180.0 / pi
+        oval = skia.Rect.MakeLTRB(x - rx, -(y + rx), x + rx, -(y - rx))
+        tmp = skia.Path()
+        tmp.addArc(oval, start_deg, sweep_deg)
+        m = skia.Matrix()
+        m.setScale(1.0, ry / float(rx), x, -y)
+        tmp.transform(m)
+        self.path.addPath(tmp)
 
     def line_to(self, x, y):
-        pass
+        if self.path is None:
+            self.begin_path()
+        self.path.lineTo(x, -y)
 
     def complete_path(self, mode=DrawMode.BORDER):
-        pass
+        if self.path is None:
+            return
+        paint = self._get_paint()
+        if mode == DrawMode.BORDER:
+            paint.setStyle(skia.Paint.kStroke_Style)
+            paint.setColor4f(skia.Color4f(*self.gi_pen_rgb, 1.0))
+            self.canvas.drawPath(self.path, paint)
+        elif mode == DrawMode.FILL:
+            paint.setStyle(skia.Paint.kFill_Style)
+            paint.setColor4f(skia.Color4f(*self.gi_fill_rgb, 1.0))
+            self.canvas.drawPath(self.path, paint)
+        else:
+            fill = skia.Paint(AntiAlias=True)
+            fill.setStyle(skia.Paint.kFill_Style)
+            fill.setColor4f(skia.Color4f(*self.gi_fill_rgb, 1.0))
+            self.canvas.drawPath(self.path, fill)
+            stroke = self._get_paint()
+            stroke.setStyle(skia.Paint.kStroke_Style)
+            stroke.setColor4f(skia.Color4f(*self.gi_pen_rgb, 1.0))
+            self.canvas.drawPath(self.path, stroke)
+        self.path = None
 
     def reset_clip(self):
-        pass
+        self.canvas.restoreToCount(self.base_save_count)
+        if self.format in ['png', 'jpg']:
+            self.canvas.scale(DPMM_IMG, DPMM_IMG)
+            self.canvas.translate(self.gi_origin_x, self.gi_origin_y)
+        else:
+            self.canvas.scale(DPMM, DPMM)
+            if self.landscape:
+                self.canvas.translate(self.gi_origin_x * DPMM + 15 * DPMM,
+                                      self.gi_origin_y * DPMM + (210 - self.gi_height) * DPMM / 2)
+            else:
+                self.canvas.translate(self.gi_origin_x * DPMM + (210 - self.gi_width) * DPMM / 2,
+                                      self.gi_origin_y * DPMM + 15 * DPMM)
+        self.base_save_count = self.canvas.getSaveCount()
 
     def finish(self):
-        if self.format == 'png':
+        if self.format in ['png', 'jpg']:
             image = self.surface.makeImageSnapshot()
-            image.save(self.fobj, skia.kPNG)
-        elif self.format == 'jpg':
-            image = self.surface.makeImageSnapshot()
-            image.save(self.fobj, skia.kJPEG)
+            fmt = skia.kPNG if self.format == 'png' else skia.kJPEG
+            data = image.encodeToData(fmt, self.jpg_quality if self.format == 'jpg' else 100)
+            if hasattr(self.fobj, 'write'):
+                self.fobj.write(bytes(data))
+            else:
+                with open(self.fobj, 'wb') as fw:
+                    fw.write(bytes(data))
         else:
-            pass
+            self.document.endPage()
+            self.document.close()
 
     def on_screen(self, x, y):
         return x > -self.gi_width/2.0 and x < self.gi_width/2.0 and y > -self.gi_height/2.0  and y < self.gi_height/2.0
@@ -244,7 +358,13 @@ class SkiaDrawing(GraphicsInterface):
     def _get_paint(self):
         if self.gi_dash_style is None:
             return self.paint_default
-        self.paint_dash.setPathEffect(skia.DashPathEffect.Make(self.gi_dash_style[0], self.gi_dash_style[1]))
+        (on, off), phase = self.gi_dash_style
+        key = (float(on), float(off), float(phase))
+        pe = self.dash_cache.get(key)
+        if pe is None:
+            pe = skia.DashPathEffect.Make([on, off], phase)
+            self.dash_cache[key] = pe
+        self.paint_dash.setPathEffect(pe)
         return self.paint_dash
 
     def _set_color_and_stroke_style(self, paint, mode):
