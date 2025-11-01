@@ -229,25 +229,6 @@ class GeodesicGrid:
                 h0, h1, h2 = t[0], t[1], t[2]
         return h0, h1, h2
 
-    def get_partner_triangle(self, lev, index):
-        if lev == 0:
-            return index+1 if (index&1) == 1 else index-1
-
-        x = index & 7
-        if x == 2 or x == 6:
-            return index+1
-        if x == 3 or x == 7:
-            return index-1
-        if x == 0:
-            return index+5 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+1
-        if x == 1:
-            return index+3 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+0
-        if x == 4:
-            return index-3 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+1
-        if x == 5:
-            return index-5 if lev == 1 else (self.get_partner_triangle(lev-1, index >> 2) << 2)+0
-        return 0
-
     def _init_triangle(self, lev, index, c0, c1, c2):
         t = (vector_norm_add(c1, c2), vector_norm_add(c2, c0), vector_norm_add(c0, c1))
         self._triangles[lev][index] = t
