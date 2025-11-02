@@ -14,8 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
 import gettext
 import os
+from collections import defaultdict, deque
 
 uilanguage=os.environ.get('fchart3lang')
 try:
@@ -125,6 +127,8 @@ class EnhancedMilkyWay:
 
     def _create_opti_polygons(self, max_col_diff):
         self.mw_opti_polygons = self._merge_polygons(self.mw_polygons, max_col_diff)
+        self.mw_opti_polygons = self._merge_polygons(self.mw_opti_polygons, max_col_diff)
+        self.mw_opti_polygons = self._merge_polygons(self.mw_opti_polygons, max_col_diff)
         arr_ra, arr_dec, poly_index = ([], [], [])
         ind = 0
         for polygon, _ in self.mw_opti_polygons:
@@ -196,44 +200,109 @@ class EnhancedMilkyWay:
         out_polygons = []
         for pol_ind, merge_to in enumerate(merge_to_ind_ar):
             if merge_to == -1:
-                polygon = []
-                for edge in merged_poly_ar[pol_ind]:
-                    polygon.append(edge[1])
+                edges = merged_poly_ar[pol_ind]
+                if not edges:
+                    out_polygons.append([polygons[pol_ind][0][:], polygons[pol_ind][1]])
+                    continue
+
+                loops = self._edges_to_polygons(edges)
+                if not loops:
+                    out_polygons.append([polygons[pol_ind][0][:], polygons[pol_ind][1]])
+                    continue
+
+                main_loop = max(loops, key=len)
                 rgb = polygons[pol_ind][1]
-                out_polygons.append([polygon, rgb])
+                out_polygons.append([main_loop, rgb])
 
         return out_polygons
 
     def _merge_edges(self, edges1, edges2):
-        out_edges = []
-        for e1 in edges1:
-            if not any(e1[0] == e2[0] for e2 in edges2) and e1[1] != e1[2]:
-                out_edges.append([e1[0], e1[1], e1[2]])
-        for e2 in edges2:
-            if not any(e2[0] == e1[0] for e1 in edges1) and e2[1] != e2[2]:
-                out_edges.append([e2[0], e2[1], e2[2]])
-        end_point = -1;
-        res_edges = []
-        for i in range(len(out_edges)):
-            e = out_edges[i]
-            if end_point == -1 or e[1] == end_point:
-                res_edges.append(e)
-                end_point = e[2]
+        if edges1 is None: edges1 = []
+        if edges2 is None: edges2 = []
+
+        from collections import defaultdict
+        count = defaultdict(int)
+        ab_map = {}
+
+        for e in edges1 + edges2:
+            key, a, b = e
+            count[key] ^= 1  # mod 2
+            ab_map[key] = (a, b)
+
+        boundary = []
+        for key, c in count.items():
+            if c == 1:
+                a, b = ab_map[key]
+                if a != b:
+                    boundary.append([key, a, b])
+
+        return boundary
+
+    def _edges_to_polygons(self, edges):
+        if not edges:
+            return []
+
+        adj = defaultdict(list)
+        for _, a, b in edges:
+            if a == b:
                 continue
-            for j in range(i, len(out_edges)):
-                te = out_edges[j]
-                if te[1] == end_point:
-                    out_edges[i], out_edges[j] = out_edges[j], out_edges[i]
+            adj[a].append(b)
+            adj[b].append(a)
+
+        work = {u: adj[u][:] for u in adj}
+        loops = []
+
+        visited = set()
+        for start in list(work.keys()):
+            if start in visited:
+                continue
+            comp = []
+            q = deque([start]);
+            visited.add(start)
+            while q:
+                u = q.popleft()
+                comp.append(u)
+                for w in work.get(u, []):
+                    if w not in visited:
+                        visited.add(w)
+                        q.append(w)
+
+            local = {u: [v for v in work.get(u, []) if v in comp] for u in comp}
+
+            def pick():
+                for u, vs in local.items():
+                    if vs:
+                        return u, vs[-1]
+                return None
+
+            while True:
+                sel = pick()
+                if sel is None:
                     break
-                if te[2] == end_point:
-                    te[1], te[2] = te[2], te[1]
-                    if j != i:
-                        out_edges[i], out_edges[j] = out_edges[j], out_edges[i]
-                    break
-            e = out_edges[i]
-            res_edges.append(e)
-            end_point = e[2]
-        return res_edges
+                u, v = sel
+                cycle = [u, v]
+                local[u].pop()
+                local[v].remove(u)
+
+                prev, cur = u, v
+                safety = 0
+                max_steps = 4 * len(edges) + 10
+                while safety < max_steps:
+                    safety += 1
+                    nxts = [x for x in local.get(cur, []) if x != prev]
+                    if not nxts:
+                        break
+                    nxt = nxts[-1]
+                    local[cur].remove(nxt)
+                    local[nxt].remove(cur)
+                    cycle.append(nxt)
+                    prev, cur = cur, nxt
+                    if nxt == cycle[0]:
+                        cycle.pop()
+                        if len(cycle) >= 3:
+                            loops.append(cycle)
+                        break
+        return loops
 
     def select_polygons(self, field_center, radius):
         intersecting_trixels = self.sky_mesh.intersect(RAD2DEG * field_center[0], RAD2DEG * field_center[1], RAD2DEG * radius)
