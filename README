@@ -20,23 +20,6 @@ Installation
 
   and see what happened
 
-* If there are complaints that certain python modules cannot be found,
-  make shure that the directory containing astrocalc.py, revngc.py are
-  in your PYTHONPATH environment variable.
-
-  type
-  $ man `echo $SHELL | sed -e"s/.*\/\(.*\)/\1/g"`
-  if you do not know how to set environment variables.
-
-* fchart --help dumps a short manual to your screen.
-
-That's all.  You can view the output using ghostview, gv, or whatever
-postscript viewer you prefer.
-
-
-Michiel
-------------------------------------------------------
-
 *The* manual:
 
 usage: fchart3 [-h] [-o [OUTPUT_DIR]] [-f [OUTPUT_FILE]] [-limdso [LIMITING_MAGNITUDE_DEEPSKY]] [-limstar [LIMITING_MAGNITUDE_STARS]] [-width [WIDTH]] [-size [FIELDSIZE]] [-fmessier] [-fasterism] [-funknown] [-lang [LANGUAGE]] [-sc [SHOW_CATALOGS]]
@@ -52,7 +35,7 @@ usage: fchart3 [-h] [-o [OUTPUT_DIR]] [-f [OUTPUT_FILE]] [-limdso [LIMITING_MAGN
                [--FOV-telrad]
                [--extra-data-dir EXTRA_DATA_DIR]
                [-v]
-               [sourcelist ...]
+               [object list ...]
 
 fchart3
 
@@ -159,14 +142,14 @@ optional arguments:
                         Scale of font used in legend related to chart font size.
   -v, --version         display version information and exit.
 
-Sourcenames:
-   Valid sourcenames are for example:
+Object names:
+   Valid obeject names are for example:
    - NGC891, NgC891, n891 or 891 for NGC objects
    - IC1396, i1396, iC1396, I1396 for IC objects
    - m110, M3 for Messier objects
    - "9:35:00.8,-34:15:33,SomeCaption" for other positions
 
-   There is one special sourcename, which is "allmessier". When this name
+   There is one special object name, which is "allmessier". When this name
    is encountered, fchart dumps maps of all messier objects to the output
    directory.
 

@@ -1,8 +1,8 @@
 Metadata-Version: 1.0
 Name: fchart3
-Version: 0.8
+Version: 0.11.0
 Summary: Collection of Python scripts to make beautiful deepsky
-finder charts in EPS and PDF format
+skymap engine for project czsky.eu
 Home-page: https://github.com/skybber/fchart3
 Author: Michiel Brentjens, Vladimir Dvorak
 Author-email: UNKNOWN

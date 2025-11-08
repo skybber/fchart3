@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #    fchart draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-2020 fchart authors
+#    Copyright (C) 2005-2025 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -49,9 +49,9 @@ import gettext
 _ = gettext.gettext
 
 #################################################################
-VERSION ="0.10.3"
+VERSION ="0.11.0"
 def print_version():
-    print(_(f"""fchart3 version 0.10.2 (c) fchart3 authors 2005-2023\n
+    print(_(f"""fchart3 version 0.11.0 (c) fchart3 authors 2005-2025\n
 fchart3 comes with ABSOLUTELY NO WARRANTY. It is distributed under the
 GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
@@ -103,7 +103,8 @@ class RuntimeSettings:
                             help='Width of the drawing area in millimeters.')
         argumentparser.add_argument('-height', dest='height', nargs='?', action='store', default=270.0, type=float,
                                     help='Height of the drawing area in millimeters.')
-        argumentparser.add_argument('-fieldsize', dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
+        argumentparser.add_argument('-fieldsize',
+                                    dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
 
         argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
@@ -129,7 +130,7 @@ class RuntimeSettings:
                                          'the supernova sn2004et in NGC 6946. The label position can be \'t\' for top, \'b\' for bottom, \'l\' for ' + \
                                          'left, or \'r\' for right. The label and label position may be omitted.')
 
-        argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default='',
+        argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default=None,
                                     help='Force a specific caption for the maps. All maps will have the same caption.')
 
         argumentparser.add_argument('--hide-star-labels', dest='show_star_labels', action='store_false', default=None,
@@ -282,7 +283,7 @@ class RuntimeSettings:
         """
         
         if self.parser.version:
-            print_version(VERSION)
+            print_version()
             sys.exit(1)
 
         if self.parser.cross_marks:
@@ -608,11 +609,11 @@ if __name__ == '__main__':
                 filename = settings.parser.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
-                engine = SkymapEngine(artist, settings.language, lm_stars = settings.parser.limit_magnitude_stars)
+                engine = SkymapEngine(artist, settings.parser.language, lm_stars = settings.parser.limit_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration(config_file))
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0, "", mirror_x=settings.parser.mirror_x,
                              mirror_y=settings.parser.mirror_y)
-                engine.set_caption('M '+str(object.messier))
+                # engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 engine.set_active_constellation(object.constellation)
                 engine.make_map(used_catalogs, extra_positions=settings.extra_positions_list)
@@ -696,17 +697,18 @@ if __name__ == '__main__':
                                           settings.parser.width,
                                           settings.parser.height,
                                           output_format)
-                engine = SkymapEngine(artist, 
+                engine = SkymapEngine(artist,
+                                      settings.parser.language,
                                       lm_stars=settings.parser.limit_magnitude_stars,
                                       lm_deepsky=settings.parser.limit_magnitude_deepsky)
                 engine.set_configuration(_create_engine_configuration(config_file))
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
                 caption = cat + ' ' + name
 
-                if settings.parser.caption != False:
-                    caption = settings.parser.caption
-                if caption != '':
-                    engine.set_caption(caption)
+                # if settings.parser.caption is not None:
+                #     caption = settings.parser.caption
+                # if caption:
+                #     engine.set_caption(caption)
 
                 showing_dsos = None
                 if showing_dso:

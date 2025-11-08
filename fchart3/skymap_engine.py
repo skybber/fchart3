@@ -157,8 +157,6 @@ class SkymapEngine:
 
     def set_caption(self, caption):
         self.caption = caption
-        if caption != '':
-            self.gfx.set_dimensions(self.drawing_width,self.drawing_height + self.legend_fontscale*self.gfx.gi_default_font_size*2.0)
 
     def make_map(self, used_catalogs, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=None, visible_objects=None, transparent=False):

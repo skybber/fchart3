@@ -20,16 +20,16 @@ except:
     time.sleep(5)
 
 if platform.system() == 'Darwin':
-    extra_compile_args = ['-arch','i386','-arch','x86_64']
-    extra_link_args = ['-arch','i386','-arch','x86_64']
+    extra_compile_args = ['-arch', 'i386', '-arch', 'x86_64']
+    extra_link_args = ['-arch', 'i386', '-arch', 'x86_64']
 else:
     extra_compile_args = []
     extra_link_args = []
 
 if have_numpy:
-    include_dirs += ['fchart3/htm','fchart3/htm/htm_src','fchart3/htm/include']
+    include_dirs += ['fchart3/htm', 'fchart3/htm/htm_src', 'fchart3/htm/include']
     htm_sources = glob('fchart3/htm/htm_src/*.cpp')
-    htm_sources += ['fchart3/htm/htmc.cc','fchart3/htm/htmc_wrap.cc']
+    htm_sources += ['fchart3/htm/htmc.cc', 'fchart3/htm/htmc_wrap.cc']
     htm_module = Extension('fchart3.htm._htmc',
                            extra_compile_args=extra_compile_args,
                            extra_link_args=extra_link_args,
@@ -41,11 +41,11 @@ if have_numpy:
 
 setup(
     name='fchart3',
-    version='0.10.3',
+    version='0.11.0',
     description='Collection of Python scripts to make beautiful deepsky charts in various formats',
     keywords='fchart3 starchart star charts finder chart astronomy map',
     url='https://github.com/skybber/fchart3',
-    author='Michiel Brentjens <brentjens@astron.nl>, Austin Riba <root@austinriba.com>, Vladimir Dvorak<lada.dvorak7@gmail.com',
+    author='Vladimir Dvorak<lada.dvorak7@gmail.com',
     author_email='lada.dvorak7@gmail.com',
     packages=packages,
     include_package_data=True,
