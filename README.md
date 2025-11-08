@@ -114,9 +114,3 @@ This repository also contains the following catalogues in the `data/catalogs` di
 * **Vladimir Dvorak** – fchart3
 * **Michiel Brentjens** – original author of fchart.
 * **Austin Riba** – modern fchart for Python 2.7 + NumPy: [https://github.com/Fingel/fchart](https://github.com/Fingel/fchart)
-
-```
-
-Když budeš chtít, můžeme udělat ještě „mini“ verzi README (jen krátký popis + instalace + 1 příklad) na PyPI, až tam balík dorazí.
-::contentReference[oaicite:0]{index=0}
-```
