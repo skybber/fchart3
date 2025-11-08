@@ -41,9 +41,9 @@ from fchart3.astrocalc import hms2rad, dms2rad, rad2hms, rad2dms
 from fchart3.skymap_engine import SkymapEngine,LABELi18N
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
-from fchart3.graphics_cairo import CairoDrawing
-from fchart3.graphics_tikz import TikZDrawing
-from fchart3.graphics_interface import FontStyle
+from fchart3.graphics.graphics_cairo import CairoDrawing
+from fchart3.graphics.graphics_tikz import TikZDrawing
+from fchart3.graphics.graphics_interface import FontStyle
 
 import gettext
 _ = gettext.gettext

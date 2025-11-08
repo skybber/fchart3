@@ -62,7 +62,7 @@ def _to_latex_text(t):
 
 
 def _to_tikz_color(rgb):
-    return '{{ rgb,1:red,{:.3f};green,{:.3f};blue,{:.3f} }}'.format(rgb[0], rgb[1], rgb[2])
+    return 'rgb,1:red,{:.3f};green,{:.3f};blue,{:.3f}'.format(rgb[0], rgb[1], rgb[2])
 
 
 class TikZDrawing(GraphicsInterface):
@@ -90,12 +90,12 @@ class TikZDrawing(GraphicsInterface):
 
     def new(self):
         self.set_font('Times-Roman', 12*POINT)
-        self.set_linewidth(10)
+        self.set_linewidth(0.4)
         self.fobj.write('\\begin{tikzpicture}\n')
         w2 = self.gi_width/2
         h2 = self.gi_height/2
         self.fobj.write('\\clip ({:.3f},{:.3f}) rectangle ({:.3f},{:.3f});\n'.format(_cm(-w2), _cm(-h2), _cm(w2), _cm(h2)))
-        self.fobj.write('\\tikzset {every node}=[font=\\scriptsize]\n')
+        self.fobj.write('\\tikzset{every node/.style={font=\\scriptsize}}\n')
 
     def clear(self):
         pass
@@ -108,8 +108,7 @@ class TikZDrawing(GraphicsInterface):
         super().restore()
         last = self.scope_stack.pop()
         if last['flushed']:
-            self.fobj.write('\end{scope}\n')
-
+            self.fobj.write('\\end{scope}\n')
 
     def set_font(self, font='Arial', font_size=12*POINT, font_style=FontStyle.NORMAL):
         super().set_font(font, font_size, font_style)
@@ -122,7 +121,7 @@ class TikZDrawing(GraphicsInterface):
 
     def set_dashed_line(self, on, off, start=0.0):
         super().set_dashed_line(on, off, start)
-        self.fobj.write('\\tikzstyle {{mydashed}} = [dashed, dash pattern = on {}mm off {}mm]\n'.format(on, off))
+        self.fobj.write('\\tikzset{mydashed/.style={dashed,dash pattern=on %smm off %smm}}\n' % (on, off))
 
     def line(self, x1, y1, x2, y2):
         self._flush_scope()
@@ -131,9 +130,11 @@ class TikZDrawing(GraphicsInterface):
         if (c1 | c2) == 0 or (c1 & c2) == 0:
             color = _to_tikz_color(self.gi_pen_rgb)
             if self.gi_dash_style is None:
-                self.fobj.write('\\draw[line width={:.3f}mm,color={}] ({:.3f},{:.3f})--({:.3f},{:.3f});\n'.format(self.gi_linewidth, color, _cm(x1), _cm(y1), _cm(x2), _cm(y2)))
+                self.fobj.write('\\draw[line width={:.3f}mm,draw={{{}}}] ({:.3f},{:.3f}) -- ({:.3f},{:.3f});\n'
+                                .format(self.gi_linewidth, color, _cm(x1), _cm(y1), _cm(x2), _cm(y2)))
             else:
-                self.fobj.write('\\draw[line width={:.3f}mm,mydashed,color={}] ({:.3f},{:.3f})--({:.3f},{:.3f});\n'.format(self.gi_linewidth, color, _cm(x1), _cm(y1), _cm(x2), _cm(y2)))
+                self.fobj.write('\\draw[line width={:.3f}mm,mydashed,draw={{{}}}] ({:.3f},{:.3f}) -- ({:.3f},{:.3f});\n'
+                                .format(self.gi_linewidth, color, _cm(x1), _cm(y1), _cm(x2), _cm(y2)))
 
     def rectangle(self, x, y, width, height, mode=DrawMode.BORDER):
         self._flush_scope()
@@ -143,41 +144,51 @@ class TikZDrawing(GraphicsInterface):
         self._flush_scope()
         if mode == DrawMode.BORDER:
             color = _to_tikz_color(self.gi_pen_rgb)
-            if  self.gi_dash_style is None:
-                self.fobj.write('\\draw[line width={:.3f}mm,color={}] ({:.3f},{:.3f}) circle ({:.3f});\n'.format(self.gi_linewidth, color, _cm(x), _cm(y), _cm(r)))
+            if self.gi_dash_style is None:
+                self.fobj.write('\\draw[line width={:.3f}mm,draw={{{}}}] ({:.3f},{:.3f}) circle ({:.3f}cm);\n'
+                                .format(self.gi_linewidth, color, _cm(x), _cm(y), _cm(r)))
             else:
-                self.fobj.write('\\draw[line width={:.3f}mm,mydashed,color={}] ({:.3f},{:.3f}) circle ({:.3f});\n'.format(self.gi_linewidth, color, _cm(x), _cm(y), _cm(r)))
+                self.fobj.write('\\draw[line width={:.3f}mm,mydashed,draw={{{}}}] ({:.3f},{:.3f}) circle ({:.3f}cm);\n'
+                                .format(self.gi_linewidth, color, _cm(x), _cm(y), _cm(r)))
         elif mode == DrawMode.FILL:
-            self.fobj.write('\\definecolor{{fcolor}}{{rgb}}{{ {:.3f},{:.3f},{:.3f} }};\n'.format(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
-            self.fobj.write('\\filldraw[color=fcolor,fill=fcolor]({:.3f}, {:.3f}) circle({:.3f});\n'.format(_cm(x), _cm(y), _cm(r)))
+            self.fobj.write('\\definecolor{{fcolor}}{{rgb}}{{{:.6f},{:.6f},{:.6f}}}\n'
+                            .format(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
+            self.fobj.write('\\filldraw[draw=fcolor,fill=fcolor] ({:.3f}, {:.3f}) circle ({:.3f}cm);\n'
+                            .format(_cm(x), _cm(y), _cm(r)))
+        else:
+            pen = _to_tikz_color(self.gi_pen_rgb)
+            fill = _to_tikz_color(self.gi_fill_rgb)
+            self.fobj.write('\\filldraw[draw={{{}}},fill={{{}}}] ({:.3f}, {:.3f}) circle ({:.3f}cm);\n'
+                            .format(pen, fill, _cm(x), _cm(y), _cm(r)))
 
     def polygon(self, vertices, mode=DrawMode.BORDER):
         self._flush_scope()
         tikz_vertices = ['({:.3f},{:.3f})'.format(_cm(v[0]), _cm(v[1])) for v in vertices]
         tikz_vertices = ' -- '.join(tikz_vertices)
         if mode == DrawMode.BORDER:
-            color = _to_tikz_color(self.gi_pen_rgb)
-            if  self.gi_dash_style is None:
-                self.fobj.write('\\draw[color={}] {} -- cycle;\n'.format(color, tikz_vertices))
+            pen = _to_tikz_color(self.gi_pen_rgb)
+            if self.gi_dash_style is None:
+                self.fobj.write('\\draw[draw={{{}}}] {} -- cycle;\n'.format(pen, tikz_vertices))
             else:
-                self.fobj.write('\\draw[mydashed,color={}] {} -- cycle;\n'.format(color, tikz_vertices))
+                self.fobj.write('\\draw[mydashed,draw={{{}}}] {} -- cycle;\n'.format(pen, tikz_vertices))
         elif mode == DrawMode.FILL:
-            self.fobj.write('\\definecolor{{fcolor}}{{rgb}}{{ {:.3f},{:.3f},{:.3f} }};\n'.format(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
-            self.fobj.write('\\draw[color=fcolor,fill=fcolor] {} -- cycle;\n'.format(tikz_vertices))
+            self.fobj.write('\\definecolor{{fcolor}}{{rgb}}{{{:.6f},{:.6f},{:.6f}}}\n'
+                            .format(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
+            self.fobj.write('\\draw[draw=fcolor,fill=fcolor] {} -- cycle;\n'.format(tikz_vertices))
         else:
-            color_fill = _to_tikz_color(self.gi_fill_rgb)
-            color_pen = _to_tikz_color(self.gi_pen_rgb)
-            self.fobj.write('\\draw[color={},fill={}] {} -- cycle;\n'.format(color_pen, color_fill, tikz_vertices))
+            pen = _to_tikz_color(self.gi_pen_rgb)
+            fill = _to_tikz_color(self.gi_fill_rgb)
+            self.fobj.write('\\draw[draw={{{}}},fill={{{}}}] {} -- cycle;\n'.format(pen, fill, tikz_vertices))
 
     def polyline(self, vertices):
         self._flush_scope()
         tikz_vertices = ['({:.3f},{:.3f})'.format(_cm(v[0]), _cm(v[1])) for v in vertices]
         tikz_vertices = ' -- '.join(tikz_vertices)
-        color = _to_tikz_color(self.gi_pen_rgb)
-        if  self.gi_dash_style is None:
-            self.fobj.write('\\draw[line width={:.3f}mm,color={}] {};\n'.format(self.gi_linewidth, color, tikz_vertices))
+        pen = _to_tikz_color(self.gi_pen_rgb)
+        if self.gi_dash_style is None:
+            self.fobj.write('\\draw[line width={:.3f}mm,draw={{{}}}] {};\n'.format(self.gi_linewidth, pen, tikz_vertices))
         else:
-            self.fobj.write('\\draw[line width={:.3f}mm,mydashed,color={}] {};\n'.format(self.gi_linewidth, color, tikz_vertices))
+            self.fobj.write('\\draw[line width={:.3f}mm,mydashed,draw={{{}}}] {};\n'.format(self.gi_linewidth, pen, tikz_vertices))
 
     def ellipse(self, x, y, rlong, rshort, posangle, mode=DrawMode.BORDER):
         self.save()
@@ -185,14 +196,23 @@ class TikZDrawing(GraphicsInterface):
         self.rotate(posangle)
         self._flush_scope()
         if mode == DrawMode.BORDER:
-            color = _to_tikz_color(self.gi_pen_rgb)
-            if  self.gi_dash_style is None:
-                self.fobj.write('\\draw[line width={:.3f}mm,color={}] (0, 0) ellipse ({:.3f} and {:.3f});\n'.format(self.gi_linewidth, color, _cm(rlong), _cm(rshort)))
+            pen = _to_tikz_color(self.gi_pen_rgb)
+            if self.gi_dash_style is None:
+                self.fobj.write('\\draw[line width={:.3f}mm,draw={{{}}}] (0, 0) ellipse ({:.3f}cm and {:.3f}cm);\n'
+                                .format(self.gi_linewidth, pen, _cm(rlong), _cm(rshort)))
             else:
-                self.fobj.write('\\draw[line width={:.3f}mm,mydashed,color={}] (0, 0) ellipse ({:.3f} and {:.3f});\n'.format(self.gi_linewidth, color, _cm(rlong), _cm(rshort)))
+                self.fobj.write('\\draw[line width={:.3f}mm,mydashed,draw={{{}}}] (0, 0) ellipse ({:.3f}cm and {:.3f}cm);\n'
+                                .format(self.gi_linewidth, pen, _cm(rlong), _cm(rshort)))
         elif mode == DrawMode.FILL:
-            self.fobj.write('\\definecolor{{fcolor}}{{rgb}}{{ {:.3f},{:.3f},{:.3f} }};\n'.format(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
-            self.fobj.write('\\filldraw[color=fcolor,fill=fcolor] (0, 0) ellipse ({:.3f} and {:.3f});\n'.format(_cm(rlong), _cm(rshort)))
+            self.fobj.write('\\definecolor{{fcolor}}{{rgb}}{{{:.6f},{:.6f},{:.6f}}}\n'
+                            .format(self.gi_fill_rgb[0], self.gi_fill_rgb[1], self.gi_fill_rgb[2]))
+            self.fobj.write('\\filldraw[draw=fcolor,fill=fcolor] (0, 0) ellipse ({:.3f}cm and {:.3f}cm);\n'
+                            .format(_cm(rlong), _cm(rshort)))
+        else:
+            pen = _to_tikz_color(self.gi_pen_rgb)
+            fill = _to_tikz_color(self.gi_fill_rgb)
+            self.fobj.write('\\filldraw[draw={{{}}},fill={{{}}}] (0, 0) ellipse ({:.3f}cm and {:.3f}cm);\n'
+                            .format(pen, fill, _cm(rlong), _cm(rshort)))
         self.restore()
 
     def text_right(self, x, y, text):
@@ -200,21 +220,24 @@ class TikZDrawing(GraphicsInterface):
         latex_fs = self._get_latex_font_style()
         scale = self._get_font_scale()
         tr_shape = ',transform shape' if self._is_active_scope() else ''
-        self.fobj.write('\\node[scale={:.3f},font=\sffamily{},inner sep=0,anchor=base west{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
+        self.fobj.write('\\node[scale={:.3f},font=\\sffamily{},inner sep=0,anchor=base west{}] at ({:.3f}, {:.3f}) {{{}}};\n'
+                        .format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
 
     def text_left(self, x, y, text):
         self._flush_scope()
         latex_fs = self._get_latex_font_style()
         scale = self._get_font_scale()
         tr_shape = ',transform shape' if self._is_active_scope() else ''
-        self.fobj.write('\\node[scale={:.3f},font=\sffamily{},inner sep=0,anchor=base east{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
+        self.fobj.write('\\node[scale={:.3f},font=\\sffamily{},inner sep=0,anchor=base east{}] at ({:.3f}, {:.3f}) {{{}}};\n'
+                        .format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
 
     def text_centred(self, x, y, text):
         self._flush_scope()
         latex_fs = self._get_latex_font_style()
         scale = self._get_font_scale()
         tr_shape = ',transform shape' if self._is_active_scope() else ''
-        self.fobj.write('\\node[scale={:.3f},font=\sffamily{},inner sep=0,anchor=base{}] at ({:.3f}, {:.3f}) {{{}}};\n'.format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
+        self.fobj.write('\\node[scale={:.3f},font=\\sffamily{},inner sep=0,anchor=base{}] at ({:.3f}, {:.3f}) {{{}}};\n'
+                        .format(scale, latex_fs, tr_shape, _cm(x), _cm(y), _to_latex_text(text)))
 
     def text_width(self, text):
         return 10.0
@@ -230,11 +253,11 @@ class TikZDrawing(GraphicsInterface):
     def clip_path(self, path):
         tikz_vertices = ['({:.3f},{:.3f})'.format(_cm(v[0]), _cm(v[1])) for v in path]
         tikz_vertices = ' -- '.join(tikz_vertices)
-        self.fobj.write('\\begin {{scope}};\n'.format(tikz_vertices))
-        self.fobj.write('\\clip {}--cycle;\n'.format(tikz_vertices))
+        self.fobj.write('\\begin{scope}\n')
+        self.fobj.write('\\clip {} -- cycle;\n'.format(tikz_vertices))
 
     def reset_clip(self):
-        self.fobj.write('\\end {scope}\n')
+        self.fobj.write('\\end{scope}\n')
 
     def finish(self):
         self.fobj.write('\\end{tikzpicture}\n')
@@ -251,7 +274,8 @@ class TikZDrawing(GraphicsInterface):
                 shift = scope['shift']
                 rotate = scope['rotate']
                 if shift[0] != 0 or shift[1] != 0 or rotate != 0:
-                    self.fobj.write('\\begin{{scope}}[shift={{({:.3f},{:.3f})}},rotate={:.3f}]\n'.format(_cm(shift[0]), _cm(shift[1]), rotate))
+                    self.fobj.write('\\begin{{scope}}[shift={{({:.3f},{:.3f})}},rotate={:.3f}]\n'
+                                    .format(_cm(shift[0]), _cm(shift[1]), rotate))
                     scope['flushed'] = True
 
     def _is_active_scope(self):
