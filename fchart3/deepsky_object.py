@@ -147,6 +147,8 @@ class DeepskyObject:
             else:
                 names = self.all_names
             label = '-'.join(names)
+        elif self.cat == 'Abell':
+            label = self.cat + ' ' + self.name
         elif self.cat == 'Sh2':
             if isinstance(self.all_names, list):
                 names = sorted(self.all_names)
@@ -159,6 +161,15 @@ class DeepskyObject:
             else:
                 names = self.all_names
             label = self.cat + ' ' + '-'.join(names)
+        return label
+
+    def primary_label(self):
+        if self.messier > 0:
+            label = f'M {self.messier}'
+        elif self.cat == 'Sh2':
+            label = f'Sh2-{self.name}'
+        else:
+            label = f'{self.cat} {self.name}'
         return label
 
     def __str__(self):

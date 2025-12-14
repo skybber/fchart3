@@ -76,6 +76,8 @@ class DeepskyRenderer(BaseRenderer):
                 continue
 
             label = dso.label()
+            primary_label = dso.primary_label()
+
             if cfg.show_dso_mag and dso.mag is not None and dso.mag != -100 and dso.mag < 30:
                 label_mag = f'{dso.mag:.1f}'
             else:
@@ -145,12 +147,12 @@ class DeepskyRenderer(BaseRenderer):
             else:
                 self.unknown_object(ctx, x, y, rlong, label, label_ext, labelpos)
 
-            if self.collect_visible_object(ctx, state, x, y, rlong, label):
+            if self.collect_visible_object(ctx, state, x, y, rlong, primary_label):
                 if state.picked_dso == dso:
                     pick_xp1, pick_yp1 = gfx.to_pixel(-pick_r, -pick_r)
                     pick_xp2, pick_yp2 = gfx.to_pixel(pick_r, pick_r)
                     pick_xp1, pick_yp1, pick_xp2, pick_yp2 = self.align_rect_coords(pick_xp1, pick_yp1, pick_xp2, pick_yp2)
-                    state.visible_objects_collector.append([rlong, label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
+                    state.visible_objects_collector.append([rlong, primary_label.replace(' ', ''), pick_xp1, pick_yp1, pick_xp2, pick_yp2])
 
     def calc_deepsky_list_ext(self, ctx, deepsky_list_ext, dso_list):
         if ctx.precession_matrix is not None:
