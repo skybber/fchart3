@@ -24,7 +24,7 @@ class WidgetCoords:
         self.language = language
         self.color = color
 
-    def draw(self, graphics, left, bottom, ra, dec, fill_background):
+    def draw(self, graphics, ctx, left, bottom, ra, dec, fill_background):
         """
         left,bottom are coordinates of the lower left corner of the textbox
         """
@@ -32,7 +32,7 @@ class WidgetCoords:
         ram = int((ra*12/np.pi -rah)*60)
         ras = int(((ra*12/np.pi -rah)*60 - ram)*60+0.5)
         if ras == 60:
-            ram +=1
+            ram += 1
             ras = 0
         if ram == 60:
             rah += 1

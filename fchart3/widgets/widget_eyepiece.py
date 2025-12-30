@@ -26,7 +26,7 @@ class WidgetEyepiece:
         self.fov = fov
         self.color = color
 
-    def draw(self, graphics):
+    def draw(self, graphics, ctx):
         r = self.fov*np.pi/(2.0*180.0)*self.drawingscale
         graphics.set_solid_line()
         graphics.set_pen_rgb(self.color)

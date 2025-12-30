@@ -20,13 +20,14 @@ from .. import deepsky_object as deepsky
 
 class WidgetDsoLegend:
 
-    def __init__(self, language, drawing_width, legend_margin, color=(0, 0, 0)):
+    def __init__(self, dso_renderer, language, drawing_width, legend_margin, color=(0, 0, 0)):
+        self.dso_renderer = dso_renderer
         self.language = language
         self.drawing_width = drawing_width
         self.legend_margin = legend_margin
         self.color = color
 
-    def draw_dso_legend(self, sky_map_engine, graphics, erase_background):
+    def draw_dso_legend(self, graphics, ctx, erase_background):
         fh = graphics.gi_font_size
         # Draw list of symbols
         legendx = 0.48*self.drawing_width
@@ -65,28 +66,36 @@ class WidgetDsoLegend:
         for lab in bottomlabels:
             bl.append(lab[0])
 
-        sky_map_engine.open_cluster(legendx, legendy - (tl.index('OCL') + 1)*legendinc, r, '', '', '')
+        self.dso_renderer.open_cluster(ctx, legendx, legendy - (tl.index('OCL') + 1)*legendinc, r, '', '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, legendy - (tl.index('OCL') + 1)*legendinc - fh/3.0, self.language['OCL'])
 
-        sky_map_engine.asterism(legendx, legendy - (tl.index('AST') + 1)*legendinc, r, '', '', '')
+        self.dso_renderer.asterism(ctx, legendx, legendy - (tl.index('AST') + 1)*legendinc, r, '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, legendy - (tl.index('AST') + 1)*legendinc - fh/3.0, self.language['AST'])
 
-        sky_map_engine.galaxy(legendx, legendy - (tl.index('G') + 1)*legendinc, r, -1, 0.0, 7.0, '', '', '')
+        self.dso_renderer.galaxy(ctx, legendx, legendy - (tl.index('G') + 1)*legendinc, r, -1, 0.0, 7.0, '', '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, legendy - (tl.index('G') + 1)*legendinc - fh/3.0, self.language['G'])
 
-        sky_map_engine.globular_cluster(legendx, legendy - (tl.index('GCL') + 1)*legendinc, r, '', '', '')
+        self.dso_renderer.globular_cluster(ctx, legendx, legendy - (tl.index('GCL') + 1)*legendinc, r, '', '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
 
         legendy = self.legend_margin*self.drawing_width
 
-        sky_map_engine.supernova_remnant(legendx, -legendy + bl.index('SNR')*legendinc, r, '', '', '')
+        self.dso_renderer.supernova_remnant(ctx, legendx, -legendy + bl.index('SNR')*legendinc, r, '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])
 
-        sky_map_engine.planetary_nebula(legendx, -legendy + bl.index('PN')*legendinc, r, '', '', '')
+        self.dso_renderer.planetary_nebula(ctx, legendx, -legendy + bl.index('PN')*legendinc, r, '', '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc - fh/3.0, self.language['PN'])
 
-        sky_map_engine.diffuse_nebula(legendx, -legendy + bl.index('N')*legendinc, r, -1, 0.0, '', '', '')
+        self.dso_renderer.diffuse_nebula(ctx, legendx, -legendy + bl.index('N')*legendinc, r, -1, 0.0, '', '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, -legendy + bl.index('N')*legendinc - fh/3.0, self.language['N'])
 
-        sky_map_engine.unknown_object(legendx, -legendy + bl.index('PG')*legendinc, r, '', '', '')
+        self.dso_renderer.unknown_object(ctx, legendx, -legendy + bl.index('PG')*legendinc, r, '', '', labelpos=1)
+        graphics.set_pen_rgb(self.color)
         graphics.text_left(legendx + text_offset, -legendy + bl.index('PG')*legendinc - fh/3.0, self.language['PG'])

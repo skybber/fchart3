@@ -176,6 +176,8 @@ class SkymapEngine:
         self.gfx.set_default_font_size(self.cfg.font_size)
         self.gfx.set_linewidth(self.cfg.legend_linewidth)
 
+        ctx = None
+
         if self.cfg.widget_mode != WidgetMode.WIDGET_ONLY:
             clip_path = self.space_widget_allocator.get_border_path()
             if self.cfg.widget_mode == WidgetMode.ALLOC_SPACE_ONLY:
@@ -268,7 +270,7 @@ class SkymapEngine:
                     visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
 
         self.draw_caption()
-        self.draw_widgets()
+        self.draw_widgets(ctx)
         self.draw_field_border()
         self.gfx.finish()
 
@@ -284,6 +286,8 @@ class SkymapEngine:
     def draw_field_border(self):
         if self.cfg.show_field_border:
             self.gfx.set_linewidth(self.cfg.legend_linewidth)
+            self.gfx.set_pen_rgb(self.cfg.draw_color)
+            self.gfx.set_fill_rgb(self.cfg.draw_color)
             x1, y1, x2, y2 = self.get_field_rect_mm()
             self.gfx.line(x1, y1, x1, y2)
             self.gfx.line(x1, y2, x2, y2)
@@ -293,7 +297,7 @@ class SkymapEngine:
     def get_legend_font_size(self):
         return self.cfg.font_size * self.legend_fontscale
 
-    def draw_widgets(self):
+    def draw_widgets(self, ctx):
         if self.cfg.widget_mode == WidgetMode.ALLOC_SPACE_ONLY:
             return
         font_size = self.get_legend_font_size()
@@ -304,23 +308,23 @@ class SkymapEngine:
         fill_background = self.cfg.widget_mode in [WidgetMode.WIDGET_ONLY, WidgetMode.NORMAL]
 
         if self.cfg.fov_telrad:
-            self.widgets["telrad"].draw(self.gfx)
+            self.widgets["telrad"].draw(self.gfx, ctx)
         if self.cfg.eyepiece_fov is not None:
-            self.widgets["eyepiece"].draw(self.gfx)
+            self.widgets["eyepiece"].draw(self.gfx, ctx)
         if self.cfg.show_picker and self.cfg.picker_radius > 0:
-            self.widgets["picker"].draw(self.gfx)
+            self.widgets["picker"].draw(self.gfx, ctx)
         if self.cfg.show_mag_scale_legend:
-            self.widgets["mag_scale"].draw(self.gfx, fill_background)
+            self.widgets["mag_scale"].draw(self.gfx, ctx, fill_background)
         if self.cfg.show_map_scale_legend:
-            self.widgets["map_scale"].draw(self.gfx, fill_background)
+            self.widgets["map_scale"].draw(self.gfx, ctx, fill_background)
         if self.cfg.show_numeric_map_scale_legend:
-            self.widgets["numeric_map_scale"].draw(self.gfx, fill_background, self.field_label)
+            self.widgets["numeric_map_scale"].draw(self.gfx, ctx, fill_background, self.field_label)
         if self.cfg.show_orientation_legend:
-            self.widgets["orientation"].draw(self.gfx, x1, y2, fill_background)
+            self.widgets["orientation"].draw(self.gfx, ctx, x1, y2, fill_background)
         if self.cfg.show_coords_legend:
-            self.widgets["coords"].draw(self.gfx, left=x2-font_size/2, bottom=y2-font_size, ra=self.center_equatorial[0], dec=self.center_equatorial[1], fill_background=fill_background)
+            self.widgets["coords"].draw(self.gfx, ctx, left=x2-font_size/2, bottom=y2-font_size, ra=self.center_equatorial[0], dec=self.center_equatorial[1], fill_background=fill_background)
         if self.cfg.show_dso_legend:
-            self.widgets["dso_legend"].draw_dso_legend(self, self.gfx, fill_background)
+            self.widgets["dso_legend"].draw_dso_legend(self.gfx, ctx, fill_background)
 
     def create_renderers(self):
         self.renderers = {}
@@ -373,7 +377,7 @@ class SkymapEngine:
                                                         color=self.cfg.draw_color)
 
         self.widgets["coords"] = WidgetCoords(self.language, color=self.cfg.draw_color)
-        self.widgets["dso_legend"] = WidgetDsoLegend(self.language, self.drawing_width, LEGEND_MARGIN, color=self.cfg.draw_color)
+        self.widgets["dso_legend"] = WidgetDsoLegend(self.renderers["deepsky"], self.language, self.drawing_width, LEGEND_MARGIN, color=self.cfg.draw_color)
         self.widgets["telrad"] = WidgetTelrad(self.drawing_scale, self.cfg.telrad_linewidth, self.cfg.telrad_color)
         self.widgets["eyepiece"] = WidgetEyepiece(self.drawing_scale, self.cfg.eyepiece_fov, self.cfg.eyepiece_linewidth, self.cfg.eyepiece_color)
         self.widgets["picker"] = WidgetPicker(self.cfg.picker_radius, self.cfg.picker_linewidth, self.cfg.picker_color)

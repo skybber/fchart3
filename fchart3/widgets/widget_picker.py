@@ -23,7 +23,7 @@ class WidgetPicker:
         self.picker_linewidth = picker_linewidth
         self.picker_color = picker_color
 
-    def draw(self, graphics):
+    def draw(self, graphics, ctx):
         graphics.set_solid_line()
         graphics.set_pen_rgb(self.picker_color)
         graphics.set_linewidth(self.picker_linewidth)

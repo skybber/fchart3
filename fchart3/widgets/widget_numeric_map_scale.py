@@ -30,7 +30,7 @@ class WidgetNumericMapScale(WidgetBase):
         self.x, self.y = None, None
         self.width, self.height = 6 * self.legend_fontsize, 2.2 * self.legend_fontsize
 
-    def draw(self, graphics, fill_background, label):
+    def draw(self, graphics, ctx, fill_background, label):
         if self.x is None or self.y is None:
             return
         fh = self.legend_fontsize

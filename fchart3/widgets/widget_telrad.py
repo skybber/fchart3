@@ -25,7 +25,7 @@ class WidgetTelrad:
         self.linewidth = linewidth
         self.color = color
 
-    def draw(self, graphics):
+    def draw(self, graphics, ctx):
         for tr in [15, 60, 120]:
             r = tr*np.pi/(180.0*60.0)*self.drawingscale
             graphics.set_solid_line()
