@@ -52,30 +52,25 @@ class MilkyWayRenderer(BaseRenderer):
         cfg = ctx.cfg
 
         x, y, z = ctx.transf.np_equatorial_to_xyz(milky_way_lines[:, 0], milky_way_lines[:, 1])
+
         gfx.set_pen_rgb(cfg.milky_way_color)
         gfx.set_fill_rgb(cfg.milky_way_color)
         gfx.set_linewidth(cfg.milky_way_linewidth)
 
-        nzopt = not ctx.transf.is_zoptim()
+        polygon = []
 
-        polygon = None
-        for i in range(len(x)-1):
+        def flush(draw_mode):
+            nonlocal polygon
+            if len(polygon) > 2 and any(p[2] > 0 for p in polygon):
+                gfx.polygon([[p[0], p[1]] for p in polygon], draw_mode)
+
+        for i in range(len(x)):
             if milky_way_lines[i][2] == 0:
-                if polygon is not None and len(polygon) > 2:
-                    gfx.polygon(polygon, DrawMode.BOTH)
-                x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
-                polygon = None
-                if nzopt or z1 > 0:
-                    polygon = [[x1, y1]]
-            else:
-                x1, y1, z1 = x[i].item(), y[i].item(), z[i].item()
-                if nzopt or z1 > 0:
-                    if polygon is None:
-                        polygon = []
-                    polygon.append([x1, y1])
+                flush(DrawMode.BOTH)
+                polygon = []
+            polygon.append([x[i].item(), y[i].item(), z[i].item()])
 
-        if polygon is not None and len(polygon) > 2:
-            gfx.polygon(polygon, DrawMode.FILL)
+        flush(DrawMode.FILL)
 
     def draw_enhanced_milky_way(self, ctx, enhanced_milky_way, use_optimized_mw):
         gfx = ctx.gfx
