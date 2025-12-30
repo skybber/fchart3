@@ -410,7 +410,7 @@ def _create_engine_configuration(config_file = None):
     if settings.parser.show_simple_milky_way is not None:
         config.show_simple_milky_way = settings.parser.show_simple_milky_way
     if settings.parser.show_enhanced_milky_way is not None:
-        config.show_enhanced_milky_way = settings.parser.show_enhanced_milky_way
+        config.show_enhanced_milky_way_30k = settings.parser.show_enhanced_milky_way
     if settings.parser.show_deepsky is not None:
         config.show_deepsky = settings.parser.show_deepsky
     if settings.parser.show_dso_mag is not None:
@@ -495,10 +495,10 @@ def _create_engine_configuration(config_file = None):
     if settings.parser.flamsteed_numbers_only is not None:
         config.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
 
-    if config.show_enhanced_milky_way:
+    if config.show_enhanced_milky_way_30k:
         mw_scale_fac = 3.0
 
-        bg_r, bg_g, bg_b = config.background_color[0], config.background_color[1], config.background_color[2]
+        bg_r, bg_g, bg_b = 1.0, 1.0, 1.0
 
         config.enhanced_milky_way_fade = (bg_r, (config.milky_way_color[0] - bg_r) * mw_scale_fac,
                                           bg_g, (config.milky_way_color[1] - bg_g) * mw_scale_fac,
