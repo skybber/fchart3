@@ -17,26 +17,153 @@
 
 from .graphics import FontStyle
 
-FLOAT_ITEMS = ['constellation_linewidth', 'constellation_border_linewidth', 'nebula_linewidth',
-               'open_cluster_linewidth', 'galaxy_cluster_linewidth', 'dso_linewidth', 'milky_way_linewidth',
-               'legend_linewidth', 'grid_linewidth', 'constellation_linespace', 'font_size', 'legend_font_scale',
-               'star_mag_shift']
+FLOAT_ITEMS = [
+    # linewidths
+    'constellation_linewidth',
+    'constellation_border_linewidth',
+    'open_cluster_linewidth',
+    'galaxy_cluster_linewidth',
+    'nebula_linewidth',
+    'dso_linewidth',
+    'legend_linewidth',
+    'grid_linewidth',
+    'horizon_linewidth',
+    'highlight_linewidth',
+    'milky_way_linewidth',
+    'telrad_linewidth',
+    'eyepiece_linewidth',
 
-RGB_ITEMS = ['background_color', 'draw_color', 'label_color', 'constellation_lines_color', 'constellation_border_color',
-             'constellation_hl_border_color', 'nebula_color', 'galaxy_color', 'star_cluster_color', 'galaxy_cluster_color',
-             'milky_way_color', 'grid_color', 'telrad_color']
+    # spacing / font sizes / scales
+    'constellation_linespace',
+    'font_size',
+    'legend_font_scale',
+    'ext_label_font_scale',
+    'bayer_label_font_scale',
+    'flamsteed_label_font_scale',
+    'outlined_dso_label_font_scale',
+    'highlight_label_font_scale',
+    'cardinal_directions_font_scale',
 
-BOOLEAN_ITEMS = ['show_star_labels', 'show_flamsteed', 'show_mag_scale_legend', 'show_map_scale_legend',
-                 'show_orientation_legend', 'show_dso_legend', 'show_coords_legend', 'show_field_border',
-                 'show_equatorial_grid', 'show_horizontal_grid', 'show_constellation_shapes', 'show_constellation_borders',
-                 'show_deepsky', 'show_simple_milky_way', 'show_enhanced_milky_way_10k', 'show_enhanced_milky_way_30k',
-                 'show_nebula_outlines', 'star_colors', 'flamsteed_numbers_only']
+    # misc numeric
+    'star_mag_shift',
+    'eyepiece_fov',
 
-STRING_ITEMS = ['font']
+    # planetary radius scales
+    'moon_r_scale',
+    'mercury_r_scale',
+    'venus_r_scale',
+    'mars_r_scale',
+    'jupiter_r_scale',
+    'saturn_r_scale',
+    'uranus_r_scale',
+    'neptune_r_scale',
+    'pluto_r_scale',
+]
 
-FONT_STYLE_ITEMS = ['bayer_label_font_style', 'flamsteed_label_font_style', 'dso_label_font_style']
+RGB_ITEMS = [
+    # core colors
+    'background_color',
+    'draw_color',
+    'label_color',
 
-FONT_STYLE_CONVERSION = { 'normal': FontStyle.NORMAL, 'italic': FontStyle.ITALIC, 'bold': FontStyle.BOLD }
+    # constellation / grid / map decorations
+    'constellation_lines_color',
+    'constellation_border_color',
+    'constellation_hl_border_color',
+    'grid_color',
+    'horizon_color',
+    'milky_way_color',
+    'cardinal_directions_color',
+
+    # deep-sky / highlight
+    'dso_color',
+    'highlight_color',
+    'nebula_color',
+    'galaxy_color',
+    'star_cluster_color',
+    'galaxy_cluster_color',
+
+    # overlays / tools
+    'telrad_color',
+    'eyepiece_color',
+
+    # bodies
+    'sun_color',
+    'moon_color',
+    'mercury_color',
+    'venus_color',
+    'earth_color',
+    'mars_color',
+    'jupiter_color',
+    'saturn_color',
+    'uranus_color',
+    'neptune_color',
+    'pluto_color',
+]
+
+BOOLEAN_ITEMS = [
+    # rendering / modes
+    'light_mode',
+    'no_margin',
+    'use_optimized_mw',
+    'fov_telrad',
+
+    # show toggles
+    'show_star_labels',
+    'show_star_circles',
+    'show_star_mag',
+
+    'show_flamsteed',
+    'flamsteed_numbers_only',
+
+    'show_mag_scale_legend',
+    'show_map_scale_legend',
+    'show_numeric_map_scale_legend',
+    'show_orientation_legend',
+    'show_dso_legend',
+    'show_coords_legend',
+
+    'show_field_border',
+    'show_equatorial_grid',
+    'show_horizontal_grid',
+
+    'show_constellation_shapes',
+    'show_constellation_borders',
+
+    'show_deepsky',
+    'show_dso_mag',
+    'dso_dynamic_brightness',
+
+    'show_simple_milky_way',
+    'show_enhanced_milky_way_10k',
+    'show_enhanced_milky_way_30k',
+    'show_nebula_outlines',
+
+    'show_horizon',
+
+    # star rendering options
+    'star_colors',
+]
+
+STRING_ITEMS = [
+    'font',
+]
+
+FONT_STYLE_ITEMS = [
+    'bayer_label_font_style',
+    'flamsteed_label_font_style',
+    'dso_label_font_style',
+]
+
+FONT_STYLE_CONVERSION = {
+    'normal': FontStyle.NORMAL,
+    'italic': FontStyle.ITALIC,
+    'bold': FontStyle.BOLD,
+}
+
+TUPLE_FLOAT_ITEMS = [
+    'enhanced_milky_way_fade',
+]
 
 
 class ConfigurationLoader:
@@ -44,37 +171,77 @@ class ConfigurationLoader:
         self.config_file = config_file
 
     def parse_color(self, color_str):
-        r = int(color_str[0:2], 16) / 255.0
-        g = int(color_str[2:4], 16) / 255.0
-        b = int(color_str[4:6], 16) / 255.0
+        """
+        Parse color from 'RRGGBB' or '#RRGGBB' to (r, g, b) floats in [0..1].
+        """
+        s = color_str.strip()
+        if s.startswith('#'):
+            s = s[1:]
+        if len(s) != 6:
+            raise ValueError(f"Invalid color '{color_str}'. Expected RRGGBB or #RRGGBB.")
+        r = int(s[0:2], 16) / 255.0
+        g = int(s[2:4], 16) / 255.0
+        b = int(s[4:6], 16) / 255.0
         return r, g, b
 
-    def parse_value(self, value_str):
-        try:
-            return float(value_str)
-        except ValueError:
-            return value_str
+    def parse_bool(self, value_str):
+        """
+        Parse common boolean strings.
+        """
+        v = value_str.strip().lower()
+        return v in ('true', '1', 'yes', 'y', 'on')
+
+    def parse_float_tuple(self, value_str):
+        """
+        Parse comma-separated floats into a tuple, e.g. "0.0,0.4,0.0,0.4,0.0,0.4".
+        """
+        parts = [p.strip() for p in value_str.split(',') if p.strip() != '']
+        return tuple(float(p) for p in parts)
+
+    def parse_optional_float(self, value_str):
+        """
+        Parse float or None (empty/'none'/'null').
+        """
+        v = value_str.strip().lower()
+        if v in ('', 'none', 'null'):
+            return None
+        return float(value_str)
 
     def load_config(self, config):
         with open(self.config_file, 'r') as f:
             lines = f.readlines()
 
-        for line in lines:
-            line = line.strip()
-            if line and not line.startswith('#'):
-                key, value = line.split('=')
-                key = key.strip()
-                value = value.strip()
+        for raw_line in lines:
+            line = raw_line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' not in line:
+                continue
 
-                if hasattr(config, key):
-                    if key in FLOAT_ITEMS:
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip()
+
+            if not hasattr(config, key):
+                continue
+
+            try:
+                if key in FLOAT_ITEMS:
+                    if key == 'eyepiece_fov':
+                        setattr(config, key, self.parse_optional_float(value))
+                    else:
                         setattr(config, key, float(value))
-                    elif key in RGB_ITEMS:
-                        setattr(config, key, self.parse_color(value))
-                    elif key in BOOLEAN_ITEMS:
-                        setattr(config, key, value.lower() == 'true')
-                    elif key in FONT_STYLE_ITEMS:
-                        setattr(config, key, FONT_STYLE_CONVERSION.get(value, FontStyle.NORMAL))
-                    elif key in STRING_ITEMS:
-                        setattr(config, key, value)
+                elif key in RGB_ITEMS:
+                    setattr(config, key, self.parse_color(value))
+                elif key in BOOLEAN_ITEMS:
+                    setattr(config, key, self.parse_bool(value))
+                elif key in FONT_STYLE_ITEMS:
+                    setattr(config, key, FONT_STYLE_CONVERSION.get(value.strip().lower(), FontStyle.NORMAL))
+                elif key in STRING_ITEMS:
+                    setattr(config, key, value)
+                elif key in TUPLE_FLOAT_ITEMS:
+                    setattr(config, key, self.parse_float_tuple(value))
+            except Exception:
+                continue
+
         return True
