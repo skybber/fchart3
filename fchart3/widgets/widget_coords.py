@@ -22,13 +22,13 @@ from .widget_base import WidgetBase
 
 class WidgetCoords(WidgetBase):
 
-    def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
-        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
+    def __init__(self, engine, alloc_space_spec, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
+        super().__init__(engine=engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
         self.color = color
         text = "x" + self.get_text(23, 59, 59, "-", 89, 59, 59, )
 
-        sky_map_engine.gfx.set_font(sky_map_engine.gfx.gi_font, legend_fontsize)
-        w = sky_map_engine.gfx.text_width(text)
+        engine.gfx.set_font(engine.gfx.gi_font, legend_fontsize)
+        w = engine.gfx.text_width(text)
         self.width = w + legend_fontsize * 0.5
         self.height = legend_fontsize * 1.5
 

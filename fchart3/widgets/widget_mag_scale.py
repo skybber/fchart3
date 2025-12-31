@@ -23,8 +23,8 @@ from ..graphics import DrawMode
 
 class WidgetMagnitudeScale(WidgetBase):
 
-    def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth, vertical=True, color=(0, 0, 0)):
-        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
+    def __init__(self, engine, alloc_space_spec, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth, vertical=True, color=(0, 0, 0)):
+        super().__init__(engine=engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
         self.legend_fontsize = legend_fontsize
         self.stars_in_scale = stars_in_scale
         self.lm_stars = lm_stars

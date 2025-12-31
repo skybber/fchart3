@@ -613,7 +613,7 @@ if __name__ == '__main__':
                 engine.set_configuration(_create_engine_configuration(config_file))
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0, "", mirror_x=settings.parser.mirror_x,
                              mirror_y=settings.parser.mirror_y)
-                # engine.set_caption('M '+str(object.messier))
+                engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 engine.set_active_constellation(object.constellation)
                 engine.make_map(used_catalogs, extra_positions=settings.extra_positions_list)
@@ -705,10 +705,10 @@ if __name__ == '__main__':
                 engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
                 caption = cat + ' ' + name
 
-                # if settings.parser.caption is not None:
-                #     caption = settings.parser.caption
-                # if caption:
-                #     engine.set_caption(caption)
+                if settings.parser.caption is not None:
+                    caption = settings.parser.caption
+                if caption:
+                    engine.set_caption(caption)
 
                 showing_dsos = None
                 if showing_dso:

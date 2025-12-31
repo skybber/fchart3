@@ -114,7 +114,6 @@ class SkymapEngine:
 
         self.drawing_scale = self.scene_scale*wh/2.0/math.sin(field_radius)
         self.legend_fontscale = min(self.cfg.legend_font_scale, wh/100.0)
-        self.set_caption(self.caption)
 
         if projection_type == ProjectionType.ORTHOGRAPHIC:
             proj = ProjectionOrthographic()
@@ -279,8 +278,8 @@ class SkymapEngine:
     def draw_caption(self):
         if self.caption != '':
             font_size = self.get_legend_font_size()
-            self.gfx.set_font(self.gfx.gi_font, 2.0*font_size)
-            self.gfx.text_centred(0, self.drawing_width/2.0*BASE_SCALE + font_size, self.caption)
+            self.gfx.set_font(self.gfx.gi_font, 1.5*font_size)
+            self.gfx.text_centred(0, -self.drawing_height/2.0*BASE_SCALE + font_size, self.caption)
 
     def draw_field_border(self):
         if self.cfg.show_field_border:
@@ -345,7 +344,7 @@ class SkymapEngine:
 
         self.widgets = {}
 
-        self.widgets["mag_scale"] = WidgetMagnitudeScale(sky_map_engine=self,
+        self.widgets["mag_scale"] = WidgetMagnitudeScale(engine=self,
                                                          alloc_space_spec='bottom,left',
                                                          legend_fontsize=self.get_legend_font_size(),
                                                          stars_in_scale=STARS_IN_SCALE,
@@ -355,7 +354,7 @@ class SkymapEngine:
                                                          color=self.cfg.draw_color
                                                          )
 
-        self.widgets["map_scale"] = WidgetMapScale(sky_map_engine=self,
+        self.widgets["map_scale"] = WidgetMapScale(engine=self,
                                                    alloc_space_spec='bottom,right',
                                                    drawingscale=self.drawing_scale,
                                                    maxlength=self.drawing_width / 3.0,
@@ -363,13 +362,13 @@ class SkymapEngine:
                                                    legend_linewidth=self.cfg.legend_linewidth,
                                                    color=self.cfg.draw_color)
 
-        self.widgets["numeric_map_scale"] = WidgetNumericMapScale(sky_map_engine=self,
+        self.widgets["numeric_map_scale"] = WidgetNumericMapScale(engine=self,
                                                                   alloc_space_spec='bottom,left',
                                                                   legend_fontsize=self.get_legend_font_size(),
                                                                   legend_linewidth=self.cfg.legend_linewidth,
                                                                   color=self.cfg.draw_color)
 
-        self.widgets["orientation"] = WidgetOrientation(sky_map_engine=self,
+        self.widgets["orientation"] = WidgetOrientation(engine=self,
                                                         alloc_space_spec='top,left',
                                                         legend_fontsize=self.get_legend_font_size(),
                                                         legend_linewidth=self.cfg.legend_linewidth,
@@ -377,7 +376,7 @@ class SkymapEngine:
                                                         mirror_y=self.mirror_y,
                                                         color=self.cfg.draw_color)
 
-        self.widgets["coords"] = WidgetCoords(sky_map_engine=self,
+        self.widgets["coords"] = WidgetCoords(engine=self,
                                               alloc_space_spec='top,right',
                                               legend_fontsize=self.get_legend_font_size(),
                                               legend_linewidth=self.cfg.legend_linewidth,

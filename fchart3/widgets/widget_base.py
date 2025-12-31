@@ -16,8 +16,8 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class WidgetBase:
-    def __init__(self, sky_map_engine, alloc_space_spec, legend_linewidth):
-        self.engine = sky_map_engine
+    def __init__(self, engine, alloc_space_spec, legend_linewidth):
+        self.engine = engine
         self.alloc_space_spec = alloc_space_spec
         self.legend_linewidth = legend_linewidth
         self.x, self.y = None, None
