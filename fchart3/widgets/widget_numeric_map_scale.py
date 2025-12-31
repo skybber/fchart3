@@ -22,35 +22,34 @@ from ..graphics import DrawMode
 class WidgetNumericMapScale(WidgetBase):
 
     def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
-        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
+        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
         self.legend_fontsize = legend_fontsize
-        self.legend_linewidth = legend_linewidth
         self.alloc_space_spec = alloc_space_spec
         self.color = color
         self.x, self.y = None, None
         self.width, self.height = 6 * self.legend_fontsize, 2.2 * self.legend_fontsize
 
-    def draw(self, graphics, ctx, fill_background, label):
+    def draw(self, gfx, ctx, fill_background, label):
         if self.x is None or self.y is None:
             return
         fh = self.legend_fontsize
 
-        graphics.set_solid_line()
-        graphics.set_pen_rgb(self.color)
-        graphics.set_linewidth(0)
+        gfx.set_solid_line()
+        gfx.set_pen_rgb(self.color)
+        gfx.set_linewidth(0)
 
-        if fill_background and graphics.gi_background_rgb:
-            graphics.save()
-            graphics.set_fill_background()
-            graphics.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)
-            graphics.restore()
+        if fill_background and gfx.gi_background_rgb:
+            gfx.save()
+            gfx.set_fill_background()
+            gfx.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)
+            gfx.restore()
 
-        old_fontsize = graphics.gi_font_size
-        graphics.set_font(graphics.gi_font, fh)
+        old_fontsize = gfx.gi_font_size
+        gfx.set_font(gfx.gi_font, fh)
         x = self.x + 0.8 * fh
         y = self.y - self.height + (self.height - 0.66*fh) / 2
-        graphics.text_right(x, y, label)
+        gfx.text_right(x, y, label)
 
-        graphics.set_font(graphics.gi_font, old_fontsize)
+        gfx.set_font(gfx.gi_font, old_fontsize)
 
-        self.draw_bounding_rect(graphics)
+        self.draw_bounding_rect(gfx)

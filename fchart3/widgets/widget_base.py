@@ -16,9 +16,10 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 class WidgetBase:
-    def __init__(self, sky_map_engine, alloc_space_spec):
+    def __init__(self, sky_map_engine, alloc_space_spec, legend_linewidth):
         self.engine = sky_map_engine
         self.alloc_space_spec = alloc_space_spec
+        self.legend_linewidth = legend_linewidth
         self.x, self.y = None, None
         self.width, self.height = None, None
 
@@ -28,13 +29,13 @@ class WidgetBase:
     def allocate_space(self, space_widget_allocator):
         self.x, self.y = space_widget_allocator.alloc_space(self.width, self.height, self.alloc_space_spec)
 
-    def draw_bounding_rect(self, graphics):
-        graphics.set_linewidth(self.legend_linewidth)
+    def draw_bounding_rect(self, gfx):
+        gfx.set_linewidth(self.legend_linewidth)
         if 'bottom' in self.alloc_space_spec:
-            graphics.line(self.x, self.y, self.x+self.width, self.y)
+            gfx.line(self.x, self.y, self.x+self.width, self.y)
         if 'top' in self.alloc_space_spec:
-            graphics.line(self.x, self.y-self.height, self.x+self.width, self.y-self.height)
+            gfx.line(self.x, self.y-self.height, self.x+self.width, self.y-self.height)
         if 'left' in self.alloc_space_spec:
-            graphics.line(self.x+self.width, self.y, self.x+self.width, self.y-self.height)
+            gfx.line(self.x+self.width, self.y, self.x+self.width, self.y-self.height)
         if 'right' in self.alloc_space_spec:
-            graphics.line(self.x, self.y, self.x, self.y-self.height)
+            gfx.line(self.x, self.y, self.x, self.y-self.height)

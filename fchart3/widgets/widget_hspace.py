@@ -25,15 +25,15 @@ class WidgetHSpace:
         self.color = color
         self.height = 2.2 * self.legend_fontsize
 
-    def draw(self, graphics, left, right, bottom, fill_background):
-        graphics.set_solid_line()
-        graphics.set_pen_rgb(self.color)
-        graphics.set_linewidth(self.legend_linewidth)
+    def draw(self, gfx, left, right, bottom, fill_background):
+        gfx.set_solid_line()
+        gfx.set_pen_rgb(self.color)
+        gfx.set_linewidth(self.legend_linewidth)
 
-        if fill_background and graphics.gi_background_rgb:
-            graphics.save()
-            graphics.set_fill_background()
-            graphics.rectangle(left, bottom+self.height, right-left, self.height, DrawMode.FILL)
-            graphics.restore()
+        if fill_background and gfx.gi_background_rgb:
+            gfx.save()
+            gfx.set_fill_background()
+            gfx.rectangle(left, bottom+self.height, right-left, self.height, DrawMode.FILL)
+            gfx.restore()
 
-        graphics.line(left, bottom+self.height, right, bottom+self.height)
+        gfx.line(left, bottom+self.height, right, bottom+self.height)

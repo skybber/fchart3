@@ -24,11 +24,10 @@ from ..graphics import DrawMode
 class WidgetMagnitudeScale(WidgetBase):
 
     def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, stars_in_scale, lm_stars, legend_linewidth, vertical=True, color=(0, 0, 0)):
-        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec)
+        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
         self.legend_fontsize = legend_fontsize
         self.stars_in_scale = stars_in_scale
         self.lm_stars = lm_stars
-        self.legend_linewidth = legend_linewidth
         self.alloc_space_spec = alloc_space_spec
         self.vertical = vertical
         self.color = color
@@ -42,41 +41,44 @@ class WidgetMagnitudeScale(WidgetBase):
             self.height = 2.2 * self.legend_fontsize
             self.width = (self.stars_in_scale + 0.6) * self.legend_fontsize
 
-    def draw(self, graphics, ctx, fill_background):
+    def draw(self, gfx, ctx, fill_background):
         if self.x is None or self.y is None:
             return
         fh = self.legend_fontsize
         mags_in_scale = int(self.lm_stars) - np.arange(self.stars_in_scale)
 
-        graphics.set_solid_line()
-        graphics.set_pen_rgb(self.color)
-        graphics.set_fill_rgb(self.color)
-        graphics.set_linewidth(0)
+        gfx.set_solid_line()
+        gfx.set_pen_rgb(self.color)
+        gfx.set_fill_rgb(self.color)
+        gfx.set_linewidth(0)
 
-        if fill_background and graphics.gi_background_rgb:
-            graphics.save()
-            graphics.set_fill_background()
-            graphics.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)
-            graphics.restore()
+        if fill_background and gfx.gi_background_rgb:
+            gfx.save()
+            gfx.set_fill_background()
+            gfx.rectangle(self.x, self.y, self.width, self.height, DrawMode.FILL)
+            gfx.restore()
 
         legendr = self.engine.magnitude_to_radius(mags_in_scale)
 
+        old_fontsize = gfx.gi_font_size
+
         if self.vertical:
-            graphics.set_font(graphics.gi_font, fh * 0.8)
+            gfx.set_font(gfx.gi_font, fh * 0.8)
             legendy = self.y - self.height + np.arange(self.stars_in_scale)*fh + 0.5*fh
 
             for i in range(len(legendy)):
-                self.no_mirror_star(graphics, self.x+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
-                graphics.text_right(self.x+1.2*fh, legendy[i], str(mags_in_scale[i]))
+                self.no_mirror_star(gfx, self.x+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
+                gfx.text_right(self.x+1.2*fh, legendy[i], str(mags_in_scale[i]))
         else:
-            graphics.set_font(graphics.gi_font, fh * 0.66)
+            gfx.set_font(gfx.gi_font, fh * 0.66)
             legendx = self.x + np.arange(self.stars_in_scale)*fh + 0.5*fh
             for i in range(self.stars_in_scale):
-                self.no_mirror_star(graphics, legendx[i] + 0.6 * fh, self.y-self.height + 0.66*fh, legendr[-i-1])
-                graphics.text_centred(legendx[i] + 0.6 * fh, self.y-self.height + 1.6*fh, str(mags_in_scale[-i-1]))
+                self.no_mirror_star(gfx, legendx[i] + 0.6 * fh, self.y-self.height + 0.66*fh, legendr[-i-1])
+                gfx.text_centred(legendx[i] + 0.6 * fh, self.y-self.height + 1.6*fh, str(mags_in_scale[-i-1]))
 
-        self.draw_bounding_rect(graphics)
+        gfx.set_font(gfx.gi_font, old_fontsize)
+        self.draw_bounding_rect(gfx)
 
-    def no_mirror_star(self, graphics, x, y, radius):
-        r = int((radius + graphics.gi_linewidth/2.0)*100.0 + 0.5)/100.0
-        graphics.circle(x, y, r, DrawMode.FILL)
+    def no_mirror_star(self, gfx, x, y, radius):
+        r = int((radius + gfx.gi_linewidth/2.0)*100.0 + 0.5)/100.0
+        gfx.circle(x, y, r, DrawMode.FILL)

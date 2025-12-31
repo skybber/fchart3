@@ -25,10 +25,10 @@ class WidgetTelrad:
         self.linewidth = linewidth
         self.color = color
 
-    def draw(self, graphics, ctx):
+    def draw(self, gfx, ctx):
         for tr in [15, 60, 120]:
             r = tr*np.pi/(180.0*60.0)*self.drawingscale
-            graphics.set_solid_line()
-            graphics.set_pen_rgb(self.color)
-            graphics.set_linewidth(self.linewidth)
-            graphics.circle(0, 0, r)
+            gfx.set_solid_line()
+            gfx.set_pen_rgb(self.color)
+            gfx.set_linewidth(self.linewidth)
+            gfx.circle(0, 0, r)

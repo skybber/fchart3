@@ -15,24 +15,32 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-class WidgetOrientation:
+from .widget_base import WidgetBase
 
-    def __init__(self, legend_fontsize, mirror_x, mirror_y, color=(0, 0, 0)):
+
+class WidgetOrientation(WidgetBase):
+
+    def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, legend_linewidth, mirror_x, mirror_y, color=(0, 0, 0)):
+        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
         self.legend_fontsize = legend_fontsize
         self.mirror_x = mirror_x
         self.mirror_y = mirror_y
         self.color = color
 
-    def draw(self, graphics, ctx, left, top, fill_background):
+        self.width = self.legend_fontsize * 4.0
+        self.height = self.legend_fontsize * 4.0
+
+    def draw(self, gfx, ctx, left, top, fill_background):
         # Draw orientation indication
         dl = self.legend_fontsize
-        x = left + dl + 0.2*self.legend_fontsize
-        y = top - dl - self.legend_fontsize*1.3
+        x = left + dl + 0.35 * self.legend_fontsize
+        y = top - dl - self.legend_fontsize * 1.3
         y_axis_caption = 'S' if self.mirror_y else 'N'
-        graphics.text_centred(x, y + dl + 0.65*self.legend_fontsize, y_axis_caption)
+        gfx.text_centred(x, y + dl + 0.65*self.legend_fontsize, y_axis_caption)
         x_axis_caption = 'E' if self.mirror_x else 'W'
-        graphics.text_right(x+dl+self.legend_fontsize/6.0, y-self.legend_fontsize/3.0, x_axis_caption)
-        graphics.set_solid_line()
-        graphics.set_pen_rgb(self.color)
-        graphics.line(x-dl, y, x+dl, y)
-        graphics.line(x, y-dl, x, y+dl)
+        gfx.text_right(x+dl+self.legend_fontsize/6.0, y-self.legend_fontsize/4.0, x_axis_caption)
+        gfx.set_solid_line()
+        gfx.set_pen_rgb(self.color)
+        gfx.line(x-dl, y, x+dl, y)
+        gfx.line(x, y-dl, x, y+dl)
+        self.draw_bounding_rect(gfx)

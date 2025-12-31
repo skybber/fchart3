@@ -161,20 +161,19 @@ class SkymapEngine:
     def make_map(self, used_catalogs, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=None, visible_objects=None, transparent=False):
 
-        self.create_widgets()
-
         self.gfx.set_background_rgb(self.cfg.background_color)
 
         self.gfx.new()
+        self.gfx.set_font(font=self.cfg.font, font_size=self.cfg.font_size)
+        self.gfx.set_default_font_size(self.cfg.font_size)
+        self.gfx.set_pen_rgb(self.cfg.draw_color)
+        self.gfx.set_fill_rgb(self.cfg.draw_color)
+        self.gfx.set_linewidth(self.cfg.legend_linewidth)
+
+        self.create_widgets()
 
         if not transparent:
             self.gfx.clear()
-
-        self.gfx.set_pen_rgb(self.cfg.draw_color)
-        self.gfx.set_fill_rgb(self.cfg.draw_color)
-        self.gfx.set_font(font=self.cfg.font, font_size=self.cfg.font_size)
-        self.gfx.set_default_font_size(self.cfg.font_size)
-        self.gfx.set_linewidth(self.cfg.legend_linewidth)
 
         ctx = None
 
@@ -300,8 +299,7 @@ class SkymapEngine:
     def draw_widgets(self, ctx):
         if self.cfg.widget_mode == WidgetMode.ALLOC_SPACE_ONLY:
             return
-        font_size = self.get_legend_font_size()
-        self.gfx.set_font(self.gfx.gi_font, font_size=font_size)
+        self.gfx.set_font(self.gfx.gi_font, font_size=self.get_legend_font_size())
 
         x1, y1, x2, y2 = self.get_field_rect_mm()
 
@@ -322,7 +320,7 @@ class SkymapEngine:
         if self.cfg.show_orientation_legend:
             self.widgets["orientation"].draw(self.gfx, ctx, x1, y2, fill_background)
         if self.cfg.show_coords_legend:
-            self.widgets["coords"].draw(self.gfx, ctx, left=x2-font_size/2, bottom=y2-font_size, ra=self.center_equatorial[0], dec=self.center_equatorial[1], fill_background=fill_background)
+            self.widgets["coords"].draw(self.gfx, ctx, ra=self.center_equatorial[0], dec=self.center_equatorial[1], fill_background=fill_background)
         if self.cfg.show_dso_legend:
             self.widgets["dso_legend"].draw_dso_legend(self.gfx, ctx, fill_background)
 
@@ -371,12 +369,19 @@ class SkymapEngine:
                                                                   legend_linewidth=self.cfg.legend_linewidth,
                                                                   color=self.cfg.draw_color)
 
-        self.widgets["orientation"] = WidgetOrientation(legend_fontsize=self.get_legend_font_size(),
+        self.widgets["orientation"] = WidgetOrientation(sky_map_engine=self,
+                                                        alloc_space_spec='top,left',
+                                                        legend_fontsize=self.get_legend_font_size(),
+                                                        legend_linewidth=self.cfg.legend_linewidth,
                                                         mirror_x=self.mirror_x,
                                                         mirror_y=self.mirror_y,
                                                         color=self.cfg.draw_color)
 
-        self.widgets["coords"] = WidgetCoords(self.language, color=self.cfg.draw_color)
+        self.widgets["coords"] = WidgetCoords(sky_map_engine=self,
+                                              alloc_space_spec='top,right',
+                                              legend_fontsize=self.get_legend_font_size(),
+                                              legend_linewidth=self.cfg.legend_linewidth,
+                                              color=self.cfg.draw_color)
         self.widgets["dso_legend"] = WidgetDsoLegend(self.renderers["deepsky"], self.language, self.drawing_width, LEGEND_MARGIN, color=self.cfg.draw_color)
         self.widgets["telrad"] = WidgetTelrad(self.drawing_scale, self.cfg.telrad_linewidth, self.cfg.telrad_color)
         self.widgets["eyepiece"] = WidgetEyepiece(self.drawing_scale, self.cfg.eyepiece_fov, self.cfg.eyepiece_linewidth, self.cfg.eyepiece_color)
@@ -388,3 +393,7 @@ class SkymapEngine:
             self.widgets["map_scale"].allocate_space(self.space_widget_allocator)
         if self.cfg.show_numeric_map_scale_legend:
             self.widgets["numeric_map_scale"].allocate_space(self.space_widget_allocator)
+        if self.cfg.show_orientation_legend:
+            self.widgets["orientation"].allocate_space(self.space_widget_allocator)
+        if self.cfg.show_coords_legend:
+            self.widgets["coords"].allocate_space(self.space_widget_allocator)

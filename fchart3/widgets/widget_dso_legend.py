@@ -27,8 +27,8 @@ class WidgetDsoLegend:
         self.legend_margin = legend_margin
         self.color = color
 
-    def draw_dso_legend(self, graphics, ctx, erase_background):
-        fh = graphics.gi_font_size
+    def draw_dso_legend(self, gfx, ctx, erase_background):
+        fh = gfx.gi_font_size
         # Draw list of symbols
         legendx = 0.48*self.drawing_width
         legendy = 0.49*self.drawing_width
@@ -67,35 +67,35 @@ class WidgetDsoLegend:
             bl.append(lab[0])
 
         self.dso_renderer.open_cluster(ctx, legendx, legendy - (tl.index('OCL') + 1)*legendinc, r, '', '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, legendy - (tl.index('OCL') + 1)*legendinc - fh/3.0, self.language['OCL'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, legendy - (tl.index('OCL') + 1)*legendinc - fh/3.0, self.language['OCL'])
 
         self.dso_renderer.asterism(ctx, legendx, legendy - (tl.index('AST') + 1)*legendinc, r, '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, legendy - (tl.index('AST') + 1)*legendinc - fh/3.0, self.language['AST'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, legendy - (tl.index('AST') + 1)*legendinc - fh/3.0, self.language['AST'])
 
         self.dso_renderer.galaxy(ctx, legendx, legendy - (tl.index('G') + 1)*legendinc, r, -1, 0.0, 7.0, '', '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, legendy - (tl.index('G') + 1)*legendinc - fh/3.0, self.language['G'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, legendy - (tl.index('G') + 1)*legendinc - fh/3.0, self.language['G'])
 
         self.dso_renderer.globular_cluster(ctx, legendx, legendy - (tl.index('GCL') + 1)*legendinc, r, '', '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, legendy - (tl.index('GCL') + 1)*legendinc - fh/3.0, self.language['GCL'])
 
         legendy = self.legend_margin*self.drawing_width
 
         self.dso_renderer.supernova_remnant(ctx, legendx, -legendy + bl.index('SNR')*legendinc, r, '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, -legendy + bl.index('SNR')*legendinc - fh/3.0, self.language['SNR'])
 
         self.dso_renderer.planetary_nebula(ctx, legendx, -legendy + bl.index('PN')*legendinc, r, '', '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc - fh/3.0, self.language['PN'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, -legendy+bl.index('PN')*legendinc - fh/3.0, self.language['PN'])
 
         self.dso_renderer.diffuse_nebula(ctx, legendx, -legendy + bl.index('N')*legendinc, r, -1, 0.0, '', '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, -legendy + bl.index('N')*legendinc - fh/3.0, self.language['N'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, -legendy + bl.index('N')*legendinc - fh/3.0, self.language['N'])
 
         self.dso_renderer.unknown_object(ctx, legendx, -legendy + bl.index('PG')*legendinc, r, '', '', labelpos=1)
-        graphics.set_pen_rgb(self.color)
-        graphics.text_left(legendx + text_offset, -legendy + bl.index('PG')*legendinc - fh/3.0, self.language['PG'])
+        gfx.set_pen_rgb(self.color)
+        gfx.text_left(legendx + text_offset, -legendy + bl.index('PG')*legendinc - fh/3.0, self.language['PG'])

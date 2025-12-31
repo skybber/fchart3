@@ -17,43 +17,56 @@
 
 import numpy as np
 
+from .widget_base import WidgetBase
 
-class WidgetCoords:
 
-    def __init__(self, language, color=(0, 0, 0)):
-        self.language = language
+class WidgetCoords(WidgetBase):
+
+    def __init__(self, sky_map_engine, alloc_space_spec, legend_fontsize, legend_linewidth, color=(0, 0, 0)):
+        super().__init__(sky_map_engine=sky_map_engine, alloc_space_spec=alloc_space_spec, legend_linewidth=legend_linewidth)
         self.color = color
+        text = "x" + self.get_text(23, 59, 59, "-", 89, 59, 59, )
 
-    def draw(self, graphics, ctx, left, bottom, ra, dec, fill_background):
+        sky_map_engine.gfx.set_font(sky_map_engine.gfx.gi_font, legend_fontsize)
+        w = sky_map_engine.gfx.text_width(text)
+        self.width = w + legend_fontsize * 0.5
+        self.height = legend_fontsize * 1.5
+
+    def draw(self, gfx, ctx, ra, dec, fill_background):
         """
         left,bottom are coordinates of the lower left corner of the textbox
         """
-        rah = int(ra*12/np.pi)
-        ram = int((ra*12/np.pi -rah)*60)
-        ras = int(((ra*12/np.pi -rah)*60 - ram)*60+0.5)
-        if ras == 60:
-            ram += 1
-            ras = 0
-        if ram == 60:
-            rah += 1
-            ram = 0
-        if rah == 24:
-            rah = 0
+        ra_h = int(ra*12/np.pi)
+        ra_m = int((ra*12/np.pi -ra_h)*60)
+        ra_s = int(((ra*12/np.pi -ra_h)*60 - ra_m)*60+0.5)
+        if ra_s == 60:
+            ra_m += 1
+            ra_s = 0
+        if ra_m == 60:
+            ra_h += 1
+            ra_m = 0
+        if ra_h == 24:
+            ra_h = 0
 
-        decsign = '+'
+        dec_sign = '+'
         if dec < 0.0:
-            decsign = '-'
-        decd = int(abs(dec)*180/np.pi)
-        decm = int((abs(dec)*180/np.pi-decd)*60)
-        decs = int( ((abs(dec)*180/np.pi-decd)*60 -decm)*60 + 0.5)
+            dec_sign = '-'
+        dec_d = int(abs(dec)*180/np.pi)
+        dec_m = int((abs(dec)*180/np.pi-dec_d)*60)
+        dec_s = int(((abs(dec)*180/np.pi-dec_d)*60 -dec_m)*60 + 0.5)
 
-        if decs == 60:
-            decm += 1
-            decs = 0
-        if decm == 60:
-            decm = 0
+        if dec_s == 60:
+            dec_m += 1
+            dec_s = 0
+        if dec_m == 60:
+            dec_m = 0
 
-        text = str(rah).rjust(2) + self.language['h'] + str(ram) + self.language['m'] + str(ras) + self.language['s'] + \
-             ' ' + decsign + str(decd) + '°' + str(decm) + '\'' + str(decs) + '"'
+        text = self.get_text(ra_h, ra_m, ra_s, dec_sign, dec_d, dec_m, dec_s)
+        padding = gfx.gi_font_size * 0.35
+        gfx.text_right(self.x + padding, self.y - self.height + padding, text)
+        self.draw_bounding_rect(gfx)
 
-        graphics.text_left(left, bottom, text)
+    def get_text(self, ra_h, ra_m, ra_s, dec_sign, dec_d, dec_m, dec_s):
+        language = self.engine.language
+        text = str(ra_h).rjust(2) + language['h'] + str(ra_m) + language['m'] + str(ra_s) + language['s'] + ' ' + dec_sign + str(dec_d) + '°' + str(dec_m) + '\'' + str(dec_s) + '"'
+        return text
