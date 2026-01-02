@@ -20,6 +20,8 @@
 import gettext
 import os
 
+from fchart3 import CoordSystem
+
 uilanguage=os.environ.get('fchart3lang')
 try:
     lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
@@ -535,7 +537,7 @@ def _create_engine_configuration(config_file = None):
             pass
     if getattr(settings.parser, "coord_system", None) is not None:
         try:
-            config.coord_system = settings.parser.coord_system
+            config.coord_system = CoordSystem(settings.parser.coord_system)
         except Exception:
             pass
 
