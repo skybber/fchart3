@@ -92,6 +92,11 @@ class WidgetMode(Enum):
     ALLOC_SPACE_ONLY = 3
 
 
+class CoordSystem(Enum):
+    EQUATORIAL = "equatorial"
+    HORIZONTAL = "horizontal"
+
+
 class EngineConfiguration:
     def __init__(self):
         self._background_color = DEFAULT_BACKGROUND_COLOR
@@ -195,6 +200,9 @@ class EngineConfiguration:
         self._venus_color = DEFAULT_VENUS_COLOR
         self._venus_r_scale = DEFAULT_VENUS_R_SCALE
         self._widget_mode = WidgetMode.NORMAL
+        self._observer_lat_deg = None
+        self._observer_lon_deg = None
+        self._coord_system = CoordSystem.EQUATORIAL
 
     @property
     def background_color(self):
@@ -1003,3 +1011,27 @@ class EngineConfiguration:
     @widget_mode.setter
     def widget_mode(self, value):
         self._widget_mode = value
+
+    @property
+    def observer_lat_deg(self):
+        return self._observer_lat_deg
+
+    @observer_lat_deg.setter
+    def observer_lat_deg(self, value):
+        self._observer_lat_deg = value
+
+    @property
+    def observer_lon_deg(self):
+        return self._observer_lon_deg
+
+    @observer_lon_deg.setter
+    def observer_lon_deg(self, value):
+        self._observer_lon_deg = value
+
+    @property
+    def coord_system(self):
+        return self._coord_system
+
+    @coord_system.setter
+    def coord_system(self, value):
+        self._coord_system = value

@@ -49,7 +49,7 @@ setup(
     author_email='lada.dvorak7@gmail.com',
     packages=packages,
     include_package_data=True,
-    install_requires=['numpy', 'pycairo', 'Pillow', 'skia-python'],
+    install_requires=['numpy', 'pycairo', 'Pillow', 'skia-python', 'skyfield'],
     scripts=['bin/fchart3'],
     package_data={'fchart3': ['data/catalogs/bsc5.dat',
                               'data/catalogs/constbndJ2000.dat',

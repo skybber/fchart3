@@ -62,6 +62,10 @@ STARS_IN_SCALE = 10
 LEGEND_MARGIN = 0.47
 BASE_SCALE = 0.98
 
+from skyfield.api import load
+
+ts = load.timescale()
+
 
 class SkymapEngine:
     def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption=''):
@@ -80,7 +84,6 @@ class SkymapEngine:
         self.lm_deepsky = lm_deepsky
         self.star_mag_r_shift = 0
 
-        self.is_equatorial = False
         self.center_celestial = None
         self.center_equatorial = None
         self.field_radius = None
@@ -132,14 +135,6 @@ class SkymapEngine:
         self.mirror_y = mirror_y
         self.transf.set_scale(self.drawing_scale*mulx, self.drawing_scale*muly)
 
-    def set_observer(self, lst, lat, is_equatorial):
-        self.is_equatorial = is_equatorial
-        if not is_equatorial:
-            self.transf.set_observer(lst, lat)
-            c_ra, c_dec = self.transf.get_equatorial_center()
-            self.center_equatorial = (c_ra, c_dec)
-        self.transf.set_grid_observer(lst, lat)
-
     def set_configuration(self, config):
         self.cfg = config
 
@@ -157,8 +152,25 @@ class SkymapEngine:
     def set_caption(self, caption):
         self.caption = caption
 
-    def make_map(self, used_catalogs, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
+    def _setup_observer(self, dt):
+        t = ts.from_datetime(dt)
+
+        lat = np.deg2rad(self.cfg.observer_lat_deg)
+        lon_hours = self.cfg.observer_lon_deg / 15.0
+        lst_hours = (t.gast + lon_hours) % 24.0
+        lst = lst_hours * (math.pi / 12.0)
+
+        if self.cfg.coord_system == CoordSystem.HORIZONTAL:
+            self.transf.set_observer(lst, lat)
+            c_ra, c_dec = self.transf.get_equatorial_center()
+            self.center_equatorial = (c_ra, c_dec)
+        self.transf.set_grid_observer(lst, lat)
+
+    def make_map(self, used_catalogs, dt=None, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=None, visible_objects=None, transparent=False):
+
+        if dt is not None and self.cfg.observer_lat_deg is not None and self.cfg.observer_lon_deg is not None:
+            self._setup_observer(dt)
 
         self.gfx.set_background_rgb(self.cfg.background_color)
 
@@ -206,7 +218,6 @@ class SkymapEngine:
                 drawing_scale=self.drawing_scale,
                 field_rect_mm=self.get_field_rect_mm(),
                 clip_path=clip_path,
-                is_equatorial=self.is_equatorial,
                 center_equatorial=self.center_equatorial,
                 center_celestial=self.center_celestial,
                 field_radius=self.field_radius,
@@ -256,9 +267,8 @@ class SkymapEngine:
 
             self.renderers["trajectory"].draw(ctx, state)
             self.renderers["arrow"].draw(ctx, state)
-            if not self.is_equatorial:
+            if self.cfg.coord_system == CoordSystem.HORIZONTAL:
                 self.renderers["horizon"].draw(ctx, state)
-
 
             self.gfx.reset_clip()
 

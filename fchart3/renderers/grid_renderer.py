@@ -18,6 +18,7 @@
 import math
 
 from .base_renderer import BaseRenderer
+from .. import CoordSystem
 
 MIN_GRID_DENSITY = 4
 RA_GRID_SCALE = [0.25, 0.5, 1, 2, 3, 5, 10, 15, 20, 30, 60, 2*60, 3*60]
@@ -62,7 +63,7 @@ class GridRenderer(BaseRenderer):
     def draw_grid_horizontal(self, ctx):
         ra_c, dec_c = ctx.center_equatorial
         az_c, alt_c = ctx.transf.grid_equatorial_to_horizontal(ra_c, dec_c)
-        if ctx.is_equatorial:
+        if ctx.cfg.coord_system == CoordSystem.EQUATORIAL:
             def to_xyz(az, alt):
                 ra, dec = ctx.transf.grid_horizontal_to_equatorial(az, alt)
                 return ctx.transf.equatorial_to_xyz(ra, dec)

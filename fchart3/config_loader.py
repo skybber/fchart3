@@ -15,6 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from .configuration import *
 from .graphics import FontStyle
 
 FLOAT_ITEMS = [
@@ -241,6 +242,8 @@ class ConfigurationLoader:
                     setattr(config, key, value)
                 elif key in TUPLE_FLOAT_ITEMS:
                     setattr(config, key, self.parse_float_tuple(value))
+                elif key == 'coord_system':
+                    setattr(config, key, CoordSystem(value))
             except Exception:
                 continue
 

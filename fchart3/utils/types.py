@@ -36,7 +36,6 @@ class RenderContext:
     drawing_scale: float
     field_rect_mm: Rect
     clip_path: Any
-    is_equatorial: bool
     center_equatorial: Coord
     center_celestial: Coord
     field_radius: float

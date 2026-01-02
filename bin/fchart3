@@ -44,6 +44,7 @@ from fchart3.configuration import EngineConfiguration
 from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
+from datetime import datetime, timezone
 
 import gettext
 _ = gettext.gettext
@@ -57,6 +58,25 @@ GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
 LICENSE file."""))
+
+
+def _parse_time_arg(value: str) -> datetime:
+    s = value.strip()
+    if s.lower() in ("now",):
+        return datetime.now(timezone.utc)
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(s)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(
+            f"Invalid --time value '{value}'. Expected ISO-8601, e.g. "
+            f"2026-01-02T21:15:00Z or 2026-01-02T21:15:00+01:00, or 'now'."
+        ) from e
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
 
 class RuntimeSettings:
     def __init__(self):
@@ -257,6 +277,18 @@ class RuntimeSettings:
 
         argumentparser.add_argument('--star_mag_shift', dest='star_mag_shift', type=float, default=None,
                                     help='Enlarge star symbols by given magnitude.')
+
+        argumentparser.add_argument('--obs-longitude', dest='obs_longitude', type=float, default=None,
+                                    help='Observer longitude in degrees (east positive).')
+        argumentparser.add_argument('--obs-latitude', dest='obs_latitude', type=float, default=None,
+                                    help='Observer latitude in degrees.')
+        argumentparser.add_argument('--coord-system', dest='coord_system',
+                                    choices=['equatorial', 'horizontal'],
+                                    default='equatorial',
+                                    help='Coordinate system to use: equatorial or horizontal (alt/az).')
+        argumentparser.add_argument('--time', dest='dt', type=_parse_time_arg, default=None,
+                                    help='Observation time (UTC) in ISO-8601. '
+                                         'Examples: 2026-01-02T21:15:00Z, 2026-01-02T21:15:00+01:00, or "now".')
 
         argumentparser.add_argument('-v', '--version', action='store_true', default=None, help='Display version information and exit.')
 
@@ -495,6 +527,18 @@ def _create_engine_configuration(config_file = None):
     if settings.parser.flamsteed_numbers_only is not None:
         config.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
 
+    if getattr(settings.parser, "obs_longitude", None) is not None and getattr(settings.parser, "obs_latitude", None) is not None:
+        try:
+            config.obs_longitude = np.deg2rad(settings.parser.obs_longitude)
+            config.obs_latitude = np.deg2rad(settings.parser.obs_latitude)
+        except Exception:
+            pass
+    if getattr(settings.parser, "coord_system", None) is not None:
+        try:
+            config.coord_system = settings.parser.coord_system
+        except Exception:
+            pass
+
     if config.show_enhanced_milky_way_30k:
         mw_scale_fac = 3.0
 
@@ -512,8 +556,6 @@ def _create_engine_configuration(config_file = None):
 
 
 if __name__ == '__main__':
-    #print(_('UI_lang'))
-        
     tm = time()
 
     data_dir = os.path.join(fchart3.get_catalogs_dir())
@@ -530,14 +572,12 @@ if __name__ == '__main__':
     except:                  
         _ = gettext.gettext
     finally:
-        #print(_(f'lang {uilanguage} '))
         pass
     
     print_version()
 
     # Create output space if necessary
     if not os.path.exists(settings.parser.output_dir):
-        #print('Creating directory '+settings.parser.output_dir)
         print(_('Creating directory {}'.format(settings.parser.output_dir)))
         os.mkdir(settings.parser.output_dir)
 
@@ -585,6 +625,10 @@ if __name__ == '__main__':
     print(_('   Force pg       : {}'.format(settings.parser.force_unknown)))
     print(_('   Extra points   : {}'.format(len(settings.extra_positions_list))))
     print(_('   Show dso legend: {}'.format(settings.parser.show_dso_legend)))
+    print(_('   Coord system   : {}'.format(getattr(settings.parser, "coord_system", None))))
+    print(_('   Obs longitude  : {}'.format(getattr(settings.parser, "obs_longitude", None))))
+    print(_('   Obs latitude   : {}'.format(getattr(settings.parser, "obs_latitude", None))))
+    print(_('   Time (UTC)     : {}'.format(getattr(settings.parser, "dt", None))))
 
     if settings.parser.extra_data_dir:
         print(_('   Extra data directory: {}'.format(settings.parser.extra_data_dir)))
@@ -611,12 +655,13 @@ if __name__ == '__main__':
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
                 engine = SkymapEngine(artist, language=fchart3.LABELi18N, lm_stars = settings.parser.limit_magnitude_stars)
                 engine.set_configuration(_create_engine_configuration(config_file))
-                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0, "", mirror_x=settings.parser.mirror_x,
+
+                engine.set_field(ra, dec, np.deg2rad(settings.parser.fieldsize)/2.0, "", mirror_x=settings.parser.mirror_x,
                              mirror_y=settings.parser.mirror_y)
                 engine.set_caption('M '+str(object.messier))
                 engine.set_showing_dso(object)
                 engine.set_active_constellation(object.constellation)
-                engine.make_map(used_catalogs, extra_positions=settings.extra_positions_list)
+                engine.make_map(used_catalogs, settings.parser.dt, extra_positions=settings.extra_positions_list)
         else:
             showing_dso = None
             if ':' in source:
@@ -658,8 +703,7 @@ if __name__ == '__main__':
                 else:
                     print(_('Position specification needs three part argument, separated by commas: "ra,dec,caption"'))
                     sys.exit(-1)
-
-            else:# : in source
+            else:
                 showing_dso, cat, name = used_catalogs.lookup_dso(source)
                 if showing_dso:
                     ra = showing_dso.ra
@@ -702,7 +746,7 @@ if __name__ == '__main__':
                                       lm_stars=settings.parser.limit_magnitude_stars,
                                       lm_deepsky=settings.parser.limit_magnitude_deepsky)
                 engine.set_configuration(_create_engine_configuration(config_file))
-                engine.set_field(ra, dec, settings.parser.fieldsize*np.pi/180.0/2.0)
+                engine.set_field(ra, dec, np.deg2rad(settings.parser.fieldsize)/2.0)
                 caption = cat + ' ' + name
 
                 if settings.parser.caption is not None:
@@ -715,10 +759,10 @@ if __name__ == '__main__':
                     if showing_dso.master_object:
                         showing_dso = showing_dso.master_object
                     showing_dsos = [showing_dso]
-                tmp =   time()-tm
+                tmp = time()-tm
                 print(_("Started in : {} ms".format(tmp)))
-                engine.make_map(used_catalogs, showing_dsos=showing_dsos, extra_positions=settings.extra_positions_list)
+                engine.make_map(used_catalogs, settings.parser.dt, showing_dsos=showing_dsos, extra_positions=settings.extra_positions_list)
             else:
                 print(_('object not found, try appending an A or a B'))
-    tmp =   time()-tm
+    tmp = time()-tm
     print(_("Chart generated in : {} ms ".format(tmp)))
