@@ -22,8 +22,6 @@ import os
 
 import math
 
-from fchart3 import CoordSystem
-
 uilanguage=os.environ.get('fchart3lang')
 try:
     lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
@@ -40,7 +38,8 @@ import numpy as np
 
 import fchart3
 
-from fchart3.config_loader import ConfigurationLoader
+from fchart3.config_loader import ConfigurationLoader, CoordSystem
+from fchart3.solar_system import get_solsys_bodies, get_planet_moons
 from fchart3.astrocalc import hms2rad, dms2rad, rad2hms, rad2dms
 from fchart3.skymap_engine import SkymapEngine,LABELi18N
 from fchart3.used_catalogs import UsedCatalogs
@@ -262,6 +261,9 @@ class RuntimeSettings:
         argumentparser.add_argument('--show-enhanced-milky-way', dest='show_enhanced_milky_way', action='store_true', default=None,
                                     help='Display a realistic representation of the Milky Way with shading and details.')
 
+        argumentparser.add_argument('--show-solar-system', dest='show_solar_system', action='store_true', default=None,
+                                    help='Show Solar System bodies (planets, Sun, Moon) on the map.')
+
         argumentparser.add_argument('--hide-deepsky', dest='show_deepsky', action='store_false', default=None,
                                     help='Hide deep sky objects.')
 
@@ -440,12 +442,14 @@ def _convert_color(color):
         sys.exit()
     return r, g, b
 
+
 def _convert_font_style(font_style):
     if font_style == 'italic':
         return FontStyle.ITALIC
     if font_style == 'bold':
         return FontStyle.BOLD
     return FontStyle.NORMAL
+
 
 def _create_engine_configuration(config_file = None):
     config = EngineConfiguration()
@@ -470,6 +474,7 @@ def _create_engine_configuration(config_file = None):
     config.show_simple_milky_way = False
     config.show_enhanced_milky_way = False
     config.show_nebula_outlines = False
+    config.show_solar_system = False
     config.flamsteed_numbers_only = False
 
     # 2. load default config
@@ -517,6 +522,8 @@ def _create_engine_configuration(config_file = None):
         config.show_star_mag = settings.parser.show_star_mag
     if settings.parser.show_nebula_outlines is not None:
         config.show_nebula_outlines = settings.parser.show_nebula_outlines
+    if settings.parser.show_solar_system is not None:
+        config.show_solar_system = settings.parser.show_solar_system
 
     if settings.parser.fov_telrad is not None:
         config.fov_telrad = settings.parser.fov_telrad
@@ -730,7 +737,15 @@ if __name__ == '__main__':
                                  mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y)
                 engine.set_caption('M '+str(object.messier))
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
-                engine.make_map(used_catalogs, dt_utc, extra_positions=extra_pos)
+
+                if settings.parser.dt and cfg.show_solar_system:
+                    solsys = get_solsys_bodies(dt_utc, observer_lat=cfg.observer_lat_deg, observer_lon=cfg.observer_lon_deg, observer_elevation=0.0)
+                    moons = get_planet_moons(dt_utc, maglim=settings.parser.limit_magnitude_stars)
+                else:
+                    solsys = None
+                    moons = None
+
+                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, extra_positions=extra_pos)
         else:
             showing_dso = None
             if ':' in source:
@@ -837,7 +852,13 @@ if __name__ == '__main__':
                 print(_("Started in : {} ms".format(tmp)))
 
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
-                engine.make_map(used_catalogs, settings.parser.dt, showing_dsos=showing_dsos, extra_positions=extra_pos)
+                if settings.parser.dt is not None and cfg.show_solar_system:
+                    solsys = get_solsys_bodies(dt_utc, observer_lat=cfg.observer_lat_deg, observer_lon=cfg.observer_lon_deg, observer_elevation=0.0)
+                    moons = get_planet_moons(dt_utc, maglim=settings.parser.limit_magnitude_stars)
+                else:
+                    solsys = None
+                    moons = None
+                engine.make_map(used_catalogs, settings.parser.dt, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos)
             else:
                 print(_('object not found, try appending an A or a B'))
     tmp = time()-tm

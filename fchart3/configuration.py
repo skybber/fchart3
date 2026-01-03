@@ -189,6 +189,7 @@ class EngineConfiguration:
         self._show_star_circles = True
         self._show_star_labels = True
         self._show_star_mag = False
+        self._show_solar_system = False
         self._star_cluster_color = DEFAULT_DSO_COLOR
         self._star_colors = False
         self._star_mag_shift = 0
@@ -923,6 +924,14 @@ class EngineConfiguration:
     @show_star_mag.setter
     def show_star_mag(self, value):
         self._show_star_mag = value
+
+    @property
+    def show_solar_system(self):
+        return self._show_solar_system
+
+    @show_solar_system.setter
+    def show_solar_system(self, value):
+        self._show_solar_system = value
 
     @property
     def star_cluster_color(self):
