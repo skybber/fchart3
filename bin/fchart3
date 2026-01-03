@@ -20,6 +20,8 @@
 import gettext
 import os
 
+import math
+
 from fchart3 import CoordSystem
 
 uilanguage=os.environ.get('fchart3lang')
@@ -47,9 +49,12 @@ from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
 from datetime import datetime, timezone
+from skyfield.api import load
 
 import gettext
 _ = gettext.gettext
+
+skyfield_ts = load.timescale()
 
 #################################################################
 VERSION ="0.11.0"
@@ -60,6 +65,65 @@ GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
 LICENSE file."""))
+
+
+def _get_lst_rad(dt_utc: datetime, lon_deg: float) -> float:
+    """
+    Compute apparent Local Sidereal Time (radians) using Skyfield.
+    Longitude is in degrees, east positive (same convention as your CLI).
+    """
+    if dt_utc is None:
+        dt_utc = datetime.now(timezone.utc)
+    if dt_utc.tzinfo is None:
+        dt_utc = dt_utc.replace(tzinfo=timezone.utc)
+    else:
+        dt_utc = dt_utc.astimezone(timezone.utc)
+
+    t = skyfield_ts.from_datetime(dt_utc)
+
+    lst_hours = (t.gast + (lon_deg / 15.0)) % 24.0
+    return lst_hours * (2.0 * math.pi / 24.0)
+
+
+def _radec_to_altaz(ra_rad: float, dec_rad: float, dt_utc: datetime, lat_deg: float, lon_deg: float):
+    """Use your fchart3.astrocalc.radec_to_horizontal(). Returns (alt, az)."""
+    lst = _get_lst_rad(dt_utc, lon_deg)
+    lat_rad = math.radians(lat_deg)
+    sincos_lat = (math.sin(lat_rad), math.cos(lat_rad))
+    return fchart3.astrocalc.radec_to_horizontal(lst, sincos_lat, ra_rad, dec_rad)  # (alt, az)
+
+
+def _fieldcentre_for_engine(ra_rad: float, dec_rad: float, config: EngineConfiguration, dt_utc: datetime):
+    """
+    Returns (phi, theta, dt_utc) for engine.set_field().
+    Equatorial: (ra, dec)
+    Horizontal: (az, alt) converted from (ra, dec)
+    """
+    if config.coord_system == CoordSystem.EQUATORIAL:
+        return ra_rad, dec_rad, dt_utc
+
+    if config.observer_lat_deg is None or config.observer_lon_deg is None:
+        raise RuntimeError("Horizontal mode needs observer_lat_deg/observer_lon_deg (CLI or config).")
+
+    if dt_utc is None:
+        dt_utc = datetime.now(timezone.utc)
+
+    alt, az = _radec_to_altaz(ra_rad, dec_rad, dt_utc, config.observer_lat_deg, config.observer_lon_deg)
+    return az, alt, dt_utc  # IMPORTANT ORDER
+
+
+def _convert_extra_positions(extra_positions, config: EngineConfiguration, dt_utc: datetime):
+    """Convert -x extra positions from RA/Dec to engine coords when horizontal."""
+    if not extra_positions:
+        return extra_positions
+    if config.coord_system == CoordSystem.EQUATORIAL:
+        return extra_positions
+
+    out = []
+    for rax, decx, label, labelpos in extra_positions:
+        phi, theta, dt_utc = _fieldcentre_for_engine(rax, decx, config, dt_utc)
+        out.append([phi, theta, label, labelpos])
+    return out
 
 
 def _parse_time_arg(value: str) -> datetime:
@@ -529,13 +593,13 @@ def _create_engine_configuration(config_file = None):
     if settings.parser.flamsteed_numbers_only is not None:
         config.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
 
-    if getattr(settings.parser, "obs_longitude", None) is not None and getattr(settings.parser, "obs_latitude", None) is not None:
+    if settings.parser.obs_longitude is not None and settings.parser.obs_latitude is not None:
         try:
-            config.obs_longitude = np.deg2rad(settings.parser.obs_longitude)
-            config.obs_latitude = np.deg2rad(settings.parser.obs_latitude)
+            config.observer_lon_deg = float(settings.parser.obs_longitude)
+            config.observer_lat_deg = float(settings.parser.obs_latitude)
         except Exception:
             pass
-    if getattr(settings.parser, "coord_system", None) is not None:
+    if settings.parser.coord_system is not None:
         try:
             config.coord_system = CoordSystem(settings.parser.coord_system)
         except Exception:
@@ -636,7 +700,7 @@ if __name__ == '__main__':
         print(_('   Extra data directory: {}'.format(settings.parser.extra_data_dir)))
 
     for object in settings.extra_positions_list:
-        rax,decx,label,labelpos = object
+        rax, decx, label, labelpos = object
         #print(label,':', rad2hms(rax), rad2dms(decx))
         print(_('{0}: rad2hms({1}), rad2dms({2})'.format(label, rax, decx)))
 
@@ -656,14 +720,17 @@ if __name__ == '__main__':
                 filename += '.pdf'
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
                 engine = SkymapEngine(artist, language=fchart3.LABELi18N, lm_stars = settings.parser.limit_magnitude_stars)
-                engine.set_configuration(_create_engine_configuration(config_file))
+                cfg = _create_engine_configuration(config_file)
+                engine.set_configuration(cfg)
 
-                engine.set_field(ra, dec, np.deg2rad(settings.parser.fieldsize)/2.0, "", mirror_x=settings.parser.mirror_x,
-                             mirror_y=settings.parser.mirror_y)
+                dt_utc = settings.parser.dt
+                phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
+
+                engine.set_field(phi, theta, np.deg2rad(settings.parser.fieldsize)/2.0, "",
+                                 mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y)
                 engine.set_caption('M '+str(object.messier))
-                engine.set_showing_dso(object)
-                engine.set_active_constellation(object.constellation)
-                engine.make_map(used_catalogs, settings.parser.dt, extra_positions=settings.extra_positions_list)
+                extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
+                engine.make_map(used_catalogs, dt_utc, extra_positions=extra_pos)
         else:
             showing_dso = None
             if ':' in source:
@@ -684,7 +751,7 @@ if __name__ == '__main__':
                     decsplit = dec_str.split(':')
 
                     rah, ram, ras = 0.0, 0.0, 0.0
-                    rah= float(rasplit[0])
+                    rah = float(rasplit[0])
                     if len(rasplit) >= 2:
                         ram = float(rasplit[1])
                     if len(rasplit) >= 3:
@@ -747,8 +814,13 @@ if __name__ == '__main__':
                                       language=fchart3.LABELi18N,
                                       lm_stars=settings.parser.limit_magnitude_stars,
                                       lm_deepsky=settings.parser.limit_magnitude_deepsky)
-                engine.set_configuration(_create_engine_configuration(config_file))
-                engine.set_field(ra, dec, np.deg2rad(settings.parser.fieldsize)/2.0)
+                cfg = _create_engine_configuration(config_file)
+                engine.set_configuration(cfg)
+
+                dt_utc = settings.parser.dt
+                phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
+
+                engine.set_field(phi, theta, np.deg2rad(settings.parser.fieldsize)/2.0)
                 caption = cat + ' ' + name
 
                 if settings.parser.caption is not None:
@@ -763,7 +835,9 @@ if __name__ == '__main__':
                     showing_dsos = [showing_dso]
                 tmp = time()-tm
                 print(_("Started in : {} ms".format(tmp)))
-                engine.make_map(used_catalogs, settings.parser.dt, showing_dsos=showing_dsos, extra_positions=settings.extra_positions_list)
+
+                extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
+                engine.make_map(used_catalogs, settings.parser.dt, showing_dsos=showing_dsos, extra_positions=extra_pos)
             else:
                 print(_('object not found, try appending an A or a B'))
     tmp = time()-tm
