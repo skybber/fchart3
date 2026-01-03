@@ -40,8 +40,8 @@ import fchart3
 
 from fchart3.config_loader import ConfigurationLoader, CoordSystem
 from fchart3.solar_system import get_solsys_bodies, get_planet_moons
-from fchart3.astrocalc import hms2rad, dms2rad, rad2hms, rad2dms
-from fchart3.skymap_engine import SkymapEngine,LABELi18N
+from fchart3.astrocalc import hms2rad, dms2rad
+from fchart3.skymap_engine import SkymapEngine
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics.graphics_cairo import CairoDrawing
@@ -485,7 +485,6 @@ def _create_engine_configuration(config_file = None):
     if config_file:
         config_loader = ConfigurationLoader(config_file)
         config_loader.load_config(config)
-
 
     # 3. override from command line
     if settings.parser.show_star_labels is not None:
