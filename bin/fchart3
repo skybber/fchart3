@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 #    fchart draws beautiful deepsky charts in vector formats
+#    fchart3 CLI enhancements: horizontal coordinate input parsing
 #    Copyright (C) 2005-2025 fchart authors
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -21,6 +22,8 @@ import gettext
 import os
 
 import math
+from dataclasses import dataclass
+from enum import Enum
 
 uilanguage=os.environ.get('fchart3lang')
 try:
@@ -62,6 +65,136 @@ GNU General Public License (GPL) version 2. For details see the LICENSE
 file distributed with the software. This is free software, and you are
 welcome to redistribute it under certain conditions as specified in the
 LICENSE file."""))
+
+
+
+class ParsedCoordType(str, Enum):
+    """Coordinate type of a parsed CLI position."""
+    EQUATORIAL = "equatorial"   # RA/Dec
+    HORIZONTAL = "horizontal"   # Az/Alt
+
+
+@dataclass(frozen=True)
+class ParsedPosition:
+    """Parsed position in radians; meaning depends on coord_type."""
+    coord_type: ParsedCoordType
+    c1_rad: float  # RA or Az
+    c2_rad: float  # Dec or Alt
+
+
+def _parse_sexagesimal(value: str, *, is_hours: bool) -> float:
+    """
+    Parse sexagesimal or decimal string into radians.
+    - is_hours=True: interpret as hours (RA-like), convert via *15 deg.
+    - is_hours=False: interpret as degrees (Dec/Az/Alt-like).
+    Accepts:
+      "12", "12.5", "12:30", "12:30:15.5"
+      With sign for degrees: "+12:30", "-12.5"
+    """
+    s = value.strip()
+    if not s:
+        raise ValueError("Empty coordinate component")
+
+    sign = 1.0
+    if s[0] in "+-":
+        if s[0] == "-":
+            sign = -1.0
+        s = s[1:].strip()
+
+    parts = s.split(":")
+    try:
+        nums = [float(p) for p in parts if p != ""]
+    except ValueError as e:
+        raise ValueError(f"Invalid coordinate component '{value}'") from e
+
+    if len(nums) == 0:
+        raise ValueError(f"Invalid coordinate component '{value}'")
+    deg_or_hours = nums[0]
+    if len(nums) >= 2:
+        deg_or_hours += nums[1] / 60.0
+    if len(nums) >= 3:
+        deg_or_hours += nums[2] / 3600.0
+
+    deg_or_hours *= sign
+    if is_hours:
+        # hours -> degrees -> radians
+        return math.radians(deg_or_hours * 15.0)
+    return math.radians(deg_or_hours)
+
+
+def _strip_coord_prefix(c1: str):
+    """
+    Detect coordinate prefix on first component.
+    Default is equatorial if no prefix is present.
+    Supported:
+      h:, hor:, altaz:  => horizontal (Az/Alt in degrees)
+      e:, eq:, radec:   => equatorial (RA in hours, Dec in degrees)
+    Returns: (coord_type, c1_without_prefix)
+    """
+    s = c1.strip()
+    low = s.lower()
+    for p in ("h:", "hor:", "altaz:", "azalt:", "hz:"):
+        if low.startswith(p):
+            return ParsedCoordType.HORIZONTAL, s[len(p):].strip()
+    for p in ("e:", "eq:", "radec:"):
+        if low.startswith(p):
+            return ParsedCoordType.EQUATORIAL, s[len(p):].strip()
+    return ParsedCoordType.EQUATORIAL, s
+
+
+def _parse_coord_pair(c1_raw: str, c2_raw: str) -> ParsedPosition:
+    """
+    Parse a coordinate pair from CLI.
+    - Default: equatorial (RA/Dec)
+    - Horizontal requires prefix on the first component (h:/hor:/altaz:)
+    Returns radians.
+    """
+    coord_type, c1 = _strip_coord_prefix(c1_raw)
+    c2 = c2_raw.strip()
+    if coord_type == ParsedCoordType.EQUATORIAL:
+        ra_rad = _parse_sexagesimal(c1, is_hours=True)
+        dec_rad = _parse_sexagesimal(c2, is_hours=False)
+        return ParsedPosition(coord_type, ra_rad, dec_rad)
+    else:
+        az_rad = _parse_sexagesimal(c1, is_hours=False)
+        alt_rad = _parse_sexagesimal(c2, is_hours=False)
+        # Normalize azimuth to [0, 2*pi)
+        az_rad = az_rad % (2.0 * math.pi)
+        return ParsedPosition(coord_type, az_rad, alt_rad)
+
+
+def _try_parse_source_position(source: str):
+    """
+    Try to parse a source string in the form:
+      "<c1>,<c2>[,<caption>[,<...>]]"
+    c1/c2 are either RA/Dec (default) or Az/Alt when prefixed with h:.
+    Returns: (ParsedPosition, caption_str)
+    Raises ValueError if it doesn't look like a position spec.
+    """
+    if "," not in source:
+        raise ValueError("No comma => not a position spec")
+    parts = [p.strip() for p in source.split(",")]
+    if len(parts) < 2:
+        raise ValueError("Not enough components for a position spec")
+    pos = _parse_coord_pair(parts[0], parts[1])
+    caption = ",".join(parts[2:]).strip() if len(parts) > 2 else ""
+    return pos, caption
+
+
+def _parse_cross_mark(mark: str):
+    """
+    Parse -x argument:
+      "<c1>,<c2>[,<label>[,<labelpos>]]"
+    Supports same prefixes as source positions (h:/hor:/altaz:).
+    Returns: (ParsedPosition, label, labelpos)
+    """
+    parts = [p.strip() for p in mark.split(",")]
+    if len(parts) < 2:
+        raise ValueError("option -x needs at least two coordinates: -x \"c1,c2[,label[,pos]]\"")
+    pos = _parse_coord_pair(parts[0], parts[1])
+    label = parts[2].strip() if len(parts) >= 3 else ""
+    labelpos = parts[3].strip() if len(parts) >= 4 and parts[3].strip() else "r"
+    return pos, label, labelpos
 
 
 def _get_lst_rad(dt_utc: datetime, lon_deg: float) -> float:
@@ -109,16 +242,46 @@ def _fieldcentre_for_engine(ra_rad: float, dec_rad: float, config: EngineConfigu
     return az, alt, dt_utc  # IMPORTANT ORDER
 
 
+def _fieldcentre_for_engine_from_position(pos: ParsedPosition, config: EngineConfiguration, dt_utc: datetime):
+    """
+    Returns (phi, theta, dt_utc) for engine.set_field() from a parsed position.
+    - If pos is equatorial: behaves like current RA/Dec logic (convert if horizontal engine)
+    - If pos is horizontal: allowed only when engine is horizontal; used directly as (az, alt)
+    """
+    if pos.coord_type == ParsedCoordType.EQUATORIAL:
+        return _fieldcentre_for_engine(pos.c1_rad, pos.c2_rad, config, dt_utc)
+
+    # Horizontal position input
+    if config.coord_system != CoordSystem.HORIZONTAL:
+        raise RuntimeError("Horizontal (h:) position can be used only with --coord-system horizontal.")
+    if config.observer_lat_deg is None or config.observer_lon_deg is None:
+        raise RuntimeError("Horizontal mode needs observer_lat_deg/observer_lon_deg (CLI or config).")
+    if dt_utc is None:
+        dt_utc = datetime.now(timezone.utc)
+    return pos.c1_rad, pos.c2_rad, dt_utc
+
+
 def _convert_extra_positions(extra_positions, config: EngineConfiguration, dt_utc: datetime):
-    """Convert -x extra positions from RA/Dec to engine coords when horizontal."""
+    """Convert extra positions to engine coords. Keeps h: directly in horizontal mode."""
     if not extra_positions:
         return extra_positions
     if config.coord_system == CoordSystem.EQUATORIAL:
-        return extra_positions
-
+        # In equatorial mode, only equatorial marks are supported (no alt/az -> ra/dec inversion here).
+        for item in extra_positions:
+            pos = item[0]
+            if isinstance(pos, ParsedPosition) and pos.coord_type == ParsedCoordType.HORIZONTAL:
+                raise RuntimeError("Horizontal (h:) -x marks require --coord-system horizontal.")
+        # Convert to old format [ra, dec, label, labelpos] for engine
+        out_eq = []
+        for pos, label, labelpos in extra_positions:
+            out_eq.append([pos.c1_rad, pos.c2_rad, label, labelpos])
+        return out_eq
     out = []
-    for rax, decx, label, labelpos in extra_positions:
-        phi, theta, dt_utc = _fieldcentre_for_engine(rax, decx, config, dt_utc)
+    for pos, label, labelpos in extra_positions:
+        if pos.coord_type == ParsedCoordType.HORIZONTAL:
+            phi, theta, dt_utc = _fieldcentre_for_engine_from_position(pos, config, dt_utc)
+        else:
+            phi, theta, dt_utc = _fieldcentre_for_engine(pos.c1_rad, pos.c2_rad, config, dt_utc)
         out.append([phi, theta, label, labelpos])
     return out
 
@@ -160,7 +323,9 @@ class RuntimeSettings:
                        - NGC891, NgC891, n891 or 891 for NGC objects
                        - IC1396, i1396, iC1396, I1396 for IC objects
                        - m110, M3 for Messier objects
-                       - \"9:35:00.8,-34:15:33,SomeCaption\" for other positions
+                       - \"9:35:00.8,-34:15:33,SomeCaption\" for other positions (RA,Dec)
+                       - \"h:180:00:00,45:00:00,SomeCaption\" for horizontal positions (Az,Alt; degrees)
+                         (also accepts decimal degrees: \"h:180.5,45.25,SomeCaption\")
 
                        There is one special sourcename, which is \"allmessier\". When this name
                        is encountered, fchart3 dumps maps of all messier objects to the output
@@ -213,7 +378,8 @@ class RuntimeSettings:
 
         argumentparser.add_argument('-x', '--add-cross', dest='cross_marks', nargs='?', action='append',
                                     help='Add a cross to the map at a specified position. The format of the argument for this option is: ' + \
-                                         '\"rah:ram:ras,+/-decd:decm:decs,label,labelposition\". For example: -x\"20:35:25.4,+60:07:17.7,SN,t\" for ' + \
+                                         '\"c1,c2,label,labelposition\" where c1/c2 are RA,Dec by default; use prefix h: for Az,Alt. ' + \
+                                         'Example (equatorial): -x\"20:35:25.4,+60:07:17.7,SN,t\". Example (horizontal): -x\"h:180,45,SN,t\". ' + \
                                          'the supernova sn2004et in NGC 6946. The label position can be \'t\' for top, \'b\' for bottom, \'l\' for ' + \
                                          'left, or \'r\' for right. The label and label position may be omitted.')
 
@@ -342,8 +508,10 @@ class RuntimeSettings:
                                     help='Show Flamsteed designations without constellation prefix.')
         argumentparser.add_argument('--font-style-dso', dest='font_style_dso', default=None, help='DSO labels font style. [italic, bold]')
 
-        argumentparser.add_argument('--legend_font_scale', dest='legend_font_scale', type=float, default=None,
+        argumentparser.add_argument('--legend-font-scale', dest='legend_font_scale', type=float, default=None,
                                     help='Scale of the font used in the legend relative to the chart font size.')
+        argumentparser.add_argument('--grid-font-scale', dest='grid_font_scale', type=float, default=None,
+                                    help='Scale of the font used for grid labels relative to the chart font size.')
 
         argumentparser.add_argument('--star_mag_shift', dest='star_mag_shift', type=float, default=None,
                                     help='Enlarge star symbols by given magnitude.')
@@ -399,41 +567,12 @@ class RuntimeSettings:
 
         if self.parser.cross_marks:
             for mark in self.parser.cross_marks:
-                data = mark.split(',')
-                if len(data) >= 2:
-                    ra_str, dec_str = data[0:2]
-                    label_str = ''
-                    label_pos = 'r'
-                    ra_str = ra_str.lstrip().rstrip()
-                    dec_str = dec_str.lstrip().rstrip()
-                    if len(data) >= 3:
-                        label_str = data[2].lstrip().rstrip()
-
-                    if len(data) >= 4:
-                        label_pos = data[3].rstrip().lstrip()
-
-                    rasplit = ra_str.split(':')
-                    decsplit = dec_str.split(':')
-
-                    rah, ram, ras = 0.0, 0.0, 0.0
-                    rah= float(rasplit[0])
-                    if len(rasplit) >= 2:
-                        ram = float(rasplit[1])
-                    if len(rasplit) >= 3:
-                        ras = float(rasplit[2])
-
-                    decd, decm, decs, sign = 0.0, 0.0, 0.0, 1
-                    decd= abs(float(decsplit[0]))
-                    if decsplit[0][0] == '-':
-                        sign = -1
-                    if len(decsplit) >= 2:
-                        decm = float(decsplit[1])
-                    if len(decsplit) >= 3:
-                        decs = float(decsplit[2])
-                    rax, decx = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
-                    self.extra_positions_list.append([rax,decx,label_str,label_pos])
-                else:
-                    print(_('option -x needs three part argument, separated by comma\'s: -x "ra,dec,label"'))
+                try:
+                    pos, label_str, label_pos = _parse_cross_mark(mark)
+                    # Store as (ParsedPosition, label, labelpos); later converted to engine coordinates.
+                    self.extra_positions_list.append([pos, label_str, label_pos])
+                except Exception as e:
+                    print(_('option -x parsing error: {}'.format(e)))
                     sys.exit(-1)
 
 
@@ -632,12 +771,16 @@ def _create_engine_configuration(config_file=None):
         config.font_size = settings.parser.font_size
     if settings.parser.legend_font_scale is not None:
         config.legend_font_scale = settings.parser.legend_font_scale
+    if settings.parser.grid_font_scale is not None:
+        config.grid_font_scale = settings.parser.grid_font_scale
     if settings.parser.star_mag_shift is not None:
         config.star_mag_shift = settings.parser.star_mag_shift
     if settings.parser.bayer_label_font_scale is not None:
         config.bayer_label_font_scale = settings.parser.bayer_label_font_scale
     if settings.parser.font_style_bayer is not None:
         config.bayer_label_font_style = _convert_font_style(settings.parser.font_style_bayer)
+    if settings.parser.flamsteed_label_font_scale is not None:
+        config.flamsteed_label_font_scale = settings.parser.flamsteed_label_font_scale
     if settings.parser.font_style_flamsteed is not None:
         config.flamsteed_label_font_style = _convert_font_style(settings.parser.font_style_flamsteed)
     if settings.parser.font_style_dso is not None:
@@ -756,9 +899,9 @@ if __name__ == '__main__':
         print(_('   Extra data directory: {}'.format(settings.parser.extra_data_dir)))
 
     for object in settings.extra_positions_list:
-        rax, decx, label, labelpos = object
+        pos, label, labelpos = object
         #print(label,':', rad2hms(rax), rad2dms(decx))
-        print(_('{0}: rad2hms({1}), rad2dms({2})'.format(label, rax, decx)))
+        print(_('{0}: ({1}) c1={2} rad, c2={3} rad'.format(label, pos.coord_type, pos.c1_rad, pos.c2_rad)))
 
     landscape = None
 
@@ -789,6 +932,7 @@ if __name__ == '__main__':
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
+                # Messier objects are always RA/Dec
                 phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
 
                 engine.set_field(phi, theta, np.deg2rad(settings.fieldsize)/2.0, "",
@@ -806,58 +950,26 @@ if __name__ == '__main__':
                 engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, extra_positions=extra_pos, landscape=landscape)
         else:
             showing_dso = None
-            if ':' in source:
-                data = source.split(',')
-                if len(data) >= 3:
-                    ra_str, dec_str = data[0:2]
-                    caption_str = ''
-                    label_pos = 'r'
-                    ra_str = ra_str.lstrip().rstrip()
-                    dec_str = dec_str.lstrip().rstrip()
-                    if len(data) >= 3:
-                        label_str = data[2].lstrip().rstrip()
-
-                    if len(data) >= 4:
-                        label_pos = data[3].rstrip().lstrip()
-
-                    rasplit = ra_str.split(':')
-                    decsplit = dec_str.split(':')
-
-                    rah, ram, ras = 0.0, 0.0, 0.0
-                    rah = float(rasplit[0])
-                    if len(rasplit) >= 2:
-                        ram = float(rasplit[1])
-                    if len(rasplit) >= 3:
-                        ras = float(rasplit[2])
-
-                    decd, decm, decs, sign = 0.0, 0.0, 0.0, 1
-                    decd = abs(float(decsplit[0]))
-                    if decsplit[0][0] == '-':
-                        sign = -1
-                    if len(decsplit) >= 2:
-                        decm = float(decsplit[1])
-                    if len(decsplit) >= 3:
-                        decs = float(decsplit[2])
-                    ra, dec = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
-                    cat = ''
-                    name = ','.join(data[2:])
-                    filename = settings.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
-                else:
-                    print(_('Position specification needs three part argument, separated by commas: "ra,dec,caption"'))
-                    sys.exit(-1)
-            else:
+            parsed_pos = None
+            cat = ''
+            name = ''
+            try:
+                parsed_pos, caption = _try_parse_source_position(source)
+                # For compatibility with old behavior: if caption is empty, use a generic filename stem.
+                name = caption if caption else "position"
+                filename = settings.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
+            except Exception:
                 showing_dso, cat, name = used_catalogs.lookup_dso(source)
                 if showing_dso:
-                    ra = showing_dso.ra
-                    dec = showing_dso.dec
+                    # DSO catalogue positions are always RA/Dec
+                    parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, showing_dso.ra, showing_dso.dec)
                 else:
-                    ra = 1
-                    dec = 0
+                    parsed_pos = None
 
             print('')
             print(cat, name)
 
-            if ra >= 0.0:
+            if parsed_pos is not None:
                 artist = None
                 if settings.parser.output_file:
                     filename = settings.parser.output_file
@@ -890,7 +1002,7 @@ if __name__ == '__main__':
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
-                phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
+                phi, theta, dt_utc = _fieldcentre_for_engine_from_position(parsed_pos, cfg, dt_utc)
 
                 engine.set_field(phi, theta, np.deg2rad(settings.fieldsize)/2.0)
                 caption = cat + ' ' + name

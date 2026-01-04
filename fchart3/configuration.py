@@ -1,5 +1,5 @@
 #    fchart3 draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-2025 fchart3 authors
+#    Copyright (C) 2005-2026 fchart3 authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -64,6 +64,7 @@ DEFAULT_BAYER_LABEL_FONT_SCALE = 1.2
 DEFAULT_FLAMSTEED_LABEL_FONT_SCALE = 0.9
 DEFAULT_OUTLINED_DSO_LABEL_FONT_SCALE = 1.1
 DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE = 1.0
+DEFAULT_GRID_FONT_SCALE = 1.1
 DEFAULT_CARDINAL_DIRECTIONS_FONT_SCALE = 1.3
 DEFAULT_CARDINAL_DIRECTIONS_COLOR = (0.8, 0.2, 0.102)
 
@@ -142,6 +143,7 @@ class EngineConfiguration:
         self._grid_linewidth = DEFAULT_GRID_LINEWIDTH
         self._highlight_color = DEFAULT_DSO_HIGHLIGHT_COLOR
         self._highlight_label_font_scale = DEFAULT_HIGHLIGHT_LABEL_FONT_SCALE
+        self._grid_font_scale = DEFAULT_GRID_FONT_SCALE
         self._highlight_linewidth = DEFAULT_HIGHLIGHT_LINEWIDTH
         self._horizon_color = DEFAULT_HORIZONT_COLOR
         self._horizon_linewidth = DEFAULT_HORIZONT_LINEWIDTH
@@ -520,6 +522,14 @@ class EngineConfiguration:
     @highlight_label_font_scale.setter
     def highlight_label_font_scale(self, value):
         self._highlight_label_font_scale = value
+
+    @property
+    def grid_font_scale(self):
+        return self._grid_font_scale
+
+    @grid_font_scale.setter
+    def grid_font_scale(self, value):
+        self._grid_font_scale = value
 
     @property
     def highlight_linewidth(self):

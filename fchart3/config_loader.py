@@ -1,5 +1,5 @@
 #    fchart3 draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-2025 fchart3 authors
+#    Copyright (C) 2005-2026 fchart3 authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ FLOAT_ITEMS = [
     'flamsteed_label_font_scale',
     'outlined_dso_label_font_scale',
     'highlight_label_font_scale',
+    'grid_font_scale',
     'cardinal_directions_font_scale',
 
     # misc numeric
@@ -143,6 +144,8 @@ BOOLEAN_ITEMS = [
     'show_enhanced_milky_way_10k',
     'show_enhanced_milky_way_30k',
     'show_nebula_outlines',
+
+    'show_solar_system',
 
     'show_horizon',
 

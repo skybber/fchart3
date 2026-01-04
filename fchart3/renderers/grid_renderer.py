@@ -1,5 +1,5 @@
 #    fchart3 draws beautiful deepsky charts in vector formats
-#    Copyright (C) 2005-2025 fchart3 authors
+#    Copyright (C) 2005-2026 fchart3 authors
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,11 @@ EPS = 1e-9
 class GridRenderer(BaseRenderer):
     def draw(self, ctx, state):
         cfg = ctx.cfg
+        gfx = ctx.gfx
+
+        fh = cfg.grid_font_scale * gfx.gi_default_font_size
+        gfx.set_font(gfx.gi_font, fh)
+
         if cfg.show_equatorial_grid:
             self.draw_grid_equatorial(ctx)
 
