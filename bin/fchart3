@@ -462,7 +462,7 @@ def _convert_font_style(font_style):
     return FontStyle.NORMAL
 
 
-def _create_engine_configuration(config_file = None):
+def _create_engine_configuration(config_file=None):
     config = EngineConfiguration()
 
     # 1. sets defaults
@@ -477,6 +477,7 @@ def _create_engine_configuration(config_file = None):
     config.show_coords_legend = False
     config.show_field_border = False
     config.show_equatorial_grid = False
+    config.show_horizontal_grid = False
     config.show_constellation_shapes = True
     config.show_constellation_borders = True
     config.show_deepsky = True
@@ -500,7 +501,6 @@ def _create_engine_configuration(config_file = None):
     # 3. override from command line
 
     # This is a bit awkward: we cross-load also an own property into the engine settings. But I don't see another path ATM
-
     if config.fieldsize is not None:
         print(f"Setting fieldsize from config file: {config.fieldsize}")
         settings.fieldsize = config.fieldsize
@@ -549,6 +549,8 @@ def _create_engine_configuration(config_file = None):
         config.show_field_border = settings.parser.show_field_border
     if settings.parser.show_equatorial_grid is not None:
         config.show_equatorial_grid = settings.parser.show_equatorial_grid
+    if settings.parser.show_horizontal_grid is not None:
+        config.show_horizontal_grid = settings.parser.show_horizontal_grid
     if settings.parser.show_constellation_shapes is not None:
         config.show_constellation_shapes = settings.parser.show_constellation_shapes
     if settings.parser.show_constellation_borders is not None:
