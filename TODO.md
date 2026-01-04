@@ -11,3 +11,4 @@
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] Optionally mask/cut objects below horizon.
 - [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).
+- [ ] Add requirements.txt
