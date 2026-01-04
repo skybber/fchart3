@@ -147,10 +147,14 @@ class RuntimeSettings:
     def __init__(self):
         self.extra_positions_list = []
         self.fieldcentre = (-1, -1)
+        self.fieldsize = 15.0
+        self.limit_magnitude_stars = 12.0
+        self.limit_magnitude_deepsky = 12.0
+        self.output_dir = './'
         self.parse_commandline()
 
     def parse_commandline(self):
-        argumentparser = argparse.ArgumentParser(description='fchart',
+        argumentparser = argparse.ArgumentParser(description='fchart3',
               formatter_class=argparse.RawTextHelpFormatter,
               epilog=textwrap.dedent('''\
                     Sourcenames:
@@ -161,12 +165,12 @@ class RuntimeSettings:
                        - \"9:35:00.8,-34:15:33,SomeCaption\" for other positions
 
                        There is one special sourcename, which is \"allmessier\". When this name
-                       is encountered, fchart dumps maps of all messier objects to the output
+                       is encountered, fchart3 dumps maps of all messier objects to the output
                        directory.
                     ''')
               )
 
-        argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', default='./',
+        argumentparser.add_argument('-o', '--output-dir', dest='output_dir', nargs='?', action='store', #default='./',
                                     help='Specify the output directory (default: current directory)')
 
         argumentparser.add_argument('-f', '--output-file', dest='output_file', nargs='?', action='store',
@@ -175,21 +179,21 @@ class RuntimeSettings:
                                          'Supported formats/extensions are pdf, png, and svg.')
 
         argumentparser.add_argument('-config', '--config-file', dest='config_file', nargs='?', action='store',
-                                    help='Specify name of the configuration file ndistributed with fchart3 or path to custom config file. (default=default)')
+                                    help='Specify name of the configuration file distributed with fchart3 or path to custom config file. (default=default)')
 
         argumentparser.add_argument('--extra-data-dir', dest='extra_data_dir', nargs='?', action='store',
                                     help='Path to extra data directory containing Stellarium star catalogues.')
 
-        argumentparser.add_argument('-limdso', dest='limit_magnitude_deepsky', nargs='?', action='store', default=12.0, type=float,
+        argumentparser.add_argument('-limdso', '--limit-dso', dest='limit_magnitude_deepsky', nargs='?', action='store', type=float,
                                     help='Limiting magnitude for deep sky objects (default: 12.0)')
-        argumentparser.add_argument('-limstar', dest='limit_magnitude_stars', nargs='?', action='store', default=12.0, type=float,
+        argumentparser.add_argument('-limstar', '--limit-star', dest='limit_magnitude_stars', nargs='?', action='store', type=float,
                                     help='Limiting magnitude for stars. (Default: 12.0)')
-        argumentparser.add_argument('-width', dest='width', nargs='?', action='store', default=180.0, type=float,
+        argumentparser.add_argument('-width', '--width', dest='width', nargs='?', action='store', default=180.0, type=float,
                             help='Width of the drawing area in millimeters.')
-        argumentparser.add_argument('-height', dest='height', nargs='?', action='store', default=270.0, type=float,
+        argumentparser.add_argument('-height', '--height', dest='height', nargs='?', action='store', default=270.0, type=float,
                                     help='Height of the drawing area in millimeters.')
-        argumentparser.add_argument('-fieldsize',
-                                    dest='fieldsize', nargs='?', action='store', default=7.0, type=float,
+        argumentparser.add_argument('-fieldsize', '--fieldsize',
+                                    dest='fieldsize', nargs='?', action='store', type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
 
         argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
@@ -487,6 +491,39 @@ def _create_engine_configuration(config_file = None):
         config_loader.load_config(config)
 
     # 3. override from command line
+
+    # This is a bit awkward: we cross-load also an own property into the engine settings. But I don't see another path ATM
+
+    if config.fieldsize is not None:
+        print(f"Setting fieldsize from config file: {config.fieldsize}")
+        settings.fieldsize = config.fieldsize
+    else:
+        print(f"fieldsize from config file?: {config.fieldsize}")
+    if settings.parser.fieldsize is not None:
+        print(f"Setting fieldsize from command line: {settings.parser.fieldsize}")
+        settings.fieldsize = settings.parser.fieldsize
+
+    if config.limit_stars is not None:
+        print(f"Setting limstar from config file: {config.limit_stars}")
+        settings.limit_magnitude_stars = config.limit_stars
+    if settings.parser.limit_magnitude_stars is not None:
+        print(f"Setting limstar from command line: {settings.parser.limit_magnitude_stars}")
+        settings.limit_magnitude_stars = settings.parser.limit_magnitude_stars
+
+    if config.limit_deepsky is not None:
+        print(f"Setting limdso from config file: {config.limit_deepsky}")
+        settings.limit_magnitude_deepsky = config.limit_deepsky
+    if settings.parser.limit_magnitude_deepsky is not None:
+        print(f"Setting limdso from command line: {settings.parser.limit_magnitude_deepsky}")
+        settings.limit_magnitude_deepsky = settings.parser.limit_magnitude_deepsky
+
+    if config.output_dir is not None:
+        print(f"Setting output_dir from config file: {config.output_dir}")
+        settings.output_dir = config.output_dir
+    if settings.parser.output_dir is not None:
+        print(f"Setting output_dir from command line: {settings.parser.output_dir}")
+        settings.output_dir = settings.parser.output_dir
+
     if settings.parser.show_star_labels is not None:
         config.show_star_labels = settings.parser.show_star_labels
     if settings.parser.show_flamsteed is not None:
@@ -649,9 +686,9 @@ if __name__ == '__main__':
     print_version()
 
     # Create output space if necessary
-    if not os.path.exists(settings.parser.output_dir):
-        print(_('Creating directory {}'.format(settings.parser.output_dir)))
-        os.mkdir(settings.parser.output_dir)
+    if not os.path.exists(settings.output_dir):
+        print(_('Creating directory {}'.format(settings.output_dir)))
+        os.mkdir(settings.output_dir)
 
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
 
@@ -671,7 +708,7 @@ if __name__ == '__main__':
 
     used_catalogs = UsedCatalogs(data_dir,
                                  extra_star_data_dir=settings.parser.extra_data_dir,
-                                 limit_magnitude_deepsky=settings.parser.limit_magnitude_deepsky,
+                                 limit_magnitude_deepsky=settings.limit_magnitude_deepsky,
                                  force_messier=settings.parser.force_messier,
                                  force_asterisms=settings.parser.force_asterisms,
                                  force_unknown=settings.parser.force_unknown,
@@ -683,13 +720,16 @@ if __name__ == '__main__':
     nb_used_catalogs   = len(used_catalogs.deeplist)
     print(' {0}/{1} deepsky objects after magnitude/messier selection.'.format(nb_reduced_deeplist,nb_used_catalogs))
 
+    # We must parse the config file here to set fieldsize from config file
+    _ENGINE_CONF = _create_engine_configuration(config_file)
+
     print('Making maps with: ')
     if config_file:
         print( _('   Config file    : {}'.format(config_file)))
-    print(_('   Output dir     : {}'.format(settings.parser.output_dir)))
-    print(_('   Deep sky limit : {}'.format(settings.parser.limit_magnitude_deepsky)))
-    print(_('   Stellar limit  : {}'.format(settings.parser.limit_magnitude_stars)))
-    print(_('   Fieldsize      : {}  degrees'.format(settings.parser.fieldsize)))
+    print(_('   Output dir     : {}'.format(settings.output_dir)))
+    print(_('   Deep sky limit : {}'.format(settings.limit_magnitude_deepsky)))
+    print(_('   Stellar limit  : {}'.format(settings.limit_magnitude_stars)))
+    print(_('   Fieldsize      : {}  degrees'.format(settings.fieldsize)))
     print(_('   Paper width    : {}  mm'.format(settings.parser.width)))
     print(_('   Paper height   : {}  mm'.format(settings.parser.height)))
     print(_('   Force Messier  : {}'.format(settings.parser.force_messier)))
@@ -722,17 +762,17 @@ if __name__ == '__main__':
                 ra  = object.ra
                 dec = object.dec
                 artist = None
-                filename = settings.parser.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
+                filename = settings.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
-                engine = SkymapEngine(artist, language=fchart3.LABELi18N, lm_stars = settings.parser.limit_magnitude_stars)
-                cfg = _create_engine_configuration(config_file)
+                engine = SkymapEngine(artist, language=fchart3.LABELi18N, lm_stars = settings.limit_magnitude_stars)
+                cfg = _ENGINE_CONF
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
                 phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
 
-                engine.set_field(phi, theta, np.deg2rad(settings.parser.fieldsize)/2.0, "",
+                engine.set_field(phi, theta, np.deg2rad(settings.fieldsize)/2.0, "",
                                  mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y)
                 engine.set_caption('M '+str(object.messier))
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
@@ -782,7 +822,7 @@ if __name__ == '__main__':
                     ra, dec = hms2rad(rah, ram, ras), dms2rad(decd, decm, decs, sign)
                     cat = ''
                     name = ','.join(data[2:])
-                    filename = settings.parser.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
+                    filename = settings.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
                 else:
                     print(_('Position specification needs three part argument, separated by commas: "ra,dec,caption"'))
                     sys.exit(-1)
@@ -801,10 +841,10 @@ if __name__ == '__main__':
             if ra >= 0.0:
                 artist = None
                 if settings.parser.output_file:
-                    filename = settings.parser.output_file
+                    filename = settings.output_file
                 else:
                     if filename == '':
-                        filename = settings.parser.output_dir + os.sep + source
+                        filename = settings.output_dir + os.sep + source
                     filename += '.pdf'
                 if filename.endswith('.png'):
                     output_format = 'png'
@@ -826,15 +866,15 @@ if __name__ == '__main__':
                                           output_format)
                 engine = SkymapEngine(artist,
                                       language=fchart3.LABELi18N,
-                                      lm_stars=settings.parser.limit_magnitude_stars,
-                                      lm_deepsky=settings.parser.limit_magnitude_deepsky)
-                cfg = _create_engine_configuration(config_file)
+                                      lm_stars=settings.limit_magnitude_stars,
+                                      lm_deepsky=settings.limit_magnitude_deepsky)
+                cfg = _ENGINE_CONF
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
                 phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
 
-                engine.set_field(phi, theta, np.deg2rad(settings.parser.fieldsize)/2.0)
+                engine.set_field(phi, theta, np.deg2rad(settings.fieldsize)/2.0)
                 caption = cat + ' ' + name
 
                 if settings.parser.caption is not None:

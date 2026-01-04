@@ -19,6 +19,10 @@ from .graphics import FontStyle
 
 from enum import Enum
 
+DEFAULT_OUTPUT_DIR = './'
+DEFAULT_LIMIT_STARS = 12.0
+DEFAULT_LIMIT_DEEPSKY = 12.0
+DEFAULT_FIELDSIZE = 7.0
 
 DEFAULT_CONSTELLATION_LINEWIDTH = 0.3
 DEFAULT_CONSTELLATION_LINE_SPACE = 3
@@ -99,6 +103,10 @@ class CoordSystem(Enum):
 
 class EngineConfiguration:
     def __init__(self):
+        self._fieldsize = DEFAULT_FIELDSIZE
+        self._limit_stars = DEFAULT_LIMIT_STARS
+        self._limit_deepsky = DEFAULT_LIMIT_DEEPSKY
+        self._output_dir = DEFAULT_OUTPUT_DIR
         self._background_color = DEFAULT_BACKGROUND_COLOR
         self._bayer_label_font_scale = DEFAULT_BAYER_LABEL_FONT_SCALE
         self._bayer_label_font_style = FontStyle.NORMAL
@@ -204,6 +212,33 @@ class EngineConfiguration:
         self._observer_lat_deg = None
         self._observer_lon_deg = None
         self._coord_system = CoordSystem.EQUATORIAL
+
+    @ property
+    def fieldsize(self):
+        return self._fieldsize
+    @ fieldsize.setter
+    def fieldsize(self, value):
+        self._fieldsize = value
+
+    @ property
+    def limit_stars(self):
+        return self._limit_stars
+    @ limit_stars.setter
+    def limit_stars(self, value):
+        self._limit_stars = value
+
+    @ property
+    def limit_deepsky(self):
+        return self._limit_deepsky
+    @ limit_deepsky.setter
+    def limit_deepsky(self, value):
+        self._limit_deepsky = value
+    @ property
+    def output_dir(self):
+        return self._output_dir
+    @ output_dir.setter
+    def output_dir(self, value):
+        self._output_dir = value
 
     @property
     def background_color(self):

@@ -289,7 +289,7 @@ class SkymapEngine:
         if self.caption != '':
             font_size = self.get_legend_font_size()
             self.gfx.set_font(self.gfx.gi_font, 1.5*font_size)
-            self.gfx.text_centred(0, -self.drawing_height/2.0*BASE_SCALE + font_size, self.caption)
+            self.gfx.text_centred(0, self.drawing_height/2.0*BASE_SCALE + font_size, self.caption)
 
     def draw_field_border(self):
         if self.cfg.show_field_border:
