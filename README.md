@@ -51,9 +51,43 @@ source venv/bin/activate
 
 # install fchart3
 pip install .
+```
+
+On some systems you may need development packages for Cairo and other libraries (e.g. `libcairo` and `libicu` on Linux) before installing:
+
+E.g. on Ubuntu:
+
+```sudo apt update
+sudo apt install -y python3-dev pkg-config libcairo2-dev build-essential
+```
+Then in your venv:
+```
+pip install -U pip setuptools wheel
+pip install pycairo
+pip install .
+```
+
+
+### Windows
+
+```bash
+git clone https://github.com/skybber/fchart3.git
+cd fchart3
+
+# (optional but recommended)
+python3 -m venv venv
+venv\Scripts\activate
+
+# install fchart3
+pip install .
+
+# run (after activating environment)
+
+python bin\fchart --config my_config.txt NGC7000
+
 ````
 
-> On some systems you may need development packages for Cairo and other libraries (e.g. `libcairo` and `libicu` on Linux) before installing.
+
 
 ## Run
 
@@ -90,6 +124,19 @@ fchart3 -f m39.tikz -width 190 -height 270 -fieldsize 40 -limstar 9 -limdso 9 \
   --hide-map-orientation-legend --hide-map-scale-legend \
   m39
 ```
+
+### Windows
+
+Open command terminal in fcharts3 directory. Activate environment:
+```
+venv\Scripts\activate
+```
+
+Run:
+```
+python bin\fchart3 --config my_config.txt NGC7000
+````
+
 
 ## Data files
 
