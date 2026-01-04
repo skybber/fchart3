@@ -15,9 +15,9 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import math
-
 from .base_renderer import BaseRenderer
+import math
+from ..horizon_landscape import StellariumLandscape
 
 
 CARDINAL_DIRECTIONS = [
@@ -32,12 +32,72 @@ CARDINAL_DIRECTIONS = [
 ]
 
 
+# in your HorizonRenderer module
+
 class HorizonRenderer(BaseRenderer):
     def draw(self, ctx, state):
         if ctx.cfg.show_horizon:
             self.draw_horizon(ctx, state)
 
     def draw_horizon(self, ctx, state):
+        # If a Stellarium polygonal horizon is loaded, draw it. Otherwise fallback.
+        landscape = ctx.landscape
+        if landscape and landscape.polygonal_horizon:
+            self.draw_polygonal_horizon(ctx, state, landscape)
+        else:
+            self.draw_simple_horizon(ctx, state)
+
+    def draw_polygonal_horizon(self, ctx, state, landscape: StellariumLandscape):
+        # English comments.
+        gfx = ctx.gfx
+        cfg = ctx.cfg
+
+        pts = landscape.polygonal_horizon.points
+        if not pts or len(pts) < 2:
+            return
+
+        # Pick horizon line color: prefer Stellarium's horizon_line_color if present,
+        # otherwise use existing cfg.horizon_color.
+        line_rgb = landscape.horizon_line_color if landscape.horizon_line_color else cfg.horizon_color
+
+        gfx.save()
+        gfx.set_linewidth(cfg.horizon_linewidth)
+        gfx.set_solid_line()
+        gfx.set_pen_rgb(line_rgb)
+
+        nzopt = not ctx.transf.is_zoptim()
+
+        x_prev = y_prev = z_prev = None
+        x_first = y_first = z_first = None
+
+        for (az, alt) in pts:
+            x, y, z = ctx.transf.horizontal_to_xyz(az, alt)
+
+            if x_first is None:
+                x_first, y_first, z_first = x, y, z
+
+            if x_prev is not None:
+                # Same visibility rule as original: draw always if not z-optimized,
+                # otherwise only if both endpoints are in front (z > 0).
+                if nzopt or (z_prev > 0 and z > 0):
+                    gfx.line(x_prev, y_prev, x, y)
+
+            x_prev, y_prev, z_prev = x, y, z
+
+        # Close the polyline (optional but typical for horizon loops).
+        if x_prev is not None and x_first is not None:
+            if nzopt or (z_prev > 0 and z_first > 0):
+                gfx.line(x_prev, y_prev, x_first, y_first)
+
+        gfx.restore()
+
+        # Keep cardinal directions the same as before (at alt=0),
+        # or optionally you can project them onto the polygonal horizon
+        # by sampling horizon altitude at that azimuth (later improvement).
+        self.draw_cardinals(ctx, state)
+
+    def draw_simple_horizon(self, ctx, state):
+        # Original implementation moved here unchanged (just renamed).
         gfx = ctx.gfx
         cfg = ctx.cfg
         gfx.save()
@@ -67,6 +127,13 @@ class HorizonRenderer(BaseRenderer):
             x21, y21, z21 = (x22, y22, z22)
 
         gfx.restore()
+
+        self.draw_cardinals(ctx, state)
+
+    def draw_cardinals(self, ctx, state):
+        # Original cardinal label drawing extracted to a method.
+        gfx = ctx.gfx
+        cfg = ctx.cfg
 
         label_fh = cfg.cardinal_directions_font_scale * gfx.gi_default_font_size
         gfx.set_font(gfx.gi_font, label_fh)

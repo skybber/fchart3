@@ -24,7 +24,7 @@ import math
 
 uilanguage=os.environ.get('fchart3lang')
 try:
-    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
+    lang = gettext.translation( 'messages', localedir='locale', languages=[uilanguage])
     lang.install()
     _ = lang.gettext
 except:                  
@@ -47,11 +47,9 @@ from fchart3.configuration import EngineConfiguration
 from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
+from fchart3.horizon_landscape import load_stellarium_landscape
 from datetime import datetime, timezone
 from skyfield.api import load
-
-import gettext
-_ = gettext.gettext
 
 skyfield_ts = load.timescale()
 
@@ -358,6 +356,15 @@ class RuntimeSettings:
                                     choices=['equatorial', 'horizontal'],
                                     default='equatorial',
                                     help='Coordinate system to use: equatorial or horizontal (alt/az).')
+        argumentparser.add_argument('--stellarium-landscape',
+                                    dest='stellarium_landscape_dir',
+                                    nargs='?',
+                                    action='store',
+                                    default=None,
+                                    help='Path to Stellarium landscape directory (contains landscape.ini). '
+                                         'Used to load polygonal horizon and pass it to the renderer.'
+        )
+
         argumentparser.add_argument('--time', dest='dt', type=_parse_time_arg, default=None,
                                     help='Observation time (UTC) in ISO-8601. '
                                          'Examples: 2026-01-02T21:15:00Z, 2026-01-02T21:15:00+01:00, or "now".')
@@ -476,7 +483,7 @@ def _create_engine_configuration(config_file = None):
     config.show_dso_mag = False
     config.show_star_mag = False
     config.show_simple_milky_way = False
-    config.show_enhanced_milky_way = False
+    config.show_enhanced_milky_way_30k = False
     config.show_nebula_outlines = False
     config.show_solar_system = False
     config.flamsteed_numbers_only = False
@@ -635,7 +642,6 @@ def _create_engine_configuration(config_file = None):
         config.dso_label_font_style = _convert_font_style(settings.parser.font_style_dso)
     if settings.parser.flamsteed_numbers_only is not None:
         config.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
-
     if settings.parser.obs_longitude is not None and settings.parser.obs_latitude is not None:
         try:
             config.observer_lon_deg = float(settings.parser.obs_longitude)
@@ -647,6 +653,8 @@ def _create_engine_configuration(config_file = None):
             config.coord_system = CoordSystem(settings.parser.coord_system)
         except Exception:
             pass
+    if settings.parser.stellarium_landscape_dir:
+        config.stellarium_landscape_dir = settings.parser.stellarium_landscape_dir
 
     if config.show_enhanced_milky_way_30k:
         mw_scale_fac = 3.0
@@ -721,7 +729,7 @@ if __name__ == '__main__':
     print(' {0}/{1} deepsky objects after magnitude/messier selection.'.format(nb_reduced_deeplist,nb_used_catalogs))
 
     # We must parse the config file here to set fieldsize from config file
-    _ENGINE_CONF = _create_engine_configuration(config_file)
+    cfg = _create_engine_configuration(config_file)
 
     print('Making maps with: ')
     if config_file:
@@ -750,6 +758,16 @@ if __name__ == '__main__':
         #print(label,':', rad2hms(rax), rad2dms(decx))
         print(_('{0}: rad2hms({1}), rad2dms({2})'.format(label, rax, decx)))
 
+    landscape = None
+
+    if cfg.stellarium_landscape_dir:
+        try:
+            landscape = load_stellarium_landscape(cfg.stellarium_landscape_dir)
+        except Exception as e:
+            print(_('Failed to load Stellarium landscape from {}: {}'
+                    .format(settings.parser.stellarium_landscape_dir, e)))
+
+
     # For all sources...
     for source in settings.parser.sourcelist:
         filename = ''
@@ -766,7 +784,6 @@ if __name__ == '__main__':
                 filename += '.pdf'
                 artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf')
                 engine = SkymapEngine(artist, language=fchart3.LABELi18N, lm_stars = settings.limit_magnitude_stars)
-                cfg = _ENGINE_CONF
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
@@ -784,7 +801,7 @@ if __name__ == '__main__':
                     solsys = None
                     moons = None
 
-                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, extra_positions=extra_pos)
+                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, extra_positions=extra_pos, landscape=landscape)
         else:
             showing_dso = None
             if ':' in source:
@@ -841,7 +858,7 @@ if __name__ == '__main__':
             if ra >= 0.0:
                 artist = None
                 if settings.parser.output_file:
-                    filename = settings.output_file
+                    filename = settings.parser.output_file
                 else:
                     if filename == '':
                         filename = settings.output_dir + os.sep + source
@@ -868,7 +885,6 @@ if __name__ == '__main__':
                                       language=fchart3.LABELi18N,
                                       lm_stars=settings.limit_magnitude_stars,
                                       lm_deepsky=settings.limit_magnitude_deepsky)
-                cfg = _ENGINE_CONF
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
@@ -897,7 +913,7 @@ if __name__ == '__main__':
                 else:
                     solsys = None
                     moons = None
-                engine.make_map(used_catalogs, settings.parser.dt, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos)
+                engine.make_map(used_catalogs, settings.parser.dt, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos, landscape=landscape)
             else:
                 print(_('object not found, try appending an A or a B'))
     tmp = time()-tm

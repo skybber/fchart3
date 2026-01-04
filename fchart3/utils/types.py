@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from typing import Optional, Tuple, Any
 import numpy as np
 
+from ..horizon_landscape import StellariumLandscape
+
 Coord = Tuple[float, float]
 Rect = Tuple[float, float, float, float]
 
@@ -57,6 +59,7 @@ class RenderContext:
     solsys_bodies: Any = None
     planet_moons: Any = None
     trajectory: Any = None
+    landscape: StellariumLandscape = None
 
 
 @dataclass(slots=True)
