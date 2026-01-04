@@ -19,6 +19,10 @@ from .configuration import *
 from .graphics import FontStyle
 
 FLOAT_ITEMS = [
+    'fieldsize',
+    'limit_stars',
+    'limit_deepsky',
+
     # linewidths
     'constellation_linewidth',
     'constellation_border_linewidth',
@@ -148,6 +152,7 @@ BOOLEAN_ITEMS = [
 
 STRING_ITEMS = [
     'font',
+    'output_dir'
 ]
 
 FONT_STYLE_ITEMS = [
