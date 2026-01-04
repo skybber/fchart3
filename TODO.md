@@ -7,6 +7,7 @@
     - Bayer/Flamsteed (e.g., “Alpha Her”, “51 Peg”)
     - 3-letter Greek abbreviations (e.g., “Ups And”)
     - HIP identifiers (e.g., “HIP123456”)
+- [ ] Add Solar system object lookup by name
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] Optionally mask/cut objects below horizon.
 - [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).

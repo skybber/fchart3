@@ -29,6 +29,11 @@ EPS = 1e-9
 class GridRenderer(BaseRenderer):
     def draw(self, ctx, state):
         cfg = ctx.cfg
+        gfx = ctx.gfx
+
+        fh = cfg.grid_font_scale * gfx.gi_default_font_size
+        gfx.set_font(gfx.gi_font, fh)
+
         if cfg.show_equatorial_grid:
             self.draw_grid_equatorial(ctx)
 

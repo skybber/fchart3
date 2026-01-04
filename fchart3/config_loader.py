@@ -47,6 +47,7 @@ FLOAT_ITEMS = [
     'flamsteed_label_font_scale',
     'outlined_dso_label_font_scale',
     'highlight_label_font_scale',
+    'grid_font_scale',
     'cardinal_directions_font_scale',
 
     # misc numeric
@@ -143,6 +144,8 @@ BOOLEAN_ITEMS = [
     'show_enhanced_milky_way_10k',
     'show_enhanced_milky_way_30k',
     'show_nebula_outlines',
+
+    'show_solar_system',
 
     'show_horizon',
 
