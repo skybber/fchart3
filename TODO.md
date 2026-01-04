@@ -12,3 +12,4 @@
 - [ ] Optionally mask/cut objects below horizon.
 - [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).
 - [ ] Add requirements.txt
+- [ ] widget for combined time+position
