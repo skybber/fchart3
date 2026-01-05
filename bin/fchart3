@@ -942,7 +942,7 @@ if __name__ == '__main__':
 
                 if settings.parser.dt and cfg.show_solar_system:
                     solsys = get_solsys_bodies(dt_utc, observer_lat=cfg.observer_lat_deg, observer_lon=cfg.observer_lon_deg, observer_elevation=0.0)
-                    moons = get_planet_moons(dt_utc, maglim=settings.parser.limit_magnitude_stars)
+                    moons = get_planet_moons(dt_utc, maglim=settings.limit_magnitude_stars)
                 else:
                     solsys = None
                     moons = None
@@ -1023,7 +1023,7 @@ if __name__ == '__main__':
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
                 if settings.parser.dt is not None and cfg.show_solar_system:
                     solsys = get_solsys_bodies(dt_utc, observer_lat=cfg.observer_lat_deg, observer_lon=cfg.observer_lon_deg, observer_elevation=0.0)
-                    moons = get_planet_moons(dt_utc, maglim=settings.parser.limit_magnitude_stars)
+                    moons = get_planet_moons(dt_utc, maglim=settings.limit_magnitude_stars)
                 else:
                     solsys = None
                     moons = None
