@@ -49,6 +49,12 @@ class StellariumLandscape:
     # Rotation around Z axis (azimuth rotation), in radians.
     polygonal_rotate_z: float
 
+    # geographical coordinates. These should exist and be used.
+    loc_longitude: Optional[float]
+    loc_latitude: Optional[float]
+    loc_altitude: Optional[int]
+    loc_timezone: Optional[str]
+
 
 def _parse_rgb(value: str) -> Optional[Rgb]:
     # Parse ".15,.45,.05" or "0.15, 0.45, 0.05"
@@ -79,8 +85,10 @@ def _read_polygon_file(path: Path) -> List[Tuple[float, float]]:
     """
     pts: List[Tuple[float, float]] = []
     if not path.exists():
+        print(f"Stellarium horizon file {path} not found. Falling back to Zero horizon.")
         return pts
 
+    print(f"Processing Stellarium horizon file {path}.")
     for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
@@ -115,6 +123,8 @@ def load_stellarium_landscape(landscape_dir: str) -> StellariumLandscape:
     Load Stellarium landscape from a directory containing landscape.ini.
     Cached (LRU) so repeated redraws don't re-parse files.
     """
+    print(f"Loading Stellarium landscape {landscape_dir}.")
+
     base = Path(landscape_dir)
     ini_path = base / "landscape.ini"
 
@@ -139,9 +149,10 @@ def load_stellarium_landscape(landscape_dir: str) -> StellariumLandscape:
 
     polygonal_horizon: Optional[PolygonalHorizon] = None
 
-    if landscape_type == "polygonal":
+    if landscape_type == "polygonal" or cp.get(sec, "polygonal_horizon_list"):
         # polygonal_horizon_list can be "file.txt" or "a.txt, b.txt" etc.
         horizon_list_raw = cp.get(sec, "polygonal_horizon_list", fallback="").strip()
+        print(f"polygonal_horizon_list: {horizon_list_raw}")
         files: List[str] = []
         if horizon_list_raw:
             # Split by comma first, then by whitespace
@@ -167,6 +178,12 @@ def load_stellarium_landscape(landscape_dir: str) -> StellariumLandscape:
         if len(pts_rad) >= 2:
             polygonal_horizon = PolygonalHorizon(points=tuple(pts_rad))
 
+    sec = "location"
+    loc_longitude = float(cp.get(sec, "longitude", fallback=None))
+    loc_latitude = float(cp.get(sec, "latitude", fallback=None))
+    loc_altitude = int(cp.get(sec, "altitude", fallback=None))
+    loc_timezone = cp.get(sec, "timezone", fallback="").strip().lower()
+
     return StellariumLandscape(
         name=name,
         author=author,
@@ -176,4 +193,8 @@ def load_stellarium_landscape(landscape_dir: str) -> StellariumLandscape:
         horizon_line_color=horizon_line_color,
         polygonal_horizon=polygonal_horizon,
         polygonal_rotate_z=rotate_rad,
+        loc_longitude=loc_longitude,
+        loc_latitude=loc_latitude,
+        loc_altitude=loc_altitude,
+        loc_timezone=loc_timezone
     )
