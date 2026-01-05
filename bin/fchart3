@@ -51,6 +51,7 @@ from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
 from fchart3.horizon_landscape import load_stellarium_landscape, StellariumLandscape
+from fchart3.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon
 from datetime import datetime, timezone
 from skyfield.api import load
 
@@ -303,6 +304,69 @@ def _parse_time_arg(value: str) -> datetime:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc)
+
+
+def _search_sky_object(source, settings):
+
+    cat, name, parsed_pos, filename = None, None, None, None
+
+    # Use explicit time if provided, otherwise "now" (UTC) for moving targets.
+    dt_utc = settings.parser.dt
+    if dt_utc is None:
+        dt_utc = datetime.now(timezone.utc)
+
+    # --- Stars (via star_catalog + bsc_hip_map, inspired by StarsRenderer) ---
+    # We intentionally use direct field access (no getattr) as requested.
+    star_catalog = used_catalogs.star_catalog
+    bsc_hip_map = used_catalogs.bsc_hip_map
+    if star_catalog is not None and bsc_hip_map is not None:
+        resolved = resolve_star(source, star_catalog, bsc_hip_map, search_cache)
+        if resolved is not None:
+            cat = "STAR"
+            name = resolved.name
+            parsed_pos = ParsedPosition(
+                ParsedCoordType.EQUATORIAL,
+                resolved.ra_rad,
+                resolved.dec_rad,
+            )
+            filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
+
+    # --- Solar system bodies (Sun/Moon/planets) ---
+    if parsed_pos is None:
+        resolved = resolve_solar_system(
+            source,
+            dt_utc=dt_utc,
+            observer_lat_deg=cfg.observer_lat_deg,
+            observer_lon_deg=cfg.observer_lon_deg,
+        )
+        if resolved is not None:
+            cat = "SOL"
+            name = resolved.name
+            parsed_pos = ParsedPosition(
+                ParsedCoordType.EQUATORIAL,
+                resolved.ra_rad,
+                resolved.dec_rad,
+            )
+            filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
+
+    # --- Planet moons (Io/Europa/...) ---
+    if parsed_pos is None:
+        resolved = resolve_planet_moon(
+            source,
+            dt_utc=dt_utc,
+            maglim=settings.limit_magnitude_stars,
+        )
+        if resolved is not None:
+            cat = "MOON"
+            name = resolved.name
+            parsed_pos = ParsedPosition(
+                ParsedCoordType.EQUATORIAL,
+                resolved.ra_rad,
+                resolved.dec_rad,
+            )
+            filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
+
+    return cat, name, parsed_pos, filename
 
 
 class RuntimeSettings:
@@ -887,6 +951,9 @@ if __name__ == '__main__':
     # We must parse the config file here to set fieldsize from config file
     cfg = _create_engine_configuration(config_file)
 
+    # Cache for search indices (e.g. star label -> HIP) so we don't rebuild per source.
+    search_cache = {}
+
     print('Making maps with: ')
     if config_file:
         print( _('   Config file    : {}'.format(config_file)))
@@ -975,12 +1042,12 @@ if __name__ == '__main__':
                     # DSO catalogue positions are always RA/Dec
                     parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, showing_dso.ra, showing_dso.dec)
                 else:
-                    parsed_pos = None
-
-            print('')
-            print(cat, name)
+                    cat, name, parsed_pos, filename = _search_sky_object(source, settings)
 
             if parsed_pos is not None:
+                print('')
+                print(cat, name)
+
                 artist = None
                 if settings.parser.output_file:
                     filename = settings.parser.output_file

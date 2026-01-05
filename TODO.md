@@ -1,16 +1,18 @@
 - [x] Add requirements.txt
+- [x] Planet, planet moons lookup by name
+- [x] Add star/object lookup by common designations:
+  - Bayer/Flamsteed (e.g., “Alpha Her”, “51 Peg”)
+  - 3-letter Greek abbreviations (e.g., “Ups And”)
+  - HIP identifiers (e.g., “HIP123456”)
  
+
 - [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Refactor switches and add consistent short variants for frequently used options (e.g., -fov, -w, -h, etc.).
 - [ ] Fish-eye projection
 - [ ] Add `-comet` `-track-from` `-track-to` to cmdline
 - [ ] Expose projection selection in CLI/config (discoverability + documented list of supported projections).
-- [ ] Add star/object lookup by common designations:
-    - Bayer/Flamsteed (e.g., “Alpha Her”, “51 Peg”)
-    - 3-letter Greek abbreviations (e.g., “Ups And”)
-    - HIP identifiers (e.g., “HIP123456”)
-- [ ] Add Solar system object lookup by name
-    - Working targets for planets (currently, planet is not in map center)
+- [ ] Add minor planet lookup/target by name
+- [ ] Add comet lookup/target by name
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] Optionally mask/cut objects below horizon.
 - [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).
