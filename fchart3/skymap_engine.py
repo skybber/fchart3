@@ -68,13 +68,26 @@ ts = load.timescale()
 
 
 class SkymapEngine:
-    def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption=''):
+    def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption='',
+                 description='', created=''):
+        """Create a SkymapEngine.
+
+        @param graphics: depends on output (PDF/TikZ/...)
+        @param lm_stars: limiting magnitude for stars
+        @param lm_deepsky: limiting magnitude for deep-sky objects
+        @param caption: Image title (plotted above)
+        @param description: small-letter description in lower left: location, time
+        @param created: small-letter 'signature' below frame in lower right
+        """
+
         self.create_renderers()
         self.gfx = graphics
         self.cfg = EngineConfiguration()
         self.transf = None
 
         self.caption = caption
+        self.description: str = description
+        self.created: str = created
         self.language = language
         self.drawing_width = self.gfx.gi_width
         self.drawing_height = self.gfx.gi_height
@@ -151,6 +164,14 @@ class SkymapEngine:
 
     def set_caption(self, caption):
         self.caption = caption
+
+    def set_description(self, description: str):
+        """Set a one-line description to be shown in small font below the image frame"""
+        self.description = description
+
+    def set_created(self, created: str):
+        """Set a one-line credit signature to be shown in small font in the lower right below the image frame"""
+        self.created = created
 
     def _setup_observer(self, dt):
         t = ts.from_datetime(dt)
@@ -288,10 +309,16 @@ class SkymapEngine:
         return interp_magnitude_to_radius(self.lm_stars, self.star_mag_r_shift, magnitude)
 
     def draw_caption(self):
+        font_size = self.get_legend_font_size()
         if self.caption != '':
-            font_size = self.get_legend_font_size()
-            self.gfx.set_font(self.gfx.gi_font, 1.5*font_size)
+            self.gfx.set_font(self.gfx.gi_font, 1.25*font_size)
             self.gfx.text_centred(0, self.drawing_height/2.0*BASE_SCALE + font_size, self.caption)
+        if self.description != '':
+            self.gfx.set_font(self.gfx.gi_font, 0.5*font_size)
+            self.gfx.text_right(-self.drawing_width/2.0*BASE_SCALE, -self.drawing_height/2.0*BASE_SCALE - 0.5*font_size, self.description)
+        if self.created != '':
+            self.gfx.set_font(self.gfx.gi_font, 0.5*font_size)
+            self.gfx.text_left(self.drawing_width/2.0*BASE_SCALE, -self.drawing_height/2.0*BASE_SCALE - 0.5*font_size, self.created)
 
     def draw_field_border(self):
         if self.cfg.show_field_border:

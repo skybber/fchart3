@@ -71,7 +71,7 @@ class HorizonRenderer(BaseRenderer):
         x_first = y_first = z_first = None
 
         for (az, alt) in pts:
-            x, y, z = ctx.transf.horizontal_to_xyz(az, alt)
+            x, y, z = ctx.transf.horizontal_to_xyz(-az, alt)
 
             if x_first is None:
                 x_first, y_first, z_first = x, y, z

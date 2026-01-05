@@ -50,7 +50,7 @@ from fchart3.configuration import EngineConfiguration
 from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
-from fchart3.horizon_landscape import load_stellarium_landscape
+from fchart3.horizon_landscape import load_stellarium_landscape, StellariumLandscape
 from datetime import datetime, timezone
 from skyfield.api import load
 
@@ -258,7 +258,8 @@ def _fieldcentre_for_engine_from_position(pos: ParsedPosition, config: EngineCon
         raise RuntimeError("Horizontal mode needs observer_lat_deg/observer_lon_deg (CLI or config).")
     if dt_utc is None:
         dt_utc = datetime.now(timezone.utc)
-    return pos.c1_rad, pos.c2_rad, dt_utc
+    # azimuth is counted reversed, internally.
+    return (2.*math.pi - pos.c1_rad), pos.c2_rad, dt_utc
 
 
 def _convert_extra_positions(extra_positions, config: EngineConfiguration, dt_utc: datetime):
@@ -787,6 +788,16 @@ def _create_engine_configuration(config_file=None):
         config.dso_label_font_style = _convert_font_style(settings.parser.font_style_dso)
     if settings.parser.flamsteed_numbers_only is not None:
         config.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
+
+    if settings.parser.stellarium_landscape_dir:
+        config.stellarium_landscape_dir = settings.parser.stellarium_landscape_dir
+        # If a Stellarium horizon was requested, provide long/lat. Can still be overridden by the following CLI args
+        ls=load_stellarium_landscape(config.stellarium_landscape_dir)
+        if ls.loc_longitude is not None:
+            print(f"Setting long={ls.loc_longitude}/lat={ls.loc_latitude} from Stellarium landscape {settings.parser.stellarium_landscape_dir}")
+            config.observer_lon_deg = ls.loc_longitude
+            config.observer_lat_deg = ls.loc_latitude
+
     if settings.parser.obs_longitude is not None and settings.parser.obs_latitude is not None:
         try:
             config.observer_lon_deg = float(settings.parser.obs_longitude)
@@ -798,8 +809,6 @@ def _create_engine_configuration(config_file=None):
             config.coord_system = CoordSystem(settings.parser.coord_system)
         except Exception:
             pass
-    if settings.parser.stellarium_landscape_dir:
-        config.stellarium_landscape_dir = settings.parser.stellarium_landscape_dir
 
     if config.show_enhanced_milky_way_30k:
         mw_scale_fac = 3.0
@@ -891,8 +900,8 @@ if __name__ == '__main__':
     print(_('   Extra points   : {}'.format(len(settings.extra_positions_list))))
     print(_('   Show dso legend: {}'.format(settings.parser.show_dso_legend)))
     print(_('   Coord system   : {}'.format(getattr(settings.parser, "coord_system", None))))
-    print(_('   Obs longitude  : {}'.format(getattr(settings.parser, "obs_longitude", None))))
-    print(_('   Obs latitude   : {}'.format(getattr(settings.parser, "obs_latitude", None))))
+    print(_('   Obs longitude  : {}'.format(cfg.observer_lon_deg)))
+    print(_('   Obs latitude   : {}'.format(cfg.observer_lat_deg)))
     print(_('   Time (UTC)     : {}'.format(getattr(settings.parser, "dt", None))))
 
     if settings.parser.extra_data_dir:
@@ -1011,6 +1020,16 @@ if __name__ == '__main__':
                     caption = settings.parser.caption
                 if caption:
                     engine.set_caption(caption)
+                # Build a description string for location and time.
+                # Note that a Stellarium landscape usually provides long/lat, but we may have overridden it.
+                if dt_utc is not None:
+                    if landscape is not None:
+                        engine.set_description(f"{landscape.name}: L:{cfg.observer_lon_deg} φ:{cfg.observer_lat_deg} {dt_utc}")
+                    else:
+                        engine.set_description(f"Location: L:{cfg.observer_lon_deg} φ:{cfg.observer_lat_deg} {dt_utc}")
+
+                # Add a minimal recognition
+                engine.set_created("Created with fchart3")
 
                 showing_dsos = None
                 if showing_dso:
