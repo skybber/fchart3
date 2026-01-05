@@ -4,8 +4,9 @@
   - Bayer/Flamsteed (e.g., “Alpha Her”, “51 Peg”)
   - 3-letter Greek abbreviations (e.g., “Ups And”)
   - HIP identifiers (e.g., “HIP123456”)
- 
 
+
+- [ ] move DSO search to search_object_utils.py (new TargetType)
 - [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Refactor switches and add consistent short variants for frequently used options (e.g., -fov, -w, -h, etc.).
 - [ ] Fish-eye projection
