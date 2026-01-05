@@ -70,14 +70,14 @@ ts = load.timescale()
 class SkymapEngine:
     def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption='',
                  description='', created=''):
-        """Create a SkymapEngine.
-
-        @param graphics: depends on output (PDF/TikZ/...)
-        @param lm_stars: limiting magnitude for stars
-        @param lm_deepsky: limiting magnitude for deep-sky objects
-        @param caption: Image title (plotted above)
-        @param description: small-letter description in lower left: location, time
-        @param created: small-letter 'signature' below frame in lower right
+        """
+        Create a SkymapEngine.
+        :param graphics: depends on output (PDF/TikZ/...)
+        :param lm_stars: limiting magnitude for stars
+        :param lm_deepsky: limiting magnitude for deep-sky objects
+        :param caption: Image title (plotted above)
+        :param description: small-letter description in lower left: location, time
+        :param created: small-letter 'signature' below frame in lower right
         """
 
         self.create_renderers()
