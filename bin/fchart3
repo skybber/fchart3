@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+ 
 #    fchart draws beautiful deepsky charts in vector formats
 #    fchart3 CLI enhancements: horizontal coordinate input parsing
 #    Copyright (C) 2005-2025 fchart authors
@@ -316,8 +316,10 @@ class RuntimeSettings:
         self.parse_commandline()
 
     def parse_commandline(self):
-        argumentparser = argparse.ArgumentParser(description='fchart3',
+        argumentparser = argparse.ArgumentParser(
+              description='fchart3',
               formatter_class=argparse.RawTextHelpFormatter,
+              add_help=False,
               epilog=textwrap.dedent('''\
                     Sourcenames:
                        Valid sourcenames are for example:
@@ -342,21 +344,21 @@ class RuntimeSettings:
                                          'The image format is defined by the file extension. ' +\
                                          'Supported formats/extensions are pdf, png, and svg.')
 
-        argumentparser.add_argument('-config', '--config-file', dest='config_file', nargs='?', action='store',
+        argumentparser.add_argument('-c', '--config-file', dest='config_file', nargs='?', action='store',
                                     help='Specify name of the configuration file distributed with fchart3 or path to custom config file. (default=default)')
 
-        argumentparser.add_argument('--extra-data-dir', dest='extra_data_dir', nargs='?', action='store',
+        argumentparser.add_argument('-E', '--extra-data-dir', dest='extra_data_dir', nargs='?', action='store',
                                     help='Path to extra data directory containing Stellarium star catalogues.')
 
-        argumentparser.add_argument('-limdso', '--limit-dso', dest='limit_magnitude_deepsky', nargs='?', action='store', type=float,
+        argumentparser.add_argument('-ld', '--limit-dso', dest='limit_magnitude_deepsky', nargs='?', action='store', type=float,
                                     help='Limiting magnitude for deep sky objects (default: 12.0)')
-        argumentparser.add_argument('-limstar', '--limit-star', dest='limit_magnitude_stars', nargs='?', action='store', type=float,
+        argumentparser.add_argument('-ls', '--limit-star', dest='limit_magnitude_stars', nargs='?', action='store', type=float,
                                     help='Limiting magnitude for stars. (Default: 12.0)')
-        argumentparser.add_argument('-width', '--width', dest='width', nargs='?', action='store', default=180.0, type=float,
+        argumentparser.add_argument('-w', '--width', dest='width', nargs='?', action='store', default=180.0, type=float,
                             help='Width of the drawing area in millimeters.')
-        argumentparser.add_argument('-height', '--height', dest='height', nargs='?', action='store', default=270.0, type=float,
+        argumentparser.add_argument('-h', '--height', dest='height', nargs='?', action='store', default=270.0, type=float,
                                     help='Height of the drawing area in millimeters.')
-        argumentparser.add_argument('-fieldsize', '--fieldsize',
+        argumentparser.add_argument('-fov', '--fieldsize',
                                     dest='fieldsize', nargs='?', action='store', type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
 
@@ -371,7 +373,7 @@ class RuntimeSettings:
                                          'of which the magnitude is unknown will also be plotted. This option may clutter some galaxies like M 101 ' + \
                                          'and NGC 4559.')
 
-        argumentparser.add_argument('-lang', '--language', dest='language', nargs='?', action='store', default='en',
+        argumentparser.add_argument('-l', '--language', dest='language', nargs='?', action='store', default='en',
                                     help='Specify the language for the maps, options: \'en\', \'nl\', \'es\' (default: en)')
 
         argumentparser.add_argument('-sc', '--show-catalogs', dest='show_catalogs', nargs='?', action='store',
@@ -384,7 +386,7 @@ class RuntimeSettings:
                                          'the supernova sn2004et in NGC 6946. The label position can be \'t\' for top, \'b\' for bottom, \'l\' for ' + \
                                          'left, or \'r\' for right. The label and label position may be omitted.')
 
-        argumentparser.add_argument('-capt', '--caption', dest='caption', nargs='?', action='store', default=None,
+        argumentparser.add_argument('-p', '--caption', dest='caption', nargs='?', action='store', default=None,
                                     help='Force a specific caption for the maps. All maps will have the same caption.')
 
         argumentparser.add_argument('--hide-star-labels', dest='show_star_labels', action='store_false', default=None,
@@ -445,7 +447,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--show-star-mag', dest='show_star_mag', action='store_true', default=None,
                                     help='Display magnitudes of stars.')
 
-        argumentparser.add_argument('-telrad', '--FOV-telrad', dest='fov_telrad', action='store_true', default=None,
+        argumentparser.add_argument('-ft', '--fov-telrad', dest='fov_telrad', action='store_true', default=None,
                                     help='Show telrad circles at the field of view.')
 
         argumentparser.add_argument('-mx', '--mirror-x', dest='mirror_x', action='store_true', default=None,
@@ -517,11 +519,11 @@ class RuntimeSettings:
         argumentparser.add_argument('--star_mag_shift', dest='star_mag_shift', type=float, default=None,
                                     help='Enlarge star symbols by given magnitude.')
 
-        argumentparser.add_argument('--obs-longitude', dest='obs_longitude', type=float, default=None,
+        argumentparser.add_argument('-L', '--obs-longitude', dest='obs_longitude', type=float, default=None,
                                     help='Observer longitude in degrees (east positive).')
-        argumentparser.add_argument('--obs-latitude', dest='obs_latitude', type=float, default=None,
+        argumentparser.add_argument('-A', '--obs-latitude', dest='obs_latitude', type=float, default=None,
                                     help='Observer latitude in degrees.')
-        argumentparser.add_argument('--coord-system', dest='coord_system',
+        argumentparser.add_argument('-cs', '--coord-system', dest='coord_system',
                                     choices=['equatorial', 'horizontal'],
                                     default='equatorial',
                                     help='Coordinate system to use: equatorial or horizontal (alt/az).')
@@ -534,7 +536,7 @@ class RuntimeSettings:
                                          'Used to load polygonal horizon and pass it to the renderer.'
         )
 
-        argumentparser.add_argument('--time', dest='dt', type=_parse_time_arg, default=None,
+        argumentparser.add_argument('-t', dest='dt', type=_parse_time_arg, default=None,
                                     help='Observation time (UTC) in ISO-8601. '
                                          'Examples: 2026-01-02T21:15:00Z, 2026-01-02T21:15:00+01:00, or "now".')
 
