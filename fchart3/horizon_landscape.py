@@ -149,7 +149,7 @@ def load_stellarium_landscape(landscape_dir: str) -> StellariumLandscape:
 
     polygonal_horizon: Optional[PolygonalHorizon] = None
 
-    if landscape_type == "polygonal" or cp.get(sec, "polygonal_horizon_list"):
+    if landscape_type == "polygonal" or cp.get(sec, "polygonal_horizon_list", fallback=None) is not None:
         # polygonal_horizon_list can be "file.txt" or "a.txt, b.txt" etc.
         horizon_list_raw = cp.get(sec, "polygonal_horizon_list", fallback="").strip()
         print(f"polygonal_horizon_list: {horizon_list_raw}")
@@ -179,8 +179,8 @@ def load_stellarium_landscape(landscape_dir: str) -> StellariumLandscape:
             polygonal_horizon = PolygonalHorizon(points=tuple(pts_rad))
 
     sec = "location"
-    loc_longitude = float(cp.get(sec, "longitude", fallback=None))
-    loc_latitude = float(cp.get(sec, "latitude", fallback=None))
+    loc_longitude = _parse_stel_angle(cp.get(sec, "longitude", fallback=None))
+    loc_latitude = _parse_stel_angle(cp.get(sec, "latitude", fallback=None))
     loc_altitude = int(cp.get(sec, "altitude", fallback=None))
     loc_timezone = cp.get(sec, "timezone", fallback="").strip().lower()
 
@@ -198,3 +198,21 @@ def load_stellarium_landscape(landscape_dir: str) -> StellariumLandscape:
         loc_altitude=loc_altitude,
         loc_timezone=loc_timezone
     )
+
+
+def _parse_stel_angle(angle: str) -> float:
+    """Parse an angle given in any of Stellarium's ways to write angles to config files
+    This can be a regular float, or a string like "+1d23'45"
+    """
+    import re
+    if 'd' in angle:
+        r = re.compile(r'-?\d+')  # Not the best RE, but it should suffice
+        comp = r.findall(angle)
+        d: int = int(comp[0])
+        m: float = math.copysign(float(comp[1]), d)
+        s: float = 0.0
+        if len(comp) > 2:
+            s = math.copysign(float(comp[2]), d)
+        return round((s / 60.0 + m) / 60.0 + d, 5)
+    else:
+        return round(float(angle), 5)
