@@ -1,3 +1,5 @@
+- [x] Add requirements.txt
+ 
 - [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Refactor switches and add consistent short variants for frequently used options (e.g., -fov, -w, -h, etc.).
 - [ ] Fish-eye projection
@@ -8,17 +10,16 @@
     - 3-letter Greek abbreviations (e.g., “Ups And”)
     - HIP identifiers (e.g., “HIP123456”)
 - [ ] Add Solar system object lookup by name
+    - Working targets for planets (currently, planet is not in map center)
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] Optionally mask/cut objects below horizon.
 - [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).
-- [ ] Working targets for planets (currently, planet is not in map center)
 - [ ] describe creation of horizontal maps "View towards west" etc. with --time argument and planets. Moon enlarged with phase figure?
 - [ ] --sidereal-time setting to draw map in horizontal system, optionally with horizon line, without planets
 - [ ] resolve crash when plotting planet target with --show_horizontal_grid 
 - [ ] (describe how to) create asteroid/comet path plots (skyfield, compute ephemeris sequence, draw trail with date marks; comet could show tail icon pointing away from sun)
 - [ ] When plotting in horizontal coordinates, a plotted equatorial grid has its lines clipped within image frame.
 - [ ] Ecliptical and galactical grids/plot orientation
-- [ ] Add requirements.txt
 - [ ] widget for combined time+position
 - [ ] Working targets for planets (currently, planet is not in map center)
 - [ ] describe creation of horizontal maps "View towards west" etc. with --time argument and planets. Moon enlarged with phase figure?
