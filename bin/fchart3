@@ -1020,6 +1020,16 @@ if __name__ == '__main__':
                     caption = settings.parser.caption
                 if caption:
                     engine.set_caption(caption)
+                # Build a description string for location and time.
+                # Note that a Stellarium landscape usually provides long/lat, but we may have overridden it.
+                if dt_utc is not None:
+                    if landscape is not None:
+                        engine.set_description(f"{landscape.name}: L:{cfg.observer_lon_deg} φ:{cfg.observer_lat_deg} {dt_utc}")
+                    else:
+                        engine.set_description(f"Location: L:{cfg.observer_lon_deg} φ:{cfg.observer_lat_deg} {dt_utc}")
+
+                # Add a minimal recognition
+                engine.set_created("Created with fchart3")
 
                 showing_dsos = None
                 if showing_dso:
