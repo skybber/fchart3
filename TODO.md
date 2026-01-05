@@ -24,3 +24,6 @@
 - [ ] When plotting in horizontal coordinates, a plotted equatorial grid has its lines clipped within image frame.
 - [ ] Ecliptical and galactical grids/plot orientation
 - [ ] widget for combined time+position
+- [ ] Refraction, extinction in horizontal maps
+- [ ] Stacked config files: call --config-file several times, each overriding settings from the previous, e.g. process one for colors, one for field-dependent magnitude limits and labeling settings, grid/coord types, dso catalogs, ...
+

@@ -70,14 +70,14 @@ ts = load.timescale()
 class SkymapEngine:
     def __init__(self, graphics, language=LABELi18N, lm_stars=13.8, lm_deepsky=12.5, caption='',
                  description='', created=''):
-        """Create a SkymapEngine.
-
-        @param graphics: depends on output (PDF/TikZ/...)
-        @param lm_stars: limiting magnitude for stars
-        @param lm_deepsky: limiting magnitude for deep-sky objects
-        @param caption: Image title (plotted above)
-        @param description: small-letter description in lower left: location, time
-        @param created: small-letter 'signature' below frame in lower right
+        """
+        Create a SkymapEngine.
+        :param graphics: depends on output (PDF/TikZ/...)
+        :param lm_stars: limiting magnitude for stars
+        :param lm_deepsky: limiting magnitude for deep-sky objects
+        :param caption: Image title (plotted above)
+        :param description: small-letter description in lower left: location, time
+        :param created: small-letter 'signature' below frame in lower right
         """
 
         self.create_renderers()
@@ -190,6 +190,25 @@ class SkymapEngine:
     def make_map(self, used_catalogs, dt=None, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=None, visible_objects=None, transparent=False,
                  landscape=None):
+        """
+        Central drawing function
+
+        :param used_catalogs:
+        :param dt: time specification
+        :param jd: Julian day number
+        :param solsys_bodies:
+        :param planet_moons:
+        :param showing_dsos:
+        :param dso_highlights:
+        :param highlights:
+        :param dso_hide_filter:
+        :param extra_positions:
+        :param hl_constellation:
+        :param trajectory:
+        :param visible_objects:
+        :param transparent: bool set True to not clear the drawing area
+        :param landscape: StellariumLandscape info from Stellarium
+        """
 
         if dt is not None and self.cfg.observer_lat_deg is not None and self.cfg.observer_lon_deg is not None:
             self._setup_observer(dt)
