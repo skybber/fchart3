@@ -19,7 +19,6 @@ import glob
 
 from .astrocalc import *
 from .np_astrocalc import *
-from .star_catalog import *
 from .geodesic_binfile_reader import *
 from .geodesic_grid import *
 
@@ -515,7 +514,7 @@ class GeodesicStarGaiaCatalogComponent:
             self._star_blocks[i] = None
 
 
-class GeodesicStarGaiaCatalog(StarCatalog):
+class GeodesicStarGaiaCatalog():
     """
     Star catalog composed of GeodesicStarGaiaCatalogComponent. Each component represents one level of Geodesic tree.
     """
