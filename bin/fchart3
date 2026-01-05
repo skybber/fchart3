@@ -258,7 +258,8 @@ def _fieldcentre_for_engine_from_position(pos: ParsedPosition, config: EngineCon
         raise RuntimeError("Horizontal mode needs observer_lat_deg/observer_lon_deg (CLI or config).")
     if dt_utc is None:
         dt_utc = datetime.now(timezone.utc)
-    return pos.c1_rad, pos.c2_rad, dt_utc
+    # azimuth is counted reversed, internally.
+    return (2.*math.pi - pos.c1_rad), pos.c2_rad, dt_utc
 
 
 def _convert_extra_positions(extra_positions, config: EngineConfiguration, dt_utc: datetime):
