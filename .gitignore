@@ -62,3 +62,7 @@ target/
 
 # Ephemeris files (skyfield)
 *.bsp
+
+# Comet elements
+CometEls.txt
+cometelements
