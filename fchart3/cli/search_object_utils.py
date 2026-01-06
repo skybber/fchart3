@@ -22,10 +22,11 @@ from enum import Enum
 from typing import Optional, Dict, Tuple, Any
 from datetime import datetime, timezone
 
-from fchart3.solar_system import get_solsys_bodies, get_planet_moons
+from ..solar_system import get_solsys_bodies, get_planet_moons
 
 
 class TargetType(str, Enum):
+    MOON = "moon"
     STAR = "star"
     SOLAR_SYSTEM = "solar_system"
     PLANET_MOON = "planet_moon"

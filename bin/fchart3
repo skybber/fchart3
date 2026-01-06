@@ -51,7 +51,7 @@ from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
 from fchart3.horizon_landscape import load_stellarium_landscape, StellariumLandscape
-from fchart3.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon
+from fchart3.cli.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon
 from datetime import datetime, timezone
 from skyfield.api import load
 
@@ -307,29 +307,30 @@ def _parse_time_arg(value: str) -> datetime:
 
 
 def _search_sky_object(source, settings):
-
-    cat, name, parsed_pos, filename = None, None, None, None
+    dso, cat, name, parsed_pos, filename = None, None, None, None, None
 
     # Use explicit time if provided, otherwise "now" (UTC) for moving targets.
     dt_utc = settings.parser.dt
     if dt_utc is None:
         dt_utc = datetime.now(timezone.utc)
 
+    dso, cat, name = used_catalogs.lookup_dso(source)
+    if dso:
+        # DSO catalogue positions are always RA/Dec
+        parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, dso.ra, dso.dec)
+        filename = settings.output_dir + os.sep + source
+
     # --- Stars (via star_catalog + bsc_hip_map, inspired by StarsRenderer) ---
-    # We intentionally use direct field access (no getattr) as requested.
-    star_catalog = used_catalogs.star_catalog
-    bsc_hip_map = used_catalogs.bsc_hip_map
-    if star_catalog is not None and bsc_hip_map is not None:
-        resolved = resolve_star(source, star_catalog, bsc_hip_map, search_cache)
-        if resolved is not None:
-            cat = "STAR"
-            name = resolved.name
-            parsed_pos = ParsedPosition(
-                ParsedCoordType.EQUATORIAL,
-                resolved.ra_rad,
-                resolved.dec_rad,
-            )
-            filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
+    if parsed_pos is None:
+        # We intentionally use direct field access (no getattr) as requested.
+        star_catalog = used_catalogs.star_catalog
+        bsc_hip_map = used_catalogs.bsc_hip_map
+        if star_catalog is not None and bsc_hip_map is not None:
+            resolved = resolve_star(source, star_catalog, bsc_hip_map, search_cache)
+            if resolved is not None:
+                cat = "STAR"
+                name = resolved.name
+                parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, resolved.ra_rad, resolved.dec_rad)
 
     # --- Solar system bodies (Sun/Moon/planets) ---
     if parsed_pos is None:
@@ -342,12 +343,7 @@ def _search_sky_object(source, settings):
         if resolved is not None:
             cat = "SOL"
             name = resolved.name
-            parsed_pos = ParsedPosition(
-                ParsedCoordType.EQUATORIAL,
-                resolved.ra_rad,
-                resolved.dec_rad,
-            )
-            filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
+            parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, resolved.ra_rad, resolved.dec_rad)
 
     # --- Planet moons (Io/Europa/...) ---
     if parsed_pos is None:
@@ -357,16 +353,14 @@ def _search_sky_object(source, settings):
             maglim=settings.limit_magnitude_stars,
         )
         if resolved is not None:
-            cat = "MOON"
+            cat = "PLMOON"
             name = resolved.name
-            parsed_pos = ParsedPosition(
-                ParsedCoordType.EQUATORIAL,
-                resolved.ra_rad,
-                resolved.dec_rad,
-            )
-            filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
+            parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, resolved.ra_rad, resolved.dec_rad)
 
-    return cat, name, parsed_pos, filename
+    if parsed_pos is not None and filename is None:
+        filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
+
+    return dso, cat, name, parsed_pos, filename
 
 
 class RuntimeSettings:
@@ -998,19 +992,18 @@ if __name__ == '__main__':
     for source in settings.parser.sourcelist:
         filename = ''
         # Parse sourcename
-        if source.upper().rstrip().lstrip() == 'ALLMESSIER':
+        if source.upper().strip() == 'ALLMESSIER':
             print(_('alles'))
             for object in used_catalogs.messierlist:
                 print('')
                 print(_('M{}'.format(object.messier)))
                 ra  = object.ra
                 dec = object.dec
-                artist = None
                 filename = settings.output_dir + os.sep + 'm' + str(object.messier).rjust(3).replace(' ','0')
                 filename += '.pdf'
-                artist = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf',
-                                      landscape=settings.parser.landscape_paper)
-                engine = SkymapEngine(artist, language=fchart3.LABELi18N, lm_stars = settings.limit_magnitude_stars)
+                graphics = CairoDrawing(filename, settings.parser.width, settings.parser.height, format='pdf',
+                                        landscape=settings.parser.landscape_paper)
+                engine = SkymapEngine(graphics, language=fchart3.LABELi18N, lm_stars = settings.limit_magnitude_stars)
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
@@ -1032,7 +1025,7 @@ if __name__ == '__main__':
 
                 engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, extra_positions=extra_pos, landscape=landscape)
         else:
-            showing_dso = None
+            dso = None
             parsed_pos = None
             cat = ''
             name = ''
@@ -1040,20 +1033,16 @@ if __name__ == '__main__':
                 parsed_pos, caption = _try_parse_source_position(source)
                 # For compatibility with old behavior: if caption is empty, use a generic filename stem.
                 name = caption if caption else "position"
-                filename = settings.output_dir + os.sep + name.replace(' ','-').replace('/', '-').replace(',', '')
+                filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
             except Exception:
-                showing_dso, cat, name = used_catalogs.lookup_dso(source)
-                if showing_dso:
-                    # DSO catalogue positions are always RA/Dec
-                    parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, showing_dso.ra, showing_dso.dec)
-                else:
-                    cat, name, parsed_pos, filename = _search_sky_object(source, settings)
+                dso, cat, name, parsed_pos, filename = _search_sky_object(source, settings)
+
 
             if parsed_pos is not None:
                 print('')
                 print(cat, name)
 
-                artist = None
+                graphics = None
                 if settings.parser.output_file:
                     filename = settings.output_dir + os.sep + settings.parser.output_file
                 else:
@@ -1069,18 +1058,18 @@ if __name__ == '__main__':
                 else:
                     output_format = 'pdf'
                 if output_format == 'tikz':
-                    artist = TikZDrawing(filename,
-                                         settings.parser.width,
-                                         settings.parser.height,
-                                         output_format,
-                                         landscape=settings.parser.landscape_paper)
+                    graphics = TikZDrawing(filename,
+                                           settings.parser.width,
+                                           settings.parser.height,
+                                           output_format,
+                                           landscape=settings.parser.landscape_paper)
                 else:
-                    artist = CairoDrawing(filename,
-                                          settings.parser.width,
-                                          settings.parser.height,
-                                          output_format,
-                                          landscape=settings.parser.landscape_paper)
-                engine = SkymapEngine(artist,
+                    graphics = CairoDrawing(filename,
+                                            settings.parser.width,
+                                            settings.parser.height,
+                                            output_format,
+                                            landscape=settings.parser.landscape_paper)
+                engine = SkymapEngine(graphics,
                                       language=fchart3.LABELi18N,
                                       lm_stars=settings.limit_magnitude_stars,
                                       lm_deepsky=settings.limit_magnitude_deepsky)
@@ -1108,10 +1097,9 @@ if __name__ == '__main__':
                 engine.set_created("Created with fchart3")
 
                 showing_dsos = None
-                if showing_dso:
-                    if showing_dso.master_object:
-                        showing_dso = showing_dso.master_object
-                    showing_dsos = [showing_dso]
+                if dso is not None:
+                    showing_dsos = [dso.master_object or dso]
+
                 tmp = time()-tm
                 print(_("Started in : {} ms".format(tmp)))
 
