@@ -24,6 +24,7 @@ import os
 import math
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 uilanguage=os.environ.get('fchart3lang')
 try:
@@ -51,8 +52,8 @@ from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
 from fchart3.horizon_landscape import load_stellarium_landscape, StellariumLandscape
-from fchart3.cli.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon
-from datetime import datetime, timezone
+from fchart3.cli.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon, resolve_comet
+from datetime import datetime, timezone, date
 from skyfield.api import load
 
 skyfield_ts = load.timescale()
@@ -306,8 +307,88 @@ def _parse_time_arg(value: str) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
+def _parse_time_or_date_arg(value: str) -> datetime:
+    """
+    Parse ISO-8601 datetime or date into UTC datetime.
+    Accepts:
+      - 2026-01-02T21:15:00Z
+      - 2026-01-02T21:15:00+01:00
+      - 2026-01-02  (interpreted as 00:00:00Z)
+    """
+    s = value.strip()
+    if not s:
+        raise argparse.ArgumentTypeError("Empty datetime/date value")
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+
+    # Try datetime first
+    try:
+        dt = datetime.fromisoformat(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except ValueError:
+        pass
+
+    # Try date-only
+    try:
+        d = date.fromisoformat(s)
+        return datetime(d.year, d.month, d.day, 0, 0, 0, tzinfo=timezone.utc)
+    except ValueError as e:
+        raise argparse.ArgumentTypeError(
+            f"Invalid value '{value}'. Expected ISO-8601 datetime or date."
+        ) from e
+
+
+def _ensure_comet_els_file(path: str, *, force: bool = False) -> Optional[str]:
+    """
+    Ensure local MPC comet elements file exists at `path`.
+    If missing (or force=True), download it once and store it as plain ASCII.
+
+    IMPORTANT: The source file sometimes contains commas, which break parsing.
+    We apply a compatibility fix by replacing ',' with ' '.
+    """
+    if not path:
+        return None
+
+    # Resolve relative path against current working directory ("main directory" for the CLI run).
+    comet_path = os.path.abspath(path)
+
+    if (not force) and os.path.isfile(comet_path) and os.path.getsize(comet_path) > 0:
+        return comet_path
+
+    url = "https://astro.vanbuitenen.nl/cometelements?format=mpc"
+    try:
+        print(_(f"Downloading comet elements into {comet_path} ..."))
+
+        # `load.open()` downloads with Skyfield's downloader but we store the final file exactly where we want it.
+        # reload=True forces re-download when requested.
+        with load.open(url, reload=True) as f:
+            lines = f.readlines()
+
+        # Fix commas -> spaces (czsky workaround).
+        # Keep it ASCII to be friendly with Skyfield MPC loaders.
+        out_s = ""
+        for line in lines:
+            out_s += line.decode("ascii", errors="ignore").replace(",", " ")
+
+        # Write atomically: write temp then replace.
+        tmp_path = comet_path + ".tmp"
+        with open(tmp_path, "w", encoding="ascii", newline="\n") as out_f:
+            out_f.write(out_s)
+        os.replace(tmp_path, comet_path)
+
+        print(_(f"Comet elements saved: {comet_path}"))
+        return comet_path
+    except Exception as e:
+        print(_(f"Failed to download comet elements file: {e}"))
+        return None
+
+
 def _search_sky_object(source, settings):
-    dso, cat, name, parsed_pos, filename = None, None, None, None, None
+    parsed_pos = None
+    filename = None
+    trajectory = None
 
     # Use explicit time if provided, otherwise "now" (UTC) for moving targets.
     dt_utc = settings.parser.dt
@@ -357,10 +438,37 @@ def _search_sky_object(source, settings):
             name = resolved.name
             parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, resolved.ra_rad, resolved.dec_rad)
 
+
+    # --- Comet (MPC; needs -t and trajectory window) ---
+    if parsed_pos is None:
+        traj_from = settings.parser.trajectory_from
+        traj_to = settings.parser.trajectory_to
+        if traj_from is not None and traj_to is not None:
+            # Requirement: comet requires explicit time parameter
+            if settings.parser.dt is None:
+                print(_("Comet target requires -t (observation time)."))
+                sys.exit(-1)
+
+            # Ensure CometEls.txt exists locally (download once if needed).
+            comet_file = _ensure_comet_els_file(
+                settings.parser.mpc_comets_file,
+                force=bool(getattr(settings.parser, "update_comets", False)),
+            )
+            if comet_file is None:
+                print(_("Comet elements file is missing and could not be downloaded."))
+                sys.exit(-1)
+
+            comet_res = resolve_comet(source, dt_utc=dt_utc, traj_from=traj_from, traj_to=traj_to, mpc_comets_file=comet_file)
+            if comet_res is not None:
+                comet_name, ra_rad, dec_rad, trajectory = comet_res
+                cat = "COMET"
+                name = comet_name
+                parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
+
     if parsed_pos is not None and filename is None:
         filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
 
-    return dso, cat, name, parsed_pos, filename
+    return dso, cat, name, parsed_pos, filename, trajectory
 
 
 class RuntimeSettings:
@@ -601,11 +709,31 @@ class RuntimeSettings:
                                     help='Observation time (UTC) in ISO-8601. '
                                          'Examples: 2026-01-02T21:15:00Z, 2026-01-02T21:15:00+01:00, or "now".')
 
+        argumentparser.add_argument('--trajectory-from', dest='trajectory_from', type=_parse_time_or_date_arg, default=None,
+                                    help='Comet trajectory start time/date (UTC). '
+                                         'Examples: 2026-01-02T00:00:00Z or 2026-01-02')
+        argumentparser.add_argument('--trajectory-to', dest='trajectory_to', type=_parse_time_or_date_arg, default=None,
+                                    help='Comet trajectory end time/date (UTC). '
+                                         'Examples: 2026-01-09T00:00:00Z or 2026-01-09')
+        argumentparser.add_argument('--mpc-comets-file', dest='mpc_comets_file', default='CometEls.txt',
+                                    help='Local MPC comets file. Default: ./CometEls.txt. '
+                                         'If missing, it will be downloaded once.')
+        argumentparser.add_argument('--update-comets', dest='update_comets', action='store_true', default=False,
+                                    help='Force re-download of ./CometEls.txt (comet elements).')
+
         argumentparser.add_argument('-v', '--version', action='store_true', default=None, help='Display version information and exit.')
 
         argumentparser.add_argument('sourcelist', nargs='*')
 
         self.parser = argumentparser.parse_args()
+
+        # Validate comet trajectory args: both or neither; and require -t when trajectory window is used.
+        if (self.parser.trajectory_from is None) ^ (self.parser.trajectory_to is None):
+            print(_("Both --trajectory-from and --trajectory-to must be provided together."))
+            sys.exit(-1)
+        if self.parser.trajectory_from is not None and self.parser.dt is None:
+            print(_("Comet target requires -t (observation time) when using trajectory parameters."))
+            sys.exit(-1)
 
         if len(self.parser.sourcelist) == 0:
             argumentparser.print_help()
@@ -1029,14 +1157,14 @@ if __name__ == '__main__':
             parsed_pos = None
             cat = ''
             name = ''
+            trajectory = None
             try:
                 parsed_pos, caption = _try_parse_source_position(source)
                 # For compatibility with old behavior: if caption is empty, use a generic filename stem.
                 name = caption if caption else "position"
                 filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
             except Exception:
-                dso, cat, name, parsed_pos, filename = _search_sky_object(source, settings)
-
+                dso, cat, name, parsed_pos, filename, trajectory = _search_sky_object(source, settings)
 
             if parsed_pos is not None:
                 print('')
@@ -1110,8 +1238,8 @@ if __name__ == '__main__':
                 else:
                     solsys = None
                     moons = None
-                engine.make_map(used_catalogs, settings.parser.dt, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos, landscape=landscape)
+                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos, landscape=landscape, trajectory=trajectory)
             else:
-                print(_('object not found, try appending an A or a B'))
+                print(_("object not found, try appending an A or a B"))
     tmp = time()-tm
     print(_("Chart generated in : {} ms ".format(tmp)))

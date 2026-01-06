@@ -16,13 +16,29 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import re
+import gettext
+import os
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Dict, Tuple, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from skyfield.api import load
+from skyfield.data import mpc
+from skyfield.constants import GM_SUN_Pitjeva_2005_km3_s2 as GM_SUN
 
 from ..solar_system import get_solsys_bodies, get_planet_moons
+
+uilanguage=os.environ.get('fchart3lang')
+
+try:
+    lang = gettext.translation('messages', localedir='locale', languages=[uilanguage])
+    lang.install()
+    _ = lang.gettext
+except:
+    _ = gettext.gettext
+
+skyfield_ts = load.timescale()
 
 
 class TargetType(str, Enum):
@@ -389,3 +405,177 @@ def resolve_planet_moon(query: str, *, dt_utc: Optional[datetime], maglim: float
             )
 
     return None
+
+
+def _load_mpc_comets_df(mpc_comets_file: str | None):
+    """
+    Load MPC comets dataframe using Skyfield.
+    If mpc_comets_file is provided, load from local file.
+    Otherwise try Skyfield's default MPC comets source (network).
+    """
+    if mpc_comets_file:
+        try:
+            with open(mpc_comets_file, "rb") as f:
+                return mpc.load_comets_dataframe(f)
+        except Exception as e:
+            print(_(f"Failed to load MPC comets from file '{mpc_comets_file}': {e}"))
+            return None
+
+    # Network fallback (if available in user's environment)
+    try:
+        # Skyfield exposes a URL constant in mpc; if not present, this will fail and we handle it.
+        comet_url = mpc.COMET_URL
+        return mpc.load_comets_dataframe(comet_url)
+    except Exception as e:
+        print(_(f"Failed to load MPC comets from network source: {e}"))
+        print(_(
+            "Tip: provide a local MPC comets file via --mpc-comets-file."
+        ))
+        return None
+
+
+def _find_mpc_comet_row(comet_id: str, df):
+    """
+    Find a comet row in MPC comets dataframe.
+    We try:
+      - exact match on 'designation' (case-insensitive)
+      - contains match on 'designation' (case-insensitive)
+      - exact match on index (case-insensitive) if index looks usable
+    Returns a pandas Series-like row or None.
+    """
+    if df is None:
+        return None
+    q = comet_id.strip()
+    if not q:
+        return None
+
+    q_cf = q.casefold()
+
+    # 'designation' column is the usual one in Skyfield MPC frames
+    if "designation" in df.columns:
+        try:
+            col = df["designation"].astype(str)
+            exact = df[col.str.casefold() == q_cf]
+            if len(exact) > 0:
+                return exact.iloc[0]
+            partial = df[col.str.casefold().str.contains(q_cf, na=False)]
+            if len(partial) > 0:
+                return partial.iloc[0]
+        except Exception:
+            pass
+
+    # Index fallback
+    try:
+        idx = df.index.astype(str)
+        exact_i = df[idx.str.casefold() == q_cf]
+        if len(exact_i) > 0:
+            return exact_i.iloc[0]
+    except Exception:
+        pass
+
+    return None
+
+
+def _trajectory_step_hours(dt_from: datetime, dt_to: datetime) -> int:
+    """Choose a reasonable trajectory sampling step (hours) based on range."""
+    span = dt_to - dt_from
+    days = span.total_seconds() / 86400.0
+    if days <= 1.5:
+        return 1
+    if days <= 7.0:
+        return 3
+    if days <= 31.0:
+        return 6
+    return 24
+
+
+def _build_comet_trajectory(dt_from: datetime, dt_to: datetime, ts, earth, body):
+    """
+    Build a simple trajectory list of tuples (ra_rad, dec_rad, label),
+    compatible with SkymapEngine.make_map(..., trajectory=...).
+    """
+    if dt_from is None or dt_to is None:
+        return None
+    if dt_from >= dt_to:
+        return None
+
+    # Safety cap (same spirit as czsky): max 365 days
+    if (dt_to - dt_from).days > 365:
+        dt_to = dt_from + timedelta(days=365)
+
+    step_h = _trajectory_step_hours(dt_from, dt_to)
+    dt = timedelta(hours=step_h)
+
+    out = []
+    cur = dt_from
+    prev_month = None
+    while cur <= dt_to:
+        t = ts.from_datetime(cur)
+        ra, dec, _ = earth.at(t).observe(body).radec()
+
+        # Labels: show day at midnight, otherwise show hour; include month change marker
+        if prev_month is None or prev_month != cur.month:
+            # At month boundary, print day.month. for readability
+            label = cur.strftime("%d.%m.") if (cur.hour == 0) else cur.strftime("%H:00")
+        else:
+            label = cur.strftime("%d") if (cur.hour == 0) else cur.strftime("%H:00")
+
+        out.append((float(ra.radians), float(dec.radians), label))
+        prev_month = cur.month
+        cur += dt
+
+    return out
+
+
+def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to: datetime, mpc_comets_file: str | None):
+    """
+    Resolve comet by MPC designation, return:
+      (name, ra_rad, dec_rad, trajectory_list)
+    """
+    if dt_utc is None:
+        return None
+
+    df = _load_mpc_comets_df(mpc_comets_file)
+    if df is None:
+        return None
+
+    row = _find_mpc_comet_row(source, df)
+    if row is None:
+        return None
+
+    try:
+        eph = load("de421.bsp")
+        sun = eph["sun"]
+        earth = eph["earth"]
+        # Same approach as czsky: heliocentric orbit body relative to Sun
+        body = sun + mpc.comet_orbit(row, skyfield_ts, GM_SUN)
+    except Exception as e:
+        print(_(f"Failed to build comet orbit for '{source}': {e}"))
+        return None
+
+    # Current position at dt_utc
+    try:
+        t_now = skyfield_ts.from_datetime(dt_utc)
+        ra_ang, dec_ang, _ = earth.at(t_now).observe(body).radec()
+        ra_rad = float(ra_ang.radians)
+        dec_rad = float(dec_ang.radians)
+    except Exception as e:
+        print(_(f"Failed to compute comet RA/Dec for '{source}': {e}"))
+        return None
+
+    # Trajectory
+    try:
+        traj = _build_comet_trajectory(traj_from, traj_to, skyfield_ts, earth, body)
+    except Exception as e:
+        print(_(f"Failed to compute comet trajectory for '{source}': {e}"))
+        traj = None
+
+    # Prefer designation field if present
+    comet_name = source
+    try:
+        if "designation" in row.index:
+            comet_name = str(row["designation"])
+    except Exception:
+        pass
+
+    return comet_name, ra_rad, dec_rad, traj
