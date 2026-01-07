@@ -476,17 +476,19 @@ def _find_mpc_comet_row(comet_id: str, df):
     return None
 
 
-def _trajectory_step_hours(dt_from: datetime, dt_to: datetime) -> int:
-    """Choose a reasonable trajectory sampling step (hours) based on range."""
-    span = dt_to - dt_from
-    days = span.total_seconds() / 86400.0
-    if days <= 1.5:
-        return 1
-    if days <= 7.0:
-        return 3
-    if days <= 31.0:
-        return 6
-    return 24
+def _get_trajectory_time_delta(dt_from: datetime, dt_to: datetime) -> int:
+    delta = dt_to - dt_from
+    if delta.days > 120:
+        return timedelta(days=30), 0
+    if delta.days > 30:
+        return timedelta(days=7), 0
+    if delta.days > 4:
+        return timedelta(days=1), 0
+    if delta.days > 2:
+        return timedelta(hours=12), 12
+    if delta.days > 1:
+        return timedelta(hours=6), 6
+    return timedelta(hours=3), 3
 
 
 def _build_comet_trajectory(dt_from: datetime, dt_to: datetime, ts, earth, body):
@@ -503,8 +505,7 @@ def _build_comet_trajectory(dt_from: datetime, dt_to: datetime, ts, earth, body)
     if (dt_to - dt_from).days > 365:
         dt_to = dt_from + timedelta(days=365)
 
-    step_h = _trajectory_step_hours(dt_from, dt_to)
-    dt = timedelta(hours=step_h)
+    dt, hr_step = _get_trajectory_time_delta(dt_from, dt_to)
 
     out = []
     cur = dt_from
