@@ -1157,14 +1157,14 @@ if __name__ == '__main__':
             parsed_pos = None
             cat = ''
             name = ''
-            trajectory = None
+            trajectories = []
             try:
                 parsed_pos, caption = _try_parse_source_position(source)
                 # For compatibility with old behavior: if caption is empty, use a generic filename stem.
                 name = caption if caption else "position"
                 filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
             except Exception:
-                dso, cat, name, parsed_pos, filename, trajectory = _search_sky_object(source, settings)
+                dso, cat, name, parsed_pos, filename, trajectories = _search_sky_object(source, settings)
 
             if parsed_pos is not None:
                 print('')
@@ -1238,7 +1238,7 @@ if __name__ == '__main__':
                 else:
                     solsys = None
                     moons = None
-                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos, landscape=landscape, trajectory=trajectory)
+                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos, landscape=landscape, trajectories=trajectories)
             else:
                 print(_("object not found, try appending an A or a B"))
     tmp = time()-tm

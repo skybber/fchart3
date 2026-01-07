@@ -58,7 +58,7 @@ class RenderContext:
     extra_positions: Any = None
     solsys_bodies: Any = None
     planet_moons: Any = None
-    trajectory: Any = None
+    trajectories: Any = None
     landscape: StellariumLandscape = None
 
 

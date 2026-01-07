@@ -578,5 +578,5 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
             comet_name = str(row["designation"])
     except Exception:
         pass
-
-    return comet_name, ra_rad, dec_rad, traj
+    trajectories = [traj] if traj is not None else None
+    return comet_name, ra_rad, dec_rad, trajectories

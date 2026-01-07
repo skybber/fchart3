@@ -188,7 +188,7 @@ class SkymapEngine:
         self.transf.set_grid_observer(lst, lat)
 
     def make_map(self, used_catalogs, dt=None, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
-                 dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectory=None, visible_objects=None, transparent=False,
+                 dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectories=None, visible_objects=None, transparent=False,
                  landscape=None):
         """
         Central drawing function
@@ -204,7 +204,7 @@ class SkymapEngine:
         :param dso_hide_filter:
         :param extra_positions:
         :param hl_constellation:
-        :param trajectory:
+        :param trajectories:
         :param visible_objects:
         :param transparent: bool set True to not clear the drawing area
         :param landscape: StellariumLandscape info from Stellarium
@@ -279,7 +279,7 @@ class SkymapEngine:
                 extra_positions=extra_positions,
                 solsys_bodies=solsys_bodies,
                 planet_moons=planet_moons,
-                trajectory=trajectory,
+                trajectories=trajectories,
                 landscape=landscape
             )
 

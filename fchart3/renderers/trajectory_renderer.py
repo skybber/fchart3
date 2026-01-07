@@ -22,8 +22,9 @@ from .base_renderer import BaseRenderer, SQRT2
 
 class TrajectoryRenderer(BaseRenderer):
     def draw(self, ctx, state):
-        if ctx.trajectory:
-            self.draw_trajectory(ctx, ctx.trajectory)
+        if ctx.trajectories:
+            for trajectory in ctx.trajectories:
+                self.draw_trajectory(ctx, trajectory)
 
     def draw_trajectory(self, ctx, trajectory):
         gfx = ctx.gfx
