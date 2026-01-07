@@ -18,5 +18,6 @@
 from .projection import *
 from .projection_orthographic import *
 from .projection_stereographic import *
+from .projection_equidistant import *
 
 __all__ = [k for k in globals() if not k.startswith("_")]

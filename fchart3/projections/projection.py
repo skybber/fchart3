@@ -21,6 +21,7 @@ from enum import Enum
 class ProjectionType(Enum):
     ORTHOGRAPHIC = 1
     STEREOGRAPHIC = 2
+    EQUIDISTANT = 3
 
 
 class ProjectionInterface:

@@ -131,10 +131,7 @@ class SkymapEngine:
         self.drawing_scale = self.scene_scale*wh/2.0/math.sin(field_radius)
         self.legend_fontscale = min(self.cfg.legend_font_scale, wh/100.0)
 
-        if projection_type == ProjectionType.ORTHOGRAPHIC:
-            proj = ProjectionOrthographic()
-        else:
-            proj = ProjectionStereographic()
+        proj = self._create_projection(projection_type)
 
         self.transf = ViewportTransformer(proj)
         self.transf.set_celestial_center(0, 0)
@@ -186,6 +183,18 @@ class SkymapEngine:
             c_ra, c_dec = self.transf.get_equatorial_center()
             self.center_equatorial = (c_ra, c_dec)
         self.transf.set_grid_observer(lst, lat)
+
+    def _create_projection(self, proj_type: ProjectionType) -> ProjectionInterface:
+        if proj_type == ProjectionType.ORTHOGRAPHIC:
+            return ProjectionOrthographic()
+
+        if proj_type == ProjectionType.STEREOGRAPHIC:
+            return ProjectionStereographic()
+
+        if proj_type == ProjectionType.EQUIDISTANT:
+            return ProjectionFisheyeEquidistant()
+
+        raise ValueError(f"Unsupported projection type: {proj_type!r}")
 
     def make_map(self, used_catalogs, dt=None, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectories=None, visible_objects=None, transparent=False,

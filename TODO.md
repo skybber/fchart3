@@ -4,16 +4,15 @@
   - Bayer/Flamsteed (e.g., “Alpha Her”, “51 Peg”)
   - 3-letter Greek abbreviations (e.g., “Ups And”)
   - HIP identifiers (e.g., “HIP123456”)
+- [x] move DSO search to search_object_utils.py (new TargetType)
+- [x] Refactor switches and add consistent short variants for frequently used options (e.g., -fov, -w, -h, etc.).
+- [x] Add `-comet` `-track-from` `-track-to` to cmdline
+- 
 
-
-- [ ] move DSO search to search_object_utils.py (new TargetType)
-- [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
-- [ ] Refactor switches and add consistent short variants for frequently used options (e.g., -fov, -w, -h, etc.).
-- [ ] Fish-eye projection
-- [ ] Add `-comet` `-track-from` `-track-to` to cmdline
-- [ ] Expose projection selection in CLI/config (discoverability + documented list of supported projections).
 - [ ] Add minor planet lookup/target by name
-- [ ] Add comet lookup/target by name
+- [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
+- [ ] Fish-eye projection
+- [ ] Expose projection selection in CLI/config (discoverability + documented list of supported projections).
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] Optionally mask/cut objects below horizon.
 - [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).

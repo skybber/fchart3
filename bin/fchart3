@@ -53,6 +53,7 @@ from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
 from fchart3.horizon_landscape import load_stellarium_landscape, StellariumLandscape
 from fchart3.cli.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon, resolve_comet
+from fchart3.projections.projection import ProjectionType
 from datetime import datetime, timezone, date
 from skyfield.api import load
 
@@ -521,12 +522,13 @@ class RuntimeSettings:
         argumentparser.add_argument('-ls', '--limit-star', dest='limit_magnitude_stars', nargs='?', action='store', type=float,
                                     help='Limiting magnitude for stars. (Default: 12.0)')
         argumentparser.add_argument('-w', '--width', dest='width', nargs='?', action='store', default=180.0, type=float,
-                            help='Width of the drawing area in millimeters.')
+                                    help='Width of the drawing area in millimeters.')
         argumentparser.add_argument('-h', '--height', dest='height', nargs='?', action='store', default=270.0, type=float,
                                     help='Height of the drawing area in millimeters.')
         argumentparser.add_argument('-landscape', '--landscape-paper', dest='landscape_paper', action='store_true',
-                            help='Paper orientation landscape (Use with wider width).')
-
+                                    help='Paper orientation landscape (Use with wider width).')
+        argumentparser.add_argument("--projection", dest="projection", default="stereographic", choices=["stereographic", "orthographic", "equidistant"],
+                                    help="Projection type (default: stereographic).")
         argumentparser.add_argument('-fov', '--fieldsize',
                                     dest='fieldsize', nargs='?', action='store', type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
@@ -791,6 +793,22 @@ def _convert_font_style(font_style):
     if font_style == 'bold':
         return FontStyle.BOLD
     return FontStyle.NORMAL
+
+
+def parse_projection_type(value: str) -> ProjectionType:
+    """
+    English comment: Convert CLI string to ProjectionType enum.
+    """
+    v = (value or "").strip().lower()
+
+    if v == "stereographic":
+        return ProjectionType.STEREOGRAPHIC
+    if v == "orthographic":
+        return ProjectionType.ORTHOGRAPHIC
+    if v in ("equidistant", "fisheye", "fisheye_equidistant"):
+        return ProjectionType.EQUIDISTANT  # your code uses EQUIDISTANT for fisheye-equidistant
+
+    raise ValueError(f"Unknown projection: {value!r}")
 
 
 def _create_engine_configuration(config_file=None):
@@ -1115,6 +1133,7 @@ if __name__ == '__main__':
             print(_('Failed to load Stellarium landscape from {}: {}'
                     .format(settings.parser.stellarium_landscape_dir, e)))
 
+    proj_type = parse_projection_type(settings.parser.projection)
 
     # For all sources...
     for source in settings.parser.sourcelist:
@@ -1139,7 +1158,8 @@ if __name__ == '__main__':
                 phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
 
                 engine.set_field(phi, theta, np.deg2rad(settings.fieldsize)/2.0, "",
-                                 mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y)
+                                 mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y,
+                                 projection_type=proj_type)
                 engine.set_caption('M '+str(object.messier))
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
 
@@ -1206,7 +1226,7 @@ if __name__ == '__main__':
                 dt_utc = settings.parser.dt
                 phi, theta, dt_utc = _fieldcentre_for_engine_from_position(parsed_pos, cfg, dt_utc)
 
-                engine.set_field(phi, theta, np.deg2rad(settings.fieldsize)/2.0)
+                engine.set_field(phi, theta, np.deg2rad(settings.fieldsize)/2.0, projection_type=proj_type)
                 caption = cat + ' ' + name
 
                 if settings.parser.caption is not None:
