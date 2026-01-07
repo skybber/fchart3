@@ -67,14 +67,14 @@ class WidgetMagnitudeScale(WidgetBase):
             legendy = self.y - self.height + np.arange(self.stars_in_scale)*fh + 0.5*fh
 
             for i in range(len(legendy)):
-                self.no_mirror_star(gfx, self.x+0.6*fh, legendy[i] + 0.33 * fh, legendr[i])
+                self.no_mirror_star(gfx, self.x+0.6*fh, legendy[i] + 0.33*fh, legendr[i])
                 gfx.text_right(self.x+1.2*fh, legendy[i], str(mags_in_scale[i]))
         else:
             gfx.set_font(gfx.gi_font, fh * 0.66)
-            legendx = self.x + np.arange(self.stars_in_scale)*fh + 0.5*fh
+            legendx = self.x + np.arange(self.stars_in_scale)*fh + 0.4*fh
             for i in range(self.stars_in_scale):
-                self.no_mirror_star(gfx, legendx[i] + 0.6 * fh, self.y-self.height + 0.66*fh, legendr[-i-1])
-                gfx.text_centred(legendx[i] + 0.6 * fh, self.y-self.height + 1.6*fh, str(mags_in_scale[-i-1]))
+                self.no_mirror_star(gfx, legendx[i] + 0.4*fh, self.y-self.height + 0.66*fh, legendr[-i-1])
+                gfx.text_centred(legendx[i] + 0.4*fh, self.y-self.height + 1.6*fh, str(mags_in_scale[-i-1]))
 
         gfx.set_font(gfx.gi_font, old_fontsize)
         self.draw_bounding_rect(gfx)
