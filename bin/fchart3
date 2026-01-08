@@ -486,7 +486,7 @@ class RuntimeSettings:
         argumentparser = argparse.ArgumentParser(
               description='fchart3',
               formatter_class=argparse.RawTextHelpFormatter,
-              add_help=False,
+              add_help=True,
               epilog=textwrap.dedent('''\
                     Sourcenames:
                        Valid sourcenames are for example:
@@ -521,9 +521,9 @@ class RuntimeSettings:
                                     help='Limiting magnitude for deep sky objects (default: 12.0)')
         argumentparser.add_argument('-ls', '--limit-star', dest='limit_magnitude_stars', nargs='?', action='store', type=float,
                                     help='Limiting magnitude for stars. (Default: 12.0)')
-        argumentparser.add_argument('-w', '--width', dest='width', nargs='?', action='store', default=180.0, type=float,
+        argumentparser.add_argument('-W', '--width', dest='width', nargs='?', action='store', default=180.0, type=float,
                                     help='Width of the drawing area in millimeters.')
-        argumentparser.add_argument('-h', '--height', dest='height', nargs='?', action='store', default=270.0, type=float,
+        argumentparser.add_argument('-H', '--height', dest='height', nargs='?', action='store', default=270.0, type=float,
                                     help='Height of the drawing area in millimeters.')
         argumentparser.add_argument('-landscape', '--landscape-paper', dest='landscape_paper', action='store_true',
                                     help='Paper orientation landscape (Use with wider width).')
