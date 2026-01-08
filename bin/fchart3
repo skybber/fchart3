@@ -24,7 +24,8 @@ import os
 import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Any
 
 uilanguage=os.environ.get('fchart3lang')
 try:
@@ -44,14 +45,14 @@ import fchart3
 
 from fchart3.config_loader import ConfigurationLoader, CoordSystem
 from fchart3.solar_system import get_solsys_bodies, get_planet_moons
-from fchart3.astrocalc import hms2rad, dms2rad
+from fchart3.astrocalc import hms2rad
 from fchart3.skymap_engine import SkymapEngine
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
-from fchart3.horizon_landscape import load_stellarium_landscape, StellariumLandscape
+from fchart3.horizon_landscape import load_stellarium_landscape
 from fchart3.cli.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon, resolve_comet
 from fchart3.projections.projection import ProjectionType
 from datetime import datetime, timezone, date
@@ -349,40 +350,29 @@ def _ensure_comet_els_file(path: str, *, force: bool = False) -> Optional[str]:
     IMPORTANT: The source file sometimes contains commas, which break parsing.
     We apply a compatibility fix by replacing ',' with ' '.
     """
-    if not path:
-        return None
-
-    # Resolve relative path against current working directory ("main directory" for the CLI run).
-    comet_path = os.path.abspath(path)
-
-    if (not force) and os.path.isfile(comet_path) and os.path.getsize(comet_path) > 0:
-        return comet_path
+    comet_path = Path(path).expanduser().resolve()
+    if not force and comet_path.is_file() and comet_path.stat().st_size > 0:
+        return str(comet_path)
 
     url = "https://astro.vanbuitenen.nl/cometelements?format=mpc"
     try:
-        print(_(f"Downloading comet elements into {comet_path} ..."))
-
-        # `load.open()` downloads with Skyfield's downloader but we store the final file exactly where we want it.
-        # reload=True forces re-download when requested.
         with load.open(url, reload=True) as f:
             lines = f.readlines()
 
-        # Fix commas -> spaces (czsky workaround).
-        # Keep it ASCII to be friendly with Skyfield MPC loaders.
-        out_s = ""
-        for line in lines:
-            out_s += line.decode("ascii", errors="ignore").replace(",", " ")
+        out_lines = [
+            line.decode("ascii", errors="ignore").replace(",", " ")
+            for line in lines
+        ]
 
-        # Write atomically: write temp then replace.
-        tmp_path = comet_path + ".tmp"
-        with open(tmp_path, "w", encoding="ascii", newline="\n") as out_f:
-            out_f.write(out_s)
-        os.replace(tmp_path, comet_path)
+        tmp_path = comet_path.with_suffix(comet_path.suffix + ".tmp")
+        with tmp_path.open("w", encoding="ascii", newline="\n") as out_f:
+            out_f.write("".join(out_lines))
 
-        print(_(f"Comet elements saved: {comet_path}"))
-        return comet_path
-    except Exception as e:
-        print(_(f"Failed to download comet elements file: {e}"))
+        tmp_path.replace(comet_path)
+        print(f"Comet elements saved: {comet_path}")
+        return str(comet_path)
+    except Exception:
+        print(f"Failed to download comet elements file: {e}")
         return None
 
 
@@ -741,20 +731,6 @@ class RuntimeSettings:
             argumentparser.print_help()
             sys.exit(1)
         
-        """
-        if self.parser.language.upper() == 'NL':
-            self.language = NL
-        elif self.parser.language.upper() == 'EN':
-            self.language = EN
-        elif self.parser.language.upper() == 'ES':
-            self.language = ES
-        elif self.parser.language.upper() == 'FR':
-            self.language = FR    
-        else:
-            print(_('Unsupported language {}'.format(self.parser.language)))
-            sys.exit(-1)
-        """
-        
         if self.parser.version:
             print_version()
             sys.exit(1)
@@ -1058,7 +1034,7 @@ if __name__ == '__main__':
 
     # Create output space if necessary
     if not os.path.exists(settings.output_dir):
-        print(_('Creating directory {}'.format(settings.output_dir)))
+        print('Creating directory {}'.format(settings.output_dir))
         os.mkdir(settings.output_dir)
 
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
@@ -1165,7 +1141,7 @@ if __name__ == '__main__':
 
                 if settings.parser.dt and cfg.show_solar_system:
                     solsys = get_solsys_bodies(dt_utc, observer_lat=cfg.observer_lat_deg, observer_lon=cfg.observer_lon_deg,
-                                               observer_elevation=landscape.loc_latitude if landscape is not None and landscape.loc_latitude is not None else 0.0)
+                                               observer_elevation=landscape.loc_altitude if landscape is not None and landscape.loc_altitude is not None else 0.0)
                     moons = get_planet_moons(dt_utc, maglim=settings.limit_magnitude_stars)
                 else:
                     solsys = None
