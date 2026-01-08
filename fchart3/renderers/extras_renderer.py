@@ -30,7 +30,7 @@ class ExtrasRenderer(BaseRenderer):
             if nzopt or z >= 0:
                 self.unknown_object(ctx, x, y, ctx.min_radius, label, labelpos)
                 
-    def unknown_object(self, ctx, x, y, radius, label, label_ext, labelpos):
+    def unknown_object(self, ctx, x, y, radius, label, labelpos):
         gfx = ctx.gfx
         cfg = ctx.cfg
 
