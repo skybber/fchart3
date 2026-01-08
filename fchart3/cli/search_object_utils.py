@@ -46,6 +46,7 @@ class TargetType(str, Enum):
     STAR = "star"
     SOLAR_SYSTEM = "solar_system"
     PLANET_MOON = "planet_moon"
+    MINOR_PLANET = "minor_planet"  # new
 
 
 @dataclass(frozen=True)
@@ -491,39 +492,37 @@ def _get_trajectory_time_delta(dt_from: datetime, dt_to: datetime) -> int:
     return timedelta(hours=3), 3
 
 
-def _build_comet_trajectory(dt_from: datetime, dt_to: datetime, ts, earth, body):
+def _build_body_trajectory(dt_from: datetime, dt_to: datetime, ts, earth, body):
     """
-    Build a simple trajectory list of tuples (ra_rad, dec_rad, label),
-    compatible with SkymapEngine.make_map(..., trajectory=...).
+    Build a trajectory list of tuples (ra_rad, dec_rad, label).
+    Same format as comet trajectory for SkymapEngine.make_map(..., trajectories=...).
     """
-    if dt_from is None or dt_to is None:
-        return None
-    if dt_from >= dt_to:
+    if dt_from is None or dt_to is None or dt_from >= dt_to:
         return None
 
-    # Safety cap (same spirit as czsky): max 365 days
+    # Safety cap: max 365 days
     if (dt_to - dt_from).days > 365:
         dt_to = dt_from + timedelta(days=365)
 
-    dt, hr_step = _get_trajectory_time_delta(dt_from, dt_to)
+    step, _ = _get_trajectory_time_delta(dt_from, dt_to)
 
     out = []
     cur = dt_from
     prev_month = None
+
     while cur <= dt_to:
         t = ts.from_datetime(cur)
         ra, dec, _ = earth.at(t).observe(body).radec()
 
-        # Labels: show day at midnight, otherwise show hour; include month change marker
+        # Label logic: day at midnight, hour otherwise; mark month changes.
         if prev_month is None or prev_month != cur.month:
-            # At month boundary, print day.month. for readability
             label = cur.strftime("%d.%m.") if (cur.hour == 0) else cur.strftime("%H:00")
         else:
             label = cur.strftime("%d") if (cur.hour == 0) else cur.strftime("%H:00")
 
         out.append((float(ra.radians), float(dec.radians), label))
         prev_month = cur.month
-        cur += dt
+        cur += step
 
     return out
 
@@ -566,7 +565,7 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
 
     # Trajectory
     try:
-        traj = _build_comet_trajectory(traj_from, traj_to, skyfield_ts, earth, body)
+        traj = _build_body_trajectory(traj_from, traj_to, skyfield_ts, earth, body)
     except Exception as e:
         print(_(f"Failed to compute comet trajectory for '{source}': {e}"))
         traj = None
@@ -580,3 +579,145 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
         pass
     trajectories = [traj] if traj is not None else None
     return comet_name, ra_rad, dec_rad, trajectories
+
+
+def _load_mpc_minor_planets_df(mpc_minor_planets_file: str | None):
+    """
+    Load MPCORB dataframe using Skyfield.
+    Requires a local file (recommended: MPCORB.9999.DAT).
+    """
+    if not mpc_minor_planets_file:
+        return None
+    try:
+        with open(mpc_minor_planets_file, "rb") as f:
+            # Skyfield API name differs by version; try both.
+            if hasattr(mpc, "load_mpcorb_dataframe"):
+                return mpc.load_mpcorb_dataframe(f)
+            if hasattr(mpc, "load_mpcorb"):
+                # Fallback: some older versions expose load_mpcorb(); may not be dataframe.
+                return mpc.load_mpcorb(f)
+    except Exception as e:
+        print(_(f"Failed to load MPC minor planets from file '{mpc_minor_planets_file}': {e}"))
+        return None
+    return None
+
+
+def _find_mpc_minor_planet_row(query: str, df):
+    """
+    Find a minor planet row in MPCORB dataframe.
+    Supports:
+      - numeric designation (e.g. "1", "433") -> df.iloc[n-1] (works well for MPCORB.9999.DAT)
+      - name/designation partial match if columns exist.
+    """
+    if df is None or not query:
+        return None
+
+    q = query.strip()
+    if not q:
+        return None
+
+    # Numeric designation (common use-case; also avoids name ambiguity).
+    if q.isdigit():
+        n = int(q)
+        try:
+            if 1 <= n <= len(df):
+                return df.iloc[n - 1]
+        except Exception:
+            pass
+
+    q_cf = q.casefold()
+
+    # Try columns that often exist in MPCORB dataframes.
+    for colname in ("name", "designation", "packed_designation"):
+        if hasattr(df, "columns") and colname in df.columns:
+            try:
+                col = df[colname].astype(str)
+                exact = df[col.str.casefold() == q_cf]
+                if len(exact) > 0:
+                    return exact.iloc[0]
+                partial = df[col.str.casefold().str.contains(q_cf, na=False)]
+                if len(partial) > 0:
+                    return partial.iloc[0]
+            except Exception:
+                continue
+
+    # Index fallback
+    try:
+        idx = df.index.astype(str)
+        exact_i = df[idx.str.casefold() == q_cf]
+        if len(exact_i) > 0:
+            return exact_i.iloc[0]
+    except Exception:
+        pass
+
+    return None
+
+
+def resolve_minor_planet(
+    source: str,
+    dt_utc: datetime,
+    traj_from: Optional[datetime],
+    traj_to: Optional[datetime],
+    mpc_minor_planets_file: str | None,
+):
+    """
+    Resolve minor planet from MPCORB, return:
+      (name, ra_rad, dec_rad, trajectories)
+    trajectories is a list of trajectory-lists (same as comets).
+    """
+    if dt_utc is None:
+        return None
+
+    df = _load_mpc_minor_planets_df(mpc_minor_planets_file)
+    if df is None:
+        return None
+
+    row = _find_mpc_minor_planet_row(source, df)
+    if row is None:
+        return None
+
+    try:
+        eph = load("de421.bsp")
+        sun = eph["sun"]
+        earth = eph["earth"]
+        ts = skyfield_ts
+
+        # MPCORB orbit relative to the Sun, same approach as czsky.
+        body = sun + mpc.mpcorb_orbit(row, ts, GM_SUN)
+    except Exception as e:
+        print(_(f"Failed to build minor planet orbit for '{source}': {e}"))
+        return None
+
+    # Position at dt_utc
+    try:
+        t_now = skyfield_ts.from_datetime(dt_utc)
+        ra_ang, dec_ang, _ = earth.at(t_now).observe(body).radec()
+        ra_rad = float(ra_ang.radians)
+        dec_rad = float(dec_ang.radians)
+    except Exception as e:
+        print(_(f"Failed to compute minor planet RA/Dec for '{source}': {e}"))
+        return None
+
+    # Trajectory
+    traj = None
+    if traj_from is not None and traj_to is not None:
+        try:
+            traj = _build_body_trajectory(traj_from, traj_to, skyfield_ts, earth, body)
+        except Exception as e:
+            print(_(f"Failed to compute minor planet trajectory for '{source}': {e}"))
+            traj = None
+
+    # Name: try to pick something user-friendly if available
+    mp_name = source
+    try:
+        for k in ("name", "designation"):
+            if hasattr(row, "index") and k in row.index:
+                v = str(row[k]).strip()
+                if v and v.lower() != "nan":
+                    mp_name = v
+                    break
+    except Exception:
+        pass
+
+    trajectories = [traj] if traj is not None else None
+    return mp_name, ra_rad, dec_rad, trajectories

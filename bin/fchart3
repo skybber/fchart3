@@ -26,6 +26,9 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Any
+import gzip
+import urllib.request
+import uuid
 
 uilanguage=os.environ.get('fchart3lang')
 try:
@@ -53,7 +56,11 @@ from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
 from fchart3.horizon_landscape import load_stellarium_landscape
-from fchart3.cli.search_object_utils import resolve_star, resolve_solar_system, resolve_planet_moon, resolve_comet
+
+from fchart3.cli.search_object_utils import (
+    resolve_star, resolve_solar_system, resolve_planet_moon, resolve_comet, resolve_minor_planet
+)
+
 from fchart3.projections.projection import ProjectionType
 from datetime import datetime, timezone, date
 from skyfield.api import load
@@ -371,8 +378,63 @@ def _ensure_comet_els_file(path: str, *, force: bool = False) -> Optional[str]:
         tmp_path.replace(comet_path)
         print(f"Comet elements saved: {comet_path}")
         return str(comet_path)
-    except Exception:
+    except Exception as e:
         print(f"Failed to download comet elements file: {e}")
+        return None
+
+
+def _ensure_mpc_minor_planets_file(path: str, *, force: bool = False) -> Optional[str]:
+    """
+    Ensure local MPCORB subset file exists at `path`.
+    Default workflow: download MPCORB.DAT.gz and extract first numbered asteroids (like czsky).
+    Output is plain text MPCORB.9999.DAT compatible with Skyfield mpc.load_mpcorb_dataframe().
+    """
+    mp_path = Path(path).expanduser().resolve()
+    if not force and mp_path.is_file() and mp_path.stat().st_size > 0:
+        return str(mp_path)
+
+    url = "https://minorplanetcenter.net/iau/MPCORB/MPCORB.DAT.gz"
+    tmp_gz = mp_path.with_suffix(mp_path.suffix + f".{uuid.uuid4().hex}.gz")
+    tmp_out = mp_path.with_suffix(mp_path.suffix + ".tmp")
+
+    try:
+        # Download
+        urllib.request.urlretrieve(url, tmp_gz)
+
+        # Extract subset like czsky: skip header, take first ~9999 objects.
+        # czsky uses: start row 44, stop row 10042 (1-based). We'll mimic that.
+        start_line = 44        # 1-based
+        stop_line = 10042      # 1-based inclusive-ish cap
+        cur_line = 0
+
+        with gzip.open(tmp_gz, "rt", encoding="latin-1", errors="ignore") as gz_in, \
+             tmp_out.open("w", encoding="latin-1", newline="\n") as out_f:
+            for line in gz_in:
+                cur_line += 1
+                if cur_line < start_line:
+                    continue
+                if cur_line > stop_line:
+                    break
+                out_f.write(line)
+
+        tmp_out.replace(mp_path)
+        try:
+            tmp_gz.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+        print(f"Minor planets MPCORB subset saved: {mp_path}")
+        return str(mp_path)
+    except Exception as e:
+        print(f"Failed to download MPCORB.DAT.gz: {e}")
+        try:
+            tmp_out.unlink(missing_ok=True)
+        except Exception:
+            pass
+        try:
+            tmp_gz.unlink(missing_ok=True)
+        except Exception:
+            pass
         return None
 
 
@@ -429,32 +491,46 @@ def _search_sky_object(source, settings):
             name = resolved.name
             parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, resolved.ra_rad, resolved.dec_rad)
 
+    traj_from = settings.parser.trajectory_from
+    traj_to = settings.parser.trajectory_to
+
+    if traj_from is not None and traj_to is not None and settings.parser.dt is None:
+        print(_("Comet target requires -t (observation time)."))
+        sys.exit(-1)
 
     # --- Comet (MPC; needs -t and trajectory window) ---
-    if parsed_pos is None:
-        traj_from = settings.parser.trajectory_from
-        traj_to = settings.parser.trajectory_to
-        if traj_from is not None and traj_to is not None:
-            # Requirement: comet requires explicit time parameter
-            if settings.parser.dt is None:
-                print(_("Comet target requires -t (observation time)."))
-                sys.exit(-1)
+    if parsed_pos is None and traj_from and traj_to:
+        # Ensure CometEls.txt exists locally (download once if needed).
+        comet_file = _ensure_comet_els_file(
+            settings.parser.mpc_comets_file,
+            force=bool(getattr(settings.parser, "update_comets", False)),
+        )
+        if comet_file is None:
+            print(_("Comet elements file is missing and could not be downloaded."))
+            sys.exit(-1)
 
-            # Ensure CometEls.txt exists locally (download once if needed).
-            comet_file = _ensure_comet_els_file(
-                settings.parser.mpc_comets_file,
-                force=bool(getattr(settings.parser, "update_comets", False)),
-            )
-            if comet_file is None:
-                print(_("Comet elements file is missing and could not be downloaded."))
-                sys.exit(-1)
+        comet_res = resolve_comet(source, dt_utc=dt_utc, traj_from=traj_from, traj_to=traj_to, mpc_comets_file=comet_file)
+        if comet_res is not None:
+            comet_name, ra_rad, dec_rad, trajectory = comet_res
+            cat = "COMET"
+            name = comet_name
+            parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
 
-            comet_res = resolve_comet(source, dt_utc=dt_utc, traj_from=traj_from, traj_to=traj_to, mpc_comets_file=comet_file)
-            if comet_res is not None:
-                comet_name, ra_rad, dec_rad, trajectory = comet_res
-                cat = "COMET"
-                name = comet_name
-                parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
+    if parsed_pos is None and traj_from and traj_to:
+        mp_file = _ensure_mpc_minor_planets_file(
+            settings.parser.mpc_minor_planets_file,
+            force=bool(getattr(settings.parser, "update_minor_planets", False)),
+        )
+        if mp_file is None:
+            print(_("Minor planet MPCORB file is missing and could not be downloaded."))
+            sys.exit(-1)
+
+        mp_res = resolve_minor_planet(source, dt_utc=dt_utc, traj_from=traj_from, traj_to=traj_to, mpc_minor_planets_file=mp_file)
+        if mp_res is not None:
+            mp_name, ra_rad, dec_rad, trajectory = mp_res
+            cat = "AST"
+            name = mp_name
+            parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
 
     if parsed_pos is not None and filename is None:
         filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')
@@ -698,16 +774,23 @@ class RuntimeSettings:
                                          'Examples: 2026-01-02T21:15:00Z, 2026-01-02T21:15:00+01:00, or "now".')
 
         argumentparser.add_argument('--trajectory-from', dest='trajectory_from', type=_parse_time_or_date_arg, default=None,
-                                    help='Comet trajectory start time/date (UTC). '
+                                    help='Comet/Minor planet trajectory start time/date (UTC). '
                                          'Examples: 2026-01-02T00:00:00Z or 2026-01-02')
         argumentparser.add_argument('--trajectory-to', dest='trajectory_to', type=_parse_time_or_date_arg, default=None,
-                                    help='Comet trajectory end time/date (UTC). '
+                                    help='Comet/Minor planet trajectory end time/date (UTC). '
                                          'Examples: 2026-01-09T00:00:00Z or 2026-01-09')
+
         argumentparser.add_argument('--mpc-comets-file', dest='mpc_comets_file', default='CometEls.txt',
                                     help='Local MPC comets file. Default: ./CometEls.txt. '
                                          'If missing, it will be downloaded once.')
         argumentparser.add_argument('--update-comets', dest='update_comets', action='store_true', default=False,
                                     help='Force re-download of ./CometEls.txt (comet elements).')
+
+        argumentparser.add_argument('--mpc-minor-planets-file', dest='mpc_minor_planets_file', default='MPCORB.9999.DAT',
+                                    help='Local MPCORB minor planets file (recommended subset). Default: ./MPCORB.9999.DAT. '
+                                         'If missing, it will be downloaded once.')
+        argumentparser.add_argument('--update-minor-planets', dest='update_minor_planets', action='store_true', default=False,
+                                    help='Force re-download of ./MPCORB.9999.DAT (MPCORB subset).')
 
         argumentparser.add_argument('-v', '--version', action='store_true', default=None, help='Display version information and exit.')
 

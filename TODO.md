@@ -7,9 +7,9 @@
 - [x] move DSO search to search_object_utils.py (new TargetType)
 - [x] Refactor switches and add consistent short variants for frequently used options (e.g., -fov, -w, -h, etc.).
 - [x] Add `-comet` `-track-from` `-track-to` to cmdline
-- 
+- [x] Add minor planet lookup/target by name
 
-- [ ] Add minor planet lookup/target by name
+
 - [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Fish-eye projection
 - [ ] Expose projection selection in CLI/config (discoverability + documented list of supported projections).
@@ -25,4 +25,3 @@
 - [ ] widget for combined time+position
 - [ ] Refraction, extinction in horizontal maps
 - [ ] Stacked config files: call --config-file several times, each overriding settings from the previous, e.g. process one for colors, one for field-dependent magnitude limits and labeling settings, grid/coord types, dso catalogs, ...
-
