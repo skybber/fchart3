@@ -216,30 +216,35 @@ class EngineConfiguration:
         self._coord_system = CoordSystem.EQUATORIAL
         self._stellarium_landscape_dir = None
 
-    @ property
+    @property
     def fieldsize(self):
         return self._fieldsize
-    @ fieldsize.setter
+
+    @fieldsize.setter
     def fieldsize(self, value):
         self._fieldsize = value
 
-    @ property
+    @property
     def limit_stars(self):
         return self._limit_stars
-    @ limit_stars.setter
+
+    @limit_stars.setter
     def limit_stars(self, value):
         self._limit_stars = value
 
-    @ property
+    @property
     def limit_deepsky(self):
         return self._limit_deepsky
-    @ limit_deepsky.setter
+
+    @limit_deepsky.setter
     def limit_deepsky(self, value):
         self._limit_deepsky = value
-    @ property
+
+    @property
     def output_dir(self):
         return self._output_dir
-    @ output_dir.setter
+
+    @output_dir.setter
     def output_dir(self, value):
         self._output_dir = value
 
