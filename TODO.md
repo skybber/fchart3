@@ -8,6 +8,7 @@
 - [x] Refactor switches and add consistent short variants for frequently used options (e.g., -fov, -w, -h, etc.).
 - [x] Add `-comet` `-track-from` `-track-to` to cmdline
 - [x] Add minor planet lookup/target by name
+- [x] When plotting in horizontal coordinates, a plotted equatorial grid has its lines clipped within image frame.
 
 
 - [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
@@ -20,7 +21,6 @@
 - [ ] --sidereal-time setting to draw map in horizontal system, optionally with horizon line, without planets
 - [ ] resolve crash when plotting planet target with --show_horizontal_grid 
 - [ ] (describe how to) create asteroid/comet path plots (skyfield, compute ephemeris sequence, draw trail with date marks; comet could show tail icon pointing away from sun)
-- [ ] When plotting in horizontal coordinates, a plotted equatorial grid has its lines clipped within image frame.
 - [ ] Ecliptical and galactical grids/plot orientation
 - [ ] widget for combined time+position
 - [ ] Refraction, extinction in horizontal maps

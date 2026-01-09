@@ -180,7 +180,8 @@ class GridRenderer(BaseRenderer):
 
     def draw_single_parallel(self, ctx, to_xyz, center_u, v, v_minutes, label_fmt, label_fmt_fn, label_edge):
         gfx = ctx.gfx
-        du = ctx.field_radius / 10.0
+        du = ctx.field_radius / 20.0
+        label_done = False
         x11 = y11 = z11 = None
         x21 = y21 = z21 = None
         agg_u = 0.0
@@ -195,32 +196,67 @@ class GridRenderer(BaseRenderer):
                 gfx.line(x11, y11, x12, y12)
                 gfx.line(x21, y21, x22, y22)
 
+            if (not label_done) and (y11 is not None):
+                edge_x = -ctx.drawing_width / 2 if label_edge == 'left' else ctx.drawing_width / 2
+
+                def crosses_edge(x_prev, x_cur):
+                    # True if segment [x_prev, x_cur] crosses the vertical line x=edge_x
+                    return (x_prev - edge_x) * (x_cur - edge_x) <= 0 and abs(x_cur - x_prev) > EPS
+
+                use_plus = crosses_edge(x11, x12)
+                use_minus = crosses_edge(x21, x22)
+
+                if use_plus or use_minus:
+                    # Choose the segment that crosses the edge
+                    if use_plus and not use_minus:
+                        xa, ya, xb, yb = x11, y11, x12, y12
+                    elif use_minus and not use_plus:
+                        xa, ya, xb, yb = x21, y21, x22, y22
+                    else:
+                        # If both cross (rare), prefer the one with larger |delta x| for stability
+                        if abs(x12 - x11) >= abs(x22 - x21):
+                            xa, ya, xb, yb = x11, y11, x12, y12
+                        else:
+                            xa, ya, xb, yb = x21, y21, x22, y22
+
+                    # Interpolate intersection point with the edge
+                    t = (edge_x - xa) / (xb - xa)
+                    y = ya + (yb - ya) * t
+
+                    label = label_fmt_fn(v_minutes, label_fmt)
+                    gfx.save()
+                    ctx.mirroring_gfx.translate(edge_x, y)
+                    text_ang = math.atan2(ya - yb, xa - xb)
+                    if ctx.mirror_y:
+                        text_ang = -text_ang
+                    ctx.mirroring_gfx.rotate(text_ang)
+
+                    fh = gfx.gi_default_font_size
+                    if label_edge == 'left':
+                        # Text anchored from the left edge into the chart area
+                        if v >= 0:
+                            gfx.text_right(2 * fh / 3, +fh / 3, label)
+                        else:
+                            gfx.text_right(2 * fh / 3, -fh, label)
+                    else:
+                        # Right edge: anchor the other way
+                        if v >= 0:
+                            gfx.text_left(-2 * fh / 3, +fh / 3, label)
+                        else:
+                            gfx.text_left(-2 * fh / 3, -fh, label)
+                    gfx.restore()
+                    label_done = True
+
             agg_u += du
             iter_count += 1
 
-            if y11 is not None and x12 < -ctx.drawing_width / 2:
-                y = (y12 - y11) * (ctx.drawing_width / 2 + x11) / (x11 - x12) + y11
-                label = label_fmt_fn(v_minutes, label_fmt)
-                gfx.save()
-                ctx.mirroring_gfx.translate(-ctx.drawing_width / 2, y)
-                text_ang = math.atan2(y11 - y12, x11 - x12)
-                if ctx.mirror_y:
-                    text_ang = -text_ang
-                ctx.mirroring_gfx.rotate(text_ang)
-                fh = gfx.gi_default_font_size
-                if v >= 0:
-                    gfx.text_right(2 * fh / 3, +fh / 3, label)
-                else:
-                    gfx.text_right(2 * fh / 3, -fh, label)
-                gfx.restore()
-                break
 
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
 
     def draw_single_meridian(self, ctx, to_xyz, u, u_minutes, label_fmt, label_fmt_fn, label_edges, center_v):
         gfx = ctx.gfx
-        dv = ctx.field_radius / 10.0
+        dv = ctx.field_radius / 20.0
         x11, y11, z11 = to_xyz(u, center_v)
         x21, y21, z21 = x11, y11, z11
         v11 = v21 = center_v
