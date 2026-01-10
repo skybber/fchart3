@@ -87,7 +87,7 @@ def import_pgc_deepsky(pgc_dat_file, pgc_update_file, show_catalogs, all_dsos):
             ra = float(line[6:8])*np.pi/12.0 + float(line[8:10])*np.pi/(12.0*60.0) + float(line[10:14])*np.pi/(12*60.0*60)
             dec = float(line[14]+'1')*(float(line[15:17])*np.pi/180.0 + float(line[17:19])*np.pi/(180.0*60) + float(line[19:21])*np.pi/(180.0*60*60))
 
-            pgc_dso.type = dso_type_map.get('GX', UNKNOWN)
+            pgc_dso.type = dso_type_map.get('GX', DsoType.UNKNOWN)
 
             try:
                 pgc_dso.mag = float(line[59:63])

@@ -15,7 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from .. import deepsky_object as deepsky
+from ..deepsky_object import cmp_to_key
 
 
 class WidgetDsoLegend:
@@ -54,13 +54,13 @@ class WidgetDsoLegend:
                 r = 1
             return r
 
-        toplabels.sort(key=deepsky.cmp_to_key(labsort))
+        toplabels.sort(key=cmp_to_key(labsort))
         toplabels.reverse()
         tl = []
         for lab in toplabels:
             tl.append(lab[0])
 
-        bottomlabels.sort(key=deepsky.cmp_to_key(labsort))
+        bottomlabels.sort(key=cmp_to_key(labsort))
         bottomlabels.reverse()
         bl = []
         for lab in bottomlabels:

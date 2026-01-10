@@ -38,7 +38,7 @@ from .outlines_deepsky import import_outlines_catgen
 from .milkyway import import_milky_way
 from .milkyway_enhanced import EnhancedMilkyWay
 from .vic import import_vic
-from . import deepsky_object as deepsky
+from .deepsky_object import DsoType, UnknownNebula, cmp_name, cmp_to_key
 
 
 class UsedCatalogs:
@@ -64,9 +64,9 @@ class UsedCatalogs:
                 self._reduced_deeplist.append(dso)
             elif dso.mag <= limit_magnitude_deepsky and \
                     dso.master_object is None and \
-                    dso.type != deepsky.GALCL and \
-                    (dso.type != deepsky.STARS or force_asterisms or (dso.messier > 0 and dso.type == deepsky.STARS)) and \
-                    (dso.type != deepsky.PG or force_unknown or dso.type == deepsky.PG and dso.mag > -5.0):
+                    dso.type != DsoType.GALCL and \
+                    (dso.type != DsoType.STARS or force_asterisms or (dso.messier > 0 and dso.type == DsoType.STARS)) and \
+                    (dso.type != DsoType.PG or force_unknown or dso.type == DsoType.PG and dso.mag > -5.0):
                 self._reduced_deeplist.append(dso)
 
         self._messierlist.sort(key=lambda x: x.messier)
@@ -228,7 +228,7 @@ class UsedCatalogs:
                 print(_('Reading hnsky supplement {} ...'.format(supplement)), flush=True)
                 suppl_dsos = import_hnsky_supplement(supplement, all_dsos)
                 deeplist += suppl_dsos
-        deeplist.sort(key=deepsky.cmp_to_key(deepsky.cmp_name))
+        deeplist.sort(key=cmp_to_key(cmp_name))
         print(_('Reading DSO outlines...'), flush=True)
         dso_dict = self._get_dso_dict(deeplist)
 
@@ -250,7 +250,7 @@ class UsedCatalogs:
                     if name in ['Orion', 'Scorpion']: #Hack
                         uneb = unknown_nebula_map.get(name)
                         if not uneb:
-                            uneb = deepsky.UnknownNebula()
+                            uneb = UnknownNebula()
                             unknown_nebula_map[name] = uneb
                             unknown_nebulae.append(uneb)
                         for outlines in outlines_ar:

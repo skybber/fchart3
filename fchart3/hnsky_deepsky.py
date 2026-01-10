@@ -18,26 +18,26 @@
 from .deepsky_object import *
 
 dso_type_map = {
-    'GX': G,
-    'BN': N,
-    'DN': N,
-    'PN': PN,
-    'OC': OC,
-    'GC': GC,
-    'STARS': STARS,
-    'QUASR': QSO,
-    'GALCL': GALCL,
-    '2STAR': STARS,
-    'ASTER': STARS,
-    'CL+NB': OC,
-    'NB':  N,
-    'DN&HII': N,
-    'pA*': UNKNOWN,     # Post-AGB Star (proto-PN)
-    'C*': UNKNOWN,      # Carbon Star
-    'CV*': UNKNOWN,     # Cataclysmic Variable Star
-    'RNe': N,           # Reflection Nebula
-    'NL*': UNKNOWN,     # Nova-like Star
-    'HII': N
+    'GX': DsoType.G,
+    'BN': DsoType.N,
+    'DN': DsoType.N,
+    'PN': DsoType.PN,
+    'OC': DsoType.OC,
+    'GC': DsoType.GC,
+    'STARS': DsoType.STARS,
+    'QUASR': DsoType.QSO,
+    'GALCL': DsoType.GALCL,
+    '2STAR': DsoType.STARS,
+    'ASTER': DsoType.STARS,
+    'CL+NB': DsoType.OC,
+    'NB':  DsoType.N,
+    'DN&HII': DsoType.N,
+    'pA*': DsoType.UNKNOWN,     # Post-AGB Star (proto-PN)
+    'C*': DsoType.UNKNOWN,      # Carbon Star
+    'CV*': DsoType.UNKNOWN,     # Cataclysmic Variable Star
+    'RNe': DsoType.N,           # Reflection Nebula
+    'NL*': DsoType.UNKNOWN,     # Nova-like Star
+    'HII': DsoType.N
 }
 
 CATALOG_SPECS0 = { 'Sh2-' }
@@ -117,7 +117,7 @@ def _parse_hnsky_line(line, show_catalogs, all_dsos):
     if indx > 0:
         obj_type = obj_type[:indx]
 
-    object.type = dso_type_map.get(obj_type, UNKNOWN)
+    object.type = dso_type_map.get(obj_type, DsoType.UNKNOWN)
 
     str_mag = items[2].strip()
 
@@ -268,7 +268,7 @@ def _parse_hnsky_supplement_line(line, all_dsos):
     if indx > 0:
         obj_type = obj_type[:indx]
 
-    object.type = dso_type_map.get(obj_type, UNKNOWN)
+    object.type = dso_type_map.get(obj_type, DsoType.UNKNOWN)
 
     str_length = items[10].strip() if len(items) > 10 else None
 

@@ -51,7 +51,7 @@ def import_vic(filename):
             object.cat = 'VIC'
             object.name = str(row_id)
             object.add_name(object.name)
-            object.type = STARS
+            object.type = DsoType.STARS
             rhs,rms,rss = row['RA'].split(',')
             object.ra = pi * (float(rhs) + float(rms)/60.0) / 12.0
             dds, dms, dss = row['Dec'].split(',')

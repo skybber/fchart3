@@ -19,7 +19,7 @@ import numpy as np
 import math
 
 from ..np_astrocalc import np_rect_to_sphere
-from .. import deepsky_object as deepsky
+from ..deepsky_object import DsoType
 
 from .base_renderer import BaseRenderer, SQRT2
 
@@ -109,40 +109,40 @@ class DeepskyRenderer(BaseRenderer):
 
             label_length = gfx.text_width(label)
 
-            if dso.type == deepsky.G:
+            if dso.type == DsoType.G:
                 labelpos_list = self.galaxy_labelpos(ctx, x, y, rlong, rshort, posangle, label_length)
-            elif dso.type == deepsky.N:
+            elif dso.type == DsoType.N:
                 labelpos_list = self.diffuse_nebula_labelpos(ctx, x, y, 2.0*rlong, 2.0*rshort, posangle, label_length)
-            elif dso.type in [deepsky.PN, deepsky.OC, deepsky.GC, deepsky.SNR, deepsky.GALCL]:
+            elif dso.type in [DsoType.PN, DsoType.OC, DsoType.GC, DsoType.SNR, DsoType.GALCL]:
                 labelpos_list = self.circular_object_labelpos(ctx, x, y, rlong, label_length)
-            elif dso.type == deepsky.STARS:
+            elif dso.type == DsoType.STARS:
                 labelpos_list = self.asterism_labelpos(ctx, x, y, rlong, label_length)
             else:
                 labelpos_list = self.unknown_object_labelpos(ctx, x, y, rlong, label_length)
 
             labelpos = self.find_min_labelpos(state, labelpos_list, label_length)
 
-            if dso.type == deepsky.G:
+            if dso.type == DsoType.G:
                 self.galaxy(ctx, x, y, rlong, rshort, posangle, dso.mag, label, label_mag, label_ext, labelpos)
-            elif dso.type == deepsky.N:
+            elif dso.type == DsoType.N:
                 has_outlines = False
                 if cfg.show_nebula_outlines and dso.outlines is not None and rlong > ctx.min_radius:
                     has_outlines = self.draw_dso_outlines(ctx, dso, x, y, rlong, rshort, posangle, label, label_ext, labelpos)
                 if not has_outlines:
                     self.diffuse_nebula(ctx, x, y, 2.0*rlong, 2.0*rshort, posangle, label, label_mag, label_ext, labelpos)
-            elif dso.type == deepsky.PN:
+            elif dso.type == DsoType.PN:
                 self.planetary_nebula(ctx, x, y, rlong, label, label_mag, label_ext, labelpos)
-            elif dso.type == deepsky.OC:
+            elif dso.type == DsoType.OC:
                 if cfg.show_nebula_outlines and dso.outlines is not None:
                     self.draw_dso_outlines(ctx, dso, x, y, rlong, rshort)
                 self.open_cluster(ctx, x, y, rlong, label, label_mag, label_ext, labelpos)
-            elif dso.type == deepsky.GC:
+            elif dso.type == DsoType.GC:
                 self.globular_cluster(ctx, x, y, rlong, label, label_mag, label_ext, labelpos)
-            elif dso.type == deepsky.STARS:
+            elif dso.type == DsoType.STARS:
                 self.asterism(ctx, x, y, rlong, label, label_ext, labelpos)
-            elif dso.type == deepsky.SNR:
+            elif dso.type == DsoType.SNR:
                 self.supernova_remnant(ctx, x, y, rlong, label, label_ext, labelpos)
-            elif dso.type == deepsky.GALCL:
+            elif dso.type == DsoType.GALCL:
                 self.galaxy_cluster(ctx, x, y, rlong, label, label_ext, labelpos)
             else:
                 self.unknown_object(ctx, x, y, rlong, label, label_ext, labelpos)
