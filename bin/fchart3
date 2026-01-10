@@ -880,7 +880,6 @@ def _create_engine_configuration(config_file=None):
 
     # 1. sets defaults
     cfg.light_mode = True
-    cfg.legend_only = False
     cfg.show_star_labels = True
     cfg.show_flamsteed = True
     cfg.show_mag_scale_legend = False
