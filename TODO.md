@@ -16,6 +16,7 @@
 - [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
 - [ ] Fish-eye projection
+- [ ] Multiple trajectories support
 - [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] Optionally mask/cut objects below horizon.
