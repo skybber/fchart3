@@ -214,6 +214,7 @@ class EngineConfiguration:
         self._observer_lat_deg = None
         self._observer_lon_deg = None
         self._coord_system = CoordSystem.EQUATORIAL
+        self._stellarium_skyculture_json = None
         self._stellarium_landscape_dir = None
 
     @property
@@ -1095,6 +1096,14 @@ class EngineConfiguration:
     @coord_system.setter
     def coord_system(self, value):
         self._coord_system = value
+
+    @property
+    def stellarium_skyculture_json(self):
+        return self._stellarium_skyculture_json
+
+    @stellarium_skyculture_json.setter
+    def stellarium_skyculture_json(self, value):
+        self._stellarium_skyculture_json = value
 
     @property
     def stellarium_landscape_dir(self):

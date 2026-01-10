@@ -44,16 +44,15 @@ from . import deepsky_object as deepsky
 class UsedCatalogs:
     def __init__(self, data_dir, extra_star_data_dir, supplements=None, limit_magnitude_deepsky=10.0, force_messier=False,
                  force_asterisms=False, force_unknown=False, show_catalogs=None, use_pgc_catalog=False,
-                 enhanced_mw_optim_max_col_diff=None):
+                 enhanced_mw_optim_max_col_diff=None, stellarium_skyculture_json=None):
         # Read basic catalogs
-        self._constell_catalog = ConstellationCatalog(data_dir+os.sep + 'bsc5.dat',
-                                               data_dir+os.sep + 'constellationship_western.fab',
-                                               data_dir+os.sep + 'constbndJ2000.dat',
-                                               data_dir+os.sep + 'cross-id.dat')
+        constell_filename = stellarium_skyculture_json if stellarium_skyculture_json else (data_dir+os.sep+'constellationship_western.fab')
+        self._constell_catalog = ConstellationCatalog(data_dir+os.sep+'bsc5.dat',
+                                               constell_filename,
+                                               data_dir+os.sep+'constbndJ2000.dat',
+                                               data_dir+os.sep+'cross-id.dat')
         self._star_catalog = GeodesicStarGaiaCatalog(data_dir, extra_star_data_dir)
-
         self._deeplist, self._unknown_nebulae = self._get_deepsky_list(data_dir, show_catalogs, use_pgc_catalog, supplements)
-
         # Apply magnitude selection to deepsky list, build Messier list
         self._reduced_deeplist = []
         self._messierlist=[]

@@ -760,14 +760,23 @@ class RuntimeSettings:
                                     choices=['equatorial', 'horizontal'],
                                     default='equatorial',
                                     help='Coordinate system to use: equatorial or horizontal (alt/az).')
+
+        argumentparser.add_argument('--stellarium-skyculture-json',
+                                    dest='stellarium_skyculture_json',
+                                    nargs='?',
+                                    action='store',
+                                    default=None,
+                                    help='Path to Stellarium skyculture index.json (new JSON constellation format). '
+                                         'Example: /usr/share/stellarium/skycultures/egyptian_dendera/index.json. '
+                                         'When set, it overrides the legacy *.fab constellation lines file.')
+
         argumentparser.add_argument('--stellarium-landscape',
                                     dest='stellarium_landscape_dir',
                                     nargs='?',
                                     action='store',
                                     default=None,
                                     help='Path to Stellarium landscape directory (contains landscape.ini). '
-                                         'Used to load polygonal horizon and pass it to the renderer.'
-        )
+                                         'Used to load polygonal horizon and pass it to the renderer.')
 
         argumentparser.add_argument('-t', dest='dt', type=_parse_time_arg, default=None,
                                     help='Observation time (UTC) in ISO-8601. '
@@ -1034,7 +1043,8 @@ def _create_engine_configuration(config_file=None):
         cfg.dso_label_font_style = _convert_font_style(settings.parser.font_style_dso)
     if settings.parser.flamsteed_numbers_only is not None:
         cfg.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
-
+    if settings.parser.stellarium_skyculture_json is not None:
+        cfg.stellarium_skyculture_json = settings.parser.stellarium_skyculture_json
     if settings.parser.stellarium_landscape_dir:
         cfg.stellarium_landscape_dir = settings.parser.stellarium_landscape_dir
         # If a Stellarium horizon was requested, provide long/lat. Can still be overridden by the following CLI args
@@ -1119,6 +1129,7 @@ if __name__ == '__main__':
                                  force_asterisms=settings.parser.force_asterisms,
                                  force_unknown=settings.parser.force_unknown,
                                  show_catalogs=show_catalogs,
+                                 stellarium_skyculture_json=settings.parser.stellarium_skyculture_json,
                                  )
 
     # Final report before mapmaking
@@ -1156,6 +1167,8 @@ if __name__ == '__main__':
 
     if settings.parser.extra_data_dir:
         print(_('   Extra data directory: {}'.format(settings.parser.extra_data_dir)))
+    if cfg.stellarium_skyculture_json:
+        print(_('   Sky culture    : {}'.format(cfg.stellarium_skyculture_json)))
 
     for object in settings.extra_positions_list:
         pos, label, labelpos = object
