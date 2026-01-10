@@ -19,6 +19,7 @@ from enum import Enum
 from dataclasses import dataclass
 from typing import TypeAlias, Optional
 
+from .projections import ProjectionType
 from .graphics import FontStyle
 
 DEFAULT_OUTPUT_DIR = './'
@@ -254,6 +255,7 @@ class EngineConfiguration:
     observer_lat_deg: Optional[float] = None
     observer_lon_deg: Optional[float] = None
     coord_system: CoordSystem = CoordSystem.EQUATORIAL
+    projection: ProjectionType = ProjectionType.STEREOGRAPHIC
 
     # Stellarium integration
     stellarium_skyculture_json: Optional[str] = None

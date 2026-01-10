@@ -859,7 +859,7 @@ def _convert_font_style(font_style):
     return FontStyle.NORMAL
 
 
-def parse_projection_type(value: str) -> ProjectionType:
+def _parse_projection(value: str) -> ProjectionType:
     """
     English comment: Convert CLI string to ProjectionType enum.
     """
@@ -1059,10 +1059,15 @@ def _create_engine_configuration(config_file=None):
             cfg.observer_lat_deg = float(settings.parser.obs_latitude)
         except Exception:
             pass
-    if settings.parser.coord_system is not None:
+    if settings.parser.coord_system:
         try:
             cfg.coord_system = CoordSystem(settings.parser.coord_system)
         except Exception:
+            pass
+    if settings.parser.projection:
+        try:
+            cfg.projection = _parse_projection(settings.parser.projection)
+        except ValueError:
             pass
 
     if cfg.show_enhanced_milky_way_30k:
@@ -1183,8 +1188,6 @@ if __name__ == '__main__':
             print(_('Failed to load Stellarium landscape from {}: {}'
                     .format(settings.parser.stellarium_landscape_dir, e)))
 
-    proj_type = parse_projection_type(settings.parser.projection)
-
     # For all sources...
     for source in settings.parser.sourcelist:
         filename = ''
@@ -1207,9 +1210,9 @@ if __name__ == '__main__':
                 # Messier objects are always RA/Dec
                 phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
 
-                engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize)/2.0, "",
+                engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize) / 2.0, "",
                                  mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y,
-                                 projection_type=proj_type)
+                                 projectione=cfg.projection)
                 engine.set_caption('M '+str(object.messier))
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
 
@@ -1276,7 +1279,7 @@ if __name__ == '__main__':
                 dt_utc = settings.parser.dt
                 phi, theta, dt_utc = _fieldcentre_for_engine_from_position(parsed_pos, cfg, dt_utc)
 
-                engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize)/2.0, projection_type=proj_type)
+                engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize) / 2.0, projection=cfg.projection)
                 caption = cat + ' ' + name
 
                 if settings.parser.caption is not None:

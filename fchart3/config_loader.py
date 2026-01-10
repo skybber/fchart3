@@ -18,6 +18,8 @@
 from .configuration import *
 from .graphics import FontStyle
 
+# NOTE: Keep comments in English (user preference).
+
 FLOAT_ITEMS = [
     'fieldsize',
     'limit_stars',
@@ -39,7 +41,6 @@ FLOAT_ITEMS = [
     'eyepiece_linewidth',
 
     # spacing / font sizes / scales
-    'constellation_linespace',
     'font_size',
     'legend_font_scale',
     'ext_label_font_scale',
@@ -52,7 +53,6 @@ FLOAT_ITEMS = [
 
     # misc numeric
     'star_mag_shift',
-    'eyepiece_fov',
 
     # planetary radius scales
     'moon_r_scale',
@@ -64,6 +64,19 @@ FLOAT_ITEMS = [
     'uranus_r_scale',
     'neptune_r_scale',
     'pluto_r_scale',
+]
+
+# Integers in EngineConfiguration
+INT_ITEMS = [
+    'constellation_linespace',
+    'picker_radius',
+]
+
+# Optional floats in EngineConfiguration
+OPTIONAL_FLOAT_ITEMS = [
+    'eyepiece_fov',
+    'observer_lat_deg',
+    'observer_lon_deg',
 ]
 
 RGB_ITEMS = [
@@ -92,6 +105,7 @@ RGB_ITEMS = [
     # overlays / tools
     'telrad_color',
     'eyepiece_color',
+    'picker_color',
 
     # bodies
     'sun_color',
@@ -146,8 +160,9 @@ BOOLEAN_ITEMS = [
     'show_nebula_outlines',
 
     'show_solar_system',
-
     'show_horizon',
+
+    'show_picker',
 
     # star rendering options
     'star_colors',
@@ -155,7 +170,13 @@ BOOLEAN_ITEMS = [
 
 STRING_ITEMS = [
     'font',
-    'output_dir'
+    'output_dir',
+]
+
+# Optional strings in EngineConfiguration
+OPTIONAL_STRING_ITEMS = [
+    'stellarium_skyculture_json',
+    'stellarium_landscape_dir',
 ]
 
 FONT_STYLE_ITEMS = [
@@ -172,6 +193,13 @@ FONT_STYLE_CONVERSION = {
 
 TUPLE_FLOAT_ITEMS = [
     'enhanced_milky_way_fade',
+]
+
+# Enum-backed items
+ENUM_ITEMS = [
+    'coord_system',
+    'widget_mode',
+    'projection',
 ]
 
 
@@ -216,6 +244,48 @@ class ConfigurationLoader:
             return None
         return float(value_str)
 
+    def parse_optional_string(self, value_str):
+        """
+        Parse string or None (empty/'none'/'null').
+        """
+        v = value_str.strip()
+        if v.lower() in ('', 'none', 'null'):
+            return None
+        return v
+
+    def parse_int(self, value_str):
+        """
+        Parse integer. Accepts floats like "3.0" but stores as int.
+        """
+        v = value_str.strip()
+        if v.lower() in ('', 'none', 'null'):
+            raise ValueError("Expected int, got empty/none/null.")
+        return int(float(v))
+
+    def set_enum(self, config, key, value_str):
+        """
+        Set Enum value from string. Tries both raw and lowercased value.
+        """
+        raw = value_str.strip()
+        low = raw.lower()
+
+        enum_type = type(getattr(config, key))
+        # Try direct (in case Enum expects exact casing)
+        try:
+            setattr(config, key, enum_type(raw))
+            return
+        except Exception:
+            pass
+
+        # Try lowercased (common for config files)
+        try:
+            setattr(config, key, enum_type(low))
+            return
+        except Exception:
+            pass
+
+        # If still not valid, ignore silently (keeps default).
+
     def load_config(self, config):
         with open(self.config_file, 'r') as f:
             lines = f.readlines()
@@ -236,23 +306,37 @@ class ConfigurationLoader:
 
             try:
                 if key in FLOAT_ITEMS:
-                    if key == 'eyepiece_fov':
-                        setattr(config, key, self.parse_optional_float(value))
-                    else:
-                        setattr(config, key, float(value))
+                    setattr(config, key, float(value))
+
+                elif key in OPTIONAL_FLOAT_ITEMS:
+                    setattr(config, key, self.parse_optional_float(value))
+
+                elif key in INT_ITEMS:
+                    setattr(config, key, self.parse_int(value))
+
                 elif key in RGB_ITEMS:
                     setattr(config, key, self.parse_color(value))
+
                 elif key in BOOLEAN_ITEMS:
                     setattr(config, key, self.parse_bool(value))
+
                 elif key in FONT_STYLE_ITEMS:
                     setattr(config, key, FONT_STYLE_CONVERSION.get(value.strip().lower(), FontStyle.NORMAL))
+
                 elif key in STRING_ITEMS:
                     setattr(config, key, value)
+
+                elif key in OPTIONAL_STRING_ITEMS:
+                    setattr(config, key, self.parse_optional_string(value))
+
                 elif key in TUPLE_FLOAT_ITEMS:
                     setattr(config, key, self.parse_float_tuple(value))
-                elif key == 'coord_system':
-                    setattr(config, key, CoordSystem(value))
+
+                elif key in ENUM_ITEMS:
+                    self.set_enum(config, key, value)
+
             except Exception:
+                # Silently ignore invalid lines to keep loader tolerant.
                 continue
 
         return True

@@ -113,7 +113,7 @@ class SkymapEngine:
 
         self.norm_field_radius = None
 
-    def set_field(self, phi, theta, field_radius, field_label=None, mirror_x=False, mirror_y=False, projection_type=ProjectionType.STEREOGRAPHIC):
+    def set_field(self, phi, theta, field_radius, field_label=None, mirror_x=False, mirror_y=False, projection=ProjectionType.STEREOGRAPHIC):
         self.field_radius = field_radius
         self.center_celestial = (phi, theta)
         self.center_equatorial = (phi, theta)
@@ -131,7 +131,7 @@ class SkymapEngine:
         self.drawing_scale = self.scene_scale*wh/2.0/math.sin(field_radius)
         self.legend_fontscale = min(self.cfg.legend_font_scale, wh/100.0)
 
-        proj = self._create_projection(projection_type)
+        proj = self._create_projection(projection)
 
         self.transf = ViewportTransformer(proj)
         self.transf.set_celestial_center(0, 0)
