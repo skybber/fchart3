@@ -21,13 +21,13 @@ import os
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Tuple, Any
+from typing import Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 from skyfield.api import load
 from skyfield.data import mpc
 from skyfield.constants import GM_SUN_Pitjeva_2005_km3_s2 as GM_SUN
 
-from ..solar_system import get_solsys_bodies, get_planet_moons
+from .solar_system import get_solsys_bodies, get_planet_moons
 
 uilanguage=os.environ.get('fchart3lang')
 

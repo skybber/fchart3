@@ -42,5 +42,4 @@ from .graphics import *
 from .projections import *
 from .highlight_definition import *
 from .dso_highlight_definition import *
-from .solar_system import *
 from .horizon_landscape import *

@@ -47,7 +47,6 @@ import numpy as np
 import fchart3
 
 from fchart3.config_loader import ConfigurationLoader, CoordSystem
-from fchart3.solar_system import get_solsys_bodies, get_planet_moons
 from fchart3.astrocalc import hms2rad
 from fchart3.skymap_engine import SkymapEngine
 from fchart3.used_catalogs import UsedCatalogs
@@ -60,6 +59,7 @@ from fchart3.horizon_landscape import load_stellarium_landscape
 from fchart3.cli.search_object_utils import (
     resolve_star, resolve_solar_system, resolve_planet_moon, resolve_comet, resolve_minor_planet
 )
+from fchart3.cli.solar_system import get_solsys_bodies, get_planet_moons
 
 from fchart3.projections.projection import ProjectionType
 from datetime import datetime, timezone, date
