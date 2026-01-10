@@ -6,17 +6,17 @@ It uses data and catalogues based on Stellarium, KStars, HNSky and Gaia-derived 
 It can generate:
 
 - **Offline charts** with output to **PDF**, **PNG**, **SVG** or **TikZ**.
-- **Online interactive charts** – the same rendering engine is used in the [**CzSky**](https://www.czsky.eu) project.
+- **Online interactive charts** – the same rendering engine is used in the [**CzSkY**](https://www.czsky.eu) project.
 
 ![fchart3](https://github.com/skybber/fchart3/assets/2523097/7748f1fd-4751-4586-ac4c-7c2900d66568)
 
 ---
 
-## Online interactive version (CzSky)
+## Online interactive version (CzSkY)
 
-Interactive web charts using the fchart3 engine are available in the [**CzSky**](https://www.czsky.eu) project:
+Interactive web charts using the fchart3 engine are available in the [**CzSkY**](https://www.czsky.eu) project:
 
-- [CzSky Chart](https://www.czsky.eu/chart?ra=1.532197702857378&dec=0.06961660554646551&fsz=100&splitview=true)
+- [CzSkY Chart](https://www.czsky.eu/chart?ra=1.532197702857378&dec=0.06961660554646551&fsz=100&splitview=true)
 
 ---
 
@@ -40,7 +40,7 @@ Interactive web charts using the fchart3 engine are available in the [**CzSky**]
 - Optional comet / minor planet resolving with trajectory plotting (requires time window).
 - Optional polygon horizon from **Stellarium landscape** (`landscape.ini`) for Alt/Az charts.
 - Flexible configuration: magnitude limits, labels, fonts, legends, colors, line widths, etc.
-- Used as the map engine of the CzSky online star atlas.
+- Used as the map engine of the CzSkY online star atlas.
 
 ---
 
@@ -319,6 +319,7 @@ Runtime-downloaded (not stored in repo by default):
 ## Authors
 
 * **Vladimir Dvorak** – fchart3
+* **Georg Zotti** – fchart3
 * **Michiel Brentjens** – original author of fchart
 * **Austin Riba** – modern fchart for Python 2.7 + NumPy: [https://github.com/Fingel/fchart](https://github.com/Fingel/fchart)
 
