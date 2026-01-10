@@ -9,18 +9,19 @@
 - [x] Add `-comet` `-track-from` `-track-to` to cmdline
 - [x] Add minor planet lookup/target by name
 - [x] When plotting in horizontal coordinates, a plotted equatorial grid has its lines clipped within image frame.
+- [x] (describe how to) create asteroid/comet path plots 
 
+- [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
-- [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Fish-eye projection
+- [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).
+- [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Expose projection selection in CLI/config (discoverability + documented list of supported projections).
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] Optionally mask/cut objects below horizon.
-- [ ] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).
 - [ ] describe creation of horizontal maps "View towards west" etc. with --time argument and planets. Moon enlarged with phase figure?
 - [ ] --sidereal-time setting to draw map in horizontal system, optionally with horizon line, without planets
-- [ ] resolve crash when plotting planet target with --show_horizontal_grid 
-- [ ] (describe how to) create asteroid/comet path plots (skyfield, compute ephemeris sequence, draw trail with date marks; comet could show tail icon pointing away from sun)
+- [ ] comet could show tail icon pointing away from sun
 - [ ] Ecliptical and galactical grids/plot orientation
 - [ ] widget for combined time+position
 - [ ] Refraction, extinction in horizontal maps
