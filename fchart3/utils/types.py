@@ -16,14 +16,17 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from dataclasses import dataclass, field
-from typing import Optional, Tuple, Any
+from typing import Optional, Tuple, Any, TypeAlias
 import numpy as np
 
 from ..horizon_landscape import StellariumLandscape
 
-Coord = Tuple[float, float]
-Rect = Tuple[float, float, float, float]
+Coord: TypeAlias = Tuple[float, float]
+Rect: TypeAlias = Tuple[float, float, float, float]
 
+# Type aliases (English comments as requested):
+# - Color is an RGB tuple in the 0..1 range.
+Color: TypeAlias = tuple[float, float, float]
 
 @dataclass(frozen=True, slots=True)
 class RenderContext:

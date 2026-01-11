@@ -78,7 +78,6 @@ welcome to redistribute it under certain conditions as specified in the
 LICENSE file."""))
 
 
-
 class ParsedCoordType(str, Enum):
     """Coordinate type of a parsed CLI position."""
     EQUATORIAL = "equatorial"   # RA/Dec

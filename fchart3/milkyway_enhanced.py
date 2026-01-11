@@ -55,7 +55,6 @@ class EnhancedMilkyWay:
         else:
             print(_("Enhanced milky way initialized within {}s. Total polygons={}".format(tmp, len(self.mw_polygons))), flush=True)
             
-
     def _radec_from_img(self, point):
         x, y = point.split(',')
         x, y = int(x), int(y)

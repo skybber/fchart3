@@ -24,8 +24,6 @@ from .projections import *
 from .precession import compute_precession_matrix
 from .viewport_transformer import ViewportTransformer
 
-from .space_widget_allocator import SpaceWidgetAllocator
-
 from .renderers import *
 from .widgets import *
 

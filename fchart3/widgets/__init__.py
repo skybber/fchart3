@@ -15,6 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from .space_widget_allocator import SpaceWidgetAllocator
 from .widget_mag_scale import WidgetMagnitudeScale
 from .widget_map_scale import WidgetMapScale
 from .widget_numeric_map_scale import WidgetNumericMapScale

@@ -21,6 +21,7 @@ from typing import TypeAlias, Optional
 
 from .projections import ProjectionType
 from .graphics import FontStyle
+from .utils.types import Color
 
 DEFAULT_OUTPUT_DIR = './'
 DEFAULT_LIMIT_STARS = 12.0
@@ -103,11 +104,6 @@ class WidgetMode(Enum):
 class CoordSystem(Enum):
     EQUATORIAL = "equatorial"
     HORIZONTAL = "horizontal"
-
-
-# Type aliases (English comments as requested):
-# - Color is an RGB tuple in the 0..1 range.
-Color: TypeAlias = tuple[float, float, float]
 
 # - FadePattern is a sequence of floats (your default has 6 values).
 FadePattern: TypeAlias = tuple[float, ...]

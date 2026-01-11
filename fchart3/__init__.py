@@ -40,6 +40,5 @@ from .solar_system_body import *
 from .used_catalogs import *
 from .graphics import *
 from .projections import *
-from .highlight_definition import *
-from .dso_highlight_definition import *
+from .highlights import *
 from .horizon_landscape import *
