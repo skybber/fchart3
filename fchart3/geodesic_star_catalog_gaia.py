@@ -21,6 +21,7 @@ from .astrocalc import *
 from .np_astrocalc import *
 from .geodesic_binfile_reader import *
 from .geodesic_grid import *
+from .vector_math import vector_length, vector_sub
 
 # from memory_profiler import profile
 

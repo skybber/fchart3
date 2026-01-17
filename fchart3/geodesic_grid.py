@@ -16,12 +16,16 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import math
+from typing import TypeAlias, Sequence, Optional
 
-from .vector_math import *
+from .vector_math import vector_dot, vector_norm_add, vector_norm_add3
 
 import numpy as np
 from time import time
 # from memory_profiler import profile
+
+Vec3: TypeAlias = tuple[float, float, float]
+Vec3Like: TypeAlias = Sequence[float]
 
 icosahedron_G = 0.5*(1.0+math.sqrt(5.0))
 icosahedron_b = 1.0/math.sqrt(1.0+icosahedron_G*icosahedron_G)
@@ -67,6 +71,10 @@ icosahedron_triangles = (
 
 
 class SphericalCap:
+    _view_dir: Vec3Like
+    _inner_view_cos: float
+    _outer_view_cos: float
+
     def __init__(self, view_dir, inner_view_cos, outer_view_cos):
         """
         Construct a SphericalCap from its direction and aperture.
@@ -88,13 +96,19 @@ class SphericalCap:
 
 
 class GeodesicSearchResult:
+    zone_lists: list[list[int]]
+    inside_indexes: list[int]
+    border_indexes: list[int]
+    max_level: int
+
     """ Result of grid search
     """
-    def __init__(self, max_level):
-        self.zone_lists = [None] * (max_level + 1)
-        self.inside_indexes = [None] * (max_level + 1)
-        self.border_indexes = [None] * (max_level + 1)
+    def __init__(self, max_level) -> None:
         self.max_level = max_level
+        self.zone_lists = [[0] * GeodesicGrid.nr_of_zones(i) for i in range(max_level + 1)]
+        self.inside_indexes = [0] * (max_level + 1)
+        self.border_indexes = [0] * (max_level + 1)
+        self.reset()
 
         for i in range(max_level+1):
             n = GeodesicGrid.nr_of_zones(i)
@@ -117,13 +131,16 @@ class GeodesicSearchResult:
 
 
 class GeodesicSearchBorderIterator:
+    _search_zones: list[int]
+    _index: int
+
     """ Iterates over border triangles
     """
-    def __init__(self, search_result, level):
+    def __init__(self, search_result, level) -> None:
         self._search_zones = search_result.zone_lists[level]
         self._index = search_result.border_indexes[level]
 
-    def next(self):
+    def next(self) -> int:
         if self._index >= len(self._search_zones):
             return -1
         ret = self._search_zones[self._index]
@@ -132,6 +149,16 @@ class GeodesicSearchBorderIterator:
 
 
 class GeodesicSearchInsideIterator:
+    _search_result: GeodesicSearchResult
+    _level: int
+    _max_level: int
+    _max_count: int
+    _lev_zones: list[int]
+    _cur_index: int
+    _end_index: int
+    _index: int
+    _count: int
+
     """ Iterates over inside triangles
     """
     def __init__(self, search_result, max_level):
@@ -173,6 +200,9 @@ class GeodesicSearchInsideIterator:
 
 
 class GeodesicGrid:
+    max_level: int
+    _triangles: Optional[list[np.ndarray]]
+
     """
     GeodesicGrid: a library for dividing the sphere into triangle zones by subdividing the icosahedron
     Based on work of Johannes Gajdosik, 2006
@@ -182,7 +212,7 @@ class GeodesicGrid:
         return 20 << (level << 1)
 
     # @profile
-    def __init__(self, level):
+    def __init__(self, level) -> None:
         # tm = time()
         self.max_level = level
         if level >= 0:
@@ -197,14 +227,14 @@ class GeodesicGrid:
         else:
             self._triangles = None
 
-        self.to_np_arrays()
+        self._to_np_arrays()
         import gc; gc.collect()
 
-    def to_np_arrays(self):
+    def _to_np_arrays(self):
         for i in range(self.max_level+1):
             self._triangles[i] = np.array(self._triangles[i], dtype=np.float32)
 
-    def get_triangle_corners(self, lev, index):
+    def _get_triangle_corners(self, lev, index):
         h0, h1, h2 = None, None, None
         if lev <= 0:
             corners = icosahedron_triangles[index]
@@ -217,13 +247,13 @@ class GeodesicGrid:
             t = self._triangles[lev][i]
             x = index & 3
             if x == 0:
-                c0, c1, c2 = self.get_triangle_corners(lev, i)
+                c0, c1, c2 = self._get_triangle_corners(lev, i)
                 h0, h1, h2 = c0, t[2], t[1]
             elif x == 1:
-                c0, c1, c2 = self.get_triangle_corners(lev, i)
+                c0, c1, c2 = self._get_triangle_corners(lev, i)
                 h0, h1, h2 = t[2], c1, t[0]
             elif x == 2:
-                c0, c1, c2 = self.get_triangle_corners(lev, i)
+                c0, c1, c2 = self._get_triangle_corners(lev, i)
                 h0, h1, h2 = t[1], t[0], c2
             elif x == 3:
                 h0, h1, h2 = t[0], t[1], t[2]
@@ -240,7 +270,7 @@ class GeodesicGrid:
             self._init_triangle(lev, index+2, t[1], t[0], c2)
             self._init_triangle(lev, index+3, t[0], t[1], t[2])
 
-    def search_zones(self, lev_spherical_caps, search_result, max_search_level):
+    def search_zones(self, lev_spherical_caps, search_result, max_search_level) -> None:
         if max_search_level < 0:
             max_search_level = 0
         elif max_search_level > self.max_level:
@@ -311,7 +341,7 @@ class GeodesicGrid:
                 return True
             return False
 
-    def visit_triangles(self, max_visit_level, visit_func):
+    def visit_triangles(self, max_visit_level, visit_func) -> None:
         if visit_func and max_visit_level >= 0:
             if max_visit_level > self.max_level:
                 max_visit_level = self.max_level
@@ -335,5 +365,5 @@ class GeodesicGrid:
             self._visit_triangles(lev, index+3, t[0], t[1], t[2], max_visit_level, func)
 
     def _center_of(self, lev, index):
-        c0, c1, c2 = self.get_triangle_corners(lev, index)
+        c0, c1, c2 = self._get_triangle_corners(lev, index)
         return vector_norm_add3(c0, c1, c2)

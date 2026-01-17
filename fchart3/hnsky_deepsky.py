@@ -15,7 +15,9 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from .deepsky_object import *
+import numpy as np
+
+from .deepsky_object import DsoType, DeepskyObject
 
 dso_type_map = {
     'GX': DsoType.G,
@@ -102,11 +104,11 @@ def parse_catalog_name(dso_name):
 
 
 def _parse_hnsky_line(line, show_catalogs, all_dsos):
-    object = DeepskyObject()
+    dso = DeepskyObject()
     items = line.split(',')
 
-    object.ra = 2.0 * np.pi * float(items[0])/864000.0
-    object.dec = np.pi * float(items[1])/(324000.0 * 2.0)
+    dso.ra = 2.0 * np.pi * float(items[0])/864000.0
+    dso.dec = np.pi * float(items[1])/(324000.0 * 2.0)
 
     types = items[4].split('/')
 
@@ -117,16 +119,16 @@ def _parse_hnsky_line(line, show_catalogs, all_dsos):
     if indx > 0:
         obj_type = obj_type[:indx]
 
-    object.type = dso_type_map.get(obj_type, DsoType.UNKNOWN)
+    dso.type = dso_type_map.get(obj_type, DsoType.UNKNOWN)
 
     str_mag = items[2].strip()
 
     if str_mag:
-        object.mag = float(str_mag)/10.0
+        dso.mag = float(str_mag)/10.0
     elif obj_type in ('PN', 'GX'):
-        object.mag = 15.0
+        dso.mag = 15.0
     else:
-        object.mag = 100.0
+        dso.mag = 100.0
 
     names = items[3].strip().split('/')
 
@@ -136,53 +138,53 @@ def _parse_hnsky_line(line, show_catalogs, all_dsos):
         cat, name = parse_catalog_name(n)
         if cat:
             visible = visible or cat in show_catalogs
-            all_dsos[n] = object
+            all_dsos[n] = dso
             if not has_cat:
-                object.cat = cat
-                object.name = name
-                object.add_name(name)
+                dso.cat = cat
+                dso.name = name
+                dso.add_name(name)
                 has_cat = True
             else:
-                if cat == 'Abell' and (object.cat == 'PK' or object.cat == 'Sh2-') or \
-                   cat == 'UGC' and object.cat == 'PGC':
-                    object.add_name(name)
-                    object.name, name = name, object.name
-                    object.cat, cat = cat, object.cat
+                if cat == 'Abell' and (dso.cat == 'PK' or dso.cat == 'Sh2-') or \
+                   cat == 'UGC' and dso.cat == 'PGC':
+                    dso.add_name(name)
+                    dso.name, name = name, dso.name
+                    dso.cat, cat = cat, dso.cat
 
-                object.add_synonym((cat, name))
+                dso.add_synonym((cat, name))
 
             if cat == 'M' and name.isdigit():
-                object.messier = int(name)
+                dso.messier = int(name)
 
-    object.visible = visible
+    dso.visible = visible
 
     str_length = items[6].strip() if len(items) > 6 else None
 
     if str_length:
         try:
-            object.rlong = float(str_length)/600.0*np.pi/180.0/2.0
+            dso.rlong = float(str_length)/600.0*np.pi/180.0/2.0
         except (ValueError, TypeError):
-            object.rlong = None
+            dso.rlong = None
 
     str_width = items[7].strip() if len(items) > 7 else None
 
     if str_width:
         try:
-            object.rshort = float(str_width)/600.0*np.pi/180.0/2.0
+            dso.rshort = float(str_width)/600.0*np.pi/180.0/2.0
         except (ValueError, TypeError):
-            object.rshort = object.rlong
+            dso.rshort = dso.rlong
     else:
-        object.rshort = object.rlong
+        dso.rshort = dso.rlong
 
     str_pos_angle = items[8].strip() if len(items) > 8 else None
 
     if str_pos_angle:
         try:
-            object.position_angle = float(str_pos_angle)*np.pi/180.0
+            dso.position_angle = float(str_pos_angle)*np.pi/180.0
         except (ValueError, TypeError):
-            object.position_angle = None
+            dso.position_angle = None
 
-    return object
+    return dso
 
 
 def import_hnsky_deepsky(filename, show_catalogs, all_dsos):
@@ -207,27 +209,27 @@ def import_hnsky_deepsky(filename, show_catalogs, all_dsos):
 
 
 def _parse_hnsky_supplement_line(line, all_dsos):
-    object = DeepskyObject()
+    dso = DeepskyObject()
     items = line.split(',')
 
-    object.ra = np.pi * float(items[0])/12.0
+    dso.ra = np.pi * float(items[0])/12.0
     if items[1].strip():
-        object.ra += np.pi * float(items[1]) / (12.0 * 60.0)
+        dso.ra += np.pi * float(items[1]) / (12.0 * 60.0)
     if items[2].strip():
-        object.ra += np.pi * float(items[2]) / (12.0 * 60.0 * 60)
-    object.dec = np.pi * float(items[3]) / 180.0
-    mul_dec = 1 if object.dec >= 0 else -1
+        dso.ra += np.pi * float(items[2]) / (12.0 * 60.0 * 60)
+    dso.dec = np.pi * float(items[3]) / 180.0
+    mul_dec = 1 if dso.dec >= 0 else -1
     if items[4].strip():
-        object.dec += mul_dec * np.pi * float(items[4]) / (180.0 * 60)
+        dso.dec += mul_dec * np.pi * float(items[4]) / (180.0 * 60)
     if items[5].strip():
-        object.dec += mul_dec * np.pi * float(items[5]) / (180.0 * 60 * 60)
+        dso.dec += mul_dec * np.pi * float(items[5]) / (180.0 * 60 * 60)
 
     str_mag = items[6].strip()
 
     if str_mag:
-        object.mag = float(str_mag) / 10.0
+        dso.mag = float(str_mag) / 10.0
     else:
-        object.mag = 100.0
+        dso.mag = 100.0
 
     names = items[7].split('/')
 
@@ -239,25 +241,25 @@ def _parse_hnsky_supplement_line(line, all_dsos):
         cat, name = parse_catalog_name(n)
         if cat:
             visible = True
-            all_dsos[n] = object
+            all_dsos[n] = dso
             if not has_cat:
-                object.cat = cat
-                object.name = name
-                object.add_name(name)
+                dso.cat = cat
+                dso.name = name
+                dso.add_name(name)
                 has_cat = True
             else:
-                if cat == 'Abell' and (object.cat == 'PK' or object.cat == 'Sh2-') or \
-                        cat == 'UGC' and object.cat == 'PGC':
-                    object.add_name(name)
-                    object.name, name = name, object.name
-                    object.cat, cat = cat, object.cat
+                if cat == 'Abell' and (dso.cat == 'PK' or dso.cat == 'Sh2-') or \
+                        cat == 'UGC' and dso.cat == 'PGC':
+                    dso.add_name(name)
+                    dso.name, name = name, dso.name
+                    dso.cat, cat = cat, dso.cat
 
-                object.add_synonym((cat, name))
+                dso.add_synonym((cat, name))
 
             if cat == 'M' and name.isdigit():
-                object.messier = int(name)
+                dso.messier = int(name)
 
-    object.visible = visible
+    dso.visible = visible
 
     types = items[8].split('/')
 
@@ -268,35 +270,35 @@ def _parse_hnsky_supplement_line(line, all_dsos):
     if indx > 0:
         obj_type = obj_type[:indx]
 
-    object.type = dso_type_map.get(obj_type, DsoType.UNKNOWN)
+    dso.type = dso_type_map.get(obj_type, DsoType.UNKNOWN)
 
     str_length = items[10].strip() if len(items) > 10 else None
 
     if str_length:
         try:
-            object.rlong = float(str_length)/600.0*np.pi/180.0/2.0
+            dso.rlong = float(str_length)/600.0*np.pi/180.0/2.0
         except (ValueError, TypeError):
-            object.rlong = None
+            dso.rlong = None
 
     str_width = items[11].strip() if len(items) > 11 else None
 
     if str_width:
         try:
-            object.rshort = float(str_width)/600.0*np.pi/180.0/2.0
+            dso.rshort = float(str_width)/600.0*np.pi/180.0/2.0
         except (ValueError, TypeError):
-            object.rshort = object.rlong
+            dso.rshort = dso.rlong
     else:
-        object.rshort = object.rlong
+        dso.rshort = dso.rlong
 
     str_pos_angle = items[12].strip() if len(items) > 12 else None
 
     if str_pos_angle:
         try:
-            object.position_angle = float(str_pos_angle)*np.pi/180.0
+            dso.position_angle = float(str_pos_angle)*np.pi/180.0
         except (ValueError, TypeError):
-            object.position_angle = None
+            dso.position_angle = None
 
-    return object
+    return dso
 
 
 def import_hnsky_supplement(filename, all_dsos):

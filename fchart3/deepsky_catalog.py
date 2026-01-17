@@ -15,8 +15,7 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-
-from io import StringIO
+from typing import Iterable
 
 from .deepsky_object import *
 from .htm.htm import HTM
@@ -25,8 +24,14 @@ RAD2DEG = 180.0/np.pi
 
 
 class DeepskyCatalog:
-    def __init__(self, deepsky_list=[], force_messier=False):
-        self.deepsky_list = []
+    force_messier: bool
+    sky_mesh: HTM
+    dso_blocks: list[list[DeepskyObject] | None]
+
+    def __init__(self, deepsky_list: Optional[Iterable[DeepskyObject]] = None, force_messier: bool = False) -> None:
+        if deepsky_list is None:
+            deepsky_list = []
+
         self.force_messier = force_messier
         self.sky_mesh = HTM(4)
         self.dso_blocks = [None] * self.sky_mesh.size()
@@ -62,24 +67,3 @@ class DeepskyCatalog:
                         selection.append(obj)
 
         return selection
-
-    def select_type(self, typelist=[]):
-        selection = []
-        if len(typelist) == 0:
-            selection = list(self.deepsky_list)
-        else:
-            for obj in self.deepsky_list:
-                if obj.type in typelist:
-                    selection.append(obj)
-        return DeepskyCatalog(selection)
-
-    def sort(self, cmp_func=cmp_ra):
-        lst = list(self.deepsky_list)
-        lst.sort(cmp_func)
-        return DeepskyCatalog(lst)
-
-    def __str__(self):
-        s = StringIO()
-        for obj in self.deepsky_list:
-            s.write(str(obj)+'\n')
-        return s.getvalue()[:-1]

@@ -16,49 +16,67 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import math
+from typing import TypeAlias, Tuple, Sequence
+
 import numpy as np
+from numpy.typing import NDArray
+
+DeepskyItem: TypeAlias = Tuple[object, float, float, float]
 
 
 class LabelPotential:
-    def __init__(self, field_radius):
+    field_radius: float
+    positions: NDArray[np.float32]
+    sizes: NDArray[np.float32]
+
+    def __init__(self, field_radius: float) -> None:
         """
         field_radius in mm
-        deepskylist [(x,y,size), (x,y,size),...]
-        x,y, size in mm
+        deepskylist [(x,y,size), ...]  # note: code expects 4-tuple: (_, x, y, s)
+        x, y, size in mm
         """
-        self.field_radius  = field_radius
-        self.positions = np.empty((0, 2))
-        self.sizes = np.empty(0)
+        self.field_radius = float(field_radius)
+        self.positions = np.empty((0, 2), dtype=np.float32)
+        self.sizes = np.empty((0,), dtype=np.float32)
 
-    def add_deepsky_list(self, deepskylist):
-        N = len(self.sizes)
-        newpos = np.zeros((N+len(deepskylist),2))
-        newpos[0:N,:] = self.positions
-        newsize = np.zeros(N+len(deepskylist))
-        newsize[0:N] = self.sizes
+    def add_deepsky_list(self, deepskylist: Sequence[DeepskyItem]) -> None:
+        n_old = int(self.sizes.shape[0])
+        n_new = n_old + len(deepskylist)
 
-        for i in range(len(deepskylist)):
-            _, x,y,s = deepskylist[i]
+        newpos = np.zeros((n_new, 2), dtype=np.float32)
+        newsize = np.zeros((n_new,), dtype=np.float32)
+
+        newpos[:n_old, :] = self.positions
+        newsize[:n_old] = self.sizes
+
+        for i, item in enumerate(deepskylist):
+            _, x, y, s = item
             if s <= 0:
-                s = 1
-            newsize[N + i] = math.sqrt(s)
-            newpos[N + i,:] = [x, y]
+                s = 1.0
+            newsize[n_old + i] = np.float32(math.sqrt(float(s)))
+            newpos[n_old + i, :] = (float(x), float(y))
 
         self.positions = newpos
         self.sizes = newsize
 
-    def add_position(self, x, y, size):
-        self.positions = np.append(self.positions, [[x, y]], axis=0)
-        self.sizes = np.append(self.sizes, math.sqrt(size))
+    def add_position(self, x: float, y: float, size: float) -> None:
+        self.positions = np.append(self.positions, [[float(x), float(y)]], axis=0)
+        self.sizes = np.append(self.sizes, np.float32(math.sqrt(float(size))))
 
-    def compute_potential(self, x, y, edge_opt=False):
-        r2 = (self.positions[:,0]-x)**2 + (self.positions[:,1]-y)**2
-        sr = (r2+0.1)**(-1)
-        p = self.sizes*sr
+    def compute_potential(self, x: float, y: float, edge_opt: bool = False) -> float:
+        dx = self.positions[:, 0] - float(x)
+        dy = self.positions[:, 1] - float(y)
+        r2 = dx * dx + dy * dy
+
+        sr = (r2 + 0.1) ** (-1)
+        p = self.sizes * sr
+
+        value = float(np.sum(p))
+
         if edge_opt:
-            ss = np.sum(self.sizes)
-            rf = ((x**2+y**2)**0.5 - self.field_radius)**-3
-            value = np.sum(p) + ss*rf
-        else:
-            value = np.sum(p)
+            ss = float(np.sum(self.sizes))
+            r = math.hypot(float(x), float(y))
+            rf = (r - self.field_radius) ** (-3)
+            value += ss * rf
+
         return value
