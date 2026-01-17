@@ -14,8 +14,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 
 class SolarSystemBody(Enum):
@@ -42,25 +43,25 @@ class SolarSystemBody(Enum):
         raise ValueError(f"No solar system body found with name: {name}")
 
 
+@dataclass(slots=True)
 class SolarSystemBodyObject:
-    def __init__(self, solar_system_body, ra, dec, north_pole_pa, angular_radius, mag, phase, distance, ring_tilt):
-        self.solar_system_body = solar_system_body
-        self.ra = ra
-        self.dec = dec
-        self.north_pole_pa = north_pole_pa
-        self.angular_radius = angular_radius
-        self.mag = mag
-        self.phase = phase
-        self.distance = distance
-        self.ring_tilt = ring_tilt
+    solar_system_body: SolarSystemBody
+    ra: float
+    dec: float
+    north_pole_pa: float
+    angular_radius: float
+    mag: float
+    phase: float
+    distance: float
+    ring_tilt: Optional[float] = None  # English comment: None for bodies without rings.
 
 
+@dataclass(slots=True)
 class PlanetMoonObject:
-    def __init__(self, planet, moon_name, ra, dec, mag, color, distance):
-        self.planet = planet
-        self.moon_name = moon_name
-        self.ra = ra
-        self.dec = dec
-        self.mag = mag
-        self.color = color
-        self.distance = distance
+    planet: SolarSystemBody
+    moon_name: str
+    ra: float
+    dec: float
+    mag: float
+    color: str
+    distance: float

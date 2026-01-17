@@ -28,7 +28,6 @@ def import_outlines_catgen(filename):
     outlines = ({},{},{})
 
     next_dso = True
-    dso_name = None
 
     for line in lines:
         items = line.split()

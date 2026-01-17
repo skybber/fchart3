@@ -16,6 +16,10 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import json
+from dataclasses import dataclass, field
+from typing import Optional, TypeAlias
+from numpy.typing import NDArray
+
 import numpy as np
 
 import gettext
@@ -31,47 +35,46 @@ except:
     _ = gettext.gettext
 
 
+LineSeg: TypeAlias = list[float]
+BoundaryLine: TypeAlias = list[object]
+BoundaryPoints = NDArray[np.float64]
+
+
+@dataclass(slots=True)
 class BscStar:
+    """
+    BscStar - has the following fields:
+    - number                bsc number
+    - name                  name of star
+    - HD                    Henry Draper Catalog Number
+    - constellation         three letter constellation abbreviation, e.g. AND
+    - constellation_number  number in constellation
+    - greek                 assigned letter of greek alphabet
+    - flamsteed             Flamsteed designation
+    - ra                    right ascension in radians (J2000)
+    - dec                   declination in radians (J2000)
+    - mag                   magnitude
+    """
+    number: Optional[int] = None
+    name: str = ""
+    HD: Optional[int] = None
 
-    __slots__ = 'number', 'name', 'HD', 'constellation', 'constell_number', 'greek', 'greek_no', 'flamsteed', 'ra', 'dec', 'mag'
+    constellation: str = ""
+    constell_number: Optional[str] = None  # u tebe je to string (line[4:7]...), ne int
+    greek: str = ""
+    greek_no: str = ""
+    flamsteed: str = ""
 
-    def __init__(self):
-        """
-        BscStar - has the following fields:
-        - number                bsc number
-        - name                  name of star
-        - HD                    Henry Draper Catalog Number
-        - constellation         three letter constellation abbreviation, e.g. AND
-        - constellation_number  number in constellation
-        - greek                 assigned letter of greek alphabet
-        - flamsteed             Flamsteed designation
-        - ra                    right ascension in radians (J2000)
-        - dec                   declination in radians (J2000)
-        - mag                   magnitude
-        """
-        self.number = None
-        self.name = ''
-        self.HD = None
-        self.constellation = ''
-        self.constell_number = None
-        self.greek = ''
-        self.greek_no = ''
-        self.flamsteed = ''
-        self.ra = -1.0
-        self.dec = 0.0
-        self.mag = -100.0
+    ra: float = -1.0   # radians
+    dec: float = 0.0   # radians
+    mag: float = -100.0
 
 
+@dataclass(slots=True)
 class Constellation:
-    def __init__(self):
-        """
-        Constellation - hold information about constellation
-        - name           name of star
-        - lines          constellation lines as list of tuples of bsc5 star numbers
-        """
-        self.name = ''
-        self.lines = []
-        self.stars = []
+    name: str = ""
+    lines: list[LineSeg] = field(default_factory=list)
+    stars: list[BscStar] = field(default_factory=list)
 
 
 class ConstellationCatalog:
@@ -85,8 +88,17 @@ class ConstellationCatalog:
     - constellations      - list of Constellations
     - boundaries_lines    - list of boundaries lines (pair of index to boundaries_points for each line)
     """
-    def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename='', cross_id_file=''):
-        self.all_constell_lines = []
+
+    all_constell_lines: NDArray[np.float64] | list[list[float]]
+    bright_stars: list[BscStar]
+    bsc_hd_map: dict[int, BscStar]
+    bsc_hip_map: dict[int, BscStar]
+    constellations: list[Constellation]
+    boundaries_lines: list[BoundaryLine]
+    boundaries_points: BoundaryPoints
+
+    def __init__(self, bsc5_filename='', constell_filename='', boundaries_filename='', cross_id_file='') -> None:
+        self.all_constell_lines: list[list[float]] = []
         hip2hr_cross_id_map, hd2hip_cross_id_map = self._load_cross_id_file(cross_id_file)
         self.bsc_hd_map, self.bsc_hip_map, self.bright_stars = self._import_bsc5(bsc5_filename, hd2hip_cross_id_map)
 
@@ -96,9 +108,9 @@ class ConstellationCatalog:
             hip2hr_cross_id_map,
             self
         )
-        self.all_constell_lines = np.array(self.all_constell_lines)
+        self.all_constell_lines = np.array(self.all_constell_lines, dtype=np.float64)
 
-    def _parse_bsc5_line(self, line):
+    def _parse_bsc5_line(self, line:str) -> BscStar:
         star = BscStar()
 
         star.number = int(line[:4].strip())
@@ -125,7 +137,7 @@ class ConstellationCatalog:
 
         return star
 
-    def _import_bsc5(self, filename, hd2hip_cross_id_map):
+    def _import_bsc5(self, filename: str, hd2hip_cross_id_map: dict[int, int]) -> tuple[dict[int, BscStar], dict[int, BscStar], list[BscStar]]:
         # Import BSC5 catalog and build HD->BscStar and HIP->BscStar maps.
         bsc_star_list = []
         bsc_hd_map = {}
@@ -170,7 +182,7 @@ class ConstellationCatalog:
 
         return constell
 
-    def _load_cross_id_file(self, cross_id_file):
+    def _load_cross_id_file(self, cross_id_file: str) -> tuple[dict[int, int], dict[int, int]]:
         hip2hr_cross_id_map = {}
         hd2hip_cross_id_map = {}
 
@@ -206,7 +218,7 @@ class ConstellationCatalog:
                 return str(cn['native']).strip()
         return str(entry.get('id', 'UNKNOWN')).strip()
 
-    def _get_star_by_hip(self, hip, hip2hr_cross_id_map):
+    def _get_star_by_hip(self, hip: int, hip2hr_cross_id_map: dict[int, int]) -> Optional[BscStar]:
         """
         Resolve HIP to a BscStar. Primary: self.bsc_hip_map.
         Fallback: HIP->HR map and self.bright_stars list (if available).
@@ -222,7 +234,7 @@ class ConstellationCatalog:
 
         return None
 
-    def _parse_constellation_json_entry(self, entry, hip2hr_cross_id_map):
+    def _parse_constellation_json_entry(self, entry, hip2hr_cross_id_map) -> Constellation:
         """
         Parse one constellation object from Stellarium JSON skyculture format.
         Expected shape:
@@ -258,7 +270,7 @@ class ConstellationCatalog:
 
         return constell
 
-    def _import_constellation_json(self, json_path, hip2hr_cross_id_map):
+    def _import_constellation_json(self, json_path, hip2hr_cross_id_map) -> list[Constellation]:
         """
         Import constellations from Stellarium skyculture JSON (index.json).
         """
@@ -273,7 +285,7 @@ class ConstellationCatalog:
 
         return constellation_list
 
-    def _import_boundaries(self, boundaries_filename):
+    def _import_boundaries(self, boundaries_filename: str) -> tuple[list[list[object]], NDArray[np.float64]]:
         """
         Import constellation boundaries (if a file is provided).
         Returns: (boundaries_lines, boundaries_points_np)
@@ -320,7 +332,7 @@ class ConstellationCatalog:
 
             boundaries_lines.append([index1, index2, cons1, cons2])
 
-        return (boundaries_lines, np.array(boundaries_points))
+        return boundaries_lines, np.array(boundaries_points)
 
     def _import_constellation(self, filename, boundaries_filename, hip2hr_cross_id_map, const_catalog):
         """

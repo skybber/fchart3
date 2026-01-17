@@ -35,8 +35,7 @@ from .deepsky_catalog import DeepskyCatalog
 from .hnsky_deepsky import import_hnsky_deepsky, import_hnsky_supplement
 from .pgc_deepsky import import_pgc_deepsky
 from .outlines_deepsky import import_outlines_catgen
-from .milkyway import import_milky_way
-from .milkyway_enhanced import EnhancedMilkyWay
+from .milkyway import import_milky_way, EnhancedMilkyWay
 from .vic import import_vic
 from .deepsky_object import DsoType, UnknownNebula, cmp_name, cmp_to_key
 
