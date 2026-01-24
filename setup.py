@@ -50,7 +50,7 @@ setup(
     packages=packages,
     include_package_data=True,
     install_requires=['numpy', 'pycairo', 'Pillow', 'skia-python', 'skyfield', 'pandas'],
-    scripts=['bin/fchart3'],
+    scripts=['bin/fchart3', 'bin/fchart3-atlas'],
     package_data={'fchart3': ['data/catalogs/bsc5.dat',
                               'data/catalogs/constbndJ2000.dat',
                               'data/catalogs/constellation_boundaries.dat',
