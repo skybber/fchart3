@@ -18,7 +18,7 @@
 import numpy as np
 import math
 
-from ..np_astrocalc import np_rect_to_sphere
+from ..astro.np_astrocalc import np_rect_to_sphere
 from ..deepsky_object import DsoType
 
 from .base_renderer import BaseRenderer, SQRT2

@@ -17,7 +17,7 @@
 
 import math
 
-from ..astrocalc import angular_distance, pos_angle
+from ..astro.astrocalc import angular_distance, pos_angle
 from ..solar_system_body import SolarSystemBody
 from ..graphics import DrawMode
 

@@ -21,7 +21,7 @@ from .configuration import *
 
 from .graphics import *
 from .projections import *
-from .precession import compute_precession_matrix
+from .astro.precession import compute_precession_matrix
 from .viewport_transformer import ViewportTransformer
 
 from .renderers import *

@@ -28,7 +28,7 @@ except:
     
 import numpy as np
 
-from .astrocalc import sphere_to_rect
+from .astro.astrocalc import sphere_to_rect
 from .constellation import ConstellationCatalog
 from .geodesic_star_catalog_gaia import GeodesicStarGaiaCatalog
 from .deepsky_catalog import DeepskyCatalog

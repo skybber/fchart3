@@ -19,7 +19,7 @@ import math
 import numpy as np
 
 from .projection import ProjectionInterface
-from ..np_astrocalc import np_build_rotation_matrix_equatorial
+from ..astro.np_astrocalc import np_build_rotation_matrix_equatorial
 
 
 class ProjectionOrthographic(ProjectionInterface):

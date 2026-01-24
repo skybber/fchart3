@@ -19,7 +19,7 @@ import math
 
 import numpy as np
 
-from ..np_astrocalc import np_sphere_to_rect, np_rect_to_sphere
+from ..astro.np_astrocalc import np_sphere_to_rect, np_rect_to_sphere
 from .base_renderer import BaseRenderer
 
 
