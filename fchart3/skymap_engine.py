@@ -351,6 +351,8 @@ class SkymapEngine:
             self.gfx.set_linewidth(self.cfg.legend_linewidth)
             self.gfx.set_pen_rgb(self.cfg.draw_color)
             self.gfx.set_fill_rgb(self.cfg.draw_color)
+
+            self.gfx.set_solid_line()
             x1, y1, x2, y2 = self.get_field_rect_mm()
             self.gfx.line(x1, y1, x1, y2)
             self.gfx.line(x1, y2, x2, y2)
