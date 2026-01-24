@@ -669,7 +669,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--hide-deepsky', dest='show_deepsky', action='store_false', default=None,
                                     help='Hide deep sky objects.')
 
-        argumentparser.add_argument('--show-nebula-outlines', dest='show_nebula_outlines', action='store_true', default=None,
+        argumentparser.add_argument('--hide-nebula-outlines', dest='show_nebula_outlines', action='store_false', default=None,
                                     help='Show nebula outlines.')
 
         argumentparser.add_argument('--show-dso-mag', dest='show_dso_mag', action='store_true', default=None,
@@ -895,7 +895,7 @@ def _create_engine_configuration(config_file=None):
     cfg.show_star_mag = False
     cfg.show_simple_milky_way = False
     cfg.show_enhanced_milky_way_30k = False
-    cfg.show_nebula_outlines = False
+    cfg.show_nebula_outlines = True
     cfg.show_solar_system = False
     cfg.flamsteed_numbers_only = False
 

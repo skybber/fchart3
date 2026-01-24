@@ -203,7 +203,7 @@ class EngineConfiguration:
     show_horizon: bool = False
     show_mag_scale_legend: bool = False
     show_map_scale_legend: bool = False
-    show_nebula_outlines: bool = False
+    show_nebula_outlines: bool = True
     show_numeric_map_scale_legend: bool = False
     show_orientation_legend: bool = False
     show_picker: bool = False

@@ -76,12 +76,23 @@ def d2dms(d: float) -> str:
 def build_equatorial_tiles(field_deg: float, overlap: float) -> List[Tile]:
     """
     Build an approximate full-sky tiling using declination bands.
-    Spacing:
-      step_dec = field_deg * (1 - overlap)
-      step_ra_deg(at dec) ≈ step_dec / cos(dec)  (to keep roughly equal spacing on the sky)
 
-    This is not a perfect equal-area tiling, but works well for atlas-style charts
-    and behaves nicely near the poles (few tiles there).
+    Fix: RA spacing must be computed using spherical geometry for larger fields,
+    otherwise gaps can appear (small-angle approximation breaks for big FOV).
+
+    We keep Dec spacing as:
+      step_dec = field_deg * (1 - overlap)
+    (this is exact along a meridian).
+
+    For RA spacing at a given declination, we compute the actual RA half-width Δα
+    of a spherical circle with angular radius r = field_deg/2:
+      cos(r) = sin^2(dec) + cos^2(dec)*cos(Δα)
+      Δα = arccos((cos(r) - sin^2(dec)) / cos^2(dec))
+
+    Then full RA width at that declination is:
+      width_ra_deg = 2 * degrees(Δα)
+    And we apply overlap the same way as in Dec:
+      step_ra_deg = width_ra_deg * (1 - overlap)
     """
     if not (0.0 <= overlap < 1.0):
         raise ValueError("overlap must be in [0, 1).")
@@ -89,6 +100,8 @@ def build_equatorial_tiles(field_deg: float, overlap: float) -> List[Tile]:
     step_dec = field_deg * (1.0 - overlap)
     if step_dec <= 0:
         raise ValueError("field_deg*(1-overlap) must be > 0.")
+
+    r_rad = math.radians(field_deg / 2.0)
 
     # Keep tile centers inside valid range so the circular FOV stays within [-90, +90] in declination.
     dec_min = -90.0 + field_deg / 2.0
@@ -99,21 +112,38 @@ def build_equatorial_tiles(field_deg: float, overlap: float) -> List[Tile]:
     band_idx = 0
 
     while dec <= dec_max + 1e-9:
-        # Avoid division by zero near poles.
-        cosd = max(math.cos(math.radians(dec)), 1e-6)
-        step_ra_deg = step_dec / cosd
+        dec_rad = math.radians(dec)
+        sin_dec = math.sin(dec_rad)
+        cos_dec = math.cos(dec_rad)
 
-        # Convert RA step from degrees to hours (15 deg = 1h).
-        step_ra_h = (step_ra_deg / 15.0)
+        # Near the poles, one tile per band is enough (and avoids numeric issues).
+        if abs(cos_dec) < 1e-6:
+            n_ra = 1
+        else:
+            # Compute RA half-width Δα for the circle at this declination.
+            # Clamp argument to [-1, 1] to avoid acos domain errors due to floating point.
+            cos_r = math.cos(r_rad)
+            denom = (cos_dec * cos_dec)
+            arg = (cos_r - (sin_dec * sin_dec)) / denom
+            arg = max(-1.0, min(1.0, arg))
 
-        # Ensure we always place at least 1 tile in this band.
-        n_ra = max(1, int(math.ceil(24.0 / step_ra_h)))
-        # Recompute exact step so it wraps evenly around.
+            delta_alpha_rad = math.acos(arg)
+            width_ra_deg = 2.0 * math.degrees(delta_alpha_rad)
+
+            # Apply overlap consistently (same logic as Dec).
+            step_ra_deg = width_ra_deg * (1.0 - overlap)
+
+            # Convert RA step from degrees to hours (15 deg = 1 hour).
+            step_ra_h = step_ra_deg / 15.0
+
+            # Ensure we cover full 24h without gaps.
+            # We round to an integer number of tiles and then distribute evenly.
+            n_ra = max(1, int(math.ceil(24.0 / step_ra_h)))
+
         step_ra_h = 24.0 / n_ra
 
         for i in range(n_ra):
             ra = i * step_ra_h
-            # Tile naming: band + index, plus coordinates for readability.
             name = f"tile_{band_idx:02d}_{i:03d}_RA{h2hms(ra).replace(':','')}_DEC{d2dms(dec).replace(':','')}"
             tiles.append(Tile(ra_hours=ra, dec_deg=dec, name=name))
 
