@@ -3,6 +3,8 @@
 **Fchart3** is a Python project for creating high-quality astronomical finder charts and maps.
 It uses data and catalogues based on Stellarium, KStars, HNSky and Gaia-derived deep star catalogues (hundreds of millions of stars, typically up to ~16–17 mag depending on the used catalog set).
 
+In addition to single-object charts, the package also includes **fchart3-atlas** – a generator for **multi-page sky atlases** built on top of the same rendering engine.
+
 It can generate:
 
 - **Offline charts** with output to **PDF**, **PNG**, **SVG** or **TikZ**.
@@ -315,6 +317,59 @@ Runtime-downloaded (not stored in repo by default):
 * `MPCORB.9999.DAT` (MPCORB subset)
 
 ---
+
+
+## fchart3-atlas (multi-page sky atlas generator)
+
+`fchart3-atlas` is included in the **fchart3** package and builds on top of the `fchart3` CLI.  
+It generates a **multi-page sky atlas** by repeatedly rendering many overlapping chart tiles – similar in spirit to classic printed atlases
+
+### What it does
+
+- Splits the sky into a grid of **tiles** (pages) based on:
+  - `--field-deg` (tile field-of-view diameter in degrees)
+  - `--overlap` (tile overlap fraction to avoid gaps)
+- For each tile, calls `fchart3` with an explicit RA/Dec position source:
+  - `"RA,Dec,Caption"`
+- Writes one output file per tile (PDF by default).
+- Optionally merges all PDFs into a single `atlas.pdf` (if a PDF merge tool is available).
+
+### Usage
+
+Basic example (produce many pages into `./atlas_out`):
+
+```bash
+fchart3-atlas \
+  --out ./atlas_out \
+  --config default \
+  --field-deg 45 \
+  --overlap 0.20 \
+  --limit-star 9.0 \
+  --limit-dso 9.0 \
+  --projection stereographic
+```
+
+Add PDF merge (creates ./atlas_out/atlas.pdf if pdfunite/qpdf/gs is available):
+
+fchart3-atlas \
+  --out ./atlas_out \
+  --field-deg 10 \
+  --overlap 0.20 \
+  --merge
+
+
+Pass additional fchart3 flags through to each rendered page (repeat --extra-arg as needed):
+
+```
+fchart3-atlas \
+  --out ./atlas_out \
+  --field-deg 45 \
+  --overlap 0.20 \
+  --extra-arg --show-equatorial-grid \
+  --extra-arg --show-coords-legend \
+  --merge
+```
+
 
 ## Authors
 
