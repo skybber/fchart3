@@ -342,34 +342,13 @@ Basic example (produce many pages into `./atlas_out`):
 fchart3-atlas \
   --out ./atlas_out \
   --config default \
-  --field-deg 45 \
+  --field-deg 60 \
   --overlap 0.20 \
-  --limit-star 9.0 \
+  --limit-star 8.0 \
   --limit-dso 9.0 \
-  --projection stereographic
+  --projection stereographic \
+  --show-enhanced-milky-way  
 ```
-
-Add PDF merge (creates ./atlas_out/atlas.pdf if pdfunite/qpdf/gs is available):
-
-fchart3-atlas \
-  --out ./atlas_out \
-  --field-deg 10 \
-  --overlap 0.20 \
-  --merge
-
-
-Pass additional fchart3 flags through to each rendered page (repeat --extra-arg as needed):
-
-```
-fchart3-atlas \
-  --out ./atlas_out \
-  --field-deg 45 \
-  --overlap 0.20 \
-  --extra-arg --show-equatorial-grid \
-  --extra-arg --show-coords-legend \
-  --merge
-```
-
 
 ## Authors
 

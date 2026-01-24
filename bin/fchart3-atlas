@@ -75,24 +75,10 @@ def d2dms(d: float) -> str:
 
 def build_equatorial_tiles(field_deg: float, overlap: float) -> List[Tile]:
     """
-    Build an approximate full-sky tiling using declination bands.
+    Build a full-sky tiling using declination bands.
 
-    Fix: RA spacing must be computed using spherical geometry for larger fields,
-    otherwise gaps can appear (small-angle approximation breaks for big FOV).
-
-    We keep Dec spacing as:
-      step_dec = field_deg * (1 - overlap)
-    (this is exact along a meridian).
-
-    For RA spacing at a given declination, we compute the actual RA half-width Δα
-    of a spherical circle with angular radius r = field_deg/2:
-      cos(r) = sin^2(dec) + cos^2(dec)*cos(Δα)
-      Δα = arccos((cos(r) - sin^2(dec)) / cos^2(dec))
-
-    Then full RA width at that declination is:
-      width_ra_deg = 2 * degrees(Δα)
-    And we apply overlap the same way as in Dec:
-      step_ra_deg = width_ra_deg * (1 - overlap)
+    Fix: ensure we always include the last band at dec_max (otherwise the pole cap
+    can be missed when step_dec does not land exactly on dec_max).
     """
     if not (0.0 <= overlap < 1.0):
         raise ValueError("overlap must be in [0, 1).")
@@ -103,25 +89,37 @@ def build_equatorial_tiles(field_deg: float, overlap: float) -> List[Tile]:
 
     r_rad = math.radians(field_deg / 2.0)
 
-    # Keep tile centers inside valid range so the circular FOV stays within [-90, +90] in declination.
     dec_min = -90.0 + field_deg / 2.0
     dec_max = +90.0 - field_deg / 2.0
 
-    tiles: List[Tile] = []
+    # --- Build declination band centers robustly ---
+    decs: List[float] = []
     dec = dec_min
+    while dec <= dec_max + 1e-9:
+        decs.append(dec)
+        dec += step_dec
+
+    # Ensure the last band hits dec_max (important for full coverage).
+    if not decs:
+        decs = [0.0]
+    if abs(decs[-1] - dec_max) > 1e-6:
+        # If we overshot, replace; if we undershot, append.
+        if decs[-1] > dec_max:
+            decs[-1] = dec_max
+        else:
+            decs.append(dec_max)
+
+    tiles: List[Tile] = []
     band_idx = 0
 
-    while dec <= dec_max + 1e-9:
+    for dec in decs:
         dec_rad = math.radians(dec)
         sin_dec = math.sin(dec_rad)
         cos_dec = math.cos(dec_rad)
 
-        # Near the poles, one tile per band is enough (and avoids numeric issues).
         if abs(cos_dec) < 1e-6:
             n_ra = 1
         else:
-            # Compute RA half-width Δα for the circle at this declination.
-            # Clamp argument to [-1, 1] to avoid acos domain errors due to floating point.
             cos_r = math.cos(r_rad)
             denom = (cos_dec * cos_dec)
             arg = (cos_r - (sin_dec * sin_dec)) / denom
@@ -130,25 +128,23 @@ def build_equatorial_tiles(field_deg: float, overlap: float) -> List[Tile]:
             delta_alpha_rad = math.acos(arg)
             width_ra_deg = 2.0 * math.degrees(delta_alpha_rad)
 
-            # Apply overlap consistently (same logic as Dec).
             step_ra_deg = width_ra_deg * (1.0 - overlap)
-
-            # Convert RA step from degrees to hours (15 deg = 1 hour).
             step_ra_h = step_ra_deg / 15.0
 
-            # Ensure we cover full 24h without gaps.
-            # We round to an integer number of tiles and then distribute evenly.
             n_ra = max(1, int(math.ceil(24.0 / step_ra_h)))
 
         step_ra_h = 24.0 / n_ra
 
         for i in range(n_ra):
             ra = i * step_ra_h
-            name = f"tile_{band_idx:02d}_{i:03d}_RA{h2hms(ra).replace(':','')}_DEC{d2dms(dec).replace(':','')}"
+            name = (
+                f"tile_{band_idx:02d}_{i:03d}_"
+                f"RA{h2hms(ra).replace(':','')}_"
+                f"DEC{d2dms(dec).replace(':','')}"
+            )
             tiles.append(Tile(ra_hours=ra, dec_deg=dec, name=name))
 
         band_idx += 1
-        dec += step_dec
 
     return tiles
 
@@ -283,6 +279,13 @@ def main() -> None:
     ap.add_argument("--merge", action="store_true", help="Merge produced PDFs into one atlas.pdf (requires pdfunite/qpdf/gs).")
     ap.add_argument("--merged-name", default="atlas.pdf", help="Merged PDF filename.")
     ap.add_argument("--extra-arg", action="append", default=[], help="Extra fchart3 CLI arg (repeatable). Example: --extra-arg --show-equatorial-grid")
+    ap.add_argument(
+        "--show-enhanced-milky-way",
+        dest="show_enhanced_milky_way",
+        action="store_true",
+        default=False,
+        help="Enable enhanced Milky Way shading on each generated page (passes --show-enhanced-milky-way to fchart3)."
+    )
     args = ap.parse_args()
 
     out_dir = Path(args.out).expanduser().resolve()
@@ -290,6 +293,11 @@ def main() -> None:
     # Build tiles
     tiles = build_equatorial_tiles(args.field_deg, args.overlap)
     print(f"Tiles: {len(tiles)}")
+    # Build fchart3 args that should be applied to every page.
+    extra_args = list(args.extra_arg) if args.extra_arg else []
+
+    if args.show_enhanced_milky_way:
+        extra_args.append("--show-enhanced-milky-way")
 
     # Generate pages
     for idx, t in enumerate(tiles, start=1):
@@ -306,7 +314,7 @@ def main() -> None:
             language=args.language,
             limit_star=args.limit_star,
             limit_dso=args.limit_dso,
-            extra_args=args.extra_arg,
+            extra_args=extra_args,
             output_ext="pdf",
         )
 
