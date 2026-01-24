@@ -627,15 +627,14 @@ class RuntimeSettings:
         argumentparser.add_argument('--hide-flamsteed', dest='show_flamsteed', action='store_false', default=None,
                                     help='Hide Flamsteed designations.')
 
-        argumentparser.add_argument('--hide-mag-scale-legend', dest='show_mag_scale_legend', action='store_false', default=None,
-                                    help='Hide magnitude scale legend.')
+        argumentparser.add_argument('--show-mag-scale-legend', dest='show_mag_scale_legend', action='store_true', default=None,
+                                    help='Show magnitude scale legend.')
 
-        argumentparser.add_argument('--hide-map-scale-legend', dest='show_map_scale_legend', action='store_false', default=None,
-                                    help='Hide map scale legend.')
+        argumentparser.add_argument('--show-map-scale-legend', dest='show_map_scale_legend', action='store_true', default=None,
+                                    help='Show map scale legend.')
 
-        argumentparser.add_argument('--hide-map-orientation-legend', dest='show_orientation_legend', default=None,
-                                    action='store_false',
-                                    help='Hide orientation legend.')
+        argumentparser.add_argument('--show-map-orientation-legend', dest='show_orientation_legend', action='store_true', default=None,
+                                    help='Show orientation legend.')
 
         argumentparser.add_argument('--show-dso-legend', dest='show_dso_legend', action='store_true', default=None,
                                     help='Show deep sky object legend.')
