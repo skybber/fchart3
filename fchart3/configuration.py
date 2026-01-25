@@ -21,7 +21,7 @@ from typing import TypeAlias, Optional
 
 from .projections import ProjectionType
 from .graphics import FontStyle
-from .utils.types import Color
+from .base_types import Color
 
 DEFAULT_OUTPUT_DIR = './'
 DEFAULT_LIMIT_STARS = 12.0

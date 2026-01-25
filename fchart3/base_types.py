@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Tuple, Any, TypeAlias
 import numpy as np
 
-from ..horizon_landscape import StellariumLandscape
+from .horizon_landscape import StellariumLandscape
 
 Coord: TypeAlias = Tuple[float, float]
 Rect: TypeAlias = Tuple[float, float, float, float]
@@ -45,6 +45,7 @@ class RenderContext:
     center_celestial: Coord
     field_radius: float
     field_size: float
+    field_radius_mm: float
     mirror_x: bool
     mirror_y: bool
     lm_stars: float

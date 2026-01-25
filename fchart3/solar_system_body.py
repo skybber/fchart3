@@ -54,7 +54,7 @@ class SolarSystemBodyObject:
     mag: float
     phase: float
     distance: float
-    ring_tilt: Optional[float] = None  # English comment: None for bodies without rings.
+    ring_tilt: Optional[float] = None
 
 
 @dataclass(slots=True)

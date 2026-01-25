@@ -34,6 +34,7 @@ def get_catalogs_dir():
 
 
 from .astro import *
+from .base_types import *
 from .config_loader import *
 from .skymap_engine import *
 from .configuration import *

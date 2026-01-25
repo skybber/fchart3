@@ -17,7 +17,8 @@
 
 from dataclasses import dataclass
 from typing import Optional, Tuple, Literal, List, Any, Sequence, Set
-from .utils.types import Color
+
+from .base_types import Color
 
 DashPattern = Optional[Tuple[float, float]]  # e.g. (0.6, 1.2) or None
 HighlightStyle = Literal['cross', 'circle']

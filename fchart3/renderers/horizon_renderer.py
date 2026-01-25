@@ -15,8 +15,9 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from .base_renderer import BaseRenderer
 import math
+
+from .base_renderer import BaseRenderer
 from ..horizon_landscape import StellariumLandscape
 
 
@@ -32,8 +33,6 @@ CARDINAL_DIRECTIONS = [
 ]
 
 
-# in your HorizonRenderer module
-
 class HorizonRenderer(BaseRenderer):
     def draw(self, ctx, state):
         if ctx.cfg.show_horizon:
@@ -48,7 +47,6 @@ class HorizonRenderer(BaseRenderer):
             self.draw_simple_horizon(ctx, state)
 
     def draw_polygonal_horizon(self, ctx, state, landscape: StellariumLandscape):
-        # English comments.
         gfx = ctx.gfx
         cfg = ctx.cfg
 
@@ -56,8 +54,6 @@ class HorizonRenderer(BaseRenderer):
         if not pts or len(pts) < 2:
             return
 
-        # Pick horizon line color: prefer Stellarium's horizon_line_color if present,
-        # otherwise use existing cfg.horizon_color.
         line_rgb = landscape.horizon_line_color if landscape.horizon_line_color else cfg.horizon_color
 
         gfx.save()
@@ -77,29 +73,21 @@ class HorizonRenderer(BaseRenderer):
                 x_first, y_first, z_first = x, y, z
 
             if x_prev is not None:
-                # Same visibility rule as original: draw always if not z-optimized,
-                # otherwise only if both endpoints are in front (z > 0).
                 if nzopt or (z_prev > 0 and z > 0):
                     gfx.line(x_prev, y_prev, x, y)
 
             x_prev, y_prev, z_prev = x, y, z
 
-        # Close the polyline (optional but typical for horizon loops).
         if x_prev is not None and x_first is not None:
             if nzopt or (z_prev > 0 and z_first > 0):
                 gfx.line(x_prev, y_prev, x_first, y_first)
 
         gfx.restore()
 
-        # Keep cardinal directions the same as before (at alt=0),
-        # or optionally you can project them onto the polygonal horizon
-        # by sampling horizon altitude at that azimuth (later improvement).
-        self.draw_cardinals(ctx, state)
-
     def draw_simple_horizon(self, ctx, state):
-        # Original implementation moved here unchanged (just renamed).
         gfx = ctx.gfx
         cfg = ctx.cfg
+
         gfx.save()
         gfx.set_linewidth(cfg.horizon_linewidth)
         gfx.set_solid_line()
@@ -115,33 +103,46 @@ class HorizonRenderer(BaseRenderer):
         while True:
             x12, y12, z12 = ctx.transf.horizontal_to_xyz(ctx.center_celestial[0] + agg_az, alt)
             x22, y22, z22 = ctx.transf.horizontal_to_xyz(ctx.center_celestial[0] - agg_az, 0)
+
             if x11 is not None and (nzopt or (z11 > 0 and z12 > 0)):
                 gfx.line(x11, y11, x12, y12)
                 gfx.line(x21, y21, x22, y22)
+
             agg_az = agg_az + daz
             if agg_az > math.pi:
                 break
             if y11 is not None and x12 < -ctx.drawing_width / 2:
                 break
+
             x11, y11, z11 = (x12, y12, z12)
             x21, y21, z21 = (x22, y22, z22)
 
         gfx.restore()
 
-        self.draw_cardinals(ctx, state)
+    def draw_cardinals_only(self, ctx, state, *, outside: bool = False):
+        if not ctx.cfg.show_horizon:
+            return
+        self.draw_cardinals(ctx, state, outside=outside)
 
-    def draw_cardinals(self, ctx, state):
-        # Original cardinal label drawing extracted to a method.
+    def draw_cardinals(self, ctx, state, *, outside: bool = False):
         gfx = ctx.gfx
         cfg = ctx.cfg
 
         label_fh = cfg.cardinal_directions_font_scale * gfx.gi_default_font_size
         gfx.set_font(gfx.gi_font, label_fh)
 
+        margin = 0.9 * label_fh
+
+        R = abs(ctx.field_radius_mm)
+
         for label, azimuth in CARDINAL_DIRECTIONS:
             x, y, z = ctx.transf.horizontal_to_xyz(azimuth, 0)
-            if z > 0:
+
+            if not outside:
+                if z <= 0:
+                    continue
                 x_up, y_up, _ = ctx.transf.horizontal_to_xyz(azimuth, math.pi / 20)
+
                 gfx.save()
                 gfx.set_pen_rgb(cfg.cardinal_directions_color)
                 gfx.translate(x, y)
@@ -149,3 +150,23 @@ class HorizonRenderer(BaseRenderer):
                 gfx.rotate(-text_ang)
                 gfx.text_centred(0, label_fh, label)
                 gfx.restore()
+                continue
+
+            r = math.hypot(x, y)
+            if r < 1e-9:
+                x2, y2, _ = ctx.transf.horizontal_to_xyz(azimuth, 1e-4)
+                r = math.hypot(x2, y2)
+                if r < 1e-9:
+                    continue
+                x, y = x2, y2
+
+            ux, uy = x / r, y / r
+
+            xo = ux * (R + margin)
+            yo = uy * (R + margin)
+
+            gfx.save()
+            gfx.set_pen_rgb(cfg.cardinal_directions_color)
+            gfx.translate(xo, yo)
+            gfx.text_centred(0, 0, label)
+            gfx.restore()

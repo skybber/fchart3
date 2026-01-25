@@ -15,6 +15,8 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from .base_types import RenderContext, RenderState
+
 from .label_potential import *
 from .constellation import *
 from .configuration import *
@@ -26,8 +28,6 @@ from .viewport_transformer import ViewportTransformer
 
 from .renderers import *
 from .widgets import *
-
-from .utils.types import RenderContext, RenderState
 
 uilanguage = os.environ.get('fchart3lang')
 try:
@@ -199,13 +199,13 @@ class SkymapEngine:
 
         raise ValueError(f"Unsupported projection type: {self.cfg.projection!r}")
 
-    def _should_use_circular_horizon(self) -> bool:
+    def _is_all_sky_mode(self) -> bool:
         try:
-            if not self.cfg.show_horizon:
-                return False
             if self.cfg.coord_system != CoordSystem.HORIZONTAL:
                 return False
-            return self.cfg.projection == ProjectionType.EQUIDISTANT
+            if self.cfg.projection != ProjectionType.EQUIDISTANT:
+                return False
+            return abs(self.field_radius - (math.pi / 2.0)) < 1e-6
         except Exception:
             return False
 
@@ -263,8 +263,7 @@ class SkymapEngine:
             else:
                 self.gfx.clip_path(clip_path)
 
-            circular_horizon = self._should_use_circular_horizon()
-            if circular_horizon:
+            if self._is_all_sky_mode():
                 r_mm = self._get_circular_horizon_radius_mm()
                 n = 256
                 pts = []
@@ -299,6 +298,7 @@ class SkymapEngine:
                 center_celestial=self.center_celestial,
                 field_radius=self.field_radius,
                 field_size=self.field_size,
+                field_radius_mm=self.get_field_radius_mm(),
                 mirror_x=self.mirror_x,
                 mirror_y=self.mirror_y,
                 lm_stars=self.lm_stars,
@@ -349,7 +349,9 @@ class SkymapEngine:
             if self.cfg.coord_system == CoordSystem.HORIZONTAL:
                 self.renderers["horizon"].draw(ctx, state)
 
-            if self._should_use_circular_horizon():
+            self.gfx.reset_clip()
+
+            if self._is_all_sky_mode():
                 r_mm = self._get_circular_horizon_radius_mm()
                 self.gfx.set_linewidth(self.cfg.legend_linewidth)
                 self.gfx.set_pen_rgb(self.cfg.draw_color)
@@ -363,7 +365,9 @@ class SkymapEngine:
                 for (x1, y1), (x2, y2) in zip(pts[:-1], pts[1:]):
                     self.gfx.line(x1, y1, x2, y2)
 
-            self.gfx.reset_clip()
+            if self.cfg.coord_system == CoordSystem.HORIZONTAL:
+                outside = self._is_all_sky_mode()
+                self.renderers["horizon"].draw_cardinals_only(ctx, state, outside=outside)
 
             if visible_objects is not None and state.visible_objects_collector is not None:
                 state.visible_objects_collector.sort(key=lambda x: x[0])
