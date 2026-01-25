@@ -161,6 +161,7 @@ BOOLEAN_ITEMS = [
 
     'show_solar_system',
     'show_horizon',
+    'clip_to_horizon',
 
     'show_picker',
 
