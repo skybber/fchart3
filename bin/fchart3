@@ -803,9 +803,6 @@ class RuntimeSettings:
                                     help="Convenience mode for full-sky (visible hemisphere) fisheye chart: "
                                          "forces --coord-system horizontal, --projection equidistant and (if -fov not set) -fov 180. "
                                          "If -t is not set, uses 'now'. Requires -L/-A observer location.")
-        argumentparser.add_argument("--center-zenith", dest="center_zenith", action="store_true", default=False,
-                                    help="When in horizontal mode, use zenith as chart center (Az ignored, Alt=90). "
-                                         "If no source is provided, the CLI will generate a default zenith source.")
 
         argumentparser.add_argument('-v', '--version', action='store_true', default=None, help='Display version information and exit.')
 
@@ -820,6 +817,7 @@ class RuntimeSettings:
         if self.parser.all_sky:
             self.parser.coord_system = "horizontal"
             self.parser.projection = "equidistant"
+            self.parser.show_field_border = False
             if self.parser.fieldsize is None:
                 self.parser.fieldsize = 180.0
             if self.parser.dt is None:
@@ -831,10 +829,6 @@ class RuntimeSettings:
                 self.parser.show_horizon = True
             if self.parser.clip_to_horizon is None:
                 self.parser.clip_to_horizon = True
-
-        if self.parser.center_zenith and self.parser.coord_system != "horizontal":
-            print(_("Option --center-zenith requires --coord-system horizontal (or use --all-sky)."))
-            sys.exit(-1)
 
         if (self.parser.trajectory_from is None) ^ (self.parser.trajectory_to is None):
             print(_("Both --trajectory-from and --trajectory-to must be provided together."))
@@ -852,7 +846,7 @@ class RuntimeSettings:
                 sys.exit(-1)
 
         if len(self.parser.sourcelist) == 0:
-            if self.parser.center_zenith or self.parser.all_sky:
+            if self.parser.all_sky:
                 self.parser.sourcelist = ["h:0,90,Zenith"]
             else:
                 argumentparser.print_help()
@@ -1316,13 +1310,7 @@ if __name__ == '__main__':
 
                 dt_utc = settings.parser.dt
 
-                if settings.parser.center_zenith and cfg.coord_system == CoordSystem.HORIZONTAL:
-                    if dt_utc is None:
-                        dt_utc = datetime.now(timezone.utc)
-                    phi = 0.0
-                    theta = math.pi / 2.0
-                else:
-                    phi, theta, dt_utc = _fieldcentre_for_engine_from_position(parsed_pos, cfg, dt_utc)
+                phi, theta, dt_utc = _fieldcentre_for_engine_from_position(parsed_pos, cfg, dt_utc)
 
                 engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize) / 2.0)
 

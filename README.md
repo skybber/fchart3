@@ -212,6 +212,46 @@ Use ISO-8601 UTC time or `now`:
 
 ---
 
+## All-sky (fisheye) mode
+
+Fchart3 CLI supports a convenience **all-sky** mode for rendering a **visible hemisphere** (zenith-centered) fisheye chart.
+
+It is designed for quick “what’s up now” sky maps and works best with the **equidistant** (azimuthal equidistant / fisheye-like) projection.
+
+### `--all-sky`
+
+`--all-sky` is a shortcut that forces a suitable configuration:
+
+* `--coord-system horizontal`
+* `--projection equidistant`
+* if `-fov/--fieldsize` is not set: `-fov 180` (full visible hemisphere)
+* if `-t` is not set: uses `now` (UTC)
+
+It **requires observer location** (`-L/-A`).
+
+Example:
+
+```bash
+fchart3 --all-sky -ls 6 -ld 6 -L 14.42 -A 50.08
+```
+
+With explicit time:
+
+```bash
+fchart3 --all-sky -ls 6 -ld 6 -L 14.42 -A 50.08 -t 2026-01-02T21:15:00Z
+```
+
+### Notes
+
+* All-sky charts are typically used with:
+
+  * `--show-horizon` (draw the horizon circle)
+  * optional `--clip-to-horizon` (hide objects below the horizon, if enabled in the engine)
+* For best results on portrait paper, consider using a square-ish page size or landscape orientation,
+  because an all-sky chart is circular.
+
+---
+
 ## Stellarium landscape horizon (optional)
 
 You can load a Stellarium landscape directory (must contain `landscape.ini`) and use its polygon horizon.
@@ -349,6 +389,8 @@ fchart3-atlas \
   --projection stereographic \
   --show-enhanced-milky-way  
 ```
+
+---
 
 ## Authors
 
