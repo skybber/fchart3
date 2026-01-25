@@ -1,6 +1,40 @@
 Fchart3 changelog
 =================
 
+0.12.0 (2025-01-25)
+-------------------
+
+Added
+~~~~~
+- New **fchart3-atlas** tool for generating multi-page sky atlases (including install/script changes).
+- Support for additional map projections configurable via config and CLI (including fisheye/equidistant-style projections).
+- Improvements to the all-sky workflow and new options related to horizon clipping (e.g. ``clip_to_horizon``).
+- Expanded Solar System object support plus helper search utilities (stars/SS/moons) and trajectory computations.
+- Comet support (MPC comet import + trajectory computation).
+- Minor planet support (MPCORB file handling, trajectory computation, new CLI options).
+- Stellarium **skyculture JSON** support in CLI/config, including constellation parsing.
+- Optional “enhanced” Milky Way rendering (shading) and updated defaults for nebula rendering.
+
+Changed
+~~~~~~~
+- CLI: legends are hidden by default.
+- Major configuration refactor (simplification/unification, ``cfg`` structure, dataclasses, typed/enumerated options).
+- Codebase refactoring and module/package moves (e.g. astronomy computations consolidated under ``astro``, ``solar_system`` moved under ``cli``).
+- Configuration/layout tweaks for constellation-line spacing and various rendering/layout adjustments (e.g. magnitude scale widget, cardinal directions).
+- Trajectory engine refactor to support **multiple trajectories** (not just a single one) and updated step computation logic.
+
+Fixed
+~~~~~
+- Fixed equatorial grid rendering in horizontal-coordinate mode.
+- Minor fixes/cleanup in method signatures and helpers (e.g. ``unknown_object``).
+- Fixes related to Stellarium landscapes (azimuth handling, polygon horizon quirks, related edge cases).
+
+Breaking changes / migration notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- CLI argument parsing changed in a few places (e.g. width/height flag adjustments and added short options); verify your command lines.
+- Config/API refactors (``settings`` -> ``cfg``, dataclasses, enums) and module moves may require import/config updates in downstream integrations.
+
+
 Changes v0.11.1 (2025-11-08)
 ----------------------------------
 
