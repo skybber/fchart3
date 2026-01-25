@@ -172,7 +172,7 @@ class ProjectionFisheyeEquidistant(ProjectionInterface):
 
         r_equat = np_build_rotation_matrix_equatorial(phi0, theta0)
         # Keep the same convention as ProjectionOrthographic (observer rotation applied on the left)
-        self._R = (self._R_obs @ r_equat) if self._R_obs is not None else r_equat
+        self._R = (r_equat @ self._R_obs) if self._R_obs is not None else r_equat
 
     def np_unit3d_to_xy(self, points_3d):
         """

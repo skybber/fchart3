@@ -201,6 +201,7 @@ class EngineConfiguration:
     show_field_border: bool = False
     show_flamsteed: bool = True
     show_horizon: bool = False
+    clip_to_horizon: bool = False
     show_mag_scale_legend: bool = False
     show_map_scale_legend: bool = False
     show_nebula_outlines: bool = True

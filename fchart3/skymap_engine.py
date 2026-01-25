@@ -111,13 +111,18 @@ class SkymapEngine:
 
         self.norm_field_radius = None
 
-    def set_field(self, phi, theta, field_radius, field_label=None, mirror_x=False, mirror_y=False, projection=ProjectionType.STEREOGRAPHIC):
+    def set_field(self, phi, theta, field_radius, field_label=None, mirror_x=False, mirror_y=False):
         self.field_radius = field_radius
         self.center_celestial = (phi, theta)
         self.center_equatorial = (phi, theta)
         self.field_label = field_label if field_label is not None else 'FoV:' + str(field_radius)
 
-        wh = max(self.drawing_width, self.drawing_height)
+        if (self.cfg.coord_system == CoordSystem.HORIZONTAL and
+                self.cfg.projection == ProjectionType.EQUIDISTANT and
+                abs(field_radius - (math.pi / 2.0)) < 1e-6):
+            wh = min(self.drawing_width, self.drawing_height)
+        else:
+            wh = max(self.drawing_width, self.drawing_height)
 
         self.field_size = field_radius * math.hypot(self.drawing_width, self.drawing_height) / wh
 
@@ -129,7 +134,7 @@ class SkymapEngine:
         self.drawing_scale = self.scene_scale*wh/2.0/math.sin(field_radius)
         self.legend_fontscale = min(self.cfg.legend_font_scale, wh/100.0)
 
-        proj = self._create_projection(projection)
+        proj = self._create_projection()
 
         self.transf = ViewportTransformer(proj)
         self.transf.set_celestial_center(0, 0)
@@ -182,17 +187,30 @@ class SkymapEngine:
             self.center_equatorial = (c_ra, c_dec)
         self.transf.set_grid_observer(lst, lat)
 
-    def _create_projection(self, proj_type: ProjectionType) -> ProjectionInterface:
-        if proj_type == ProjectionType.ORTHOGRAPHIC:
+    def _create_projection(self) -> ProjectionInterface:
+        if self.cfg.projection == ProjectionType.ORTHOGRAPHIC:
             return ProjectionOrthographic()
 
-        if proj_type == ProjectionType.STEREOGRAPHIC:
+        if self.cfg.projection == ProjectionType.STEREOGRAPHIC:
             return ProjectionStereographic()
 
-        if proj_type == ProjectionType.EQUIDISTANT:
+        if self.cfg.projection == ProjectionType.EQUIDISTANT:
             return ProjectionFisheyeEquidistant()
 
-        raise ValueError(f"Unsupported projection type: {proj_type!r}")
+        raise ValueError(f"Unsupported projection type: {self.cfg.projection!r}")
+
+    def _should_use_circular_horizon(self) -> bool:
+        try:
+            if not self.cfg.show_horizon:
+                return False
+            if self.cfg.coord_system != CoordSystem.HORIZONTAL:
+                return False
+            return self.cfg.projection == ProjectionType.EQUIDISTANT
+        except Exception:
+            return False
+
+    def _get_circular_horizon_radius_mm(self) -> float:
+        return abs(self.get_field_radius_mm())
 
     def make_map(self, used_catalogs, dt=None, jd=None, solsys_bodies=None, planet_moons=None, showing_dsos=None, dso_highlights=None, highlights=None,
                  dso_hide_filter=None, extra_positions=None, hl_constellation=None, trajectories=None, visible_objects=None, transparent=False,
@@ -238,11 +256,22 @@ class SkymapEngine:
 
         if self.cfg.widget_mode != WidgetMode.WIDGET_ONLY:
             clip_path = self.space_widget_allocator.get_border_path()
+
             if self.cfg.widget_mode == WidgetMode.ALLOC_SPACE_ONLY:
                 x1, y1, x2, y2 = self.get_field_rect_mm()
-                self.gfx.clip_path([(x2,y2), (x2, y1), (x1, y1), (x1, y2)])
+                self.gfx.clip_path([(x2, y2), (x2, y1), (x1, y1), (x1, y2)])
             else:
                 self.gfx.clip_path(clip_path)
+
+            circular_horizon = self._should_use_circular_horizon()
+            if circular_horizon:
+                r_mm = self._get_circular_horizon_radius_mm()
+                n = 256
+                pts = []
+                for i in range(n):
+                    a = 2.0 * math.pi * (i / float(256))
+                    pts.append((r_mm * math.cos(a), r_mm * math.sin(a)))
+                self.gfx.clip_path(pts)
 
             precession_matrix = np.linalg.inv(compute_precession_matrix(jd)) if jd is not None else None
 
@@ -316,8 +345,23 @@ class SkymapEngine:
 
             self.renderers["trajectory"].draw(ctx, state)
             self.renderers["arrow"].draw(ctx, state)
+
             if self.cfg.coord_system == CoordSystem.HORIZONTAL:
                 self.renderers["horizon"].draw(ctx, state)
+
+            if self._should_use_circular_horizon():
+                r_mm = self._get_circular_horizon_radius_mm()
+                self.gfx.set_linewidth(self.cfg.legend_linewidth)
+                self.gfx.set_pen_rgb(self.cfg.draw_color)
+                self.gfx.set_solid_line()
+
+                n = 256
+                pts = []
+                for i in range(n + 1):
+                    a = 2.0 * math.pi * (i / float(n))
+                    pts.append((r_mm * math.cos(a), r_mm * math.sin(a)))
+                for (x1, y1), (x2, y2) in zip(pts[:-1], pts[1:]):
+                    self.gfx.line(x1, y1, x2, y2)
 
             self.gfx.reset_clip()
 

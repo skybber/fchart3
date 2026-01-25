@@ -759,22 +759,22 @@ class RuntimeSettings:
                                     default='equatorial',
                                     help='Coordinate system to use: equatorial or horizontal (alt/az).')
 
-        argumentparser.add_argument('--stellarium-skyculture-json',
-                                    dest='stellarium_skyculture_json',
-                                    nargs='?',
-                                    action='store',
-                                    default=None,
+        argumentparser.add_argument('--stellarium-skyculture-json', dest='stellarium_skyculture_json', nargs='?', action='store', default=None,
                                     help='Path to Stellarium skyculture index.json (new JSON constellation format). '
                                          'Example: /usr/share/stellarium/skycultures/egyptian_dendera/index.json. '
                                          'When set, it overrides the legacy *.fab constellation lines file.')
 
-        argumentparser.add_argument('--stellarium-landscape',
-                                    dest='stellarium_landscape_dir',
-                                    nargs='?',
-                                    action='store',
-                                    default=None,
+        argumentparser.add_argument('--stellarium-landscape', dest='stellarium_landscape_dir', nargs='?', action='store', default=None,
                                     help='Path to Stellarium landscape directory (contains landscape.ini). '
                                          'Used to load polygonal horizon and pass it to the renderer.')
+
+        argumentparser.add_argument("--show-horizon", dest="show_horizon", action="store_true", default=None,
+                                    help="Show horizon on the map (requires --coord-system horizontal and observer location). "
+                                         "If --stellarium-landscape is provided, the landscape horizon polygon is used when available.")
+
+        argumentparser.add_argument("--clip-to-horizon", dest="clip_to_horizon", action="store_true", default=None,
+                                    help="Clip rendering to the horizon circle (hide objects below horizon). "
+                                         "Works with --show-horizon-circle; intended for all-sky fisheye charts.")
 
         argumentparser.add_argument('-t', dest='dt', type=_parse_time_arg, default=None,
                                     help='Observation time (UTC) in ISO-8601. '
@@ -799,13 +799,43 @@ class RuntimeSettings:
         argumentparser.add_argument('--update-minor-planets', dest='update_minor_planets', action='store_true', default=False,
                                     help='Force re-download of ./MPCORB.9999.DAT (MPCORB subset).')
 
+        argumentparser.add_argument("--all-sky", dest="all_sky", action="store_true", default=False,
+                                    help="Convenience mode for full-sky (visible hemisphere) fisheye chart: "
+                                         "forces --coord-system horizontal, --projection equidistant and (if -fov not set) -fov 180. "
+                                         "If -t is not set, uses 'now'. Requires -L/-A observer location.")
+        argumentparser.add_argument("--center-zenith", dest="center_zenith", action="store_true", default=False,
+                                    help="When in horizontal mode, use zenith as chart center (Az ignored, Alt=90). "
+                                         "If no source is provided, the CLI will generate a default zenith source.")
+
         argumentparser.add_argument('-v', '--version', action='store_true', default=None, help='Display version information and exit.')
 
         argumentparser.add_argument('sourcelist', nargs='*')
 
         self.parser = argumentparser.parse_args()
 
-        # Validate comet trajectory args: both or neither; and require -t when trajectory window is used.
+        if self.parser.version:
+            print_version()
+            sys.exit(0)
+
+        if self.parser.all_sky:
+            self.parser.coord_system = "horizontal"
+            self.parser.projection = "equidistant"
+            if self.parser.fieldsize is None:
+                self.parser.fieldsize = 180.0
+            if self.parser.dt is None:
+                self.parser.dt = datetime.now(timezone.utc)
+            if self.parser.obs_longitude is None or self.parser.obs_latitude is None:
+                print(_("Option --all-sky requires observer location: -L/--obs-longitude and -A/--obs-latitude."))
+                sys.exit(-1)
+            if self.parser.show_horizon is None:
+                self.parser.show_horizon = True
+            if self.parser.clip_to_horizon is None:
+                self.parser.clip_to_horizon = True
+
+        if self.parser.center_zenith and self.parser.coord_system != "horizontal":
+            print(_("Option --center-zenith requires --coord-system horizontal (or use --all-sky)."))
+            sys.exit(-1)
+
         if (self.parser.trajectory_from is None) ^ (self.parser.trajectory_to is None):
             print(_("Both --trajectory-from and --trajectory-to must be provided together."))
             sys.exit(-1)
@@ -813,13 +843,20 @@ class RuntimeSettings:
             print(_("Comet target requires -t (observation time) when using trajectory parameters."))
             sys.exit(-1)
 
+        if self.parser.show_horizon:
+            if self.parser.coord_system != "horizontal":
+                print(_("Option --show-horizon requires --coord-system horizontal."))
+                sys.exit(-1)
+            if self.parser.obs_longitude is None or self.parser.obs_latitude is None:
+                print(_("Option --show-horizon requires observer location: -L/--obs-longitude and -A/--obs-latitude."))
+                sys.exit(-1)
+
         if len(self.parser.sourcelist) == 0:
-            argumentparser.print_help()
-            sys.exit(1)
-        
-        if self.parser.version:
-            print_version()
-            sys.exit(1)
+            if self.parser.center_zenith or self.parser.all_sky:
+                self.parser.sourcelist = ["h:0,90,Zenith"]
+            else:
+                argumentparser.print_help()
+                sys.exit(1)
 
         if self.parser.cross_marks:
             for mark in self.parser.cross_marks:
@@ -830,7 +867,6 @@ class RuntimeSettings:
                 except Exception as e:
                     print(_('option -x parsing error: {}'.format(e)))
                     sys.exit(-1)
-
 
 #############################################################
 #                                                           #
@@ -1042,6 +1078,10 @@ def _create_engine_configuration(config_file=None):
         cfg.flamsteed_numbers_only = settings.parser.flamsteed_numbers_only
     if settings.parser.stellarium_skyculture_json is not None:
         cfg.stellarium_skyculture_json = settings.parser.stellarium_skyculture_json
+    if settings.parser.show_horizon is not None:
+        cfg.show_horizon = settings.parser.show_horizon
+    if settings.parser.clip_to_horizon is not None:
+        cfg.clip_to_horizon = settings.parser.clip_to_horizon
     if settings.parser.stellarium_landscape_dir:
         cfg.stellarium_landscape_dir = settings.parser.stellarium_landscape_dir
         # If a Stellarium horizon was requested, provide long/lat. Can still be overridden by the following CLI args
@@ -1209,8 +1249,7 @@ if __name__ == '__main__':
                 phi, theta, dt_utc = _fieldcentre_for_engine(ra, dec, cfg, dt_utc)
 
                 engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize) / 2.0, "",
-                                 mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y,
-                                 projectione=cfg.projection)
+                                 mirror_x=settings.parser.mirror_x, mirror_y=settings.parser.mirror_y)
                 engine.set_caption('M '+str(object.messier))
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
 
@@ -1272,12 +1311,21 @@ if __name__ == '__main__':
                                       language=fchart3.LABELi18N,
                                       lm_stars=cfg.limit_stars,
                                       lm_deepsky=cfg.limit_deepsky)
+
                 engine.set_configuration(cfg)
 
                 dt_utc = settings.parser.dt
-                phi, theta, dt_utc = _fieldcentre_for_engine_from_position(parsed_pos, cfg, dt_utc)
 
-                engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize) / 2.0, projection=cfg.projection)
+                if settings.parser.center_zenith and cfg.coord_system == CoordSystem.HORIZONTAL:
+                    if dt_utc is None:
+                        dt_utc = datetime.now(timezone.utc)
+                    phi = 0.0
+                    theta = math.pi / 2.0
+                else:
+                    phi, theta, dt_utc = _fieldcentre_for_engine_from_position(parsed_pos, cfg, dt_utc)
+
+                engine.set_field(phi, theta, np.deg2rad(cfg.fieldsize) / 2.0)
+
                 caption = cat + ' ' + name
 
                 if settings.parser.caption is not None:

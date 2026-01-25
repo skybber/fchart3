@@ -33,6 +33,7 @@ def get_catalogs_dir():
     return os.path.join(get_data('catalogs'))
 
 
+from .astro import *
 from .config_loader import *
 from .skymap_engine import *
 from .configuration import *
