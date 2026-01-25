@@ -47,7 +47,6 @@ import numpy as np
 import fchart3
 
 from fchart3.config_loader import ConfigurationLoader, CoordSystem
-from fchart3.astrocalc import hms2rad
 from fchart3.skymap_engine import SkymapEngine
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
