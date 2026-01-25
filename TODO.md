@@ -12,14 +12,14 @@
 - [x] (describe how to) create asteroid/comet path plots 
 - [x] Support dynamic loading of Stellarium skyculture data (discover and load skycultures/.../index.json from a configured Stellarium path).
 - [x] Expose projection selection in CLI/config (discoverability + documented list of supported projections).
+- [x] Fish-eye projection
+- [x] Optionally mask/cut objects below horizon.
 
 - [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
-- [ ] Fish-eye projection
 - [ ] Multiple trajectories support
 - [ ] Expand CLI documentation beyond --help (usage patterns, common workflows, end-to-end examples for “recurring map pipelines”).
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
-- [ ] Optionally mask/cut objects below horizon.
 - [ ] describe creation of horizontal maps "View towards west" etc. with --time argument and planets. Moon enlarged with phase figure?
 - [ ] --sidereal-time setting to draw map in horizontal system, optionally with horizon line, without planets
 - [ ] comet could show tail icon pointing away from sun
