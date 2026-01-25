@@ -232,13 +232,13 @@ It **requires observer location** (`-L/-A`).
 Example:
 
 ```bash
-fchart3 --all-sky -ls 6 -ld 6 -L 14.42 -A 50.08
+fchart3 --all-sky --font-size 2 -ls 6 -ld 6 -L 14.42 -A 50.08
 ```
 
 With explicit time:
 
 ```bash
-fchart3 --all-sky -ls 6 -ld 6 -L 14.42 -A 50.08 -t 2026-01-02T21:15:00Z
+fchart3 --all-sky --font-size 2 -ls 6 -ld 6 -L 14.42 -A 50.08 -t 2026-01-02T21:15:00Z
 ```
 
 ### Notes
