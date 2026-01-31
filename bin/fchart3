@@ -556,6 +556,9 @@ class RuntimeSettings:
                        - \"9:35:00.8,-34:15:33,SomeCaption\" for other positions (RA,Dec)
                        - \"h:180:00:00,45:00:00,SomeCaption\" for horizontal positions (Az,Alt; degrees)
                          (also accepts decimal degrees: \"h:180.5,45.25,SomeCaption\")
+                       - Comets by MPC designation (requires -t, --trajectory-from, --trajectory-to)
+                       - Minor planets (asteroids) by number or designation (e.g. \"Ceres\")
+                         (requires -t, --trajectory-from, --trajectory-to for trajectory display)
 
                        There is one special sourcename, which is \"allmessier\". When this name
                        is encountered, fchart3 dumps maps of all messier objects to the output

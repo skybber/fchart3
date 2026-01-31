@@ -149,9 +149,11 @@ fchart3 -W 190 -H 270 -fov 40 -ls 9 -ld 9 \
 
 ## Sources (what you can pass on CLI)
 
-A “source” can be:
+A "source" can be:
 
 * DSO names: `NGC891`, `IC1396`, `M31`, …
+* Comets: by MPC designation, e.g. `"C/2023 A3"` (requires `-t`, `--trajectory-from`, `--trajectory-to`)
+* Minor planets (asteroids): by designation, e.g. `"Ceres"` (requires `-t`, `--trajectory-from`, `--trajectory-to`)
 * Special: `ALLMESSIER` (renders maps for all Messier objects)
 * Explicit coordinates:
 
@@ -314,13 +316,29 @@ Required:
 * `-t` observation time
 * `--trajectory-from` and `--trajectory-to` (UTC; date or datetime)
 
-Example:
+### Comet example:
 
 ```bash
 fchart3 -t 2026-01-02T21:00:00Z \
   --trajectory-from 2026-01-02 \
   --trajectory-to   2026-01-09 \
   "C/2023 A3"
+```
+
+### Minor planet (asteroid) example:
+
+```bash
+# Asteroid (1) Ceres
+fchart3 -t 2026-01-02T21:00:00Z \
+  --trajectory-from 2026-01-02 \
+  --trajectory-to   2026-02-02 \
+  "1"
+
+# Asteroid (433) Eros
+fchart3 -t 2026-01-02T21:00:00Z \
+  --trajectory-from 2026-01-02 \
+  --trajectory-to   2026-02-02 \
+  "433"
 ```
 
 MPC files are downloaded automatically if missing:
