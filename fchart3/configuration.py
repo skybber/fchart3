@@ -257,3 +257,6 @@ class EngineConfiguration:
     # Stellarium integration
     stellarium_skyculture_json: Optional[str] = None
     stellarium_landscape_dir: Optional[str] = None
+
+    # Comet elements cache expiration in hours (0 or None = never expire)
+    comet_els_expiration_hrs: Optional[float] = 0.0

@@ -77,6 +77,7 @@ OPTIONAL_FLOAT_ITEMS = [
     'eyepiece_fov',
     'observer_lat_deg',
     'observer_lon_deg',
+    'comet_els_expiration_hrs',
 ]
 
 RGB_ITEMS = [

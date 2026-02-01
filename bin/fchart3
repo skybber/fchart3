@@ -344,6 +344,41 @@ def _parse_time_or_date_arg(value: str) -> datetime:
         ) from e
 
 
+def _delete_if_expired(file_path: str, expiration_hrs: float) -> bool:
+    """
+    Delete file if it exists and is older than expiration_hrs.
+
+    Args:
+        file_path: Path to the file to check
+        expiration_hrs: Expiration time in hours (0 or negative = never expire)
+
+    Returns:
+        True if file was deleted, False otherwise
+    """
+    if expiration_hrs is None or expiration_hrs <= 0:
+        return False
+
+    path = Path(file_path).expanduser().resolve()
+    if not path.is_file():
+        return False
+
+    try:
+        mtime = path.stat().st_mtime
+        age_seconds = time() - mtime
+        age_hours = age_seconds / 3600.0
+
+        if age_hours > expiration_hrs:
+            print(f"Comet elements cache expired (age: {age_hours:.1f}h > {expiration_hrs:.1f}h), deleting: {path}")
+            path.unlink()
+            return True
+    except PermissionError:
+        print(f"Warning: Cannot delete expired comet elements file (permission denied): {path}")
+    except Exception as e:
+        print(f"Warning: Error checking/deleting comet elements file: {e}")
+
+    return False
+
+
 def _ensure_comet_els_file(path: str, *, force: bool = False) -> Optional[str]:
     """
     Ensure local MPC comet elements file exists at `path`.
@@ -495,6 +530,11 @@ def _search_sky_object(source, settings):
 
     # --- Comet (MPC; needs -t and trajectory window) ---
     if parsed_pos is None and traj_from and traj_to:
+        # Check and delete expired comet elements cache if needed
+        expiration_hrs = cfg.comet_els_expiration_hrs
+        if expiration_hrs is not None and expiration_hrs > 0:
+            _delete_if_expired(settings.parser.mpc_comets_file, expiration_hrs)
+
         # Ensure CometEls.txt exists locally (download once if needed).
         comet_file = _ensure_comet_els_file(
             settings.parser.mpc_comets_file,
@@ -831,6 +871,11 @@ class RuntimeSettings:
         argumentparser.add_argument('--update-minor-planets', dest='update_minor_planets', action='store_true', default=False,
                                     help='Force re-download of ./MPCORB.9999.DAT (MPCORB subset).')
 
+        argumentparser.add_argument('--comet-els-expiration-hrs', dest='comet_els_expiration_hrs', type=float, default=24,
+                                    help='Expiration time in hours for comet elements cache file (CometEls.txt). ' +
+                                         'If the file is older than this value, it will be deleted before use. ' +
+                                         'Default: 0 (never expire). Overrides config file value.')
+
         argumentparser.add_argument("--all-sky", dest="all_sky", action="store_true", default=False,
                                     help="Convenience mode for full-sky (visible hemisphere) fisheye chart: "
                                          "forces --coord-system horizontal, --projection equidistant and (if -fov not set) -fov 180. "
@@ -1133,6 +1178,10 @@ def _create_engine_configuration(config_file=None):
             cfg.projection = _parse_projection(settings.parser.projection)
         except ValueError:
             pass
+
+    # Override comet elements expiration from CLI if provided
+    if settings.parser.comet_els_expiration_hrs is not None:
+        cfg.comet_els_expiration_hrs = settings.parser.comet_els_expiration_hrs
 
     if cfg.show_enhanced_milky_way_30k:
         mw_scale_fac = 3.0

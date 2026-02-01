@@ -15,6 +15,7 @@
 - [x] Fish-eye projection
 - [x] Optionally mask/cut objects below horizon.
 - [x] Simbad search
+- [x] Expiration for CometEls.txt
 
 - [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
