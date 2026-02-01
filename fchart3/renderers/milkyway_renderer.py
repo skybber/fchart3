@@ -16,25 +16,14 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from time import time
+
 import numpy as np
-import gettext
-import os
 
 from .base_renderer import BaseRenderer
-
 from ..graphics import DrawMode
+from ..i18n import install_translator
 
-
-uilanguage = os.environ.get('fchart3lang')
-try:
-    if uilanguage:
-        lang = gettext.translation('messages', localedir='locale', languages=[uilanguage])
-        lang.install()
-        _ = lang.gettext
-    else:
-        _ = gettext.gettext
-except (FileNotFoundError, OSError) as e:
-    _ = gettext.gettext
+_ = install_translator()
 
 
 class MilkyWayRenderer(BaseRenderer):

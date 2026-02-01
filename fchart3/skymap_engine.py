@@ -18,27 +18,18 @@
 from .base_types import RenderContext, RenderState
 
 from .label_potential import *
-from .constellation import *
 from .configuration import *
 
 from .graphics import *
 from .projections import *
 from .astro.precession import compute_precession_matrix
 from .viewport_transformer import ViewportTransformer
+from .i18n import install_translator
 
 from .renderers import *
 from .widgets import *
 
-uilanguage = os.environ.get('fchart3lang')
-try:
-    if uilanguage:
-        lang = gettext.translation('messages', localedir='locale', languages=[uilanguage])
-        lang.install()
-        _ = lang.gettext
-    else:
-        _ = gettext.gettext
-except (FileNotFoundError, OSError) as e:
-    _ = gettext.gettext
+_ = install_translator()
 
 
 LABELi18N = {

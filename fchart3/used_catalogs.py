@@ -15,17 +15,12 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import gettext
 import os
 
-uilanguage=os.environ.get('fchart3lang')
-try:
-    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
-    lang.install()
-    _ = lang.gettext
-except:                  
-    _ = gettext.gettext
-    
+from .i18n import install_translator
+
+_ = install_translator()
+
 import numpy as np
 
 from .astro.astrocalc import sphere_to_rect

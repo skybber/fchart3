@@ -15,23 +15,17 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import gettext
-import os
 from collections import defaultdict, deque
 from time import time
 from typing import TypeAlias, Sequence
 from numpy.typing import NDArray
 
-uilanguage=os.environ.get('fchart3lang')
-try:
-    lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
-    lang.install()
-    _ = lang.gettext
-except:
-    _ = gettext.gettext
+from .i18n import install_translator
 
 from .deepsky_object import *
 from .htm.htm import HTM
+
+_ = install_translator()
 
 Vec2: TypeAlias = tuple[float, float]
 RGB: TypeAlias = tuple[float, float, float]

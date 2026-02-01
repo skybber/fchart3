@@ -16,7 +16,6 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import re
-import gettext
 import os
 import unicodedata
 from dataclasses import dataclass
@@ -28,15 +27,9 @@ from skyfield.data import mpc
 from skyfield.constants import GM_SUN_Pitjeva_2005_km3_s2 as GM_SUN
 
 from .solar_system import get_solsys_bodies, get_planet_moons
+from ..i18n import install_translator
 
-uilanguage=os.environ.get('fchart3lang')
-
-try:
-    lang = gettext.translation('messages', localedir='locale', languages=[uilanguage])
-    lang.install()
-    _ = lang.gettext
-except:
-    _ = gettext.gettext
+_ = install_translator()
 
 skyfield_ts = load.timescale()
 
