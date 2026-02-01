@@ -47,6 +47,7 @@ from fchart3.graphics.graphics_cairo import CairoDrawing
 from fchart3.graphics.graphics_tikz import TikZDrawing
 from fchart3.graphics.graphics_interface import FontStyle
 from fchart3.horizon_landscape import load_stellarium_landscape
+from fchart3.highlights import HighlightDefinition
 
 from fchart3.cli.search_object_utils import (
     resolve_star,
@@ -86,6 +87,7 @@ class ParsedPosition:
     coord_type: ParsedCoordType
     c1_rad: float  # RA or Az
     c2_rad: float  # Dec or Alt
+    highlight_definition: Optional[Any] = None  # HighlightDefinition for Simbad results
 
 
 def _parse_sexagesimal(value: str, *, is_hours: bool) -> float:
@@ -583,7 +585,16 @@ def _search_sky_object(source, settings):
                 dec_rad = np.deg2rad(dec_deg)
                 cat = "SIMBAD"
                 name = str(simbad_obj['main_id']).replace(' ', '')
-                parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
+
+                highlight_data = [[ra_rad, dec_rad, name, '', None]]
+                highlight_def = HighlightDefinition(
+                    style=cfg.highlight_style,
+                    line_width=cfg.highlight_linewidth,
+                    color=cfg.highlight_color,
+                    data=highlight_data
+                )
+
+                parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad, highlight_def)
 
         except Exception as e:
             import traceback
@@ -772,6 +783,7 @@ class RuntimeSettings:
         argumentparser.add_argument('--color-milky-way', dest='milky_way_color', action='store', default=None, help='Milky Way color.')
         argumentparser.add_argument('--color-grid', dest='grid_color', action='store', default=None, help='Grid color.')
         argumentparser.add_argument('--color-telrad', dest='telrad_color', action='store', default=None, help='telrad color.')
+        argumentparser.add_argument('--color-highlight', dest='highlight_color', action='store', default=None, help='Highlight color for Simbad objects.')
 
         argumentparser.add_argument('--linewidth-constellation', dest='constellation_linewidth', nargs='?', action='store', type=float, default=None,
                                     help='Constellation line width (default: 0.5)')
@@ -793,6 +805,11 @@ class RuntimeSettings:
                                     help='Line width of the equatorial/horizontal grid (default: 0.1)')
         argumentparser.add_argument('--linewidth-telrad', dest='telrad_linewidth', nargs='?', action='store', type=float, default=None,
                                     help='Telrad line width (default: 0.3)')
+        argumentparser.add_argument('--linewidth-highlight', dest='highlight_linewidth', nargs='?', action='store', type=float, default=None,
+                                    help='Line width for Simbad highlights (default: 0.3)')
+
+        argumentparser.add_argument('--highlight-style', dest='highlight_style', choices=['cross', 'circle'], default=None,
+                                    help='Style for Simbad highlights: cross or circle (default: cross)')
 
         argumentparser.add_argument('--constellation-line-space', dest='constellation_linespace', nargs='?', action='store', type=float, default=None,
                                     help='Space between star and constellation shape line. (Default: 1.5)')
@@ -1101,6 +1118,8 @@ def _create_engine_configuration(config_file=None):
         cfg.grid_color = _convert_color(settings.parser.grid_color)
     if settings.parser.telrad_color is not None:
         cfg.telrad_color = _convert_color(settings.parser.telrad_color)
+    if settings.parser.highlight_color is not None:
+        cfg.highlight_color = _convert_color(settings.parser.highlight_color)
     if settings.parser.constellation_linewidth is not None:
         cfg.constellation_linewidth = settings.parser.constellation_linewidth
     if settings.parser.constellation_linespace is not None:
@@ -1123,6 +1142,10 @@ def _create_engine_configuration(config_file=None):
         cfg.grid_linewidth = settings.parser.grid_linewidth
     if settings.parser.telrad_linewidth is not None:
         cfg.telrad_linewidth = settings.parser.telrad_linewidth
+    if settings.parser.highlight_linewidth is not None:
+        cfg.highlight_linewidth = settings.parser.highlight_linewidth
+    if settings.parser.highlight_style is not None:
+        cfg.highlight_style = settings.parser.highlight_style
     if settings.parser.no_margin is not None:
         cfg.no_margin = settings.parser.no_margin
     if settings.parser.font is not None:
@@ -1413,13 +1436,19 @@ if __name__ == '__main__':
                 print(_("Started in : {} ms".format(tmp)))
 
                 extra_pos = _convert_extra_positions(settings.extra_positions_list, cfg, dt_utc)
+
+                highlights = None
+                if parsed_pos is not None and parsed_pos.highlight_definition is not None:
+                    highlights = [parsed_pos.highlight_definition]
+
                 if settings.parser.dt is not None and cfg.show_solar_system:
                     solsys = get_solsys_bodies(dt_utc, observer_lat=cfg.observer_lat_deg, observer_lon=cfg.observer_lon_deg, observer_elevation=0.0)
                     moons = get_planet_moons(dt_utc, maglim=cfg.limit_stars)
                 else:
                     solsys = None
                     moons = None
-                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos, extra_positions=extra_pos, landscape=landscape, trajectories=trajectories)
+                engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos,
+                                extra_positions=extra_pos, highlights=highlights, landscape=landscape, trajectories=trajectories)
             else:
                 print(_("object not found, try appending an A or a B"))
     tmp = time()-tm

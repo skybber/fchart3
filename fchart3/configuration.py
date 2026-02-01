@@ -94,6 +94,7 @@ DEFAULT_URANUS_R_SCALE  = 0.6
 DEFAULT_NEPTUNE_R_SCALE = 0.6
 DEFAULT_PLUTO_R_SCALE   = 0.6
 
+DEFAULT_HIGHLIGHT_STYLE = 'cross'
 
 class WidgetMode(Enum):
     NORMAL = 1
@@ -168,6 +169,7 @@ class EngineConfiguration:
     grid_linewidth: float = DEFAULT_GRID_LINEWIDTH
     horizon_linewidth: float = DEFAULT_HORIZONT_LINEWIDTH
     highlight_linewidth: float = DEFAULT_HIGHLIGHT_LINEWIDTH
+    highlight_style: str = DEFAULT_HIGHLIGHT_STYLE
     milky_way_linewidth: float = DEFAULT_MILKY_WAY_LINEWIDTH
     telrad_linewidth: float = DEFAULT_TELRAD_LINEWIDTH
     picker_linewidth: float = DEFAULT_PICKER_LINEWIDTH

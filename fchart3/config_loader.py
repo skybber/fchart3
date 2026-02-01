@@ -173,6 +173,7 @@ BOOLEAN_ITEMS = [
 STRING_ITEMS = [
     'font',
     'output_dir',
+    'highlight_style',
 ]
 
 # Optional strings in EngineConfiguration
