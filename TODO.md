@@ -16,6 +16,7 @@
 - [x] Optionally mask/cut objects below horizon.
 - [x] Simbad search
 - [x] Expiration for CometEls.txt
+- [x] Highlight Simbad position
 
 - [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
