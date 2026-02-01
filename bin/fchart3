@@ -29,6 +29,12 @@ from typing import Optional, Any
 import gzip
 import urllib.request
 import uuid
+import argparse
+import textwrap
+from time import time
+import sys
+import numpy as np
+from astroquery.simbad import Simbad
 
 uilanguage=os.environ.get('fchart3lang')
 try:
@@ -37,12 +43,6 @@ try:
     _ = lang.gettext
 except:                  
     _ = gettext.gettext
-
-import argparse
-import textwrap
-from time import time
-import sys
-import numpy as np
 
 import fchart3
 
@@ -56,7 +56,11 @@ from fchart3.graphics.graphics_interface import FontStyle
 from fchart3.horizon_landscape import load_stellarium_landscape
 
 from fchart3.cli.search_object_utils import (
-    resolve_star, resolve_solar_system, resolve_planet_moon, resolve_comet, resolve_minor_planet
+    resolve_star,
+    resolve_solar_system,
+    resolve_planet_moon,
+    resolve_comet,
+    resolve_minor_planet,
 )
 from fchart3.cli.solar_system import get_solsys_bodies, get_planet_moons
 
@@ -529,6 +533,29 @@ def _search_sky_object(source, settings):
             cat = "AST"
             name = mp_name
             parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
+
+    # --- Simbad query as last resort ---
+    if parsed_pos is None:
+        try:
+            Simbad.ROW_LIMIT = 1
+            simbad = Simbad()
+            simbad.TIMEOUT = 5
+            simbad_result = simbad.query_object(source)
+
+            if simbad_result is not None and len(simbad_result) > 0:
+                simbad_obj = simbad_result[0]
+                ra_deg = float(simbad_obj['ra'])
+                dec_deg = float(simbad_obj['dec'])
+                ra_rad = np.deg2rad(ra_deg)
+                dec_rad = np.deg2rad(dec_deg)
+                cat = "SIMBAD"
+                name = str(simbad_obj['main_id']).replace(' ', '')
+                parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
+
+        except Exception as e:
+            import traceback
+            print(f"SIMBAD parse failed for '{source}': {e}")
+            traceback.print_exc()
 
     if parsed_pos is not None and filename is None:
         filename = settings.output_dir + os.sep + name.replace(' ', '-').replace('/', '-').replace(',', '')

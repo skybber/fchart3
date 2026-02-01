@@ -14,6 +14,7 @@
 - [x] Expose projection selection in CLI/config (discoverability + documented list of supported projections).
 - [x] Fish-eye projection
 - [x] Optionally mask/cut objects below horizon.
+- [x] Simbad search
 
 - [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
