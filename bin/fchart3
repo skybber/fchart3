@@ -36,13 +36,6 @@ import sys
 import numpy as np
 from astroquery.simbad import Simbad
 
-uilanguage=os.environ.get('fchart3lang')
-try:
-    lang = gettext.translation( 'messages', localedir='locale', languages=[uilanguage])
-    lang.install()
-    _ = lang.gettext
-except:                  
-    _ = gettext.gettext
 
 import fchart3
 
@@ -562,6 +555,16 @@ def _search_sky_object(source, settings):
 
     return dso, cat, name, parsed_pos, filename, trajectory
 
+
+def _setup_i18n(lang_code: str | None):
+    localedir = Path(__file__).resolve().parent / "locale"
+    trans = gettext.translation(
+        "messages",
+        localedir=str(localedir),
+        languages=[lang_code] if lang_code else None,
+        fallback=True,
+    )
+    return trans.gettext
 
 class RuntimeSettings:
     def __init__(self):
@@ -1155,17 +1158,10 @@ if __name__ == '__main__':
     # Create default settings and parse commandline
     settings = RuntimeSettings()
 
-    try:
-        uilanguage  = settings.parser.language.lower()
-        os.environ['fchart3lang'] = uilanguage
-        lang = gettext.translation( 'messages',localedir='locale', languages=[uilanguage])
-        lang.install()
-        _ = lang.gettext
-    except:                  
-        _ = gettext.gettext
-    finally:
-        pass
-    
+    lang_code = settings.parser.language.lower()
+    os.environ['fchart3lang'] = lang_code
+    _ = _setup_i18n(lang_code)
+
     print_version()
 
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
