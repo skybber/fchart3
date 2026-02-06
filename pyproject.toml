@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     "Operating System :: OS Independent",
 ]
-dependencies = ['numpy', 'pycairo', 'Pillow', 'skia-python', 'pandas', 'skyfield', 'astroquery']
+dependencies = ['numpy', 'pycairo', 'Pillow', 'pandas', 'skyfield', 'astroquery']
 keywords = ['fchart3 starchart star charts finder chart astronomy map']
 
 [project.urls]

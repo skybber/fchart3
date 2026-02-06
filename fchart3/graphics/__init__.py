@@ -17,6 +17,6 @@
 
 from .graphics_interface import *
 from .graphics_cairo import CairoDrawing
-from .graphics_skia import SkiaDrawing
+# from .graphics_skia import SkiaDrawing
 from .graphics_tikz import TikZDrawing
 from .mirroring_graphics import MirroringGraphics
