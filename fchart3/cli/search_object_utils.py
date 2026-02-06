@@ -16,17 +16,17 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import re
-import os
 import unicodedata
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Dict, Any
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from skyfield.api import load
 from skyfield.data import mpc
 from skyfield.constants import GM_SUN_Pitjeva_2005_km3_s2 as GM_SUN
 
 from .solar_system import get_solsys_bodies, get_planet_moons
+from ..trajectory import build_trajectory
 from ..i18n import install_translator
 
 _ = install_translator()
@@ -470,57 +470,9 @@ def _find_mpc_comet_row(comet_id: str, df):
     return None
 
 
-def _get_trajectory_time_delta(dt_from: datetime, dt_to: datetime) -> int:
-    delta = dt_to - dt_from
-    if delta.days > 120:
-        return timedelta(days=30), 0
-    if delta.days > 30:
-        return timedelta(days=7), 0
-    if delta.days > 4:
-        return timedelta(days=1), 0
-    if delta.days > 2:
-        return timedelta(hours=12), 12
-    if delta.days > 1:
-        return timedelta(hours=6), 6
-    return timedelta(hours=3), 3
 
 
-def _build_body_trajectory(dt_from: datetime, dt_to: datetime, ts, earth, body):
-    """
-    Build a trajectory list of tuples (ra_rad, dec_rad, label).
-    Same format as comet trajectory for SkymapEngine.make_map(..., trajectories=...).
-    """
-    if dt_from is None or dt_to is None or dt_from >= dt_to:
-        return None
-
-    # Safety cap: max 365 days
-    if (dt_to - dt_from).days > 365:
-        dt_to = dt_from + timedelta(days=365)
-
-    step, _ = _get_trajectory_time_delta(dt_from, dt_to)
-
-    out = []
-    cur = dt_from
-    prev_month = None
-
-    while cur <= dt_to:
-        t = ts.from_datetime(cur)
-        ra, dec, _ = earth.at(t).observe(body).radec()
-
-        # Label logic: day at midnight, hour otherwise; mark month changes.
-        if prev_month is None or prev_month != cur.month:
-            label = cur.strftime("%d.%m.") if (cur.hour == 0) else cur.strftime("%H:00")
-        else:
-            label = cur.strftime("%d") if (cur.hour == 0) else cur.strftime("%H:00")
-
-        out.append((float(ra.radians), float(dec.radians), label))
-        prev_month = cur.month
-        cur += step
-
-    return out
-
-
-def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to: datetime, mpc_comets_file: str | None):
+def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to: datetime, mpc_comets_file: str | None, cfg=None):
     """
     Resolve comet by MPC designation, return:
       (name, ra_rad, dec_rad, trajectory_list)
@@ -558,7 +510,15 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
 
     # Trajectory
     try:
-        traj = _build_body_trajectory(traj_from, traj_to, skyfield_ts, earth, body)
+        traj = build_trajectory(
+            dt_from=traj_from,
+            dt_to=traj_to,
+            ts=skyfield_ts,
+            earth=earth,
+            body=body,
+            is_comet=True,
+            sun=sun,
+        )
     except Exception as e:
         print(_(f"Failed to compute comet trajectory for '{source}': {e}"))
         traj = None
@@ -652,6 +612,7 @@ def resolve_minor_planet(
     traj_from: Optional[datetime],
     traj_to: Optional[datetime],
     mpc_minor_planets_file: str | None,
+    cfg=None,
 ):
     """
     Resolve minor planet from MPCORB, return:
@@ -695,7 +656,15 @@ def resolve_minor_planet(
     traj = None
     if traj_from is not None and traj_to is not None:
         try:
-            traj = _build_body_trajectory(traj_from, traj_to, skyfield_ts, earth, body)
+            traj = build_trajectory(
+                dt_from=traj_from,
+                dt_to=traj_to,
+                ts=skyfield_ts,
+                earth=earth,
+                body=body,
+                is_comet=False,
+                sun=None,
+            )
         except Exception as e:
             print(_(f"Failed to compute minor planet trajectory for '{source}': {e}"))
             traj = None

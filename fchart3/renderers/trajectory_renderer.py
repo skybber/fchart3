@@ -18,6 +18,7 @@
 import math
 
 from .base_renderer import BaseRenderer, SQRT2
+from ..astro.astrocalc import pos_angle
 
 
 class TrajectoryRenderer(BaseRenderer):
@@ -39,7 +40,10 @@ class TrajectoryRenderer(BaseRenderer):
         x1 = y1 = z1 = None
         labels = []
 
-        for i, (ra2, dec2, label2) in enumerate(trajectory):
+        for i, pt in enumerate(trajectory):
+            ra2 = pt.ra
+            dec2 = pt.dec
+            label2 = pt.label
             x2, y2, z2 = ctx.transf.equatorial_to_xyz(ra2, dec2)
 
             if i > 0 and (nzopt or (z1 > 0 and z2 > 0)):
@@ -49,6 +53,10 @@ class TrajectoryRenderer(BaseRenderer):
                     self.draw_trajectory_tick(gfx, cfg, x1, y1, x2, y2)
                 if i == 1:
                     self.draw_trajectory_tick(gfx, cfg, x2, y2, x1, y1)
+
+            if pt.sun_ra is not None and pt.sun_dec is not None:
+                if nzopt or z2 > 0:
+                    self.draw_comet_with_tail(ctx, pt)
 
             nx = ny = None
             if x1 is not None:
@@ -111,3 +119,59 @@ class TrajectoryRenderer(BaseRenderer):
 
         gfx.set_linewidth(1.5 * lw)
         gfx.line(x2 - px * tlen, y2 - py * tlen, x2 + px * tlen, y2 + py * tlen)
+
+    def draw_comet_with_tail(self, ctx, pt):
+        cfg = ctx.cfg
+        gfx = ctx.gfx
+
+        if ctx.drawing_scale is None or ctx.drawing_scale <= 0:
+            return
+
+        L_ang_rad = cfg.comet_tail_length / ctx.drawing_scale
+        if L_ang_rad <= 0:
+            return
+
+        pa_sun = pos_angle(pt.ra, pt.dec, pt.sun_ra, pt.sun_dec)
+        pa_tail = pa_sun
+
+        half_angle = math.radians(10.0)
+        side_scale = 0.8
+
+        self.draw_tail_fan(ctx, pt.ra, pt.dec, pa_tail, L_ang_rad, half_angle, side_scale)
+
+    def draw_tail_fan(self, ctx, ra, dec, pa_tail, L_ang_rad, half_angle, side_scale):
+        cfg = ctx.cfg
+        gfx = ctx.gfx
+
+        gfx.set_linewidth(cfg.constellation_linewidth)
+
+        directions = [
+            (pa_tail, 1.0),
+            (pa_tail + half_angle, side_scale),
+            (pa_tail - half_angle, side_scale),
+        ]
+
+        x0, y0, z0 = ctx.transf.equatorial_to_xyz(ra, dec)
+        nzopt = not ctx.transf.is_zoptim()
+        if not (nzopt or z0 > 0):
+            return
+
+        for pa, scale in directions:
+            ra2, dec2 = self._destination_radec(ra, dec, pa, L_ang_rad * scale)
+            x2, y2, z2 = ctx.transf.equatorial_to_xyz(ra2, dec2)
+            if nzopt or (z0 > 0 and z2 > 0):
+                gfx.line(x0, y0, x2, y2)
+
+    def _destination_radec(self, ra1, dec1, pa, dist):
+        sin_dec1 = math.sin(dec1)
+        cos_dec1 = math.cos(dec1)
+        sin_dist = math.sin(dist)
+        cos_dist = math.cos(dist)
+
+        dec2 = math.asin(sin_dec1 * cos_dist + cos_dec1 * sin_dist * math.cos(pa))
+        dra = math.atan2(
+            math.sin(pa) * sin_dist * cos_dec1,
+            cos_dist - sin_dec1 * math.sin(dec2),
+        )
+        ra2 = (ra1 + dra) % (2 * math.pi)
+        return ra2, dec2

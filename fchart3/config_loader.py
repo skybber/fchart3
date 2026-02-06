@@ -64,6 +64,10 @@ FLOAT_ITEMS = [
     'uranus_r_scale',
     'neptune_r_scale',
     'pluto_r_scale',
+
+    # comet tail
+    'comet_tail_length',
+
 ]
 
 # Integers in EngineConfiguration

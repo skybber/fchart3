@@ -43,6 +43,7 @@ DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
 DEFAULT_TELRAD_LINEWIDTH = 0.3
 DEFAULT_PICKER_LINEWIDTH = 0.4
 DEFAULT_EYEPIECE_LINEWIDTH = 0.3
+DEFAULT_COMET_TAIL_LENGTH = 8.0
 
 DEFAULT_ENHANCED_MILKY_WAY_FADE = (0.0, 0.4, 0.0, 0.4, 0.0, 0.4)
 
@@ -93,6 +94,7 @@ DEFAULT_SATURN_R_SCALE  = 1.0
 DEFAULT_URANUS_R_SCALE  = 0.6
 DEFAULT_NEPTUNE_R_SCALE = 0.6
 DEFAULT_PLUTO_R_SCALE   = 0.6
+
 
 DEFAULT_HIGHLIGHT_STYLE = 'cross'
 
@@ -262,3 +264,6 @@ class EngineConfiguration:
 
     # Comet elements cache expiration in hours (0 or None = never expire)
     comet_els_expiration_hrs: Optional[float] = 0.0
+
+    # Comet tail parameters
+    comet_tail_length: float = DEFAULT_COMET_TAIL_LENGTH

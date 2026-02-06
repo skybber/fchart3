@@ -546,7 +546,14 @@ def _search_sky_object(source, settings):
             print(_("Comet elements file is missing and could not be downloaded."))
             sys.exit(-1)
 
-        comet_res = resolve_comet(source, dt_utc=dt_utc, traj_from=traj_from, traj_to=traj_to, mpc_comets_file=comet_file)
+        comet_res = resolve_comet(
+            source,
+            dt_utc=dt_utc,
+            traj_from=traj_from,
+            traj_to=traj_to,
+            mpc_comets_file=comet_file,
+            cfg=cfg,
+        )
         if comet_res is not None:
             comet_name, ra_rad, dec_rad, trajectory = comet_res
             cat = "COMET"
@@ -562,7 +569,14 @@ def _search_sky_object(source, settings):
             print(_("Minor planet MPCORB file is missing and could not be downloaded."))
             sys.exit(-1)
 
-        mp_res = resolve_minor_planet(source, dt_utc=dt_utc, traj_from=traj_from, traj_to=traj_to, mpc_minor_planets_file=mp_file)
+        mp_res = resolve_minor_planet(
+            source,
+            dt_utc=dt_utc,
+            traj_from=traj_from,
+            traj_to=traj_to,
+            mpc_minor_planets_file=mp_file,
+            cfg=cfg,
+        )
         if mp_res is not None:
             mp_name, ra_rad, dec_rad, trajectory = mp_res
             cat = "AST"
