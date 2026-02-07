@@ -669,8 +669,9 @@ class RuntimeSettings:
                                          'The image format is defined by the file extension. ' +\
                                          'Supported formats/extensions are pdf, png, and svg.')
 
-        argumentparser.add_argument('-c', '--config-file', dest='config_file', nargs='?', action='store',
-                                    help='Specify name of the configuration file distributed with fchart3 or path to custom config file. (default=default)')
+        argumentparser.add_argument('-c', '--config-file', dest='config_file', nargs='?', action='append',
+                                    help='Specify name of the configuration file distributed with fchart3 or path to custom config file. '
+                                         '(can be used multiple times; later files override earlier ones)')
 
         argumentparser.add_argument('-E', '--extra-data-dir', dest='extra_data_dir', nargs='?', action='store',
                                     help='Path to extra data directory containing Stellarium star catalogues.')
@@ -1017,7 +1018,7 @@ def _parse_projection(value: str) -> ProjectionType:
     raise ValueError(f"Unknown projection: {value!r}")
 
 
-def _create_engine_configuration(config_file=None):
+def _create_engine_configuration(config_files=None):
     cfg = EngineConfiguration()
 
     # 1. sets defaults
@@ -1047,10 +1048,11 @@ def _create_engine_configuration(config_file=None):
     default_config_loader = ConfigurationLoader(fchart3.get_data('default.conf'))
     default_config_loader.load_config(cfg)
 
-    # 2. load custom cfg
-    if config_file:
-        config_loader = ConfigurationLoader(config_file)
-        config_loader.load_config(cfg)
+    # 2. load custom cfg (in order)
+    if config_files:
+        for config_file in config_files:
+            config_loader = ConfigurationLoader(config_file)
+            config_loader.load_config(cfg)
 
     # 3. override from command line
 
@@ -1246,6 +1248,33 @@ def _create_engine_configuration(config_file=None):
     return cfg
 
 
+def _resolve_config_files(config_files):
+    if not config_files:
+        return []
+
+    resolved = []
+    missing = []
+
+    for config_file in config_files:
+        if not config_file:
+            continue
+        installed_config_file = fchart3.get_data(config_file)
+        if not installed_config_file.endswith('.conf'):
+            installed_config_file += '.conf'
+        if os.path.isfile(installed_config_file):
+            resolved.append(installed_config_file)
+        elif os.path.isfile(config_file):
+            resolved.append(config_file)
+        else:
+            missing.append(config_file)
+
+    if missing:
+        print(_('Config file(s) not found: {}\n'.format(', '.join(missing))))
+        exit(-1)
+
+    return resolved
+
+
 if __name__ == '__main__':
     tm = time()
 
@@ -1262,22 +1291,10 @@ if __name__ == '__main__':
 
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
 
-    config_file = None
-    if settings.parser.config_file:
-        installed_config_file = fchart3.get_data(settings.parser.config_file)
-        if not installed_config_file.endswith('.conf'):
-            installed_config_file += '.conf'
-        if os.path.isfile(installed_config_file):
-            config_file = installed_config_file
-        elif os.path.isfile(settings.parser.config_file):
-            config_file = settings.parser.config_file
-
-        if config_file is None:
-            print( _('Config file {} not found!\n'.format(settings.parser.config_file)))
-            exit(-1)
+    config_files = _resolve_config_files(settings.parser.config_file)
 
     # We must parse the config file here to set fieldsize from config file
-    cfg = _create_engine_configuration(config_file)
+    cfg = _create_engine_configuration(config_files)
 
     used_catalogs = UsedCatalogs(data_dir,
                                  extra_star_data_dir=settings.parser.extra_data_dir,
@@ -1304,8 +1321,8 @@ if __name__ == '__main__':
     search_cache = {}
 
     print('Making maps with: ')
-    if config_file:
-        print( _('   Config file    : {}'.format(config_file)))
+    if config_files:
+        print(_('   Config files   : {}'.format(', '.join(config_files))))
     print(_('   Output dir     : {}'.format(cfg.output_dir)))
     print(_('   Deep sky limit : {}'.format(cfg.limit_deepsky)))
     print(_('   Stellar limit  : {}'.format(cfg.limit_stars)))
