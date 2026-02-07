@@ -130,7 +130,11 @@ class TrajectoryRenderer(BaseRenderer):
         if ctx.drawing_scale is None or ctx.drawing_scale <= 0:
             return
 
-        L_ang_rad = cfg.comet_tail_length / ctx.drawing_scale
+        base_length = cfg.comet_tail_length
+        if base_length <= 0:
+            return
+
+        L_ang_rad = base_length / ctx.drawing_scale
         if L_ang_rad <= 0:
             return
 
@@ -141,10 +145,10 @@ class TrajectoryRenderer(BaseRenderer):
         side_scale = cfg.comet_tail_side_scale
 
         gfx.set_pen_rgb(cfg.comet_tail_color)
-        self.draw_tail_fan(ctx, pt.ra, pt.dec, pa_tail, L_ang_rad, half_angle, side_scale)
+        self.draw_tail_fan(ctx, pt.ra, pt.dec, pa_tail, L_ang_rad, base_length, half_angle, side_scale)
         gfx.set_pen_rgb(cfg.dso_color)
 
-    def draw_tail_fan(self, ctx, ra, dec, pa_tail, L_ang_rad, half_angle, side_scale):
+    def draw_tail_fan(self, ctx, ra, dec, pa_tail, L_ang_rad, base_length, half_angle, side_scale):
         cfg = ctx.cfg
         gfx = ctx.gfx
 
@@ -162,10 +166,15 @@ class TrajectoryRenderer(BaseRenderer):
             return
 
         for pa, scale in directions:
+            target_length = base_length * scale
             ra2, dec2 = self._destination_radec(ra, dec, pa, L_ang_rad * scale)
             x2, y2, z2 = ctx.transf.equatorial_to_xyz(ra2, dec2)
             if nzopt or (z0 > 0 and z2 > 0):
-                gfx.line(x0, y0, x2, y2)
+                endpoint = self._normalized_segment_endpoint(x0, y0, x2, y2, target_length)
+                if endpoint is None:
+                    continue
+                x2n, y2n = endpoint
+                gfx.line(x0, y0, x2n, y2n)
 
     def _destination_radec(self, ra1, dec1, pa, dist):
         sin_dec1 = math.sin(dec1)
@@ -180,3 +189,16 @@ class TrajectoryRenderer(BaseRenderer):
         )
         ra2 = (ra1 + dra) % (2 * math.pi)
         return ra2, dec2
+
+    def _normalized_segment_endpoint(self, x0, y0, x2, y2, target_length, eps=1e-9):
+        if target_length <= 0:
+            return None
+
+        dx = x2 - x0
+        dy = y2 - y0
+        d = math.hypot(dx, dy)
+        if d <= eps:
+            return None
+
+        scale = target_length / d
+        return x0 + dx * scale, y0 + dy * scale
