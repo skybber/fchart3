@@ -18,6 +18,7 @@
 - [x] Expiration for CometEls.txt
 - [x] Highlight Simbad position
 - [x] comet could show tail icon pointing away from sun
+- [x] Stacked config files: call --config-file several times, each overriding settings from the previous, e.g. process one for colors, one for field-dependent magnitude limits and labeling settings, grid/coord types, dso catalogs, ...
 
 - [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
@@ -29,4 +30,3 @@
 - [ ] Ecliptical and galactical grids/plot orientation
 - [ ] widget for combined time+position
 - [ ] Refraction, extinction in horizontal maps
-- [ ] Stacked config files: call --config-file several times, each overriding settings from the previous, e.g. process one for colors, one for field-dependent magnitude limits and labeling settings, grid/coord types, dso catalogs, ...
