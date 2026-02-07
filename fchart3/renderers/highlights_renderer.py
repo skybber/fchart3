@@ -19,7 +19,6 @@
 import math
 
 from .base_renderer import BaseRenderer
-from ..graphics.graphics_interface import DrawMode
 
 
 class HighlightsRenderer(BaseRenderer):
@@ -65,9 +64,8 @@ class HighlightsRenderer(BaseRenderer):
                         mag = payload.get('mag') if isinstance(payload, dict) else (hl_mag if isinstance(hl_mag, (int, float)) else None)
 
                         gfx.set_pen_rgb(hl_def.color)
-                        gfx.set_fill_rgb(hl_def.color)
                         r = cfg.font_size
-                        gfx.circle(x, y, r * 0.3, mode=DrawMode.FILL)
+                        gfx.circle(x, y, r * 0.3)
                         self._draw_comet_tail(ctx, rax, decx, tail_pa)
 
                         if label:
