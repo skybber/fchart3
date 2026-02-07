@@ -67,6 +67,8 @@ FLOAT_ITEMS = [
 
     # comet tail
     'comet_tail_length',
+    'comet_tail_half_angle_deg',
+    'comet_tail_side_scale',
 
 ]
 
@@ -111,6 +113,7 @@ RGB_ITEMS = [
     'telrad_color',
     'eyepiece_color',
     'picker_color',
+    'comet_tail_color',
 
     # bodies
     'sun_color',
@@ -172,6 +175,7 @@ BOOLEAN_ITEMS = [
 
     # star rendering options
     'star_colors',
+    'show_comet_tail',
 ]
 
 STRING_ITEMS = [

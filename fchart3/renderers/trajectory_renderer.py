@@ -124,6 +124,9 @@ class TrajectoryRenderer(BaseRenderer):
         cfg = ctx.cfg
         gfx = ctx.gfx
 
+        if not cfg.show_comet_tail:
+            return
+
         if ctx.drawing_scale is None or ctx.drawing_scale <= 0:
             return
 
@@ -134,10 +137,12 @@ class TrajectoryRenderer(BaseRenderer):
         pa_sun = pos_angle(pt.ra, pt.dec, pt.sun_ra, pt.sun_dec)
         pa_tail = pa_sun
 
-        half_angle = math.radians(10.0)
-        side_scale = 0.8
+        half_angle = math.radians(cfg.comet_tail_half_angle_deg)
+        side_scale = cfg.comet_tail_side_scale
 
+        gfx.set_pen_rgb(cfg.comet_tail_color)
         self.draw_tail_fan(ctx, pt.ra, pt.dec, pa_tail, L_ang_rad, half_angle, side_scale)
+        gfx.set_pen_rgb(cfg.dso_color)
 
     def draw_tail_fan(self, ctx, ra, dec, pa_tail, L_ang_rad, half_angle, side_scale):
         cfg = ctx.cfg

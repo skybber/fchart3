@@ -43,7 +43,9 @@ DEFAULT_MILKY_WAY_LINEWIDTH = 0.2
 DEFAULT_TELRAD_LINEWIDTH = 0.3
 DEFAULT_PICKER_LINEWIDTH = 0.4
 DEFAULT_EYEPIECE_LINEWIDTH = 0.3
-DEFAULT_COMET_TAIL_LENGTH = 8.0
+DEFAULT_COMET_TAIL_LENGTH = 7.0
+DEFAULT_COMET_TAIL_HALF_ANGLE_DEG = 15.0
+DEFAULT_COMET_TAIL_SIDE_SCALE = 0.8
 
 DEFAULT_ENHANCED_MILKY_WAY_FADE = (0.0, 0.4, 0.0, 0.4, 0.0, 0.4)
 
@@ -55,6 +57,7 @@ DEFAULT_CONSTELLATION_BORDER_COLOR = (0.95, 0.90, 0.1)
 DEFAULT_CONSTELLATION_HL_BORDER_COLOR = (1.0, 0.95, 0.5)
 DEFAULT_MILKY_WAY_COLOR = (0.1, 0.1, 0.1)
 DEFAULT_DSO_COLOR = (1.0, 1.0, 1.0)
+DEFAULT_COMET_TAIL_COLOR = DEFAULT_DSO_COLOR
 DEFAULT_DSO_HIGHLIGHT_COLOR = (0.1, 0.2, 0.4)
 DEFAULT_GRID_COLOR = (0.25, 0.31, 0.375)
 DEFAULT_HORIZONT_COLOR = (0.31, 0.31, 0.25)
@@ -218,6 +221,7 @@ class EngineConfiguration:
     show_star_mag: bool = False
     show_solar_system: bool = False
     star_colors: bool = False
+    show_comet_tail: bool = True
 
     # DSO category colors (you used DEFAULT_DSO_COLOR for these)
     galaxy_cluster_color: Color = DEFAULT_DSO_COLOR
@@ -267,3 +271,6 @@ class EngineConfiguration:
 
     # Comet tail parameters
     comet_tail_length: float = DEFAULT_COMET_TAIL_LENGTH
+    comet_tail_color: Color = DEFAULT_COMET_TAIL_COLOR
+    comet_tail_half_angle_deg: float = DEFAULT_COMET_TAIL_HALF_ANGLE_DEG
+    comet_tail_side_scale: float = DEFAULT_COMET_TAIL_SIDE_SCALE
