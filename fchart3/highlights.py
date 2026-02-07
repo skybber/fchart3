@@ -21,7 +21,7 @@ from typing import Optional, Tuple, Literal, List, Any, Sequence, Set
 from .base_types import Color
 
 DashPattern = Optional[Tuple[float, float]]  # e.g. (0.6, 1.2) or None
-HighlightStyle = Literal['cross', 'circle']
+HighlightStyle = Literal['cross', 'circle', 'comet']
 
 # Data row used by HighlightDefinition in your codebase:
 # [ra, dec, dso_name, extra_label, payload]

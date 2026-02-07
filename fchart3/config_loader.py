@@ -113,6 +113,7 @@ RGB_ITEMS = [
     'telrad_color',
     'eyepiece_color',
     'picker_color',
+    'comet_highlight_color',
     'comet_tail_color',
 
     # bodies
