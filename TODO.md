@@ -17,6 +17,7 @@
 - [x] Simbad search
 - [x] Expiration for CometEls.txt
 - [x] Highlight Simbad position
+- [x] comet could show tail icon pointing away from sun
 
 - [ ] ??? (no reproducer) resolve crash when plotting planet target with --show_horizontal_grid 
 
@@ -25,7 +26,6 @@
 - [ ] Clearly define and document the reference epoch used for maps/grids (J2000 vs “date”), and what “epoch around 2016” refers to.
 - [ ] describe creation of horizontal maps "View towards west" etc. with --time argument and planets. Moon enlarged with phase figure?
 - [ ] --sidereal-time setting to draw map in horizontal system, optionally with horizon line, without planets
-- [ ] comet could show tail icon pointing away from sun
 - [ ] Ecliptical and galactical grids/plot orientation
 - [ ] widget for combined time+position
 - [ ] Refraction, extinction in horizontal maps
