@@ -38,16 +38,18 @@ class HighlightsRenderer(BaseRenderer):
                 x, y, z = ctx.transf.equatorial_to_xyz(rax, decx)
                 if nzopt or z >= 0:
                     gfx.set_linewidth(hl_def.line_width)
+                    hl_size = hl_def.size if getattr(hl_def, 'size', 1.0) > 0 else 1.0
                     if hl_def.style == 'cross':
                         gfx.set_pen_rgb(hl_def.color)
-                        r = cfg.font_size * 2
+                        r = cfg.font_size * 2 * hl_size
                         gfx.line(x - r, y, x - r / 2, y)
                         gfx.line(x + r, y, x + r / 2, y)
                         gfx.line(x, y + r, x, y + r / 2)
                         gfx.line(x, y - r, x, y - r / 2)
+                        self.collect_visible_object(ctx, state, x, y, r, object_name)
                     elif hl_def.style == 'circle':
                         gfx.set_pen_rgb(hl_def.color)
-                        r = cfg.font_size
+                        r = cfg.font_size * hl_size
                         gfx.circle(x, y, r)
                         if label:
                             gfx.set_font(gfx.gi_font, highlight_fh, cfg.dso_label_font_style)

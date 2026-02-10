@@ -22,6 +22,7 @@ from .base_types import Color
 
 DashPattern = Optional[Tuple[float, float]]  # e.g. (0.6, 1.2) or None
 HighlightStyle = Literal['cross', 'circle', 'comet']
+DsoHighlightStyle = Literal['cross', 'circle']
 
 # Data row used by HighlightDefinition in your codebase:
 # [ra, dec, dso_name, extra_label, payload]
@@ -35,11 +36,13 @@ class HighlightDefinition:
     line_width   line width
     color        (r, g, b) floats in [0..1]
     data         sequence of highlight rows: [ra, dec, dso_name, extra_label, payload]
+    size         symbol size multiplier (>0), 1.0 = default
     """
     style: HighlightStyle
     line_width: float
     color: Color
     data: Sequence[HighlightRow]
+    size: float = 1.0
 
 
 @dataclass(slots=True, eq=False)
@@ -49,8 +52,12 @@ class DsoHighlightDefinition:
     line_width   line width
     color        (r, g, b)
     dash         dash pattern (on, off) or None for solid
+    style        'cross' | 'circle'
+    size         symbol size multiplier (>0), 1.0 = default
     """
     dsos: Set["DeepskyObject"]
     line_width: float
     color: Color
     dash: DashPattern
+    style: DsoHighlightStyle = 'circle'
+    size: float = 1.0

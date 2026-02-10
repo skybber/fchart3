@@ -663,6 +663,15 @@ class DeepskyRenderer(BaseRenderer):
         else:
             gfx.set_solid_line()
 
-        r = cfg.font_size
-        gfx.circle(x, y, r)
+        style = getattr(dso_highligth, 'style', 'circle')
+        hl_size = dso_highligth.size if getattr(dso_highligth, 'size', 1.0) > 0 else 1.0
+        if style == 'cross':
+            r = cfg.font_size * 2 * hl_size
+            gfx.line(x - r, y, x - r / 2, y)
+            gfx.line(x + r, y, x + r / 2, y)
+            gfx.line(x, y + r, x, y + r / 2)
+            gfx.line(x, y - r, x, y - r / 2)
+        else:
+            r = cfg.font_size * hl_size
+            gfx.circle(x, y, r)
         self.collect_visible_object(ctx, state, x, y, r, dso_name)
