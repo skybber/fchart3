@@ -28,6 +28,7 @@ from .i18n import install_translator
 
 from .renderers import *
 from .widgets import *
+import time
 
 _ = install_translator()
 
@@ -226,8 +227,14 @@ class SkymapEngine:
         :param landscape: StellariumLandscape info from Stellarium
         """
 
+        def log_timing(block_name, start_time):
+            duration = time.perf_counter() - start_time
+            print(f"[SkymapEngine] {block_name} took {duration:.3f}s", flush=True)
+
         if dt is not None and self.cfg.observer_lat_deg is not None and self.cfg.observer_lon_deg is not None:
+            t0 = time.perf_counter()
             self._setup_observer(dt)
+            log_timing("setup_observer", t0)
 
         self.gfx.set_background_rgb(self.cfg.background_color)
 
@@ -320,25 +327,59 @@ class SkymapEngine:
                 picked_planet_moon=None,
             )
 
+            t0 = time.perf_counter()
             self.renderers["milkyway"].draw(ctx, state)
-            self.renderers["grid"].draw(ctx, state)
-            self.renderers["highlights"].draw(ctx, state)
-            self.renderers["constellations"].draw(ctx, state)
-            self.renderers["nebulae_outlines"].draw(ctx, state)
-            self.renderers["stars"].draw(ctx, state)
-            self.renderers["deepsky"].draw(ctx, state)
-            self.renderers["planets"].draw(ctx, state)
+            log_timing("render.milkyway", t0)
 
+            t0 = time.perf_counter()
+            self.renderers["grid"].draw(ctx, state)
+            log_timing("render.grid", t0)
+
+            t0 = time.perf_counter()
+            self.renderers["highlights"].draw(ctx, state)
+            log_timing("render.highlights", t0)
+
+            t0 = time.perf_counter()
+            self.renderers["constellations"].draw(ctx, state)
+            log_timing("render.constellations", t0)
+
+            t0 = time.perf_counter()
+            self.renderers["nebulae_outlines"].draw(ctx, state)
+            log_timing("render.nebulae_outlines", t0)
+
+            t0 = time.perf_counter()
+            self.renderers["stars"].draw(ctx, state)
+            log_timing("render.stars", t0)
+
+            t0 = time.perf_counter()
+            self.renderers["deepsky"].draw(ctx, state)
+            log_timing("render.deepsky", t0)
+
+            t0 = time.perf_counter()
+            self.renderers["planets"].draw(ctx, state)
+            log_timing("render.planets", t0)
+
+            t0 = time.perf_counter()
             self.renderers["extras"].draw(ctx, state)
+            log_timing("render.extras", t0)
 
             if state.picked_dso is None and state.picked_planet_moon is None and state.picked_star is not None:
+                t0 = time.perf_counter()
                 self.renderers["stars"].draw_picked_star(ctx, state)
+                log_timing("render.stars_picked_star", t0)
 
+            t0 = time.perf_counter()
             self.renderers["trajectory"].draw(ctx, state)
+            log_timing("render.trajectory", t0)
+
+            t0 = time.perf_counter()
             self.renderers["arrow"].draw(ctx, state)
+            log_timing("render.arrow", t0)
 
             if self.cfg.coord_system == CoordSystem.HORIZONTAL:
+                t0 = time.perf_counter()
                 self.renderers["horizon"].draw(ctx, state)
+                log_timing("render.horizon", t0)
 
             self.gfx.reset_clip()
 
@@ -358,17 +399,30 @@ class SkymapEngine:
 
             if self.cfg.coord_system == CoordSystem.HORIZONTAL:
                 outside = self._is_all_sky_mode()
+                t0 = time.perf_counter()
                 self.renderers["horizon"].draw_cardinals_only(ctx, state, outside=outside)
+                log_timing("render.horizon_cardinals", t0)
 
             if visible_objects is not None and state.visible_objects_collector is not None:
                 state.visible_objects_collector.sort(key=lambda x: x[0])
                 for obj in state.visible_objects_collector:
                     visible_objects.extend([obj[1], obj[2], obj[3], obj[4], obj[5]])
 
+        t0 = time.perf_counter()
         self.draw_caption()
+        log_timing("draw.caption", t0)
+
+        t0 = time.perf_counter()
         self.draw_widgets(ctx)
+        log_timing("draw.widgets", t0)
+
+        t0 = time.perf_counter()
         self.draw_field_border()
+        log_timing("draw.field_border", t0)
+
+        t0 = time.perf_counter()
         self.gfx.finish()
+        log_timing("gfx.finish", t0)
 
     def magnitude_to_radius(self, magnitude):
         return interp_magnitude_to_radius(self.lm_stars, self.star_mag_r_shift, magnitude)
