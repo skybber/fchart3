@@ -229,7 +229,7 @@ class SkymapEngine:
 
         def log_timing(block_name, start_time):
             duration = time.perf_counter() - start_time
-            print(f"[SkymapEngine] {block_name} took {duration:.3f}s", flush=True)
+            # print(f"[SkymapEngine] {block_name} took {duration:.3f}s", flush=True)
 
         if dt is not None and self.cfg.observer_lat_deg is not None and self.cfg.observer_lon_deg is not None:
             t0 = time.perf_counter()
