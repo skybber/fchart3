@@ -32,31 +32,35 @@ class DeepskyRenderer(BaseRenderer):
             return
 
         deepsky_list = ctx.used_catalogs.deepsky_catalog.select_deepsky(ctx.center_equatorial, ctx.field_size, ctx.lm_deepsky)
+        deepsky_list_set = set(deepsky_list)
 
         filtered_showing_dsos = []
+        filtered_showing_dsos_set = set()
 
         dso_hide_filter_set = {dso for dso in ctx.dso_hide_filter} if ctx.dso_hide_filter else {}
 
         if ctx.showing_dsos:
             for dso in ctx.showing_dsos:
-                if dso not in deepsky_list:
+                if dso not in deepsky_list_set:
                     filtered_showing_dsos.append(dso)
+                    filtered_showing_dsos_set.add(dso)
                 if dso in dso_hide_filter_set:
                     dso_hide_filter_set.remove(dso)
 
         if ctx.dso_highlights:
             for dso_highlight in ctx.dso_highlights:
                 for dso in dso_highlight.dsos:
-                    if dso not in deepsky_list and dso not in filtered_showing_dsos:
+                    if dso not in deepsky_list_set and dso not in filtered_showing_dsos_set:
                         filtered_showing_dsos.append(dso)
+                        filtered_showing_dsos_set.add(dso)
                     if dso in dso_hide_filter_set:
                         dso_hide_filter_set.remove(dso)
 
         deepsky_list.sort(key=lambda x: x.mag)
         deepsky_list_ext = []
 
-        self.calc_deepsky_list_ext(ctx, deepsky_list_ext, deepsky_list)
-        self.calc_deepsky_list_ext(ctx, deepsky_list_ext, filtered_showing_dsos)
+        all_dsos = deepsky_list + filtered_showing_dsos
+        self.calc_deepsky_list_ext(ctx, deepsky_list_ext, all_dsos)
 
         state.label_potential.add_deepsky_list(deepsky_list_ext)
 
@@ -158,7 +162,7 @@ class DeepskyRenderer(BaseRenderer):
         if ctx.precession_matrix is not None:
             mat_rect_dso = np.empty([len(dso_list), 3])
             for i, dso in enumerate(dso_list):
-               mat_rect_dso[i] = [dso.x, dso.y, dso.z]
+                mat_rect_dso[i] = [dso.x, dso.y, dso.z]
             mat_rect_dso = np.matmul(mat_rect_dso, ctx.precession_matrix)
             ra_ar, dec_ar = np_rect_to_sphere(mat_rect_dso[:,[0]], mat_rect_dso[:,[1]], mat_rect_dso[:,[2]])
         else:
