@@ -16,6 +16,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import glob
+from dataclasses import dataclass
 
 from .astro.astrocalc import *
 from .astro.np_astrocalc import *
@@ -515,6 +516,13 @@ class GeodesicStarGaiaCatalogComponent:
             self._star_blocks[i] = None
 
 
+@dataclass(frozen=True)
+class StarZoneRef:
+    level: int
+    zone: int
+    kind: str
+
+
 class GeodesicStarGaiaCatalog():
     """
     Star catalog composed of GeodesicStarGaiaCatalogComponent. Each component represents one level of Geodesic tree.
@@ -578,12 +586,114 @@ class GeodesicStarGaiaCatalog():
                 return zone_stars
         return None
 
+    def _select_stars_from_zone_mag(self, zone_stars, lm_stars):
+        if len(zone_stars) == 0:
+            return []
+        mag = zone_stars['mag']
+        return zone_stars[mag <= lm_stars]
+
     @property
     def max_geodesic_grid_level(self):
         return self._max_geodesic_grid_level
 
     def init_triangle(self, lev, index, c0, c1, c2):
         self._cat_components[lev].init_triangle(index, c0, c1, c2)
+
+    def _max_search_level(self, lm_stars):
+        max_search_level = -1
+        for cat_comp in self._cat_components:
+            if cat_comp.level > 0 and cat_comp.mag_min_mag > lm_stars:
+                break
+            max_search_level += 1
+        return max_search_level
+
+    def _build_search_caps(self, field_rect3, radius, max_search_level):
+        lev_spherical_caps = []
+        for lev in range(max_search_level + 1):
+            radius_inner = radius
+            # use asin() since it is chord on sphere
+            triangle_radius = 2 * math.asin(TRIANGLE_CENTER_FACTOR * self._cat_components[lev].triangle_size)
+            radius_outer = triangle_radius + radius
+            lev_spherical_caps.append(SphericalCap(field_rect3, math.cos(radius_inner), math.cos(radius_outer)))
+        return lev_spherical_caps
+
+    def _rect_to_eq_stars(self, rect_stars, precession_matrix):
+        if rect_stars is None or len(rect_stars) == 0:
+            return None
+        if precession_matrix is not None:
+            mat_rect_stars = np.column_stack((rect_stars['x'], rect_stars['y'], rect_stars['z']))
+            mat_rect_stars = np.matmul(mat_rect_stars, precession_matrix)
+        else:
+            mat_rect_stars = np.column_stack((rect_stars['x'], rect_stars['y'], rect_stars['z']))
+
+        return np.core.records.fromarrays(
+            [
+                mat_rect_stars[:, 0],  # x
+                mat_rect_stars[:, 1],  # y
+                mat_rect_stars[:, 2],  # z
+                rect_stars['mag'],
+                rect_stars['bvind'],
+                rect_stars['hip'],
+            ],
+            dtype=D3_ZONE_STARDATA_DT
+        )
+
+    def select_star_zones(self, field_center, radius, lm_stars):
+        max_search_level = self._max_search_level(lm_stars)
+        if max_search_level < 0:
+            return []
+
+        field_rect3 = sphere_to_rect(field_center[0], field_center[1])
+        cos_radius = math.cos(radius)
+        lev_spherical_caps = self._build_search_caps(field_rect3, radius, max_search_level)
+
+        self.search_result.reset()
+        self._geodesic_grid.search_zones(lev_spherical_caps, self.search_result, max_search_level)
+
+        zones = []
+        seen = set()
+        for lev in range(max_search_level + 1):
+            inside_iterator = GeodesicSearchInsideIterator(self.search_result, lev)
+            zone = inside_iterator.next()
+            while zone != -1:
+                key = (lev, int(zone))
+                if key not in seen:
+                    zones.append(StarZoneRef(level=lev, zone=int(zone), kind="inside"))
+                    seen.add(key)
+                zone = inside_iterator.next()
+
+            border_iterator = GeodesicSearchBorderIterator(self.search_result, lev)
+            zone = border_iterator.next()
+            while zone != -1:
+                key = (lev, int(zone))
+                if key not in seen:
+                    zones.append(StarZoneRef(level=lev, zone=int(zone), kind="border"))
+                    seen.add(key)
+                zone = border_iterator.next()
+
+            global_zone = GeodesicGrid.nr_of_zones(lev)
+            global_zone_stars = self._cat_components[lev].get_zone_stars(global_zone)
+            if self._select_stars_from_zone(global_zone_stars, lm_stars, field_rect3, cos_radius) is not None:
+                key = (lev, int(global_zone))
+                if key not in seen:
+                    zones.append(StarZoneRef(level=lev, zone=int(global_zone), kind="global"))
+                    seen.add(key)
+
+        zones.sort(key=lambda z: (z.level, z.zone))
+        return [{"level": z.level, "zone": z.zone, "kind": z.kind} for z in zones]
+
+    def select_zone_stars(self, field_center, radius, lm_stars, level, zone, precession_matrix):
+        if level < 0 or level >= len(self._cat_components):
+            return None
+        max_zone = GeodesicGrid.nr_of_zones(level)
+        if zone < 0 or zone > max_zone:
+            return None
+
+        zone_stars = self._cat_components[level].get_zone_stars(zone)
+        rect_stars = self._select_stars_from_zone_mag(zone_stars, lm_stars)
+        if rect_stars is None or len(rect_stars) == 0:
+            return []
+        return self._rect_to_eq_stars(rect_stars, precession_matrix)
 
     def select_stars(self, field_center, radius, lm_stars, precession_matrix):
         """
@@ -593,24 +703,13 @@ class GeodesicStarGaiaCatalog():
         """
         tmp_arr = []
 
-        max_search_level = -1
-        for cat_comp in self._cat_components:
-            if cat_comp.level > 0 and cat_comp.mag_min_mag > lm_stars:
-                break
-            max_search_level += 1
+        max_search_level = self._max_search_level(lm_stars)
 
         if max_search_level >= 0:
             field_rect3 = sphere_to_rect(field_center[0], field_center[1])
 
-            lev_spherical_caps = []
-            # print('Radius: {}'.format(radius/np.pi*180.0))
             cos_radius = math.cos(radius)
-            for lev in range(max_search_level+1):
-                radius_inner = radius
-                # use asin() since it is chord on sphere
-                triangle_radius = 2 * math.asin(TRIANGLE_CENTER_FACTOR * self._cat_components[lev].triangle_size)
-                radius_outer = triangle_radius + radius
-                lev_spherical_caps.append(SphericalCap(field_rect3, math.cos(radius_inner), math.cos(radius_outer)))
+            lev_spherical_caps = self._build_search_caps(field_rect3, radius, max_search_level)
 
             self.search_result.reset()
             self._geodesic_grid.search_zones(lev_spherical_caps, self.search_result, max_search_level)
@@ -634,28 +733,7 @@ class GeodesicStarGaiaCatalog():
                     tmp_arr.append(sel_glob_zone_stars)
 
         rect_stars = np.concatenate(tmp_arr, axis=0) if len(tmp_arr) > 0 else None
-
-        if rect_stars is None or len(rect_stars) == 0:
-            return None
-
-        if precession_matrix is not None:
-            mat_rect_stars = np.column_stack((rect_stars['x'], rect_stars['y'], rect_stars['z']))
-            mat_rect_stars = np.matmul(mat_rect_stars, precession_matrix)
-        else:
-            mat_rect_stars = np.column_stack((rect_stars['x'], rect_stars['y'], rect_stars['z']))
-
-        eq_stars = np.core.records.fromarrays(
-            [
-                mat_rect_stars[:, 0],  # x
-                mat_rect_stars[:, 1],  # y
-                mat_rect_stars[:, 2],  # z
-                rect_stars['mag'],
-                rect_stars['bvind'],
-                rect_stars['hip'],
-            ],
-            dtype=D3_ZONE_STARDATA_DT)
-
-        return eq_stars
+        return self._rect_to_eq_stars(rect_stars, precession_matrix)
 
     def free_mem(self):
         for cat_comp in self._cat_components:
