@@ -37,13 +37,34 @@ class PlanetsRenderer(BaseRenderer):
         if ctx.planet_moons:
             self.draw_planet_moons(ctx, state, planet_moon_positions, True)
 
+    def _darken_color(self, color, factor=0.3):
+        """Darken color by given factor."""
+        return (color[0] * factor, color[1] * factor, color[2] * factor)
+
+    def draw_moon_shadow(self, ctx, pl_moon):
+        """Draw moon shadow on planet surface."""
+        if pl_moon.shadow_ra is None or pl_moon.shadow_dec is None:
+            return
+
+        gfx = ctx.gfx
+        sx, sy, sz = ctx.transf.equatorial_to_xyz(pl_moon.shadow_ra, pl_moon.shadow_dec)
+
+        if sz < 0 and ctx.transf.is_zoptim():
+            return
+
+        moon_r = self.magnitude_to_radius(ctx, pl_moon.mag)
+        shadow_r = moon_r * 1.3
+
+        gfx.set_fill_rgb((0.0, 0.0, 0.0))
+        gfx.circle(sx, sy, shadow_r, DrawMode.FILL)
+
     def draw_planet_moons(self, ctx, state, planet_moon_positions, in_front):
         solsys_bodies = ctx.solsys_bodies
         planet_moons = ctx.planet_moons
-        
+
         if not in_front and not ctx.solsys_bodies:
             return
-        
+
         gfx = ctx.gfx
 
         nzopt = not ctx.transf.is_zoptim()
@@ -65,8 +86,17 @@ class PlanetsRenderer(BaseRenderer):
             x, y, z = planet_moon_positions[pl_moon_index]
 
             if nzopt or z >= 0:
+                if in_front and getattr(pl_moon, 'is_throwing_shadow', False):
+                    self.draw_moon_shadow(ctx, pl_moon)
+
                 r = self.magnitude_to_radius(ctx, pl_moon.mag)
-                gfx.set_fill_rgb(pl_moon.color)
+
+                moon_color = pl_moon.color
+                if not getattr(pl_moon, 'is_in_light', True):
+                    if isinstance(moon_color, tuple):
+                        moon_color = self._darken_color(moon_color)
+
+                gfx.set_fill_rgb(moon_color)
                 gfx.circle(x, y, r, DrawMode.FILL)
                 pl_moon_ang_dist = angular_distance((pl_moon.ra, pl_moon.dec), (planet.ra, planet.dec))
                 r_lab = r if r > 0.8 else 0.8

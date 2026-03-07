@@ -68,3 +68,7 @@ class PlanetMoonObject:
     mag: float
     color: str
     distance: float
+    is_in_light: bool = True
+    is_throwing_shadow: bool = False
+    shadow_ra: Optional[float] = None
+    shadow_dec: Optional[float] = None
