@@ -40,6 +40,13 @@ from astroquery.simbad import Simbad
 import fchart3
 
 from fchart3.config_loader import ConfigurationLoader, CoordSystem
+from fchart3.runtime_settings import (
+    RuntimeConfiguration,
+    RuntimeConfigurationLoader,
+    apply_runtime_config_defaults,
+    parse_observation_time,
+    parse_time_or_date,
+)
 from fchart3.skymap_engine import SkymapEngine
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
@@ -59,7 +66,7 @@ from fchart3.cli.search_object_utils import (
 from fchart3.cli.solar_system import get_solsys_bodies, get_planet_moons
 
 from fchart3.projections.projection import ProjectionType
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone
 from skyfield.api import load
 
 skyfield_ts = load.timescale()
@@ -293,57 +300,6 @@ def _convert_extra_positions(extra_positions, config: EngineConfiguration, dt_ut
             phi, theta, dt_utc = _fieldcentre_for_engine(pos.c1_rad, pos.c2_rad, config, dt_utc)
         out.append([phi, theta, label, labelpos])
     return out
-
-
-def _parse_time_arg(value: str) -> datetime:
-    s = value.strip()
-    if s.lower() in ("now",):
-        return datetime.now(timezone.utc)
-    if s.endswith("Z"):
-        s = s[:-1] + "+00:00"
-    try:
-        dt = datetime.fromisoformat(s)
-    except ValueError as e:
-        raise argparse.ArgumentTypeError(
-            f"Invalid --time value '{value}'. Expected ISO-8601, e.g. "
-            f"2026-01-02T21:15:00Z or 2026-01-02T21:15:00+01:00, or 'now'."
-        ) from e
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
-
-
-def _parse_time_or_date_arg(value: str) -> datetime:
-    """
-    Parse ISO-8601 datetime or date into UTC datetime.
-    Accepts:
-      - 2026-01-02T21:15:00Z
-      - 2026-01-02T21:15:00+01:00
-      - 2026-01-02  (interpreted as 00:00:00Z)
-    """
-    s = value.strip()
-    if not s:
-        raise argparse.ArgumentTypeError("Empty datetime/date value")
-    if s.endswith("Z"):
-        s = s[:-1] + "+00:00"
-
-    # Try datetime first
-    try:
-        dt = datetime.fromisoformat(s)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc)
-    except ValueError:
-        pass
-
-    # Try date-only
-    try:
-        d = date.fromisoformat(s)
-        return datetime(d.year, d.month, d.day, 0, 0, 0, tzinfo=timezone.utc)
-    except ValueError as e:
-        raise argparse.ArgumentTypeError(
-            f"Invalid value '{value}'. Expected ISO-8601 datetime or date."
-        ) from e
 
 
 def _delete_if_expired(file_path: str, expiration_hrs: float) -> bool:
@@ -680,11 +636,11 @@ class RuntimeSettings:
                                     help='Limiting magnitude for deep sky objects (default: 12.0)')
         argumentparser.add_argument('-ls', '--limit-star', dest='limit_stars', nargs='?', action='store', type=float,
                                     help='Limiting magnitude for stars. (Default: 12.0)')
-        argumentparser.add_argument('-W', '--width', dest='width', nargs='?', action='store', default=180.0, type=float,
+        argumentparser.add_argument('-W', '--width', dest='width', nargs='?', action='store', default=None, type=float,
                                     help='Width of the drawing area in millimeters.')
-        argumentparser.add_argument('-H', '--height', dest='height', nargs='?', action='store', default=270.0, type=float,
+        argumentparser.add_argument('-H', '--height', dest='height', nargs='?', action='store', default=None, type=float,
                                     help='Height of the drawing area in millimeters.')
-        argumentparser.add_argument('-landscape', '--landscape-paper', dest='landscape_paper', action='store_true',
+        argumentparser.add_argument('-landscape', '--landscape-paper', dest='landscape_paper', action='store_true', default=None,
                                     help='Paper orientation landscape (Use with wider width).')
         argumentparser.add_argument("--projection", dest="projection", default="stereographic", choices=["stereographic", "orthographic", "equidistant"],
                                     help="Projection type (default: stereographic).")
@@ -692,18 +648,18 @@ class RuntimeSettings:
                                     dest='fieldsize', nargs='?', action='store', type=float,
                                     help='Diameter of the field of view in degrees (default: 7.0)')
 
-        argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true',
+        argumentparser.add_argument('-fmessier', '--force-messier', dest='force_messier', action='store_true', default=None,
                                     help='Select all Messier objects, regardless of the limiting magnitude for deep sky objects.')
-        argumentparser.add_argument('-fasterism', '--force-asterisms', dest='force_asterisms', action='store_true',
+        argumentparser.add_argument('-fasterism', '--force-asterisms', dest='force_asterisms', action='store_true', default=None,
                                     help='Force plotting of asterisms on the map. By default, only "Messier" asterisms are plotted,' + \
                                          ' while all others are ignored. The default setting helps clean up maps, especially in the Virgo cluster region.')
-        argumentparser.add_argument('-funknown', '--force-unknown', dest='force_unknown', action='store_true',
+        argumentparser.add_argument('-funknown', '--force-unknown', dest='force_unknown', action='store_true', default=None,
                                     help='By default, objects in external galaxies are plotted only if their magnitude is known and is lower than ' + \
                                          'the limiting magnitude for deep sky objects. If this option is given, objects in external galaxies ' + \
                                          'of which the magnitude is unknown will also be plotted. This option may clutter some galaxies like M 101 ' + \
                                          'and NGC 4559.')
 
-        argumentparser.add_argument('-l', '--language', dest='language', nargs='?', action='store', default='en',
+        argumentparser.add_argument('-l', '--language', dest='language', nargs='?', action='store', default=None,
                                     help='Specify the language for the maps, options: \'en\', \'nl\', \'es\' (default: en)')
 
         argumentparser.add_argument('-sc', '--show-catalogs', dest='show_catalogs', nargs='?', action='store',
@@ -886,24 +842,24 @@ class RuntimeSettings:
                                     help="Clip rendering to the horizon circle (hide objects below horizon). "
                                          "Works with --show-horizon-circle; intended for all-sky fisheye charts.")
 
-        argumentparser.add_argument('-t', dest='dt', type=_parse_time_arg, default=None,
+        argumentparser.add_argument('-t', dest='dt', type=parse_observation_time, default=None,
                                     help='Observation time (UTC) in ISO-8601. '
                                          'Examples: 2026-01-02T21:15:00Z, 2026-01-02T21:15:00+01:00, or "now".')
 
-        argumentparser.add_argument('--trajectory-from', dest='trajectory_from', type=_parse_time_or_date_arg, default=None,
+        argumentparser.add_argument('--trajectory-from', dest='trajectory_from', type=parse_time_or_date, default=None,
                                     help='Comet/Minor planet trajectory start time/date (UTC). '
                                          'Examples: 2026-01-02T00:00:00Z or 2026-01-02')
-        argumentparser.add_argument('--trajectory-to', dest='trajectory_to', type=_parse_time_or_date_arg, default=None,
+        argumentparser.add_argument('--trajectory-to', dest='trajectory_to', type=parse_time_or_date, default=None,
                                     help='Comet/Minor planet trajectory end time/date (UTC). '
                                          'Examples: 2026-01-09T00:00:00Z or 2026-01-09')
 
-        argumentparser.add_argument('--mpc-comets-file', dest='mpc_comets_file', default='CometEls.txt',
+        argumentparser.add_argument('--mpc-comets-file', dest='mpc_comets_file', default=None,
                                     help='Local MPC comets file. Default: ./CometEls.txt. '
                                          'If missing, it will be downloaded once.')
         argumentparser.add_argument('--update-comets', dest='update_comets', action='store_true', default=False,
                                     help='Force re-download of ./CometEls.txt (comet elements).')
 
-        argumentparser.add_argument('--mpc-minor-planets-file', dest='mpc_minor_planets_file', default='MPCORB.9999.DAT',
+        argumentparser.add_argument('--mpc-minor-planets-file', dest='mpc_minor_planets_file', default=None,
                                     help='Local MPCORB minor planets file (recommended subset). Default: ./MPCORB.9999.DAT. '
                                          'If missing, it will be downloaded once.')
         argumentparser.add_argument('--update-minor-planets', dest='update_minor_planets', action='store_true', default=False,
@@ -928,6 +884,12 @@ class RuntimeSettings:
         if self.parser.version:
             print_version()
             sys.exit(0)
+
+        self.config_files = _resolve_config_files(self.parser.config_file)
+        runtime_config = RuntimeConfiguration()
+        for config_file in self.config_files:
+            RuntimeConfigurationLoader(config_file).load_config(runtime_config)
+        apply_runtime_config_defaults(self.parser, runtime_config)
 
         if self.parser.all_sky:
             self.parser.coord_system = "horizontal"
@@ -1291,7 +1253,7 @@ if __name__ == '__main__':
 
     show_catalogs = settings.parser.show_catalogs.split(',') if settings.parser.show_catalogs else None
 
-    config_files = _resolve_config_files(settings.parser.config_file)
+    config_files = settings.config_files
 
     # We must parse the config file here to set fieldsize from config file
     cfg = _create_engine_configuration(config_files)
