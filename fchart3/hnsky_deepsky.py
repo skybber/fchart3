@@ -103,9 +103,25 @@ def parse_catalog_name(dso_name):
     return dso_name[:i], dso_name[i:]
 
 
+def _fix_decimal_commas(items):
+    """
+    deep_sky.hnd (version 2024-05-06) contains some values written with decimal comma, which splits
+    them into two items. PGC lines have split brightness (e.g. '141,89'), PK lines have split
+    length and width (e.g. '0,9,0,7').
+    """
+    if len(items) != 10:
+        return items
+    first_name = items[3].split('/')[0]
+    if first_name.startswith('PGC'):
+        return items[:5] + [items[5] + '.' + items[6]] + items[7:]
+    if first_name.startswith('PK_'):
+        return items[:6] + [items[6] + '.' + items[7], items[8] + '.' + items[9]]
+    return items
+
+
 def _parse_hnsky_line(line, show_catalogs, all_dsos):
     dso = DeepskyObject()
-    items = line.split(',')
+    items = _fix_decimal_commas(line.split(','))
 
     dso.ra = 2.0 * np.pi * float(items[0])/864000.0
     dso.dec = np.pi * float(items[1])/(324000.0 * 2.0)
