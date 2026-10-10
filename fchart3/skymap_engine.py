@@ -428,6 +428,11 @@ class SkymapEngine:
         return interp_magnitude_to_radius(self.lm_stars, self.star_mag_r_shift, magnitude)
 
     def draw_caption(self):
+        """Draw image title above, description (location, timestamp) to lower left, and 'created' note to lower right"""
+
+        if self.cfg.no_margin:  # we want really nothing around!
+            return
+
         font_size = self.get_legend_font_size()
         if self.caption != '':
             self.gfx.set_font(self.gfx.gi_font, 1.25*font_size)
