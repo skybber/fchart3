@@ -42,7 +42,7 @@ GREEK_TO_LATEX = {
     "π":"$\\pi$",
     "ρ":"$\\rho$",
     "σ":"$\\sigma$",
-    "ς":"$\\sigma$",
+    "ς":"$\\varsigma$",
     "τ":"$\\tau$",
     "υ":"$\\upsilon$",
     "φ":"$\\phi$",
@@ -80,7 +80,7 @@ class TikZDrawing(GraphicsInterface):
 
         if isinstance(fobj, str):
             self.close_fobj = True
-            self.fobj = open(fobj, 'w')
+            self.fobj = open(fobj, 'w', encoding="utf-8")
         else:
             self.fobj = fobj
             self.close_fobj = False
