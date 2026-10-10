@@ -22,3 +22,7 @@ keywords = ['fchart3 starchart star charts finder chart astronomy map']
 [project.urls]
 "Homepage" = "https://github.com/skybber/fchart3"
 "Bug Tracker" = "https://github.com/skybber/fchart3/issues"
+
+[project.scripts]
+fchart3 = "fchart3.__main__:main"
+fchart3-atlas = "fchart3.__main__:atlas_main"
