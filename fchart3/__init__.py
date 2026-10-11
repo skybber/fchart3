@@ -21,6 +21,17 @@ given a StarCatalog and DeepskyCatalog.
 """
 
 import os
+from .astro import *
+from .base_types import *
+from .config_loader import *
+from .skymap_engine import *
+from .configuration import *
+from .solar_system_body import *
+from .used_catalogs import *
+from .graphics import *
+from .projections import *
+from .highlights import *
+from .horizon_landscape import *
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -33,14 +44,3 @@ def get_catalogs_dir():
     return os.path.join(get_data('catalogs'))
 
 
-from .astro import *
-from .base_types import *
-from .config_loader import *
-from .skymap_engine import *
-from .configuration import *
-from .solar_system_body import *
-from .used_catalogs import *
-from .graphics import *
-from .projections import *
-from .highlights import *
-from .horizon_landscape import *

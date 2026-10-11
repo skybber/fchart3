@@ -1393,7 +1393,6 @@ if __name__ == '__main__':
                     graphics = TikZDrawing(filename,
                                            settings.parser.width,
                                            settings.parser.height,
-                                           output_format,
                                            landscape=settings.parser.landscape_paper)
                 else:
                     graphics = CairoDrawing(filename,

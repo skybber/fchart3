@@ -26,9 +26,9 @@ from .types import TrajectoryPoint
 def _get_trajectory_time_delta(dt_from: datetime, dt_to: datetime):
     delta = dt_to - dt_from
     if delta.days > 120:
-        return timedelta(days=30), 0
+        return timedelta(days=10), 0
     if delta.days > 30:
-        return timedelta(days=7), 0
+        return timedelta(days=5), 0
     if delta.days > 4:
         return timedelta(days=1), 0
     if delta.days > 2:
