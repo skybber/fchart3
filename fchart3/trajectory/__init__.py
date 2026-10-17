@@ -1,4 +1,4 @@
 from .types import TrajectoryPoint
-from .trajectory import build_trajectory, refine_trajectory, RefinableTrajectory
+from .trajectory import build_trajectory, refine_trajectory, RefinableTrajectory, TrajectoryDrawing
 
-__all__ = ["TrajectoryPoint", "RefinableTrajectory", "build_trajectory", "refine_trajectory"]
+__all__ = ["TrajectoryPoint", "RefinableTrajectory", "TrajectoryDrawing", "build_trajectory", "refine_trajectory"]

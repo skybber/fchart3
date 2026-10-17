@@ -67,6 +67,14 @@ class RefinableTrajectory:
     points: List[TrajectoryPoint]
     times: List[datetime]
     position_at: Callable[[datetime], Tuple[float, float]]
+    name: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class TrajectoryDrawing:
+    """Points ready to draw (refined) plus an optional object name shown at the start."""
+    points: List[TrajectoryPoint]
+    name: Optional[str] = None
 
 
 def _point_segment_distance(px, py, ax, ay, bx, by) -> float:
@@ -167,12 +175,15 @@ def build_trajectory(
     sun=None,
     refinable: bool = False,
     step: Optional[timedelta] = None,
+    magnitude_at: Optional[Callable[[datetime], Optional[float]]] = None,
+    name: Optional[str] = None,
 ) -> Union[List[TrajectoryPoint], RefinableTrajectory, None]:
     """
     Labeled points are placed every `step`; without it the step is chosen from the range length.
 
     With refinable=True the result is a RefinableTrajectory that also ends exactly at dt_to and
     is densified by refine_trajectory() once the chart projection is known.
+    magnitude_at(dt), if given, sets TrajectoryPoint.mag on labeled points.
     """
     if dt_from is None or dt_to is None or dt_from >= dt_to:
         return None
@@ -216,12 +227,20 @@ def build_trajectory(
                 sun_ra = None
                 sun_dec = None
 
+        mag = None
+        if magnitude_at is not None:
+            try:
+                mag = magnitude_at(cur)
+            except Exception:
+                mag = None
+
         points.append(TrajectoryPoint(
             ra=ra_rad,
             dec=dec_rad,
             label=label,
             sun_ra=sun_ra,
             sun_dec=sun_dec,
+            mag=mag,
         ))
         times.append(cur)
 
@@ -235,4 +254,4 @@ def build_trajectory(
         points.append(TrajectoryPoint(ra=ra_rad, dec=dec_rad, label=None, sun_ra=None, sun_dec=None))
         times.append(dt_to)
 
-    return RefinableTrajectory(points, times, position_at)
+    return RefinableTrajectory(points, times, position_at, name)

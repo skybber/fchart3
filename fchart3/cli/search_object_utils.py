@@ -27,6 +27,7 @@ from skyfield.constants import GM_SUN_Pitjeva_2005_km3_s2 as GM_SUN
 
 from .solar_system import get_solsys_bodies, get_planet_moons
 from ..trajectory import build_trajectory
+from ..astro.magnitudes import comet_magnitude_function, minor_planet_magnitude_function
 from ..i18n import install_translator
 
 _ = install_translator()
@@ -473,7 +474,7 @@ def _find_mpc_comet_row(comet_id: str, df):
 
 
 def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to: datetime, mpc_comets_file: str | None, cfg=None,
-                  traj_step: Optional[timedelta] = None):
+                  traj_step: Optional[timedelta] = None, with_magnitude: bool = False):
     """
     Resolve comet by MPC designation, return:
       (name, ra_rad, dec_rad, trajectory_list)
@@ -509,6 +510,16 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
         print(_(f"Failed to compute comet RA/Dec for '{source}': {e}"))
         return None
 
+    # Prefer designation field if present
+    comet_name = source
+    try:
+        if "designation" in row.index:
+            comet_name = str(row["designation"])
+    except Exception:
+        pass
+
+    magnitude_at = comet_magnitude_function(row, skyfield_ts, earth, sun, body) if with_magnitude else None
+
     # Trajectory
     try:
         traj = build_trajectory(
@@ -521,18 +532,13 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
             sun=sun,
             refinable=True,
             step=traj_step,
+            magnitude_at=magnitude_at,
+            name=comet_name,
         )
     except Exception as e:
         print(_(f"Failed to compute comet trajectory for '{source}': {e}"))
         traj = None
 
-    # Prefer designation field if present
-    comet_name = source
-    try:
-        if "designation" in row.index:
-            comet_name = str(row["designation"])
-    except Exception:
-        pass
     trajectories = [traj] if traj is not None else None
     return comet_name, ra_rad, dec_rad, trajectories
 
@@ -617,6 +623,7 @@ def resolve_minor_planet(
     mpc_minor_planets_file: str | None,
     cfg=None,
     traj_step: Optional[timedelta] = None,
+    with_magnitude: bool = False,
 ):
     """
     Resolve minor planet from MPCORB, return:
@@ -656,25 +663,6 @@ def resolve_minor_planet(
         print(_(f"Failed to compute minor planet RA/Dec for '{source}': {e}"))
         return None
 
-    # Trajectory
-    traj = None
-    if traj_from is not None and traj_to is not None:
-        try:
-            traj = build_trajectory(
-                dt_from=traj_from,
-                dt_to=traj_to,
-                ts=skyfield_ts,
-                earth=earth,
-                body=body,
-                is_comet=False,
-                sun=None,
-                refinable=True,
-                step=traj_step,
-            )
-        except Exception as e:
-            print(_(f"Failed to compute minor planet trajectory for '{source}': {e}"))
-            traj = None
-
     # Name: try to pick something user-friendly if available
     mp_name = source
     try:
@@ -686,6 +674,28 @@ def resolve_minor_planet(
                     break
     except Exception:
         pass
+
+    # Trajectory
+    traj = None
+    if traj_from is not None and traj_to is not None:
+        magnitude_at = minor_planet_magnitude_function(row, ts, earth, sun, body) if with_magnitude else None
+        try:
+            traj = build_trajectory(
+                dt_from=traj_from,
+                dt_to=traj_to,
+                ts=skyfield_ts,
+                earth=earth,
+                body=body,
+                is_comet=False,
+                sun=None,
+                refinable=True,
+                step=traj_step,
+                magnitude_at=magnitude_at,
+                name=mp_name,
+            )
+        except Exception as e:
+            print(_(f"Failed to compute minor planet trajectory for '{source}': {e}"))
+            traj = None
 
     trajectories = [traj] if traj is not None else None
     return mp_name, ra_rad, dec_rad, trajectories

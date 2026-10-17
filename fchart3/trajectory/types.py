@@ -29,3 +29,5 @@ class TrajectoryPoint:
     label: Optional[str]
     sun_ra: Optional[float]
     sun_dec: Optional[float]
+    # Apparent magnitude at this point (labeled points only, when requested and known).
+    mag: Optional[float] = None

@@ -24,7 +24,7 @@ from .graphics import *
 from .projections import *
 from .astro.precession import compute_precession_matrix
 from .viewport_transformer import ViewportTransformer
-from .trajectory import RefinableTrajectory, refine_trajectory
+from .trajectory import RefinableTrajectory, TrajectoryDrawing, refine_trajectory
 from .i18n import install_translator
 
 from .renderers import *
@@ -195,7 +195,7 @@ class SkymapEngine:
                 return None
             return x, y
 
-        return [refine_trajectory(t, project, TRAJECTORY_LINE_TOLERANCE_MM)
+        return [TrajectoryDrawing(refine_trajectory(t, project, TRAJECTORY_LINE_TOLERANCE_MM), t.name)
                 if isinstance(t, RefinableTrajectory) else t
                 for t in trajectories]
 

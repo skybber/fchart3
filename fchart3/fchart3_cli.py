@@ -428,6 +428,86 @@ def _ensure_mpc_minor_planets_file(path: str, *, force: bool = False) -> Optiona
         return None
 
 
+def _resolve_moving_object(source, settings, dt_utc, fatal=True):
+    """
+    Resolve a comet, then a minor planet, with its trajectory.
+    Returns (cat, name, ra_rad, dec_rad, trajectories) or None.
+    With fatal=False a missing catalog only prints a warning and returns None.
+    """
+    traj_from = settings.parser.trajectory_from
+    traj_to = settings.parser.trajectory_to
+
+    # Check and delete expired comet elements cache if needed
+    expiration_hrs = cfg.comet_els_expiration_hrs
+    if expiration_hrs is not None and expiration_hrs > 0:
+        _delete_if_expired(settings.parser.mpc_comets_file, expiration_hrs)
+
+    # Ensure CometEls.txt exists locally (download once if needed).
+    comet_file = _ensure_comet_els_file(
+        settings.parser.mpc_comets_file,
+        force=bool(getattr(settings.parser, "update_comets", False)),
+    )
+    if comet_file is None:
+        print(_("Comet elements file is missing and could not be downloaded."))
+        if fatal:
+            sys.exit(-1)
+
+    comet_res = None if comet_file is None else resolve_comet(
+        source,
+        dt_utc=dt_utc,
+        traj_from=traj_from,
+        traj_to=traj_to,
+        mpc_comets_file=comet_file,
+        cfg=cfg,
+        traj_step=settings.parser.trajectory_step,
+        with_magnitude=cfg.show_trajectory_mag,
+    )
+    if comet_res is not None:
+        comet_name, ra_rad, dec_rad, trajectory = comet_res
+        return "COMET", comet_name, ra_rad, dec_rad, trajectory
+
+    mp_file = _ensure_mpc_minor_planets_file(
+        settings.parser.mpc_minor_planets_file,
+        force=bool(getattr(settings.parser, "update_minor_planets", False)),
+    )
+    if mp_file is None:
+        print(_("Minor planet MPCORB file is missing and could not be downloaded."))
+        if fatal:
+            sys.exit(-1)
+        return None
+
+    mp_res = resolve_minor_planet(
+        source,
+        dt_utc=dt_utc,
+        traj_from=traj_from,
+        traj_to=traj_to,
+        mpc_minor_planets_file=mp_file,
+        cfg=cfg,
+        traj_step=settings.parser.trajectory_step,
+        with_magnitude=cfg.show_trajectory_mag,
+    )
+    if mp_res is not None:
+        mp_name, ra_rad, dec_rad, trajectory = mp_res
+        return "AST", mp_name, ra_rad, dec_rad, trajectory
+    return None
+
+
+def _extra_trajectories(settings, dt_utc):
+    """Trajectories of objects given by --add-trajectory (drawn on the same chart)."""
+    result = []
+    for source in settings.parser.add_trajectory or []:
+        try:
+            moving = _resolve_moving_object(source, settings, dt_utc, fatal=False)
+        except Exception as e:
+            print(_("Trajectory object '{}' failed: {}").format(source, e))
+            moving = None
+        if moving is None or not moving[4]:
+            print(_("Trajectory object '{}' not found, skipped.").format(source))
+            continue
+        result.extend(moving[4])
+    return result
+
+
 def _search_sky_object(source, settings):
     parsed_pos = None
     filename = None
@@ -488,59 +568,11 @@ def _search_sky_object(source, settings):
         print(_("Comet target requires -t (observation time)."))
         sys.exit(-1)
 
-    # --- Comet (MPC; needs -t and trajectory window) ---
+    # --- Comet / minor planet (MPC; needs -t and trajectory window) ---
     if parsed_pos is None and traj_from and traj_to:
-        # Check and delete expired comet elements cache if needed
-        expiration_hrs = cfg.comet_els_expiration_hrs
-        if expiration_hrs is not None and expiration_hrs > 0:
-            _delete_if_expired(settings.parser.mpc_comets_file, expiration_hrs)
-
-        # Ensure CometEls.txt exists locally (download once if needed).
-        comet_file = _ensure_comet_els_file(
-            settings.parser.mpc_comets_file,
-            force=bool(getattr(settings.parser, "update_comets", False)),
-        )
-        if comet_file is None:
-            print(_("Comet elements file is missing and could not be downloaded."))
-            sys.exit(-1)
-
-        comet_res = resolve_comet(
-            source,
-            dt_utc=dt_utc,
-            traj_from=traj_from,
-            traj_to=traj_to,
-            mpc_comets_file=comet_file,
-            cfg=cfg,
-            traj_step=settings.parser.trajectory_step,
-        )
-        if comet_res is not None:
-            comet_name, ra_rad, dec_rad, trajectory = comet_res
-            cat = "COMET"
-            name = comet_name
-            parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
-
-    if parsed_pos is None and traj_from and traj_to:
-        mp_file = _ensure_mpc_minor_planets_file(
-            settings.parser.mpc_minor_planets_file,
-            force=bool(getattr(settings.parser, "update_minor_planets", False)),
-        )
-        if mp_file is None:
-            print(_("Minor planet MPCORB file is missing and could not be downloaded."))
-            sys.exit(-1)
-
-        mp_res = resolve_minor_planet(
-            source,
-            dt_utc=dt_utc,
-            traj_from=traj_from,
-            traj_to=traj_to,
-            mpc_minor_planets_file=mp_file,
-            cfg=cfg,
-            traj_step=settings.parser.trajectory_step,
-        )
-        if mp_res is not None:
-            mp_name, ra_rad, dec_rad, trajectory = mp_res
-            cat = "AST"
-            name = mp_name
+        moving = _resolve_moving_object(source, settings, dt_utc)
+        if moving is not None:
+            cat, name, ra_rad, dec_rad, trajectory = moving
             parsed_pos = ParsedPosition(ParsedCoordType.EQUATORIAL, ra_rad, dec_rad)
 
     # --- Simbad query as last resort ---
@@ -857,6 +889,19 @@ class RuntimeSettings:
                                     help='Comet/Minor planet trajectory end time/date (UTC). '
                                          'Examples: 2026-01-09T00:00:00Z or 2026-01-09')
 
+        argumentparser.add_argument('--trajectory-label-style', dest='trajectory_label_style', choices=['normal', 'side'],
+                                    default=None,
+                                    help='Trajectory labels: normal = perpendicular to the curve (default), '
+                                         'side = horizontal next to the points.')
+        argumentparser.add_argument('--trajectory-label-rotate', dest='trajectory_label_rotate', action='store_true',
+                                    default=None,
+                                    help='Rotate normal trajectory labels along the perpendicular (default: horizontal).')
+        argumentparser.add_argument('--trajectory-mag', dest='show_trajectory_mag', action='store_true', default=None,
+                                    help='Add the object magnitude to trajectory labels.')
+        argumentparser.add_argument('--add-trajectory', dest='add_trajectory', action='append', default=None,
+                                    metavar='NAME',
+                                    help='Draw also the trajectory of this comet/minor planet (repeatable). '
+                                         'Requires --trajectory-from/--trajectory-to.')
         argumentparser.add_argument('--trajectory-step', dest='trajectory_step', type=parse_duration, default=None,
                                     help='Time step between labeled trajectory marks, e.g. 7d, 12h, 30m or 1.5d. '
                                          'Default: chosen from the trajectory range length.')
@@ -923,6 +968,9 @@ class RuntimeSettings:
             if traj_range / self.parser.trajectory_step > MAX_TRAJECTORY_LABELS:
                 print(_("Trajectory step is too small: more than {} marks.").format(MAX_TRAJECTORY_LABELS))
                 sys.exit(-1)
+        if self.parser.add_trajectory and self.parser.trajectory_from is None:
+            print(_("--add-trajectory requires --trajectory-from and --trajectory-to."))
+            sys.exit(-1)
         if self.parser.trajectory_from is not None and self.parser.dt is None:
             print(_("Comet target requires -t (observation time) when using trajectory parameters."))
             sys.exit(-1)
@@ -1084,6 +1132,12 @@ def _create_engine_configuration(config_files=None):
         cfg.show_solar_system = settings.parser.show_solar_system
     if settings.parser.show_comet_tail is not None:
         cfg.show_comet_tail = settings.parser.show_comet_tail
+    if settings.parser.show_trajectory_mag is not None:
+        cfg.show_trajectory_mag = settings.parser.show_trajectory_mag
+    if settings.parser.trajectory_label_style is not None:
+        cfg.trajectory_label_style = settings.parser.trajectory_label_style
+    if settings.parser.trajectory_label_rotate is not None:
+        cfg.trajectory_label_rotate = settings.parser.trajectory_label_rotate
 
     if settings.parser.fov_telrad is not None:
         cfg.fov_telrad = settings.parser.fov_telrad
@@ -1462,6 +1516,8 @@ if __name__ == '__main__':
                 else:
                     solsys = None
                     moons = None
+                if settings.parser.add_trajectory:
+                    trajectories = list(trajectories or []) + _extra_trajectories(settings, dt_utc)
                 engine.make_map(used_catalogs, dt_utc, solsys_bodies=solsys, planet_moons=moons, showing_dsos=showing_dsos,
                                 extra_positions=extra_pos, highlights=highlights, landscape=landscape, trajectories=trajectories)
             else:

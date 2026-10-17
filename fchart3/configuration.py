@@ -224,6 +224,11 @@ class EngineConfiguration:
     show_solar_system: bool = False
     star_colors: bool = False
     show_comet_tail: bool = True
+    show_trajectory_mag: bool = False
+    # 'normal': labels perpendicular to the trajectory, 'side': horizontal labels beside points
+    trajectory_label_style: str = "normal"
+    # Rotate 'normal' trajectory labels along the perpendicular (default: horizontal text)
+    trajectory_label_rotate: bool = False
 
     # DSO category colors (you used DEFAULT_DSO_COLOR for these)
     galaxy_cluster_color: Color = DEFAULT_DSO_COLOR

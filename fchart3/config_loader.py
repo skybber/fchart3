@@ -177,12 +177,15 @@ BOOLEAN_ITEMS = [
     # star rendering options
     'star_colors',
     'show_comet_tail',
+    'show_trajectory_mag',
+    'trajectory_label_rotate',
 ]
 
 STRING_ITEMS = [
     'font',
     'output_dir',
     'highlight_style',
+    'trajectory_label_style',
 ]
 
 # Optional strings in EngineConfiguration
