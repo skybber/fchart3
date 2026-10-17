@@ -48,6 +48,13 @@ STAR_LABELS = {
     "ome": "ω"
 }
 
+_SUPERSCRIPT_DIGITS = str.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹")
+
+
+def bayer_label(star) -> str:
+    """Greek letter with the Bayer number as superscript, e.g. π² for 'pi' + '2'."""
+    return STAR_LABELS[star.greek] + (star.greek_no or "").translate(_SUPERSCRIPT_DIGITS)
+
 
 class StarsRenderer(BaseRenderer):
     def draw(self, ctx, state):
@@ -122,7 +129,7 @@ class StarsRenderer(BaseRenderer):
                         else:
                             slabel = bsc_star.greek
                             if slabel:
-                                slabel = STAR_LABELS[slabel] + bsc_star.greek_no
+                                slabel = bayer_label(bsc_star)
                             elif cfg.show_flamsteed:
                                 slabel = bsc_star.flamsteed
                                 if slabel and cfg.flamsteed_numbers_only:
@@ -175,7 +182,7 @@ class StarsRenderer(BaseRenderer):
                             slabel = slabel.split()[0]
                 else:
                     is_greek = True
-                    slabel = STAR_LABELS.get(slabel) + star.greek_no
+                    slabel = bayer_label(star)
                 if slabel:
                     printed_labels = printed.setdefault(star.constellation, set())
                     if slabel not in printed_labels:
@@ -200,7 +207,7 @@ class StarsRenderer(BaseRenderer):
             label = str(mag)
             if bsc_star is not None:
                 if bsc_star.greek:
-                    label += '(' + STAR_LABELS[bsc_star.greek] + bsc_star.greek_no + ' ' + bsc_star.constellation.capitalize() + ')'
+                    label += '(' + bayer_label(bsc_star) + ' ' + bsc_star.constellation.capitalize() + ')'
                 elif bsc_star.flamsteed:
                     label += '(' + str(bsc_star.flamsteed) + ')'
                 elif bsc_star.HD is not None:
