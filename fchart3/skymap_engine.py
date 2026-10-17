@@ -24,11 +24,16 @@ from .graphics import *
 from .projections import *
 from .astro.precession import compute_precession_matrix
 from .viewport_transformer import ViewportTransformer
+from .trajectory import RefinableTrajectory, refine_trajectory
 from .i18n import install_translator
 
 from .renderers import *
 from .widgets import *
 import time
+
+# Max distance (mm on the chart) between a drawn trajectory segment and the true path:
+# 0.5 px at the 100 DPI used for raster output (~0.127 mm).
+TRAJECTORY_LINE_TOLERANCE_MM = 0.2 * 25.4 / 100.0
 
 _ = install_translator()
 
@@ -179,6 +184,21 @@ class SkymapEngine:
             self.center_equatorial = (c_ra, c_dec)
         self.transf.set_grid_observer(lst, lat)
 
+    def _refine_trajectories(self, trajectories):
+        """Densify refinable trajectories so straight segments follow the true path on this chart."""
+        transf = self.transf
+        zoptim = transf.is_zoptim()
+
+        def project(ra, dec):
+            x, y, z = transf.equatorial_to_xyz(ra, dec)
+            if zoptim and z <= 0:
+                return None
+            return x, y
+
+        return [refine_trajectory(t, project, TRAJECTORY_LINE_TOLERANCE_MM)
+                if isinstance(t, RefinableTrajectory) else t
+                for t in trajectories]
+
     def _create_projection(self) -> ProjectionInterface:
         if self.cfg.projection == ProjectionType.ORTHOGRAPHIC:
             return ProjectionOrthographic()
@@ -235,6 +255,11 @@ class SkymapEngine:
             t0 = time.perf_counter()
             self._setup_observer(dt)
             log_timing("setup_observer", t0)
+
+        if trajectories:
+            t0 = time.perf_counter()
+            trajectories = self._refine_trajectories(trajectories)
+            log_timing("refine_trajectories", t0)
 
         self.gfx.set_background_rgb(self.cfg.background_color)
 

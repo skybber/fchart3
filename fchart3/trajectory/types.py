@@ -25,6 +25,7 @@ from typing import Optional
 class TrajectoryPoint:
     ra: float
     dec: float
-    label: str
+    # None marks an intermediate point used only to draw a smooth line (no tick, no label).
+    label: Optional[str]
     sun_ra: Optional[float]
     sun_dec: Optional[float]

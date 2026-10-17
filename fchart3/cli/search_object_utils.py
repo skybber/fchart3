@@ -518,6 +518,7 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
             body=body,
             is_comet=True,
             sun=sun,
+            refinable=True,
         )
     except Exception as e:
         print(_(f"Failed to compute comet trajectory for '{source}': {e}"))
@@ -664,6 +665,7 @@ def resolve_minor_planet(
                 body=body,
                 is_comet=False,
                 sun=None,
+                refinable=True,
             )
         except Exception as e:
             print(_(f"Failed to compute minor planet trajectory for '{source}': {e}"))
