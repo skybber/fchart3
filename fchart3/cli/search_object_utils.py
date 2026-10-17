@@ -20,7 +20,7 @@ import unicodedata
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from skyfield.api import load
 from skyfield.data import mpc
 from skyfield.constants import GM_SUN_Pitjeva_2005_km3_s2 as GM_SUN
@@ -472,7 +472,8 @@ def _find_mpc_comet_row(comet_id: str, df):
 
 
 
-def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to: datetime, mpc_comets_file: str | None, cfg=None):
+def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to: datetime, mpc_comets_file: str | None, cfg=None,
+                  traj_step: Optional[timedelta] = None):
     """
     Resolve comet by MPC designation, return:
       (name, ra_rad, dec_rad, trajectory_list)
@@ -519,6 +520,7 @@ def resolve_comet(source: str, *, dt_utc: datetime, traj_from: datetime, traj_to
             is_comet=True,
             sun=sun,
             refinable=True,
+            step=traj_step,
         )
     except Exception as e:
         print(_(f"Failed to compute comet trajectory for '{source}': {e}"))
@@ -614,6 +616,7 @@ def resolve_minor_planet(
     traj_to: Optional[datetime],
     mpc_minor_planets_file: str | None,
     cfg=None,
+    traj_step: Optional[timedelta] = None,
 ):
     """
     Resolve minor planet from MPCORB, return:
@@ -666,6 +669,7 @@ def resolve_minor_planet(
                 is_comet=False,
                 sun=None,
                 refinable=True,
+                step=traj_step,
             )
         except Exception as e:
             print(_(f"Failed to compute minor planet trajectory for '{source}': {e}"))

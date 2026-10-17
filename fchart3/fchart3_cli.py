@@ -46,8 +46,10 @@ from fchart3.runtime_settings import (
     apply_runtime_config_defaults,
     parse_observation_time,
     parse_time_or_date,
+    parse_duration,
 )
 from fchart3.skymap_engine import SkymapEngine
+from fchart3.trajectory.trajectory import MAX_TRAJECTORY_LABELS
 from fchart3.used_catalogs import UsedCatalogs
 from fchart3.configuration import EngineConfiguration
 from fchart3.graphics.graphics_cairo import CairoDrawing
@@ -66,7 +68,7 @@ from fchart3.cli.search_object_utils import (
 from fchart3.cli.solar_system import get_solsys_bodies, get_planet_moons
 
 from fchart3.projections.projection import ProjectionType
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from skyfield.api import load
 
 skyfield_ts = load.timescale()
@@ -509,6 +511,7 @@ def _search_sky_object(source, settings):
             traj_to=traj_to,
             mpc_comets_file=comet_file,
             cfg=cfg,
+            traj_step=settings.parser.trajectory_step,
         )
         if comet_res is not None:
             comet_name, ra_rad, dec_rad, trajectory = comet_res
@@ -532,6 +535,7 @@ def _search_sky_object(source, settings):
             traj_to=traj_to,
             mpc_minor_planets_file=mp_file,
             cfg=cfg,
+            traj_step=settings.parser.trajectory_step,
         )
         if mp_res is not None:
             mp_name, ra_rad, dec_rad, trajectory = mp_res
@@ -853,6 +857,10 @@ class RuntimeSettings:
                                     help='Comet/Minor planet trajectory end time/date (UTC). '
                                          'Examples: 2026-01-09T00:00:00Z or 2026-01-09')
 
+        argumentparser.add_argument('--trajectory-step', dest='trajectory_step', type=parse_duration, default=None,
+                                    help='Time step between labeled trajectory marks, e.g. 7d, 12h, 30m or 1.5d. '
+                                         'Default: chosen from the trajectory range length.')
+
         argumentparser.add_argument('--mpc-comets-file', dest='mpc_comets_file', default=None,
                                     help='Local MPC comets file. Default: ./CometEls.txt. '
                                          'If missing, it will be downloaded once.')
@@ -910,6 +918,11 @@ class RuntimeSettings:
         if (self.parser.trajectory_from is None) ^ (self.parser.trajectory_to is None):
             print(_("Both --trajectory-from and --trajectory-to must be provided together."))
             sys.exit(-1)
+        if self.parser.trajectory_step is not None and self.parser.trajectory_from is not None:
+            traj_range = min(self.parser.trajectory_to - self.parser.trajectory_from, timedelta(days=365))
+            if traj_range / self.parser.trajectory_step > MAX_TRAJECTORY_LABELS:
+                print(_("Trajectory step is too small: more than {} marks.").format(MAX_TRAJECTORY_LABELS))
+                sys.exit(-1)
         if self.parser.trajectory_from is not None and self.parser.dt is None:
             print(_("Comet target requires -t (observation time) when using trajectory parameters."))
             sys.exit(-1)

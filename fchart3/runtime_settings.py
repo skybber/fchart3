@@ -1,6 +1,7 @@
 import argparse
+import re
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 
@@ -20,6 +21,7 @@ CONFIG_TO_ARG_ATTR = {
     "observation_time": "dt",
     "trajectory_from": "trajectory_from",
     "trajectory_to": "trajectory_to",
+    "trajectory_step": "trajectory_step",
     "mpc_comets_file": "mpc_comets_file",
     "mpc_minor_planets_file": "mpc_minor_planets_file",
 }
@@ -55,6 +57,13 @@ DATETIME_KEYS = {
     "trajectory_from",
     "trajectory_to",
 }
+
+DURATION_KEYS = {
+    "trajectory_step",
+}
+
+_DURATION_RE = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*([dhm])\s*$", re.IGNORECASE)
+_DURATION_UNITS = {"d": "days", "h": "hours", "m": "minutes"}
 
 
 def parse_bool(value_str):
@@ -111,6 +120,19 @@ def parse_time_or_date(value: str) -> datetime:
         ) from e
 
 
+def parse_duration(value: str) -> timedelta:
+    """Parse a positive duration like '7d', '12h', '30m' or '1.5d'."""
+    m = _DURATION_RE.match(value)
+    if m is None:
+        raise argparse.ArgumentTypeError(
+            f"Invalid duration '{value}'. Expected a number with unit d, h or m, e.g. 7d, 12h, 30m."
+        )
+    td = timedelta(**{_DURATION_UNITS[m.group(2).lower()]: float(m.group(1))})
+    if td.total_seconds() <= 0:
+        raise argparse.ArgumentTypeError(f"Duration must be positive: '{value}'.")
+    return td
+
+
 @dataclass(slots=True)
 class RuntimeConfiguration:
     extra_data_dir: Optional[str] = None
@@ -128,6 +150,7 @@ class RuntimeConfiguration:
     observation_time: Optional[datetime] = None
     trajectory_from: Optional[datetime] = None
     trajectory_to: Optional[datetime] = None
+    trajectory_step: Optional[timedelta] = None
     mpc_comets_file: Optional[str] = "CometEls.txt"
     mpc_minor_planets_file: Optional[str] = "MPCORB.9999.DAT"
     cross: list[str] = field(default_factory=list)
@@ -168,6 +191,8 @@ class RuntimeConfigurationLoader:
                         setattr(config, key, parse_observation_time(value))
                     else:
                         setattr(config, key, parse_time_or_date(value))
+                elif key in DURATION_KEYS and hasattr(config, key):
+                    setattr(config, key, parse_duration(value))
             except Exception:
                 continue
 

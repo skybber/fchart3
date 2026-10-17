@@ -40,10 +40,21 @@ def _get_trajectory_time_delta(dt_from: datetime, dt_to: datetime):
     return timedelta(hours=3), 3
 
 
-def _format_trajectory_label(cur: datetime, prev_month: Optional[int]) -> str:
-    if prev_month is None or prev_month != cur.month:
-        return cur.strftime("%d.%m.") if (cur.hour == 0) else cur.strftime("%H:00")
-    return cur.strftime("%d") if (cur.hour == 0) else cur.strftime("%H:00")
+# Upper bound for labeled points of one trajectory (protects against a tiny custom step).
+MAX_TRAJECTORY_LABELS = 400
+
+
+def _format_trajectory_label(cur: datetime, prev: Optional[datetime]) -> str:
+    new_month = prev is None or prev.month != cur.month
+    day = cur.strftime("%d.%m.") if new_month else cur.strftime("%d")
+    if cur.hour == 0 and cur.minute == 0:
+        return day
+    time_str = cur.strftime("%H:%M")
+    # A time on the first point or on a new day would be ambiguous without the day.
+    if prev is None or prev.date() != cur.date():
+        sep = " " if new_month else ". "
+        return day + sep + time_str
+    return time_str
 
 
 @dataclass(frozen=True)
@@ -155,9 +166,10 @@ def build_trajectory(
     is_comet: bool,
     sun=None,
     refinable: bool = False,
+    step: Optional[timedelta] = None,
 ) -> Union[List[TrajectoryPoint], RefinableTrajectory, None]:
     """
-    Labeled points are placed at the regular trajectory step.
+    Labeled points are placed every `step`; without it the step is chosen from the range length.
 
     With refinable=True the result is a RefinableTrajectory that also ends exactly at dt_to and
     is densified by refine_trajectory() once the chart projection is known.
@@ -168,7 +180,12 @@ def build_trajectory(
     if (dt_to - dt_from).days > 365:
         dt_to = dt_from + timedelta(days=365)
 
-    step, _ = _get_trajectory_time_delta(dt_from, dt_to)
+    if step is None:
+        step, _ = _get_trajectory_time_delta(dt_from, dt_to)
+    elif step.total_seconds() <= 0:
+        raise ValueError("Trajectory step must be positive.")
+    elif (dt_to - dt_from) / step > MAX_TRAJECTORY_LABELS:
+        raise ValueError(f"Trajectory step {step} gives more than {MAX_TRAJECTORY_LABELS} labeled points.")
 
     def position_at(dt: datetime):
         ra, dec, _ = earth.at(ts.from_datetime(dt)).observe(body).radec()
@@ -178,13 +195,13 @@ def build_trajectory(
     times: List[datetime] = []
 
     cur = dt_from
-    prev_month = None
+    prev = None
 
     while cur <= dt_to:
         ra_rad, dec_rad = position_at(cur)
 
-        label = _format_trajectory_label(cur, prev_month)
-        prev_month = cur.month
+        label = _format_trajectory_label(cur, prev)
+        prev = cur
 
         sun_ra = None
         sun_dec = None
