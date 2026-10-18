@@ -20,7 +20,7 @@ from __future__ import annotations
 import math
 from datetime import datetime, timedelta
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from .types import TrajectoryPoint
 
@@ -63,11 +63,13 @@ class RefinableTrajectory:
     Labeled trajectory points that can be densified once the chart projection is known.
 
     times[i] is the time of points[i]; position_at(dt) returns (ra, dec) in radians.
+    positions_at(dts), if given, returns (ras, decs) for a list of times in one batched call.
     """
     points: List[TrajectoryPoint]
     times: List[datetime]
     position_at: Callable[[datetime], Tuple[float, float]]
     name: Optional[str] = None
+    positions_at: Optional[Callable[[List[datetime]], Tuple[Sequence[float], Sequence[float]]]] = None
 
 
 @dataclass(frozen=True)
@@ -117,6 +119,11 @@ def refine_trajectory(
     the same edge of it (plus a margin) is not split, because it would be clipped anyway.
     Far outside the chart the projection bends the path strongly, so without bounds such
     intervals use up the evaluation budget.
+
+    Intervals are refined level by level, and the missing check points of one level are
+    computed in one trajectory.positions_at() call when it is available. A scalar ephemeris
+    call costs milliseconds, so a path that needs hundreds of points (e.g. the daily parallax
+    wiggle of a topocentric path near a stationary point on a zoomed chart) would take seconds.
     """
     points, times = trajectory.points, trajectory.times
     if tolerance <= 0.0 or len(times) < 2:
@@ -128,59 +135,71 @@ def refine_trajectory(
         bounds = (bounds[0] - margin, bounds[1] - margin, bounds[2] + margin, bounds[3] + margin)
 
     cache = {dt: (pt.ra, pt.dec, project(pt.ra, pt.dec)) for dt, pt in zip(times, points)}
-    evaluations = 0
-    out: List[TrajectoryPoint] = []
 
-    def position(dt):
-        """Cached position, or None when it is not known and the evaluation budget is used up."""
-        nonlocal evaluations
-        pos = cache.get(dt)
-        if pos is None and evaluations < max_evaluations:
-            evaluations += 1
-            ra, dec = trajectory.position_at(dt)
-            pos = (ra, dec, project(ra, dec))
-            cache[dt] = pos
-        return pos
+    def evaluate(dts):
+        if trajectory.positions_at is not None:
+            ras, decs = trajectory.positions_at(dts)
+        else:
+            ras, decs = zip(*(trajectory.position_at(dt) for dt in dts))
+        for dt, ra, dec in zip(dts, ras, decs):
+            ra, dec = float(ra), float(dec)
+            cache[dt] = (ra, dec, project(ra, dec))
 
-    def add_line_point(dt):
-        ra, dec, _ = cache[dt]
-        out.append(TrajectoryPoint(ra=ra, dec=dec, label=None, sun_ra=None, sun_dec=None))
-
-    def refine(t0, t1, depth):
-        # Halving (not span*k/4) gives children exactly the cached check times of their parent.
+    def check_times(t0, t1):
+        # Halving (not span*k/4) gives children exactly the check times of their parent.
         tm = t0 + (t1 - t0) / 2
-        check_times = (t0 + (tm - t0) / 2, tm, tm + (t1 - tm) / 2)
-        checks = [position(t) for t in check_times]
+        return t0 + (tm - t0) / 2, tm, tm + (t1 - tm) / 2
 
-        if all(c is not None for c in checks):
-            a = cache[t0][2]
-            b = cache[t1][2]
-            projected = [c[2] for c in checks]
-            visible = [p is not None for p in (a, b, *projected)]
-            if not any(visible):
-                return
-            if all(visible) and bounds is not None and _beyond_same_edge((a, b, *projected), bounds):
-                return
-            if all(visible) and all(
-                    _point_segment_distance(q[0], q[1], a[0], a[1], b[0], b[1]) <= tolerance for q in projected):
-                return
+    def is_done(t0, t1, checks):
+        a = cache[t0][2]
+        b = cache[t1][2]
+        projected = [cache[t][2] for t in checks]
+        visible = [p is not None for p in (a, b, *projected)]
+        if not any(visible):
+            return True
+        if not all(visible):
+            return False
+        if bounds is not None and _beyond_same_edge((a, b, *projected), bounds):
+            return True
+        return all(_point_segment_distance(q[0], q[1], a[0], a[1], b[0], b[1]) <= tolerance for q in projected)
+
+    line_times = set()
+    evaluations = 0
+    active = list(zip(times, times[1:]))
+    depth = 0
+    while active:
+        checks = [check_times(t0, t1) for t0, t1 in active]
+        missing = sorted({t for chk in checks for t in chk if t not in cache})
+        if evaluations + len(missing) > max_evaluations:
+            # Budget used up: keep the check points already known, so hidden ones still break the line.
+            for chk in checks:
+                line_times.update(t for t in chk if t in cache)
+            break
+        if missing:
+            evaluate(missing)
+            evaluations += len(missing)
+
+        next_active = []
+        for (t0, t1), chk in zip(active, checks):
+            if is_done(t0, t1, chk):
+                continue
             if depth < max_depth:
-                refine(t0, tm, depth + 1)
-                add_line_point(tm)
-                refine(tm, t1, depth + 1)
-                return
+                tm = chk[1]
+                line_times.add(tm)
+                next_active.append((t0, tm))
+                next_active.append((tm, t1))
+            else:
+                line_times.update(chk)
+        active = next_active
+        depth += 1
 
-        # Stopped by depth or budget: keep the check points already known, in time order,
-        # so hidden ones still break the drawn line.
-        for t in check_times:
-            if t in cache:
-                add_line_point(t)
-
-    out.append(points[0])
-    for i in range(1, len(points)):
-        refine(times[i - 1], times[i], 0)
-        out.append(points[i])
-    return out
+    line_times.difference_update(times)
+    out = list(zip(times, points))
+    for dt in line_times:
+        ra, dec, _ = cache[dt]
+        out.append((dt, TrajectoryPoint(ra=ra, dec=dec, label=None, sun_ra=None, sun_dec=None)))
+    out.sort(key=lambda item: item[0])
+    return [pt for _, pt in out]
 
 
 def build_trajectory(
@@ -220,6 +239,10 @@ def build_trajectory(
     def position_at(dt: datetime):
         ra, dec, _ = earth.at(ts.from_datetime(dt)).observe(body).radec()
         return float(ra.radians), float(dec.radians)
+
+    def positions_at(dts: List[datetime]):
+        ra, dec, _ = earth.at(ts.from_datetimes(dts)).observe(body).radec()
+        return ra.radians, dec.radians
 
     points: List[TrajectoryPoint] = []
     times: List[datetime] = []
@@ -273,4 +296,4 @@ def build_trajectory(
         points.append(TrajectoryPoint(ra=ra_rad, dec=dec_rad, label=None, sun_ra=None, sun_dec=None))
         times.append(dt_to)
 
-    return RefinableTrajectory(points, times, position_at, name)
+    return RefinableTrajectory(points, times, position_at, name, positions_at)
