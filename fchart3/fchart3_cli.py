@@ -812,6 +812,8 @@ class RuntimeSettings:
                                     help='Line width of deep sky objects (default: 0.2)')
         argumentparser.add_argument('--linewidth-milky-way', dest='milky_way_linewidth', nargs='?', action='store', type=float, default=None,
                                     help='Line width of the Milky Way (default: 0.2)')
+        argumentparser.add_argument('--linewidth-trajectory', dest='trajectory_linewidth', nargs='?', action='store', type=float, default=None,
+                                    help='Line width of solar system object trajectories (default: 0.3)')
         argumentparser.add_argument('--linewidth-legend', dest='legend_linewidth', nargs='?', action='store', type=float, default=None,
                                     help='Line width of the legend (default: 0.2)')
         argumentparser.add_argument('--linewidth-grid', dest='grid_linewidth', nargs='?', action='store', type=float, default=None,
@@ -1191,6 +1193,8 @@ def _create_engine_configuration(config_files=None):
         cfg.dso_linewidth = settings.parser.dso_linewidth
     if settings.parser.milky_way_linewidth is not None:
         cfg.milky_way_linewidth = settings.parser.milky_way_linewidth
+    if settings.parser.trajectory_linewidth is not None:
+        cfg.trajectory_linewidth = settings.parser.trajectory_linewidth
     if settings.parser.legend_linewidth is not None:
         cfg.legend_linewidth = settings.parser.legend_linewidth
     if settings.parser.grid_linewidth is not None:

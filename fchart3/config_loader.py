@@ -37,6 +37,7 @@ FLOAT_ITEMS = [
     'horizon_linewidth',
     'highlight_linewidth',
     'milky_way_linewidth',
+    'trajectory_linewidth',
     'telrad_linewidth',
     'eyepiece_linewidth',
 

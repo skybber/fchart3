@@ -187,7 +187,7 @@ class TrajectoryRenderer(BaseRenderer):
             x2, y2, z2 = projected[i]
 
             if i > 0 and (nzopt or (z1 > 0 and z2 > 0)):
-                gfx.set_linewidth(cfg.constellation_linewidth)
+                gfx.set_linewidth(cfg.trajectory_linewidth)
                 gfx.line(x1, y1, x2, y2)
                 if normal_style:
                     if label2:
@@ -515,7 +515,7 @@ class TrajectoryRenderer(BaseRenderer):
         cfg = ctx.cfg
         gfx = ctx.gfx
 
-        gfx.set_linewidth(cfg.constellation_linewidth)
+        gfx.set_linewidth(cfg.trajectory_linewidth)
 
         directions = [
             (pa_tail, 1.0),
