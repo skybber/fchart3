@@ -86,12 +86,20 @@ def _point_segment_distance(px, py, ax, ay, bx, by) -> float:
     return math.hypot(px - (ax + u * dx), py - (ay + u * dy))
 
 
+def _beyond_same_edge(pts, bounds) -> bool:
+    """True when all points lie beyond the same edge of bounds (x1, y1, x2, y2)."""
+    x1, y1, x2, y2 = bounds
+    return (all(p[0] < x1 for p in pts) or all(p[0] > x2 for p in pts)
+            or all(p[1] < y1 for p in pts) or all(p[1] > y2 for p in pts))
+
+
 def refine_trajectory(
     trajectory: RefinableTrajectory,
     project: Callable[[float, float], Optional[Tuple[float, float]]],
     tolerance: float,
     max_depth: int = 12,
     max_evaluations: int = 2000,
+    bounds: Optional[Tuple[float, float, float, float]] = None,
 ) -> List[TrajectoryPoint]:
     """
     Return trajectory points with unlabeled points (label=None) added so the polyline drawn
@@ -105,10 +113,19 @@ def refine_trajectory(
     the renderer breaks the line there. max_evaluations caps new position computations for
     the whole trajectory. When splitting stops at either limit, the check points already computed
     for the interval are kept.
+    bounds (x1, y1, x2, y2) is the visible chart area. An interval whose points all lie beyond
+    the same edge of it (plus a margin) is not split, because it would be clipped anyway.
+    Far outside the chart the projection bends the path strongly, so without bounds such
+    intervals use up the evaluation budget.
     """
     points, times = trajectory.points, trajectory.times
     if tolerance <= 0.0 or len(times) < 2:
         return list(points)
+
+    if bounds is not None:
+        # Margin keeps intervals whose path could bulge into the chart between check points.
+        margin = 0.1 * max(bounds[2] - bounds[0], bounds[3] - bounds[1])
+        bounds = (bounds[0] - margin, bounds[1] - margin, bounds[2] + margin, bounds[3] + margin)
 
     cache = {dt: (pt.ra, pt.dec, project(pt.ra, pt.dec)) for dt, pt in zip(times, points)}
     evaluations = 0
@@ -141,6 +158,8 @@ def refine_trajectory(
             projected = [c[2] for c in checks]
             visible = [p is not None for p in (a, b, *projected)]
             if not any(visible):
+                return
+            if all(visible) and bounds is not None and _beyond_same_edge((a, b, *projected), bounds):
                 return
             if all(visible) and all(
                     _point_segment_distance(q[0], q[1], a[0], a[1], b[0], b[1]) <= tolerance for q in projected):

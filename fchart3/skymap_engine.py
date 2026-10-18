@@ -195,7 +195,8 @@ class SkymapEngine:
                 return None
             return x, y
 
-        return [TrajectoryDrawing(refine_trajectory(t, project, TRAJECTORY_LINE_TOLERANCE_MM), t.name)
+        bounds = self.get_field_rect_mm()
+        return [TrajectoryDrawing(refine_trajectory(t, project, TRAJECTORY_LINE_TOLERANCE_MM, bounds=bounds), t.name)
                 if isinstance(t, RefinableTrajectory) else t
                 for t in trajectories]
 
