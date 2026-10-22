@@ -20,6 +20,7 @@ import math
 
 from ..astro.np_astrocalc import np_rect_to_sphere
 from ..deepsky_object import DsoType
+from ..graphics import DrawMode
 
 from .base_renderer import BaseRenderer, SQRT2
 
@@ -117,7 +118,7 @@ class DeepskyRenderer(BaseRenderer):
                 labelpos_list = self.galaxy_labelpos(ctx, x, y, rlong, rshort, posangle, label_length)
             elif dso.type == DsoType.N:
                 labelpos_list = self.diffuse_nebula_labelpos(ctx, x, y, 2.0*rlong, 2.0*rshort, posangle, label_length)
-            elif dso.type in [DsoType.PN, DsoType.OC, DsoType.GC, DsoType.SNR, DsoType.GALCL]:
+            elif dso.type in [DsoType.PN, DsoType.OC, DsoType.GC, DsoType.SNR, DsoType.GALCL, DsoType.QSO]:
                 labelpos_list = self.circular_object_labelpos(ctx, x, y, rlong, label_length)
             elif dso.type == DsoType.STARS:
                 labelpos_list = self.asterism_labelpos(ctx, x, y, rlong, label_length)
@@ -148,6 +149,8 @@ class DeepskyRenderer(BaseRenderer):
                 self.supernova_remnant(ctx, x, y, rlong, label, label_ext, labelpos)
             elif dso.type == DsoType.GALCL:
                 self.galaxy_cluster(ctx, x, y, rlong, label, label_ext, labelpos)
+            elif dso.type == DsoType.QSO:
+                self.quasar(ctx, x, y, rlong, label, label_mag, label_ext, labelpos)
             else:
                 self.unknown_object(ctx, x, y, rlong, label, label_ext, labelpos)
 
@@ -570,6 +573,31 @@ class DeepskyRenderer(BaseRenderer):
         gfx.line(x+0.75*r, y, x+1.5*r, y)
         gfx.line(x, y+0.75*r, x, y+1.5*r)
         gfx.line(x, y-0.75*r, x, y-1.5*r)
+
+        label_fh = self.set_label_font(ctx, label_ext)
+
+        self.draw_circular_object_label(ctx, x, y, r, label, labelpos, label_fh)
+
+        if label_ext:
+            self.draw_circular_object_label(ctx, x, y, r, label_ext, self.to_ext_labelpos(labelpos), label_fh)
+        if not label_ext and label_mag:
+            gfx.set_font(gfx.gi_font, label_fh*0.8, cfg.dso_label_font_style)
+            self.draw_circular_object_label(ctx, x, y-0.9*label_fh, r, label_mag, labelpos, label_fh)
+
+    def quasar(self, ctx, x, y, radius, label, label_mag, label_ext, labelpos):
+        """ Quasar symbol - diamond with a filled dot in the center, galaxy color """
+        gfx = ctx.gfx
+        cfg = ctx.cfg
+
+        r = radius if radius > 0 else ctx.drawing_width/40.0
+
+        gfx.set_linewidth(cfg.dso_linewidth)
+        gfx.set_solid_line()
+        gfx.set_pen_rgb(cfg.galaxy_color)
+        gfx.set_fill_rgb(cfg.galaxy_color)
+
+        gfx.polygon([(x-r, y), (x, y+r), (x+r, y), (x, y-r)])
+        gfx.circle(x, y, 0.25*r, DrawMode.FILL)
 
         label_fh = self.set_label_font(ctx, label_ext)
 
